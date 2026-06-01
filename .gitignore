@@ -1,0 +1,31 @@
+# See https://www.dartlang.org/tools/pub/pubspec#pubspec-files
+.dart_tool/
+.packages
+build/
+
+# FVM
+.fvm/
+
+# Flutter
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/macos/Pods/
+**/macos/.symlinks/
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+*.iml
+.idea/
+
+# macOS
+.DS_Store
+
+# Coverage
+coverage/
+
+# IDE
+.vscode/
+
+# DO NOT ignore pubspec.lock — it is the source of truth for deterministic builds.
