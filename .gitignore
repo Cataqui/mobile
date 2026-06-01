@@ -28,4 +28,8 @@ coverage/
 # IDE
 .vscode/
 
+# AI
+.opencode
+.ignore
+
 # DO NOT ignore pubspec.lock — it is the source of truth for deterministic builds.

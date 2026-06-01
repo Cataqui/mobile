@@ -6,10 +6,7 @@ final _routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const _HomeScreen(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const _HomeScreen()),
     ],
   );
 });
@@ -42,9 +39,7 @@ class _HomeScreen extends StatelessWidget {
         title: const Text('Cataqui'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: const Center(
-        child: Text('Bem-vindo ao Cataqui'),
-      ),
+      body: const Center(child: Text('Bem-vindo ao Cataqui')),
     );
   }
 }
