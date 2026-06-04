@@ -28,6 +28,12 @@ melos:
       packageFilters:
         dirExists: test
 
+    get:
+      description: Install dependencies for a package
+      run: fvm flutter pub get
+      exec:
+        concurrency: 1
+
     generate_app_icons:
       description: Run app icon generation
       run: melos exec --scope=app -- fvm dart run flutter_launcher_icons

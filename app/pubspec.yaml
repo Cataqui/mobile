@@ -1,4 +1,4 @@
-name: cataqui
+name: cataqui_app
 description: Cataqui is the real-time opportunity layer of the city.
 publish_to: "none"
 resolution: workspace

@@ -1,4 +1,4 @@
-import 'package:cataqui/app.dart';
+import 'package:cataqui_app/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

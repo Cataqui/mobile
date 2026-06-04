@@ -41,7 +41,7 @@ melos test
 melos test --no-select
 
 # Run tests for a specific package
-melos test --scope=cataqui
+melos test --scope=cataqui_app
 melos test --scope=cataqui_core
 
 # Static analysis
