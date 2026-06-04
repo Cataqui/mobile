@@ -25,9 +25,6 @@ build/
 # Coverage
 coverage/
 
-# IDE
-.vscode/
-
 # AI
 .opencode
 .ignore

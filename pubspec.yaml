@@ -1,5 +1,5 @@
 name: cataqui_workspace
-
+publish_to: none
 environment:
   sdk: ">=3.12.0 <4.0.0"
 
@@ -23,6 +23,14 @@ melos:
     test:
       description: Run tests across all packages
       run: fvm flutter test
+      exec:
+        concurrency: 1
+      packageFilters:
+        dirExists: test
+
+    generate_app_icons:
+      description: Run app icon generation
+      run: melos exec --scope=app -- fvm dart run flutter_launcher_icons
 
     codegen:
       description: Run code generation across the workspace

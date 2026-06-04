@@ -42,6 +42,7 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 To maintain absolute structural health across the monorepo, follow these modularization rules:
 
 - **Domain Isolation:** Code within local packages must communicate across boundaries using clean, explicit public APIs. Do not leak internal implementation layers.
+- **Reusable UI Elements (`qui`):** All UI elements that can be reused further must live in a package called `qui`, which stands for Cataquí UI.
 - **Local Dependencies:** Declare cross-package dependencies inside `pubspec.yaml` using exact relative paths:
 
 ```yaml
@@ -92,8 +93,8 @@ Untested business logic is considered broken code.
 
 All testing, analysis, and build routines must run within the **fvm** environment wrapper.
 
-- **Run Tests:** `fvm flutter test`
-- **Analyze Code:** `fvm flutter analyze`
+- **Run Tests:** `melos test` (interactive package selection) or `melos test --no-select` (all packages)
+- **Analyze Code:** `melos analyze`
 
 ### Strict Regression Rule
 
@@ -172,3 +173,4 @@ When executing modifications inside this repository as an AI agent, you must str
 3.  **Dependency Lockdown:** Do not add external third-party pub packages unless explicitly instructed. Lean heavily on native Flutter/Dart capabilities and the repository's existing technical stack.
 4.  **No Silent Contracts:** Never modify, rename, or delete public API boundaries, core Riverpod provider definitions, or common data model interfaces without analyzing downstream impacts across the entire monorepo workspace.
 5.  **Fail Safely:** If a structural change cannot be safely implemented within these parameters, immediately halt execution, document the exact technical roadblock, and explicitly state the architectural trade-offs required to move forward.
+6.  **README Sync:** The `README.md` at the project root is the authoritative source of project requirements (prerequisites, setup, scripts). Whenever you modify tooling, dependencies, setup steps, or any requirement that affects onboarding, you **must** update both `README.md` and `AGENTS.md` to stay in sync.
