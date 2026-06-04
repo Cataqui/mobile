@@ -4,11 +4,12 @@ Cataquí is the real-time opportunity layer of the city: a fast, frictionless, h
 
 ## Prerequisites
 
-| Tool    | Version                  | Install                          |
-| ------- | ------------------------ | -------------------------------- |
-| Flutter | `3.44.0` (via fvm)       | [fvm.dev](https://fvm.dev)       |
-| Dart    | Bundled with Flutter SDK | via fvm                          |
-| melos   | `^7.8.0` (global)        | `dart pub global activate melos` |
+| Tool    | Version                    | Install                          |
+| ------- | -------------------------- | -------------------------------- |
+| Flutter | `3.44.0` (via fvm)         | [fvm.dev](https://fvm.dev)       |
+| Dart    | Bundled with Flutter SDK   | via fvm                          |
+| melos   | `^7.8.0` (global)          | `dart pub global activate melos` |
+| lcov    | `^2.4` (for code coverage) | `brew install lcov`              |
 
 ### PATH setup
 
@@ -34,15 +35,15 @@ fvm dart run build_runner build --workspace --delete-conflicting-outputs
 ## Development
 
 ```bash
-# Run tests (with interactive package selection)
+# Run tests with coverage (full pipeline: clean, test, merge, HTML, open browser)
 melos test
 
-# Run all tests without prompt
-melos test --no-select
-
-# Run tests for a specific package
-melos test --scope=cataqui_app
-melos test --scope=cataqui_core
+# Individual coverage steps:
+melos coverage:clean        # Remove all coverage artifacts
+melos coverage:collect       # Run tests with --coverage
+melos coverage:merge        # Merge all lcov.info files
+melos coverage:html          # Generate HTML report
+melos coverage:open          # Open HTML report in browser
 
 # Static analysis
 melos analyze

@@ -22,12 +22,77 @@ melos:
       run: fvm flutter analyze
 
     test:
-      description: Run tests across all packages
-      run: fvm flutter test
+      description: Run tests with coverage, merge lcov, generate HTML report, and open in browser
+      run: |
+        fvm flutter test --coverage
+        if [ "\$(pwd)" = "$MELOS_ROOT_PATH/packages/qui" ]; then
+          cd "$MELOS_ROOT_PATH"
+          echo ""
+          echo "Merging coverage data..."
+          melos run coverage:merge
+          melos run coverage:html
+          melos run coverage:open
+        fi
       exec:
         concurrency: 1
       packageFilters:
         dirExists: test
+
+    coverage:
+      description: Run full coverage pipeline
+      run: melos run test --no-select
+
+    coverage:clean:
+      description: Remove all previous coverage artifacts
+      run: |
+        rm -rf coverage/
+        rm -rf app/coverage/
+        rm -rf packages/cataqui_core/coverage/
+        rm -rf packages/qui/coverage/
+
+    coverage:collect:
+      description: Run tests with --coverage across all packages
+      run: fvm flutter test --coverage
+      exec:
+        concurrency: 1
+      packageFilters:
+        dirExists: test
+
+    coverage:merge:
+      description: Merge per-package lcov.info files into a single repo-level file
+      run: |
+        mkdir -p coverage
+        args=""
+        if [ -f app/coverage/lcov.info ]; then
+          sed 's|^SF:\(.*\)|SF:app/\1|' app/coverage/lcov.info > /tmp/lcov_app.info
+          args="$args --add-tracefile /tmp/lcov_app.info"
+        fi
+        if [ -f packages/cataqui_core/coverage/lcov.info ]; then
+          sed 's|^SF:\(.*\)|SF:packages/cataqui_core/\1|' packages/cataqui_core/coverage/lcov.info > /tmp/lcov_core.info
+          args="$args --add-tracefile /tmp/lcov_core.info"
+        fi
+        if [ -f packages/qui/coverage/lcov.info ]; then
+          sed 's|^SF:\(.*\)|SF:packages/qui/\1|' packages/qui/coverage/lcov.info > /tmp/lcov_qui.info
+          args="$args --add-tracefile /tmp/lcov_qui.info"
+        fi
+        if [ -n "$args" ]; then
+          lcov $args --output-file coverage/lcov.info --rc branch_coverage=1 --ignore-errors empty
+        else
+          echo "No coverage data found — skipping merge"
+        fi
+        rm -f /tmp/lcov_app.info /tmp/lcov_core.info /tmp/lcov_qui.info
+
+    coverage:html:
+      description: Generate HTML coverage report from merged lcov data
+      run: |
+        genhtml coverage/lcov.info \
+          --output-directory coverage/html \
+          --rc branch_coverage=1 \
+          --title "Cataquí — Code Coverage"
+
+    coverage:open:
+      description: Open the HTML coverage report in the default browser
+      run: open coverage/html/index.html
 
     get:
       description: Install dependencies for a package
