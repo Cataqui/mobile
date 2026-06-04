@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'qui_theme_data.dart';
+import 'qui_typography.dart';
 
 /// Factory for Cataquí-branded [ThemeData] objects.
 ///
@@ -25,7 +26,28 @@ abstract final class QuiTheme {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: quiData.backgroundColor,
+      textTheme: _buildTextTheme(quiData.typography),
       extensions: [quiData],
+    );
+  }
+
+  static TextTheme _buildTextTheme(QuiTypography typography) {
+    return TextTheme(
+      displayLarge: typography.displayLarge,
+      displayMedium: typography.displayMedium,
+      displaySmall: typography.displaySmall,
+      headlineLarge: typography.headlineLarge,
+      headlineMedium: typography.headlineMedium,
+      headlineSmall: typography.headlineSmall,
+      titleLarge: typography.titleLarge,
+      titleMedium: typography.titleMedium,
+      titleSmall: typography.titleSmall,
+      bodyLarge: typography.bodyLarge,
+      bodyMedium: typography.bodyMedium,
+      bodySmall: typography.bodySmall,
+      labelLarge: typography.labelLarge,
+      labelMedium: typography.labelMedium,
+      labelSmall: typography.labelSmall,
     );
   }
 }

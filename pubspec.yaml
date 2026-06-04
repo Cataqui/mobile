@@ -73,3 +73,11 @@ melos:
     codegen:watch:
       description: Watch and regenerate code across the workspace
       run: dart run build_runner watch --workspace --delete-conflicting-outputs
+
+    gen:
+      description: Run code generation for selected packages (interactive)
+      run: dart run build_runner build
+      exec:
+        concurrency: 1
+      packageFilters:
+        depends-on: build_runner
