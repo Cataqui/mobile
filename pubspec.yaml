@@ -6,6 +6,7 @@ environment:
 workspace:
   - app
   - packages/cataqui_core
+  - packages/qui
 
 dev_dependencies:
   build_runner: ^2.15.0

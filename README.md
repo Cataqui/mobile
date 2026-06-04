@@ -60,10 +60,15 @@ Mobile/
 │   ├── test/
 │   └── pubspec.yaml
 ├── packages/
-│   └── cataqui_core/         # Shared domain logic
-│       ├── lib/
-│       ├── test/
-│       └── pubspec.yaml
+│       └── cataqui_core/         # Shared domain logic
+│           ├── lib/
+│           ├── test/
+│           └── pubspec.yaml
+│       └── qui/                  # Reusable UI components
+│           ├── lib/
+│           ├── test/
+│           ├── analysis_options.yaml
+│           └── pubspec.yaml
 ├── pubspec.yaml              # Workspace root
 └── .fvmrc                    # Flutter version pin
 ```
