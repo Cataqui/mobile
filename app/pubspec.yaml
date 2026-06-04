@@ -11,6 +11,8 @@ environment:
 dependencies:
   cataqui_core:
     path: ../packages/cataqui_core
+  qui:
+    path: ../packages/qui
   dio: ^5.9.2
   flutter:
     sdk: flutter
