@@ -93,7 +93,7 @@ Untested business logic is considered broken code.
 
 All testing, analysis, and build routines must run within the **fvm** environment wrapper.
 
-- **Run Tests:** `melos test` — runs tests, collects coverage, merges lcov, generates HTML report, and opens it in the browser
+- **Run Tests:** `melos test` — interactive package selection, runs tests with per-package coverage HTML report
 - **Analyze Code:** `melos analyze`
 
 ### Strict Regression Rule
