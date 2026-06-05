@@ -173,6 +173,8 @@ Follow the monorepo testing protocol from the root `AGENTS.md`:
 - Test the **failure cases** too: null inputs, network errors, empty states, boundary values.
 - Tests must be **deterministic** — no reliance on wall clock, random, or network.
 - Run with `melos test` (or per-package: `fvm flutter test`).
+- All tests must follow the `when, should` naming pattern (e.g.,
+  `when formatCurrency is called with 2500, it should return R$ 2.500,00`).
 
 ### Documentation Tests
 

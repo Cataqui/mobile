@@ -56,6 +56,14 @@ melos:
       packageFilters:
         dirExists: test
 
+    goldens:update:
+      description: Update approved golden files for packages with golden tests
+      run: fvm flutter test --update-goldens
+      exec:
+        concurrency: 1
+      packageFilters:
+        fileExists: dart_test.yaml
+
     get:
       description: Install dependencies for a package
       run: fvm flutter pub get

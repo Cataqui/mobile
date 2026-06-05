@@ -138,6 +138,46 @@ Every individual test block must contain **exactly one** `expect` or assertion c
     });
 ```
 
+### Golden Testing Requirement
+
+Every widget and screen created anywhere in this repository must have golden
+tests covering all visual states (resting, active, error, loading, disabled,
+etc.). Golden tests use the `alchemist` package and serve as the primary
+visual regression guard.
+
+- Use `goldenTest` from `alchemist` — not raw `matchesGoldenFile`.
+- If a package or app does not already have golden-test infrastructure, set it
+  up before adding or changing widgets/screens. Add `alchemist` as a
+  `dev_dependency`, create `test/flutter_test_config.dart`, configure
+  `AlchemistConfig` with the app/package theme, and commit the generated CI
+  goldens.
+- Configure `AlchemistConfig` so package-specific tokens resolve correctly
+  (for example, `qui` uses `QuiTheme.light(primaryColor: ...)`).
+- Each widget or screen must have a dedicated golden test file:
+  `test/widgets/<widget_name>_golden_test.dart` or
+  `test/screens/<screen_name>_golden_test.dart`.
+- Scenarios must cover every distinct visual state the widget or screen can
+  render (e.g., resting, focused, loading, error, disabled, frosted-glass
+  variant).
+- CI goldens (`test/**/goldens/ci/`) are committed to source control.
+  Platform goldens (`test/**/goldens/macos/`, etc.) are gitignored.
+- Run `melos goldens:update` from the repository root to regenerate after
+  intentional visual changes. The script filters to packages with
+  `dart_test.yaml` and prompts for package selection like `melos test`.
+  Review the diff before committing.
+- Golden tests do not replace unit tests for non-visual logic. They
+  complement them.
+
+### Descriptive Naming Convention
+
+All tests (unit, widget, and golden) must use a descriptive `when, should`
+pattern for their descriptions to ensure intent and behavior are immediately
+clear.
+
+- **Format:** `when <condition/action>, it should <expected result>`
+- **Example:** `when tapping the cross icon, it should go into rest mode`
+- Avoid vague descriptions like `renders correctly` or `test login`.
+
 ---
 
 ## 5. Security, Trust, & Safety Safeguards

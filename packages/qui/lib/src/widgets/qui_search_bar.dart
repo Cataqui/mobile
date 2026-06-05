@@ -159,6 +159,7 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
       children: [
         Expanded(
           child: TextField(
+            key: const Key('qui_search_bar_field'),
             controller: _controller,
             focusNode: _focusNode,
             onChanged: widget.onChanged,
@@ -185,6 +186,7 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
           ),
         ),
         GestureDetector(
+          key: const Key('qui_search_bar_icon_button'),
           onTap: _onIconTap,
           behavior: HitTestBehavior.opaque,
           child: Center(

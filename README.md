@@ -49,6 +49,9 @@ melos analyze
 
 # Code generation (workspace-wide)
 melos codegen
+
+# Update approved visual goldens after intentional UI changes
+melos goldens:update
 ```
 
 ## Project Structure

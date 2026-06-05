@@ -25,6 +25,12 @@ build/
 # Coverage
 coverage/
 
+# Golden tests
+**/test/**/goldens/linux/
+**/test/**/goldens/macos/
+**/test/**/goldens/windows/
+**/test/**/failures/
+
 # AI
 .opencode
 .ignore
