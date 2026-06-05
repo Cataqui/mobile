@@ -66,6 +66,10 @@ melos:
       description: Run app icon generation
       run: melos exec --scope=app -- fvm dart run flutter_launcher_icons
 
+    generate_splash:
+      description: Generate native splash screen assets
+      run: melos exec --scope=app -- fvm dart run flutter_native_splash:create
+
     codegen:
       description: Run code generation across the workspace
       run: dart run build_runner build --workspace
