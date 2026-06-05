@@ -5,6 +5,8 @@ import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_data.dart';
 import 'package:qui/src/theme/qui_typography.dart';
 
+const _brandColor = Color(0xFFFF4A4B);
+
 void main() {
   group('FontFamily', () {
     test('inter constant resolves to packages/qui/Inter', () {
@@ -248,29 +250,62 @@ void main() {
 
   group('QuiThemeData', () {
     test('copyWith preserves existing values when no arguments provided', () {
-      const original = QuiThemeData(backgroundColor: Color(0xFFFFFFFF));
+      const original = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
       final result = original.copyWith();
 
       expect(result.backgroundColor, equals(const Color(0xFFFFFFFF)));
     });
 
     test('copyWith replaces backgroundColor when provided', () {
-      const original = QuiThemeData(backgroundColor: Color(0xFFFFFFFF));
+      const original = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
       const black = Color(0xFF000000);
       final result = original.copyWith(backgroundColor: black);
 
       expect(result.backgroundColor, equals(black));
     });
 
+    test('copyWith preserves primaryColor when not provided', () {
+      const original = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
+      final result = original.copyWith();
+
+      expect(result.primaryColor, equals(_brandColor));
+    });
+
+    test('copyWith replaces primaryColor when provided', () {
+      const original = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
+      const custom = Color(0xFF0984E3);
+      final result = original.copyWith(primaryColor: custom);
+
+      expect(result.primaryColor, equals(custom));
+    });
+
     test('copyWith preserves typography when not provided', () {
-      const original = QuiThemeData(backgroundColor: Color(0xFFFFFFFF));
+      const original = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
       final result = original.copyWith();
 
       expect(result.typography, equals(const QuiTypography()));
     });
 
     test('copyWith replaces typography when provided', () {
-      const original = QuiThemeData(backgroundColor: Color(0xFFFFFFFF));
+      const original = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
       const custom = QuiTypography();
       final result = original.copyWith(typography: custom);
 
@@ -278,8 +313,14 @@ void main() {
     });
 
     test('lerp interpolates backgroundColor between two themes', () {
-      const a = QuiThemeData(backgroundColor: Color(0xFFFFFFFF));
-      const b = QuiThemeData(backgroundColor: Color(0xFF000000));
+      const a = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
+      const b = QuiThemeData(
+        backgroundColor: Color(0xFF000000),
+        primaryColor: _brandColor,
+      );
       final result = a.lerp(b, 0.5);
 
       expect(
@@ -288,17 +329,43 @@ void main() {
       );
     });
 
+    test('lerp interpolates primaryColor between two themes', () {
+      const a = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: Color(0xFFFF4A4B),
+      );
+      const b = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: Color(0xFF000000),
+      );
+      final result = a.lerp(b, 0.5);
+
+      expect(result.primaryColor, isNot(equals(a.primaryColor)));
+    });
+
     test('lerp uses source typography when t < 0.5', () {
-      const a = QuiThemeData(backgroundColor: Color(0xFFFFFFFF));
-      const b = QuiThemeData(backgroundColor: Color(0xFF000000));
+      const a = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
+      const b = QuiThemeData(
+        backgroundColor: Color(0xFF000000),
+        primaryColor: _brandColor,
+      );
       final result = a.lerp(b, 0.25);
 
       expect(result.typography, equals(a.typography));
     });
 
     test('lerp uses target typography when t >= 0.5', () {
-      const a = QuiThemeData(backgroundColor: Color(0xFFFFFFFF));
-      const b = QuiThemeData(backgroundColor: Color(0xFF000000));
+      const a = QuiThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        primaryColor: _brandColor,
+      );
+      const b = QuiThemeData(
+        backgroundColor: Color(0xFF000000),
+        primaryColor: _brandColor,
+      );
       final result = a.lerp(b, 0.75);
 
       expect(result.typography, equals(b.typography));
@@ -307,26 +374,38 @@ void main() {
 
   group('QuiTheme', () {
     test('light theme registers QuiThemeData extension', () {
-      final theme = QuiTheme.light();
+      final theme = QuiTheme.light(primaryColor: _brandColor);
       final data = theme.extension<QuiThemeData>();
 
       expect(data, isNotNull);
     });
 
     test('light theme sets scaffoldBackgroundColor to white', () {
-      final theme = QuiTheme.light();
+      final theme = QuiTheme.light(primaryColor: _brandColor);
 
       expect(theme.scaffoldBackgroundColor, equals(const Color(0xFFFFFFFF)));
     });
 
     test('light theme enables Material 3', () {
-      final theme = QuiTheme.light();
+      final theme = QuiTheme.light(primaryColor: _brandColor);
 
       expect(theme.useMaterial3, isTrue);
     });
 
+    test('light theme generates ColorScheme from primaryColor seed', () {
+      final theme = QuiTheme.light(primaryColor: _brandColor);
+
+      expect(theme.colorScheme, isNotNull);
+    });
+
+    test('light theme colorScheme.primary is derived from seedColor', () {
+      final theme = QuiTheme.light(primaryColor: _brandColor);
+
+      expect(theme.colorScheme.primary, isNotNull);
+    });
+
     test('light theme applies Inter font family to textTheme bodyMedium', () {
-      final theme = QuiTheme.light();
+      final theme = QuiTheme.light(primaryColor: _brandColor);
 
       expect(
         theme.textTheme.bodyMedium?.fontFamily,
@@ -335,13 +414,13 @@ void main() {
     });
 
     test('light theme textTheme bodyMedium has w400 weight', () {
-      final theme = QuiTheme.light();
+      final theme = QuiTheme.light(primaryColor: _brandColor);
 
       expect(theme.textTheme.bodyMedium?.fontWeight, equals(FontWeight.w400));
     });
 
     test('light theme applies proportional letter spacing to bodyMedium', () {
-      final theme = QuiTheme.light();
+      final theme = QuiTheme.light(primaryColor: _brandColor);
       const expected = 14 * -0.02;
 
       expect(theme.textTheme.bodyMedium?.letterSpacing, equals(expected));
@@ -354,7 +433,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(),
+          theme: QuiTheme.light(primaryColor: _brandColor),
           home: Builder(
             builder: (context) {
               final data = Theme.of(context).extension<QuiThemeData>();

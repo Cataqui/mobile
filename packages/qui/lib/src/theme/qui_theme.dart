@@ -9,22 +9,32 @@ import 'qui_typography.dart';
 ///
 /// ```dart
 /// MaterialApp(
-///   theme: QuiTheme.light(),
+///   theme: QuiTheme.light(primaryColor: Color(0xFFFF4A4B)),
 ///   home: const HomeScreen(),
 /// )
 /// ```
 abstract final class QuiTheme {
   /// A light theme with Cataquí design tokens.
   ///
-  /// Registers a [QuiThemeData]
-  /// extension so that `context.qui` and
+  /// [primaryColor] is the brand color used as the seed for Material 3's
+  /// generated [ColorScheme]. It drives the color of buttons, FABs,
+  /// switches, chips, and all other M3 components.
+  ///
+  /// Registers a [QuiThemeData] extension so that `context.qui` and
   /// `Theme.of(context).extension<QuiThemeData>()` work in every widget.
-  static ThemeData light() =>
-      _build(const QuiThemeData(backgroundColor: Color(0xFFFFFFFF)));
+  static ThemeData light({required Color primaryColor}) =>
+      _build(QuiThemeData(
+        backgroundColor: const Color(0xFFFFFFFF),
+        primaryColor: primaryColor,
+      ));
 
   static ThemeData _build(QuiThemeData quiData) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: quiData.primaryColor,
+    );
     return ThemeData(
       useMaterial3: true,
+      colorScheme: colorScheme,
       scaffoldBackgroundColor: quiData.backgroundColor,
       textTheme: _buildTextTheme(quiData.typography),
       extensions: [quiData],

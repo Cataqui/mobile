@@ -20,11 +20,17 @@ class QuiThemeData extends ThemeExtension<QuiThemeData> {
   /// Creates a [QuiThemeData] with the given design tokens.
   const QuiThemeData({
     required this.backgroundColor,
+    required this.primaryColor,
     this.typography = const QuiTypography(),
   });
 
   /// The background color used for screens and surfaces.
   final Color backgroundColor;
+
+  /// The brand primary color used as the seed for Material 3's
+  /// [ColorScheme.fromSeed]. Drives the color of buttons, FABs, switches,
+  /// chips, and other M3 components.
+  final Color primaryColor;
 
   /// Cataquí typography tokens (Inter font family, -0.02em letter spacing).
   final QuiTypography typography;
@@ -32,10 +38,12 @@ class QuiThemeData extends ThemeExtension<QuiThemeData> {
   @override
   QuiThemeData copyWith({
     Color? backgroundColor,
+    Color? primaryColor,
     QuiTypography? typography,
   }) {
     return QuiThemeData(
       backgroundColor: backgroundColor ?? this.backgroundColor,
+      primaryColor: primaryColor ?? this.primaryColor,
       typography: typography ?? this.typography,
     );
   }
@@ -45,6 +53,7 @@ class QuiThemeData extends ThemeExtension<QuiThemeData> {
     if (other == null) return this;
     return QuiThemeData(
       backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
+      primaryColor: Color.lerp(primaryColor, other.primaryColor, t)!,
       typography: t < 0.5 ? typography : other.typography,
     );
   }

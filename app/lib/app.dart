@@ -22,7 +22,7 @@ class CataquiApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Cataquí',
       routerConfig: router,
-      theme: QuiTheme.light(),
+      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
     );
   }
 }
@@ -35,7 +35,7 @@ class _HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cataqui'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: const Center(child: Text('Bem-vindo ao Cataqui')),
     );
