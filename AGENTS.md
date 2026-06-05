@@ -32,6 +32,9 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 ### Architecture & Frameworks
 
 - **State Management:** **Riverpod** (preferring code-generation workflows via `@riverpod`).
+- **DTO Code Generation:** The `app` package is configured with **Freezed** and
+  **json_serializable** for immutable API DTOs and type-safe JSON conversion.
+  Run `melos gen:all` after adding or changing generated DTOs.
 - **Networking Layer:** **Dio** (configured with explicit interceptors for standardized error handling and clean timeout controls).
 - **Local Persistence:** High-performance local cache engine (e.g., Isar/Hive) used for offline-first geographic feed continuity.
 

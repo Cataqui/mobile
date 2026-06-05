@@ -31,6 +31,10 @@ fvm flutter pub get
 fvm dart run build_runner build --workspace --delete-conflicting-outputs
 ```
 
+The `app` package is configured for DTO code generation with Freezed and
+json_serializable. Add DTOs with `freezed_annotation` and `json_annotation`
+imports, then regenerate with `melos gen:all`.
+
 ## Development
 
 ```bash
@@ -48,7 +52,7 @@ melos coverage:collect       # Run tests with --coverage (no HTML)
 melos analyze
 
 # Code generation (workspace-wide)
-melos codegen
+melos gen:all
 
 # Update approved visual goldens after intentional UI changes
 melos goldens:update

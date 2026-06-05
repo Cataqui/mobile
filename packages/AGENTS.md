@@ -248,7 +248,7 @@ Before publishing to `pub.dev`, replace `path:` dependencies with proper version
 
 - `melos analyze` — static analysis across all packages
 - `melos test` — run all package tests
-- `melos codegen` — regenerate code-gen outputs (if applicable)
+- `melos gen:all` — regenerate code-gen outputs across all packages (if applicable)
 
 Always use `melos` for cross-package operations, not ad-hoc scripts.
 
