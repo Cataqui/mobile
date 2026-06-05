@@ -78,6 +78,10 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 - Prefer Dart `enum` structures over arbitrary `const` objects or magic strings for state variations, domain constants, and error codes. Use switches over enums to guarantee compile-time exhaustiveness.
 
+### Constants Local to Widgets
+
+- Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
+
 ### Component Architecture (UI Layer)
 
 - **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility `ConsumerWidget` or `HookConsumerWidget` components.

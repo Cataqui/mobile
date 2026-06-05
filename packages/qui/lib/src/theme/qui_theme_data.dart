@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'qui_colors.dart';
 import 'qui_typography.dart';
 
 /// Cataquí design tokens registered as a [ThemeExtension].
@@ -12,38 +13,30 @@ import 'qui_typography.dart';
 ///
 /// ```dart
 /// Container(
-///   color: context.qui.backgroundColor,
+///   color: context.qui.colors.searchBarBackground,
 /// )
 /// ```
 @immutable
 class QuiThemeData extends ThemeExtension<QuiThemeData> {
   /// Creates a [QuiThemeData] with the given design tokens.
   const QuiThemeData({
-    required this.backgroundColor,
-    required this.primaryColor,
+    required this.colors,
     this.typography = const QuiTypography(),
   });
 
-  /// The background color used for screens and surfaces.
-  final Color backgroundColor;
-
-  /// The brand primary color used as the seed for Material 3's
-  /// [ColorScheme.fromSeed]. Drives the color of buttons, FABs, switches,
-  /// chips, and other M3 components.
-  final Color primaryColor;
+  /// Cataquí semantic color tokens.
+  final QuiColors colors;
 
   /// Cataquí typography tokens (Inter font family, -0.02em letter spacing).
   final QuiTypography typography;
 
   @override
   QuiThemeData copyWith({
-    Color? backgroundColor,
-    Color? primaryColor,
+    QuiColors? colors,
     QuiTypography? typography,
   }) {
     return QuiThemeData(
-      backgroundColor: backgroundColor ?? this.backgroundColor,
-      primaryColor: primaryColor ?? this.primaryColor,
+      colors: colors ?? this.colors,
       typography: typography ?? this.typography,
     );
   }
@@ -52,8 +45,7 @@ class QuiThemeData extends ThemeExtension<QuiThemeData> {
   QuiThemeData lerp(covariant QuiThemeData? other, double t) {
     if (other == null) return this;
     return QuiThemeData(
-      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
-      primaryColor: Color.lerp(primaryColor, other.primaryColor, t)!,
+      colors: QuiColors.lerp(colors, other.colors, t),
       typography: t < 0.5 ? typography : other.typography,
     );
   }

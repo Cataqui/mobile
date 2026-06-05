@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/gen/fonts.gen.dart';
+import 'package:qui/src/theme/qui_colors.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_data.dart';
 import 'package:qui/src/theme/qui_typography.dart';
@@ -249,123 +250,79 @@ void main() {
   });
 
   group('QuiThemeData', () {
-    test('copyWith preserves existing values when no arguments provided', () {
-      const original = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
+    QuiThemeData _themeData({
+      Color primary = _brandColor,
+      QuiTypography? typography,
+    }) {
+      return QuiThemeData(
+        colors: QuiColors.light(primary: primary),
+        typography: typography ?? const QuiTypography(),
       );
+    }
+
+    test('copyWith preserves colors when no arguments provided', () {
+      final original = _themeData();
       final result = original.copyWith();
 
-      expect(result.backgroundColor, equals(const Color(0xFFFFFFFF)));
+      expect(result.colors, equals(original.colors));
     });
 
-    test('copyWith replaces backgroundColor when provided', () {
-      const original = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
-      const black = Color(0xFF000000);
-      final result = original.copyWith(backgroundColor: black);
+    test('copyWith replaces colors when provided', () {
+      final original = _themeData();
+      const custom = QuiColors.light(primary: Color(0xFF0984E3));
+      final result = original.copyWith(colors: custom);
 
-      expect(result.backgroundColor, equals(black));
-    });
-
-    test('copyWith preserves primaryColor when not provided', () {
-      const original = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
-      final result = original.copyWith();
-
-      expect(result.primaryColor, equals(_brandColor));
-    });
-
-    test('copyWith replaces primaryColor when provided', () {
-      const original = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
-      const custom = Color(0xFF0984E3);
-      final result = original.copyWith(primaryColor: custom);
-
-      expect(result.primaryColor, equals(custom));
+      expect(result.colors, equals(custom));
     });
 
     test('copyWith preserves typography when not provided', () {
-      const original = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
+      final original = _themeData();
       final result = original.copyWith();
 
       expect(result.typography, equals(const QuiTypography()));
     });
 
     test('copyWith replaces typography when provided', () {
-      const original = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
+      final original = _themeData();
       const custom = QuiTypography();
       final result = original.copyWith(typography: custom);
 
       expect(result.typography, equals(custom));
     });
 
-    test('lerp interpolates backgroundColor between two themes', () {
-      const a = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
-      const b = QuiThemeData(
-        backgroundColor: Color(0xFF000000),
-        primaryColor: _brandColor,
-      );
-      final result = a.lerp(b, 0.5);
+    test('lerp interpolates background between two themes', () {
+      final a = _themeData();
+      final b = _themeData();
+      // Override background by copying colors
+      final bColors = b.colors.copyWith(background: const Color(0xFF000000));
+      final bAlt = b.copyWith(colors: bColors);
+      final result = a.lerp(bAlt, 0.5);
 
       expect(
-        result.backgroundColor,
+        result.colors.background,
         equals(const Color.from(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)),
       );
     });
 
     test('lerp interpolates primaryColor between two themes', () {
-      const a = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: Color(0xFFFF4A4B),
-      );
-      const b = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: Color(0xFF000000),
-      );
+      final a = _themeData();
+      final b = _themeData(primary: const Color(0xFF000000));
       final result = a.lerp(b, 0.5);
 
-      expect(result.primaryColor, isNot(equals(a.primaryColor)));
+      expect(result.colors.primary, isNot(equals(a.colors.primary)));
     });
 
     test('lerp uses source typography when t < 0.5', () {
-      const a = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
-      const b = QuiThemeData(
-        backgroundColor: Color(0xFF000000),
-        primaryColor: _brandColor,
-      );
+      final a = _themeData();
+      final b = _themeData();
       final result = a.lerp(b, 0.25);
 
       expect(result.typography, equals(a.typography));
     });
 
     test('lerp uses target typography when t >= 0.5', () {
-      const a = QuiThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-        primaryColor: _brandColor,
-      );
-      const b = QuiThemeData(
-        backgroundColor: Color(0xFF000000),
-        primaryColor: _brandColor,
-      );
+      final a = _themeData();
+      final b = _themeData();
       final result = a.lerp(b, 0.75);
 
       expect(result.typography, equals(b.typography));

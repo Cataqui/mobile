@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'qui_colors.dart';
 import 'qui_theme_data.dart';
 import 'qui_typography.dart';
 
@@ -24,18 +25,17 @@ abstract final class QuiTheme {
   /// `Theme.of(context).extension<QuiThemeData>()` work in every widget.
   static ThemeData light({required Color primaryColor}) =>
       _build(QuiThemeData(
-        backgroundColor: const Color(0xFFFFFFFF),
-        primaryColor: primaryColor,
+        colors: QuiColors.light(primary: primaryColor),
       ));
 
   static ThemeData _build(QuiThemeData quiData) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: quiData.primaryColor,
+      seedColor: quiData.colors.primary,
     );
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: quiData.backgroundColor,
+      scaffoldBackgroundColor: quiData.colors.background,
       textTheme: _buildTextTheme(quiData.typography),
       extensions: [quiData],
     );
