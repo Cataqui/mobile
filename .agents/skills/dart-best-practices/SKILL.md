@@ -9,19 +9,23 @@ license: Apache-2.0
 # Dart Best Practices
 
 ## 1. When to use this skill
+
 Use this skill when:
--   Writing or reviewing Dart code.
--   Looking for guidance on idiomatic Dart usage.
+
+- Writing or reviewing Dart code.
+- Looking for guidance on idiomatic Dart usage.
 
 ## 2. Best Practices
 
 ### Multi-line Strings
+
 Prefer using multi-line strings (`'''`) over concatenating strings with `+` and
 `\n`, especially for large blocks of text like SQL queries, HTML, or
 PEM-encoded keys. This improves readability and avoids
-`lines_longer_than_80_chars` lint errors by allowing natural line breaks.
+line length lint errors by allowing natural line breaks.
 
 **Avoid:**
+
 ```dart
 final pem = '-----BEGIN RSA PRIVATE KEY-----\n' +
     base64Encode(fullBytes) +
@@ -29,6 +33,7 @@ final pem = '-----BEGIN RSA PRIVATE KEY-----\n' +
 ```
 
 **Prefer:**
+
 ```dart
 final pem = '''
 -----BEGIN RSA PRIVATE KEY-----
@@ -37,24 +42,29 @@ ${base64Encode(fullBytes)}
 ```
 
 ### Line Length
-Avoid lines longer than 80 characters, even in Markdown files and comments.
-This ensures code is readable in split-screen views and on smaller screens
-without horizontal scrolling.
+
+Avoid lines longer than 120 characters, even in Markdown files and comments.
+This matches the repository formatter width while keeping code readable in
+split-screen views and on smaller screens without horizontal scrolling.
 
 **Prefer:**
-Target 80 characters for wrapping text. Exceptions are allowed for long URLs
+Target 120 characters for wrapping text. Exceptions are allowed for long URLs
 or identifiers that cannot be broken.
 
 ## Discovery
 
 ### Multi-line Strings
+
 To find candidates for multi-line strings, search for string concatenation
 with `+` involving newlines:
+
 - **Regex**: `['"]\s*\+\s*['"]`
 - **Regex**: `\+\s*['"].*\\n`
 
 ### Line Length
-- Rely on the `lines_longer_than_80_chars` lint from the analyzer.
+
+- Rely on the repository `formatter.page_width` setting from the analyzer
+  options.
 
 ## Related Skills
 

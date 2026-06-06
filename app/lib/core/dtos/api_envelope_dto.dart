@@ -14,8 +14,6 @@ abstract class ApiEnvelopeDto<T> with _$ApiEnvelopeDto<T> {
     ApiPaginationDto? pagination,
   }) = _ApiEnvelopeDto<T>;
 
-  factory ApiEnvelopeDto.fromJson(
-    Map<String, Object?> json,
-    T Function(Object?) fromJsonT,
-  ) => _$ApiEnvelopeDtoFromJson(json, fromJsonT);
+  factory ApiEnvelopeDto.fromJson(Map<String, Object?> json, T Function(Object?) fromJsonT) =>
+      _$ApiEnvelopeDtoFromJson(json, fromJsonT);
 }

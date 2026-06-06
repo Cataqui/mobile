@@ -36,6 +36,9 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 ### Architecture & Frameworks
 
 - **State Management:** **Riverpod** (preferring code-generation workflows via `@riverpod`).
+- **Provider Placement:** Every app-level Riverpod provider must be declared in
+  `app/lib/core/providers.dart`. Do not declare providers alongside
+  repositories, DTOs, widgets, or feature files.
 - **DTO Code Generation:** The `app` package is configured with **Freezed** and
   **json_serializable** for immutable API DTOs and type-safe JSON conversion.
   Run `melos gen:all` after adding or changing generated DTOs. Generated
@@ -113,6 +116,11 @@ All testing, analysis, and build routines must run within the **fvm** environmen
 ### Strict Regression Rule
 
 Every bug fix must include a corresponding regression test. The test must accurately simulate and reproduce the failure state prior to the implementation of the fix, and pass completely afterward.
+
+### Shared Test Mocks
+
+- Use `mocktail` for shared test mocks, stubs, and verifications. App-level
+  reusable mocks must live in `app/test/mocks.dart`.
 
 ### One Assertion Per Test Case
 
