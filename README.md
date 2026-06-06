@@ -4,11 +4,11 @@ Cataquí is the real-time opportunity layer of the city: a fast, frictionless, h
 
 ## Prerequisites
 
-| Tool    | Version                    | Install                          |
-| ------- | -------------------------- | -------------------------------- |
-| Flutter | `3.44.0` (via fvm)         | [fvm.dev](https://fvm.dev)       |
-| Dart    | Bundled with Flutter SDK   | via fvm                          |
-| melos   | `^7.8.0` (global)          | `dart pub global activate melos` |
+| Tool    | Version                  | Install                          |
+| ------- | ------------------------ | -------------------------------- |
+| Flutter | `3.44.0` (via fvm)       | [fvm.dev](https://fvm.dev)       |
+| Dart    | Bundled with Flutter SDK | via fvm                          |
+| melos   | `^7.8.0` (global)        | `dart pub global activate melos` |
 
 ### PATH setup
 
@@ -33,7 +33,8 @@ fvm dart run build_runner build --workspace --delete-conflicting-outputs
 
 The `app` package is configured for DTO code generation with Freezed and
 json_serializable. Add DTOs with `freezed_annotation` and `json_annotation`
-imports, then regenerate with `melos gen:all`.
+imports, then regenerate with `melos gen:all`. Generated `.freezed.dart` and
+`.g.dart` files under `app/lib/core/dtos/` are gitignored.
 
 ## Development
 
