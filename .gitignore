@@ -34,16 +34,6 @@ coverage/
 **/test/**/goldens/windows/
 **/test/**/failures/
 
-# Generated DTO files
-app/lib/core/dtos/**/*.freezed.dart
-app/lib/core/dtos/**/*.g.dart
-
-# Generated Providers
-app/lib/core/providers.g.dart
-
-# Generated environment files
-app/lib/core/config/env.g.dart
-
 # AI
 .opencode
 .ignore

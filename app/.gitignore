@@ -43,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated DTO files
+lib/core/dtos/**/*.freezed.dart
+lib/core/dtos/**/*.g.dart
+
+# Generated Providers
+lib/core/providers.g.dart
+
+# Generated environment files
+lib/core/config/env.g.dart
+
+# Generated View Models
+lib/views/**/*_view_model.g.dart

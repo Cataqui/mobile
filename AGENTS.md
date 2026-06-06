@@ -38,7 +38,9 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 - **State Management:** **Riverpod** (preferring code-generation workflows via `@riverpod`).
 - **Provider Placement:** Every app-level Riverpod provider must be declared in
   `app/lib/core/providers.dart`. Do not declare providers alongside
-  repositories, DTOs, widgets, or feature files.
+  repositories, DTOs, widgets, or feature files. Feature view models are the
+  exception: view models and their generated Riverpod providers must live at
+  the same level as their view for easier finding and management.
 - **DTO Code Generation:** The `app` package is configured with **Freezed** and
   **json_serializable** for immutable API DTOs and type-safe JSON conversion.
   Run `melos gen:all` after adding or changing generated DTOs. Generated
