@@ -1,6 +1,6 @@
 import 'package:envied/envied.dart';
 
-part 'app_env.g.dart';
+part 'env.g.dart';
 
 @Envied(
   path: '.env',
@@ -8,10 +8,10 @@ part 'app_env.g.dart';
   obfuscate: true,
   requireEnvFile: true,
 )
-abstract final class AppEnv {
+abstract final class Env {
   @EnviedField()
-  static final String environment = _AppEnv.environment;
+  static final String environment = _Env.environment;
 
   @EnviedField()
-  static final String cataquiApiUrl = _AppEnv.cataquiApiUrl;
+  static final String cataquiApiUrl = _Env.cataquiApiUrl;
 }

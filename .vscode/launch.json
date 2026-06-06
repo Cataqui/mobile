@@ -2,11 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "App",
+            "name": "App (Debug)",
             "program": "app/lib/main.dart",
             "preLaunchTask": "codegen",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "flutterMode": "debug"
+        },
+        {
+            "name": "App (Release)",
+            "program": "app/lib/main.dart",
+            "preLaunchTask": "codegen",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
         }
     ]
 }
