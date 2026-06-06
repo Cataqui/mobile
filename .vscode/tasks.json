@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "codegen",
+            "type": "shell",
+            "command": "fvm",
+            "args": [
+                "dart",
+                "run",
+                "build_runner",
+                "build",
+                "--workspace",
+                "--delete-conflicting-outputs"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

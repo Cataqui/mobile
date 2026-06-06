@@ -2,8 +2,9 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "App (Development)",
+            "name": "App",
             "program": "app/lib/main.dart",
+            "preLaunchTask": "codegen",
             "request": "launch",
             "type": "dart"
         }

@@ -27,9 +27,16 @@ fvm install
 # Install dependencies
 fvm flutter pub get
 
+# Configure local environment variables
+cp .env.example .env
+
 # Run code generation
 fvm dart run build_runner build --workspace --delete-conflicting-outputs
 ```
+
+Before running the app, set the local environment variables in `.env`. Use `.env.example` as the committed template.
+
+Regenerate code after changing environment values so [Envied](https://pub.dev/packages/envied) can refresh the generated Dart config.
 
 The `app` package is configured for DTO code generation with Freezed and
 json_serializable. Add DTOs with `freezed_annotation` and `json_annotation`

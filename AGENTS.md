@@ -28,6 +28,10 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 - **Flutter Version Management:** Managed exclusively via **fvm** (`https://fvm.dev/`). Do **NOT** use global untracked Flutter installations.
 - **Determinism Rule:** The `pubspec.lock` file is the absolute source of truth for dependencies. **Never** add `pubspec.lock` to `.gitignore`. It must be committed on every dependency alteration to guarantee identical builds across all agent environments and the CI pipeline.
 - **SDK Constraints:** Always respect the minimum Flutter/Dart SDK constraints declared in `pubspec.yaml`.
+- **Environment Variables:** Keep local runtime configuration in the root
+  `.env` file, using `.env.example` as the committed template. The app reads
+  `ENVIRONMENT` and `CATAQUI_API_URL` through Envied-generated Dart code.
+  Regenerate code after changing `.env` values.
 
 ### Architecture & Frameworks
 
