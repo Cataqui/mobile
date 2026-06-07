@@ -237,6 +237,228 @@ void main() {
     });
   });
 
+  group('QuiSwipeList controller', () {
+    testWidgets('when controller.dismiss is called, it should advance to the next item', (tester) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller);
+      final dismissFuture = controller.dismiss();
+      await tester.pumpAndSettle();
+      await dismissFuture;
+
+      expect(_currentCardLabel(tester), 'second');
+    });
+
+    testWidgets('when controller.dismiss is called, it should call onDismiss with the current item', (tester) async {
+      final controller = QuiSwipeListController();
+      final dismissLogs = <_ItemLog<String>>[];
+
+      await _pumpSwipeList(
+        tester,
+        controller: controller,
+        onDismiss: (item, index) => dismissLogs.add((item: item, index: index)),
+      );
+      final dismissFuture = controller.dismiss();
+      await tester.pumpAndSettle();
+      await dismissFuture;
+
+      expect(dismissLogs.single.item, 'first');
+    });
+
+    testWidgets('when controller.dismiss is called, it should call onDismiss with the current index', (tester) async {
+      final controller = QuiSwipeListController();
+      final dismissLogs = <_ItemLog<String>>[];
+
+      await _pumpSwipeList(
+        tester,
+        controller: controller,
+        onDismiss: (item, index) => dismissLogs.add((item: item, index: index)),
+      );
+      final dismissFuture = controller.dismiss();
+      await tester.pumpAndSettle();
+      await dismissFuture;
+
+      expect(dismissLogs.single.index, 0);
+    });
+
+    testWidgets('when controller.dismiss is called on the final item, it should render endBuilder', (tester) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller, items: const ['first']);
+      final dismissFuture = controller.dismiss();
+      await tester.pumpAndSettle();
+      await dismissFuture;
+
+      expect(find.byKey(_endKey), findsOneWidget);
+    });
+
+    testWidgets('when controller.dismiss is called with no current item, it should return false', (tester) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller, items: const []);
+      final result = await controller.dismiss();
+
+      expect(result, isFalse);
+    });
+
+    testWidgets('when controller.dismiss is called while detached, it should return false', (tester) async {
+      final controller = QuiSwipeListController();
+
+      final result = await controller.dismiss();
+
+      expect(result, isFalse);
+    });
+
+    testWidgets('when controller.dismiss is called, it should report dismiss progress during animation', (
+      tester,
+    ) async {
+      final controller = QuiSwipeListController();
+      final progressLogs = <_ProgressLog>[];
+
+      await _pumpSwipeList(
+        tester,
+        controller: controller,
+        onSwipeProgress: ({required action, required percentage}) {
+          progressLogs.add((action: action, percentage: percentage));
+        },
+      );
+      final dismissFuture = controller.dismiss();
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.pump(const Duration(milliseconds: 120));
+
+      expect(progressLogs.map((log) => log.percentage), contains(predicate<double>((value) => value > 0.45)));
+
+      await tester.pumpAndSettle();
+      await dismissFuture;
+    });
+
+    testWidgets('when reduced motion is enabled, controller.dismiss should advance immediately', (tester) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller, disableAnimations: true);
+      await controller.dismiss();
+      await tester.pump();
+
+      expect(_currentCardLabel(tester), 'second');
+    });
+
+    testWidgets('when controller.accept is called, it should call onAccept', (tester) async {
+      final controller = QuiSwipeListController();
+      final acceptLogs = <_ItemLog<String>>[];
+
+      await _pumpSwipeList(
+        tester,
+        controller: controller,
+        onAccept: (item, index) => acceptLogs.add((item: item, index: index)),
+      );
+      await controller.accept();
+
+      expect(acceptLogs.single.item, 'first');
+    });
+
+    testWidgets('when controller.accept is called, it should keep the same current item', (tester) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller);
+      await controller.accept();
+      await tester.pumpAndSettle();
+
+      expect(_currentCardLabel(tester), 'first');
+    });
+
+    testWidgets('when controller.accept is called, it should return true', (tester) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller);
+      final result = await controller.accept();
+
+      expect(result, isTrue);
+    });
+
+    testWidgets('when controller.accept is called with no current item, it should return false', (tester) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller, items: const []);
+      final result = await controller.accept();
+
+      expect(result, isFalse);
+    });
+
+    testWidgets('when controller.accept is called while detached, it should return false', (tester) async {
+      final controller = QuiSwipeListController();
+
+      final result = await controller.accept();
+
+      expect(result, isFalse);
+    });
+
+    testWidgets('when controller.accept is called, it should not call onDismiss', (tester) async {
+      final controller = QuiSwipeListController();
+      final dismissLogs = <_ItemLog<String>>[];
+
+      await _pumpSwipeList(
+        tester,
+        controller: controller,
+        onDismiss: (item, index) => dismissLogs.add((item: item, index: index)),
+      );
+      await controller.accept();
+
+      expect(dismissLogs, isEmpty);
+    });
+
+    testWidgets('when controller.accept is called, it should not emit swipe progress', (tester) async {
+      final controller = QuiSwipeListController();
+      final progressLogs = <_ProgressLog>[];
+
+      await _pumpSwipeList(
+        tester,
+        controller: controller,
+        onSwipeProgress: ({required action, required percentage}) {
+          progressLogs.add((action: action, percentage: percentage));
+        },
+      );
+      await controller.accept();
+
+      expect(progressLogs, isEmpty);
+    });
+
+    testWidgets('when a controller action is already running, it should return false for a second action', (
+      tester,
+    ) async {
+      final controller = QuiSwipeListController();
+
+      await _pumpSwipeList(tester, controller: controller);
+      final dismissFuture = controller.dismiss();
+      await tester.pump();
+      final result = await controller.dismiss();
+
+      expect(result, isFalse);
+
+      await tester.pumpAndSettle();
+      await dismissFuture;
+    });
+
+    testWidgets('when the widget swaps controllers, it should detach the old one and use the new one', (tester) async {
+      final firstController = QuiSwipeListController();
+      final secondController = QuiSwipeListController();
+
+      await tester.pumpWidget(
+        _ControllerSwapHost(firstController: firstController, secondController: secondController),
+      );
+      await tester.tap(find.byKey(_swapControllerButtonKey));
+      await tester.pumpAndSettle();
+      final oldResult = await firstController.accept();
+      final newResultFuture = secondController.dismiss();
+      await tester.pumpAndSettle();
+      final newResult = await newResultFuture;
+
+      expect(
+        (oldResult: oldResult, newResult: newResult, label: _currentCardLabel(tester)),
+        (oldResult: false, newResult: true, label: 'second'),
+      );
+    });
+  });
+
   group('QuiSwipeList swipe progress', () {
     testWidgets('when dragging left, it should report QuiSwipeListAction.dismiss', (tester) async {
       final progressLogs = <_ProgressLog>[];
@@ -786,6 +1008,7 @@ const _shrinkButtonKey = Key('shrink_button');
 const _replaceButtonKey = Key('replace_button');
 const _hideButtonKey = Key('hide_button');
 const _appendButtonKey = Key('append_button');
+const _swapControllerButtonKey = Key('swap_controller_button');
 const _loadingKey = Key('qui_swipe_list_loading');
 const _loadMoreErrorKey = Key('qui_swipe_list_load_more_error');
 const _loadMoreRetryKey = Key('qui_swipe_list_load_more_retry');
@@ -804,6 +1027,7 @@ Future<void> _pumpSwipeList(
   double acceptThreshold = 0.35,
   double loadMoreThreshold = 1,
   double maxRotation = 0.18,
+  QuiSwipeListController? controller,
   void Function({required QuiSwipeListAction action, required double percentage})? onSwipeProgress,
   QuiSwipeListItemCallback<String>? onDismiss,
   QuiSwipeListItemCallback<String>? onAccept,
@@ -822,6 +1046,7 @@ Future<void> _pumpSwipeList(
         acceptThreshold: acceptThreshold,
         loadMoreThreshold: loadMoreThreshold,
         maxRotation: maxRotation,
+        controller: controller,
         onSwipeProgress: onSwipeProgress,
         onDismiss: onDismiss,
         onAccept: onAccept,
@@ -944,6 +1169,44 @@ class _TestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(key: _cardKey(label), alignment: Alignment.center, color: Colors.white, child: Text(label));
+  }
+}
+
+class _ControllerSwapHost extends StatefulWidget {
+  const _ControllerSwapHost({required this.firstController, required this.secondController});
+
+  final QuiSwipeListController firstController;
+  final QuiSwipeListController secondController;
+
+  @override
+  State<_ControllerSwapHost> createState() => _ControllerSwapHostState();
+}
+
+class _ControllerSwapHostState extends State<_ControllerSwapHost> {
+  var _useSecondController = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return _HarnessApp(
+      child: Column(
+        children: [
+          TextButton(
+            key: _swapControllerButtonKey,
+            onPressed: () => setState(() => _useSecondController = true),
+            child: const Text('swap controller'),
+          ),
+          Expanded(
+            child: QuiSwipeList<String>(
+              controller: _useSecondController ? widget.secondController : widget.firstController,
+              itemCount: 2,
+              itemProvider: (index) => const ['first', 'second'][index],
+              endBuilder: _endBuilder,
+              builder: _defaultCardBuilder,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

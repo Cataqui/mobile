@@ -1,3 +1,5 @@
+library;
+
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -6,32 +8,9 @@ import 'package:flutter/widget_previews.dart';
 
 import 'package:qui/src/theme/qui_theme.dart';
 
-/// Directional swipe action emitted by [QuiSwipeList].
-enum QuiSwipeListAction {
-  /// Left swipe that dismisses the current item and advances to the next one.
-  dismiss,
-
-  /// Right swipe that accepts the current item without advancing the list.
-  accept,
-}
-
-/// Called when a [QuiSwipeList] item completes an action.
-typedef QuiSwipeListItemCallback<T> = void Function(T item, int index);
-
-/// Lazily provides the item at [index] for a [QuiSwipeList].
-typedef QuiSwipeListItemProvider<T> = T Function(int index);
-
-/// Builds the widget for a [QuiSwipeList] item.
-typedef QuiSwipeListItemBuilder<T> = Widget Function(BuildContext context, T item, int index);
-
-/// Called as the [QuiSwipeList] swipe position changes.
-typedef QuiSwipeListProgressCallback = void Function({required QuiSwipeListAction action, required double percentage});
-
-/// Called when [QuiSwipeList] needs more items.
-typedef QuiSwipeListLoadMoreCallback = Future<void> Function();
-
-/// Builds the load-more error card shown by [QuiSwipeList].
-typedef QuiSwipeListLoadMoreErrorBuilder = Widget Function(BuildContext context, VoidCallback retry);
+part 'qui_swipe_list_action.dart';
+part 'qui_swipe_list_controller.dart';
+part 'qui_swipe_list_types.dart';
 
 /// A generic Tinder-style swipe list for arbitrary item widgets.
 ///
@@ -45,6 +24,7 @@ class QuiSwipeList<T> extends StatefulWidget {
     required this.itemProvider,
     required this.builder,
     super.key,
+    this.controller,
     this.loadingMoreBuilder,
     this.buildLoadMoreError,
     this.endBuilder,
@@ -81,6 +61,9 @@ class QuiSwipeList<T> extends StatefulWidget {
 
   /// Builds each item widget.
   final QuiSwipeListItemBuilder<T> builder;
+
+  /// Controls this swipe list from parent code.
+  final QuiSwipeListController? controller;
 
   /// Builds the loading card shown while more items are loading.
   final WidgetBuilder? loadingMoreBuilder;
@@ -122,7 +105,9 @@ class QuiSwipeList<T> extends StatefulWidget {
   State<QuiSwipeList<T>> createState() => _QuiSwipeListState<T>();
 }
 
-class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProviderStateMixin {
+class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
+    with SingleTickerProviderStateMixin
+    implements _QuiSwipeListControllerClient {
   static const _settleDuration = Duration(milliseconds: 260);
   static const _dismissDuration = Duration(milliseconds: 220);
 
@@ -136,6 +121,7 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProv
   double _lastKnownWidth = 1;
   bool _isLoadingMore = false;
   bool _isLoadMoreScheduled = false;
+  bool _isControllerActionRunning = false;
 
   bool get _hasCurrentItem => _currentIndex < widget.itemCount;
   bool get _hasLoadMoreError => widget.buildLoadMoreError != null;
@@ -145,11 +131,17 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProv
     super.initState();
     _animationController = AnimationController(vsync: this, duration: _settleDuration)
       ..addListener(_syncAnimatedPosition);
+    widget.controller?._attach(this);
   }
 
   @override
   void didUpdateWidget(covariant QuiSwipeList<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (!identical(oldWidget.controller, widget.controller)) {
+      oldWidget.controller?._detach(this);
+      widget.controller?._attach(this);
+    }
 
     if (_currentIndex > widget.itemCount) {
       _currentIndex = widget.itemCount;
@@ -163,6 +155,8 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProv
 
   @override
   void dispose() {
+    widget.controller?._detach(this);
+
     _animationController
       ..removeListener(_syncAnimatedPosition)
       ..dispose();
@@ -178,14 +172,19 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProv
   }
 
   void _onPanStart(DragStartDetails details) {
+    if (_isControllerActionRunning) return;
+
     _animationController.stop();
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
+    if (_isControllerActionRunning) return;
+
     _setDragOffset(_dragOffset + details.delta);
   }
 
   Future<void> _onPanEnd(DragEndDetails details) async {
+    if (_isControllerActionRunning) return;
     if (!_hasCurrentItem) return;
 
     final item = widget.itemProvider(_currentIndex);
@@ -193,17 +192,7 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProv
     final horizontalPercentage = _horizontalPercentage(_dragOffset.dx);
 
     if (_dragOffset.dx < 0 && horizontalPercentage >= widget.dismissThreshold) {
-      await _dismissCurrentItem();
-
-      if (!mounted) return;
-
-      setState(() {
-        _currentIndex += 1;
-        _dragOffset = Offset.zero;
-      });
-
-      widget.onDismiss?.call(item, itemIndex);
-      _scheduleLoadMoreIfNeeded();
+      await _completeDismiss(item: item, itemIndex: itemIndex);
       return;
     }
 
@@ -222,6 +211,20 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProv
     final endY = _dragOffset.dy + _dragOffset.dy.sign * 24;
 
     return _animateTo(Offset(endX, endY), duration: _dismissDuration, curve: Curves.easeIn);
+  }
+
+  Future<void> _completeDismiss({required T item, required int itemIndex}) async {
+    await _dismissCurrentItem();
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentIndex += 1;
+      _dragOffset = Offset.zero;
+    });
+
+    widget.onDismiss?.call(item, itemIndex);
+    _scheduleLoadMoreIfNeeded();
   }
 
   Future<void> _animateTo(Offset target, {required Duration duration, Curve curve = Curves.easeOutCubic}) {
@@ -321,6 +324,46 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>> with SingleTickerProv
         _exhaustedItemCount = itemCountBeforeLoad;
       }
     });
+  }
+
+  @override
+  Future<bool> dismissFromController() async {
+    if (_isControllerActionRunning || !_hasCurrentItem) return false;
+
+    final item = widget.itemProvider(_currentIndex);
+    final itemIndex = _currentIndex;
+
+    _animationController.stop();
+    _isControllerActionRunning = true;
+
+    try {
+      await _completeDismiss(item: item, itemIndex: itemIndex);
+    } finally {
+      if (mounted) {
+        _isControllerActionRunning = false;
+      }
+    }
+
+    return mounted;
+  }
+
+  @override
+  Future<bool> acceptFromController() {
+    if (_isControllerActionRunning || !_hasCurrentItem) return Future<bool>.value(false);
+
+    final item = widget.itemProvider(_currentIndex);
+    final itemIndex = _currentIndex;
+
+    _animationController.stop();
+    _isControllerActionRunning = true;
+
+    try {
+      widget.onAccept?.call(item, itemIndex);
+    } finally {
+      _isControllerActionRunning = false;
+    }
+
+    return Future<bool>.value(true);
   }
 
   @override
