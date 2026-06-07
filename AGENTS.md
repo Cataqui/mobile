@@ -101,6 +101,7 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 - **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility `ConsumerWidget` or `HookConsumerWidget` components.
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
+- **Widget Method Ordering:** In Flutter widget classes, place standalone helper methods above `build`. Helper methods whose purpose is to build widget subtrees may stay below `build`.
 
 ---
 

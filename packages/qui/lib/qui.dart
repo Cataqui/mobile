@@ -7,3 +7,13 @@ export 'src/theme/qui_theme_context.dart' show QuiThemeContext;
 export 'src/theme/qui_theme_data.dart' show QuiThemeData;
 export 'src/theme/qui_typography.dart' show QuiTypography;
 export 'src/widgets/qui_search_bar.dart' show QuiSearchBar;
+export 'src/widgets/qui_swipe_list.dart'
+    show
+        QuiSwipeList,
+        QuiSwipeListAction,
+        QuiSwipeListItemBuilder,
+        QuiSwipeListItemCallback,
+        QuiSwipeListItemProvider,
+        QuiSwipeListLoadMoreCallback,
+        QuiSwipeListLoadMoreErrorBuilder,
+        QuiSwipeListProgressCallback;
