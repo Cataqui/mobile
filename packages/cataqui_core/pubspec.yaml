@@ -5,9 +5,11 @@ resolution: workspace
 environment:
   sdk: ">=3.12.0 <4.0.0"
 
-dev_dependencies:
+dependencies:
   flutter:
     sdk: flutter
+
+dev_dependencies:
   flutter_test:
     sdk: flutter
   very_good_analysis: ^7.0.0

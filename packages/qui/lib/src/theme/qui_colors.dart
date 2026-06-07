@@ -28,6 +28,8 @@ class QuiColors {
     required this.textPrimary,
     required this.textSecondary,
     required this.placeholder,
+    required this.disabledButtonBackground,
+    required this.disabledButtonForeground,
     required this.searchBarBackground,
     required this.searchBarPlaceholder,
     required this.frostedGlassBackground,
@@ -60,6 +62,12 @@ class QuiColors {
   /// component does **not** have a dedicated placeholder token.
   final Color placeholder;
 
+  /// Background color used by disabled filled buttons.
+  final Color disabledButtonBackground;
+
+  /// Recommended foreground color used by disabled filled buttons.
+  final Color disabledButtonForeground;
+
   /// The background color of the search bar in its resting (non-frosted)
   /// state.
   final Color searchBarBackground;
@@ -85,6 +93,8 @@ class QuiColors {
           textPrimary == other.textPrimary &&
           textSecondary == other.textSecondary &&
           placeholder == other.placeholder &&
+          disabledButtonBackground == other.disabledButtonBackground &&
+          disabledButtonForeground == other.disabledButtonForeground &&
           searchBarBackground == other.searchBarBackground &&
           searchBarPlaceholder == other.searchBarPlaceholder &&
           frostedGlassBackground == other.frostedGlassBackground &&
@@ -98,6 +108,8 @@ class QuiColors {
     textPrimary,
     textSecondary,
     placeholder,
+    disabledButtonBackground,
+    disabledButtonForeground,
     searchBarBackground,
     searchBarPlaceholder,
     frostedGlassBackground,
@@ -112,6 +124,8 @@ class QuiColors {
     Color? textPrimary,
     Color? textSecondary,
     Color? placeholder,
+    Color? disabledButtonBackground,
+    Color? disabledButtonForeground,
     Color? searchBarBackground,
     Color? searchBarPlaceholder,
     Color? frostedGlassBackground,
@@ -124,10 +138,11 @@ class QuiColors {
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       placeholder: placeholder ?? this.placeholder,
+      disabledButtonBackground: disabledButtonBackground ?? this.disabledButtonBackground,
+      disabledButtonForeground: disabledButtonForeground ?? this.disabledButtonForeground,
       searchBarBackground: searchBarBackground ?? this.searchBarBackground,
       searchBarPlaceholder: searchBarPlaceholder ?? this.searchBarPlaceholder,
-      frostedGlassBackground:
-          frostedGlassBackground ?? this.frostedGlassBackground,
+      frostedGlassBackground: frostedGlassBackground ?? this.frostedGlassBackground,
       frostedGlassBorder: frostedGlassBorder ?? this.frostedGlassBorder,
     );
   }
@@ -144,26 +159,12 @@ class QuiColors {
       textPrimary: Color.lerp(a.textPrimary, b.textPrimary, t)!,
       textSecondary: Color.lerp(a.textSecondary, b.textSecondary, t)!,
       placeholder: Color.lerp(a.placeholder, b.placeholder, t)!,
-      searchBarBackground: Color.lerp(
-        a.searchBarBackground,
-        b.searchBarBackground,
-        t,
-      )!,
-      searchBarPlaceholder: Color.lerp(
-        a.searchBarPlaceholder,
-        b.searchBarPlaceholder,
-        t,
-      )!,
-      frostedGlassBackground: Color.lerp(
-        a.frostedGlassBackground,
-        b.frostedGlassBackground,
-        t,
-      )!,
-      frostedGlassBorder: Color.lerp(
-        a.frostedGlassBorder,
-        b.frostedGlassBorder,
-        t,
-      )!,
+      disabledButtonBackground: Color.lerp(a.disabledButtonBackground, b.disabledButtonBackground, t)!,
+      disabledButtonForeground: Color.lerp(a.disabledButtonForeground, b.disabledButtonForeground, t)!,
+      searchBarBackground: Color.lerp(a.searchBarBackground, b.searchBarBackground, t)!,
+      searchBarPlaceholder: Color.lerp(a.searchBarPlaceholder, b.searchBarPlaceholder, t)!,
+      frostedGlassBackground: Color.lerp(a.frostedGlassBackground, b.frostedGlassBackground, t)!,
+      frostedGlassBorder: Color.lerp(a.frostedGlassBorder, b.frostedGlassBorder, t)!,
     );
   }
 }
@@ -176,6 +177,8 @@ class _LightQuiColors extends QuiColors {
         textPrimary: const Color(0xFF1A1A1A),
         textSecondary: const Color(0xFF757575),
         placeholder: const Color(0xFF9E9E9E),
+        disabledButtonBackground: const Color(0xFFE1E1E1),
+        disabledButtonForeground: const Color(0xFF8E8E8E),
         searchBarBackground: const Color(0xFFFAFAFA),
         searchBarPlaceholder: const Color(0xFF9E9E9E),
         frostedGlassBackground: const Color(0x4DFFFFFF),

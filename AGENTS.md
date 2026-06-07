@@ -94,6 +94,11 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 - Prefer Dart `enum` structures over arbitrary `const` objects or magic strings for state variations, domain constants, and error codes. Use switches over enums to guarantee compile-time exhaustiveness.
 - Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `qui_text_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
 
+### Types & Callback Aliases
+
+- Reusable typedefs and public callback/function types must live in a dedicated
+  `*_types.dart` file for their widget, component, or feature owner.
+
 ### Constants Local to Widgets
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
@@ -120,6 +125,13 @@ All testing, analysis, and build routines must run within the **fvm** environmen
 ### Strict Regression Rule
 
 Every bug fix must include a corresponding regression test. The test must accurately simulate and reproduce the failure state prior to the implementation of the fix, and pass completely afterward.
+
+### Dedicated Test Files
+
+Each source file must have its own dedicated test file. Do not collect unrelated
+coverage in shared catch-all test files; place tests in a path that mirrors the
+source owner, for example `lib/src/extensions/color_extension.dart` maps to
+`test/extensions/color_extension_test.dart`.
 
 ### Shared Test Mocks
 

@@ -3,6 +3,7 @@ import 'package:flutter/widget_previews.dart';
 
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
+import 'package:qui/src/widgets/qui_tap_animation.dart';
 
 part 'qui_text_button_enums.dart';
 
@@ -54,50 +55,12 @@ class QuiTextButton extends StatefulWidget {
 }
 
 class _QuiTextButtonState extends State<QuiTextButton> {
-  static const _pressedOpacity = 0.2;
-  static const _pressedScale = 0.94;
-  static const _pressInDuration = Duration(milliseconds: 400);
-  static const _releaseDuration = Duration(milliseconds: 800);
-
-  bool _isPressed = false;
   bool get _isEnabled => widget.onPressed != null;
-
-  @override
-  void didUpdateWidget(covariant QuiTextButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (!_isEnabled && _isPressed) _isPressed = false;
-  }
-
-  void _handleTapDown(TapDownDetails details) {
-    if (!_isEnabled) return;
-    _setPressed(true);
-  }
-
-  void _handleTapUp(TapUpDetails details) {
-    if (!_isEnabled) return;
-
-    _setPressed(false);
-    widget.onPressed?.call();
-  }
-
-  void _handleTapCancel() {
-    if (!_isEnabled) return;
-    _setPressed(false);
-  }
-
-  void _setPressed(bool isPressed) {
-    if (_isPressed == isPressed) return;
-    setState(() => _isPressed = isPressed);
-  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.qui.colors;
     final resolvedColor = _isEnabled ? widget.color ?? colors.textPrimary : colors.placeholder;
-    final disableAnimations = MediaQuery.disableAnimationsOf(context);
-    final shouldShowPressedState = _isEnabled && _isPressed && !disableAnimations;
-    final animationDuration = shouldShowPressedState ? _pressInDuration : _releaseDuration;
 
     Widget content = Text(widget.text, style: context.qui.typography.labelLarge.copyWith(color: resolvedColor));
 
@@ -131,26 +94,7 @@ class _QuiTextButtonState extends State<QuiTextButton> {
       button: true,
       enabled: _isEnabled,
       onTap: _isEnabled ? widget.onPressed : null,
-      child: MouseRegion(
-        cursor: _isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-        child: GestureDetector(
-          onTapDown: _isEnabled ? _handleTapDown : null,
-          onTapUp: _isEnabled ? _handleTapUp : null,
-          onTapCancel: _isEnabled ? _handleTapCancel : null,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedScale(
-            duration: disableAnimations ? Duration.zero : animationDuration,
-            curve: shouldShowPressedState ? Curves.easeOutCubic : Curves.easeOutBack,
-            scale: shouldShowPressedState ? _pressedScale : 1,
-            child: AnimatedOpacity(
-              duration: disableAnimations ? Duration.zero : animationDuration,
-              curve: Curves.easeOutCubic,
-              opacity: shouldShowPressedState ? _pressedOpacity : 1,
-              child: content,
-            ),
-          ),
-        ),
-      ),
+      child: QuiTapAnimation(onPressed: widget.onPressed, animation: QuiTapAnimationType.scaleFade, child: content),
     );
   }
 

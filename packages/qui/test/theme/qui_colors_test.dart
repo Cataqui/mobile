@@ -11,6 +11,8 @@ const _lerpA = QuiColors(
   textPrimary: Color(0xFF1A1A1A),
   textSecondary: Color(0xFF757575),
   placeholder: Color(0xFF9E9E9E),
+  disabledButtonBackground: Color(0xFFE1E1E1),
+  disabledButtonForeground: Color(0xFF8E8E8E),
   searchBarBackground: Color(0xFFFAFAFA),
   searchBarPlaceholder: Color(0xFF9E9E9E),
   frostedGlassBackground: Color(0x4DFFFFFF),
@@ -24,6 +26,8 @@ const _lerpB = QuiColors(
   textPrimary: Color(0xFF000000),
   textSecondary: Color(0xFF000000),
   placeholder: Color(0xFF000000),
+  disabledButtonBackground: Color(0xFF000000),
+  disabledButtonForeground: Color(0xFF000000),
   searchBarBackground: Color(0xFF000000),
   searchBarPlaceholder: Color(0xFF000000),
   frostedGlassBackground: Color(0xFF000000),
@@ -60,32 +64,28 @@ void main() {
       expect(_lightColors.placeholder, equals(const Color(0xFF9E9E9E)));
     });
 
+    test('when light colors are created, it should set disabled button background to light gray', () {
+      expect(_lightColors.disabledButtonBackground, equals(const Color(0xFFE1E1E1)));
+    });
+
+    test('when light colors are created, it should set disabled button foreground to medium gray', () {
+      expect(_lightColors.disabledButtonForeground, equals(const Color(0xFF8E8E8E)));
+    });
+
     test('light() sets searchBarBackground to off-white', () {
-      expect(
-        _lightColors.searchBarBackground,
-        equals(const Color(0xFFFAFAFA)),
-      );
+      expect(_lightColors.searchBarBackground, equals(const Color(0xFFFAFAFA)));
     });
 
     test('light() sets searchBarPlaceholder to light gray', () {
-      expect(
-        _lightColors.searchBarPlaceholder,
-        equals(const Color(0xFF9E9E9E)),
-      );
+      expect(_lightColors.searchBarPlaceholder, equals(const Color(0xFF9E9E9E)));
     });
 
     test('light() sets frostedGlassBackground to semi-transparent white', () {
-      expect(
-        _lightColors.frostedGlassBackground,
-        equals(const Color(0x4DFFFFFF)),
-      );
+      expect(_lightColors.frostedGlassBackground, equals(const Color(0x4DFFFFFF)));
     });
 
     test('light() sets frostedGlassBorder to light gray', () {
-      expect(
-        _lightColors.frostedGlassBorder,
-        equals(const Color(0xFFE0E0E0)),
-      );
+      expect(_lightColors.frostedGlassBorder, equals(const Color(0xFFE0E0E0)));
     });
 
     test('light(primary:) overrides primary color', () {
@@ -103,6 +103,8 @@ void main() {
         textPrimary: Color(0xFF1A1A1A),
         textSecondary: Color(0xFF757575),
         placeholder: Color(0xFF9E9E9E),
+        disabledButtonBackground: Color(0xFFE1E1E1),
+        disabledButtonForeground: Color(0xFF8E8E8E),
         searchBarBackground: Color(0xFFFAFAFA),
         searchBarPlaceholder: Color(0xFF9E9E9E),
         frostedGlassBackground: Color(0x4DFFFFFF),
@@ -164,6 +166,20 @@ void main() {
       expect(result.placeholder, equals(custom));
     });
 
+    test('when copyWith receives disabled button background, it should replace disabled button background', () {
+      const custom = Color(0xFFDDDDDD);
+      final result = _lightColors.copyWith(disabledButtonBackground: custom);
+
+      expect(result.disabledButtonBackground, equals(custom));
+    });
+
+    test('when copyWith receives disabled button foreground, it should replace disabled button foreground', () {
+      const custom = Color(0xFF888888);
+      final result = _lightColors.copyWith(disabledButtonForeground: custom);
+
+      expect(result.disabledButtonForeground, equals(custom));
+    });
+
     test('copyWith replaces searchBarBackground when provided', () {
       const custom = Color(0xFFF0F0F0);
       final result = _lightColors.copyWith(searchBarBackground: custom);
@@ -211,54 +227,54 @@ void main() {
     test('lerp interpolates primary at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
-      expect(
-        result.primary,
-        equals(Color.lerp(_lerpA.primary, _lerpB.primary, 0.5)),
-      );
+      expect(result.primary, equals(Color.lerp(_lerpA.primary, _lerpB.primary, 0.5)));
     });
 
     test('lerp interpolates background at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
-      expect(
-        result.background,
-        equals(Color.lerp(_lerpA.background, _lerpB.background, 0.5)),
-      );
+      expect(result.background, equals(Color.lerp(_lerpA.background, _lerpB.background, 0.5)));
     });
 
     test('lerp interpolates surface at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
-      expect(
-        result.surface,
-        equals(Color.lerp(_lerpA.surface, _lerpB.surface, 0.5)),
-      );
+      expect(result.surface, equals(Color.lerp(_lerpA.surface, _lerpB.surface, 0.5)));
     });
 
     test('lerp interpolates textPrimary at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
-      expect(
-        result.textPrimary,
-        equals(Color.lerp(_lerpA.textPrimary, _lerpB.textPrimary, 0.5)),
-      );
+      expect(result.textPrimary, equals(Color.lerp(_lerpA.textPrimary, _lerpB.textPrimary, 0.5)));
     });
 
     test('lerp interpolates textSecondary at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
-      expect(
-        result.textSecondary,
-        equals(Color.lerp(_lerpA.textSecondary, _lerpB.textSecondary, 0.5)),
-      );
+      expect(result.textSecondary, equals(Color.lerp(_lerpA.textSecondary, _lerpB.textSecondary, 0.5)));
     });
 
     test('lerp interpolates placeholder at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
+      expect(result.placeholder, equals(Color.lerp(_lerpA.placeholder, _lerpB.placeholder, 0.5)));
+    });
+
+    test('when lerping at t=0.5, it should interpolate disabled button background', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
       expect(
-        result.placeholder,
-        equals(Color.lerp(_lerpA.placeholder, _lerpB.placeholder, 0.5)),
+        result.disabledButtonBackground,
+        equals(Color.lerp(_lerpA.disabledButtonBackground, _lerpB.disabledButtonBackground, 0.5)),
+      );
+    });
+
+    test('when lerping at t=0.5, it should interpolate disabled button foreground', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(
+        result.disabledButtonForeground,
+        equals(Color.lerp(_lerpA.disabledButtonForeground, _lerpB.disabledButtonForeground, 0.5)),
       );
     });
 
@@ -267,13 +283,7 @@ void main() {
 
       expect(
         result.searchBarBackground,
-        equals(
-          Color.lerp(
-            _lerpA.searchBarBackground,
-            _lerpB.searchBarBackground,
-            0.5,
-          ),
-        ),
+        equals(Color.lerp(_lerpA.searchBarBackground, _lerpB.searchBarBackground, 0.5)),
       );
     });
 
@@ -282,13 +292,7 @@ void main() {
 
       expect(
         result.searchBarPlaceholder,
-        equals(
-          Color.lerp(
-            _lerpA.searchBarPlaceholder,
-            _lerpB.searchBarPlaceholder,
-            0.5,
-          ),
-        ),
+        equals(Color.lerp(_lerpA.searchBarPlaceholder, _lerpB.searchBarPlaceholder, 0.5)),
       );
     });
 
@@ -297,29 +301,14 @@ void main() {
 
       expect(
         result.frostedGlassBackground,
-        equals(
-          Color.lerp(
-            _lerpA.frostedGlassBackground,
-            _lerpB.frostedGlassBackground,
-            0.5,
-          ),
-        ),
+        equals(Color.lerp(_lerpA.frostedGlassBackground, _lerpB.frostedGlassBackground, 0.5)),
       );
     });
 
     test('lerp interpolates frostedGlassBorder at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
-      expect(
-        result.frostedGlassBorder,
-        equals(
-          Color.lerp(
-            _lerpA.frostedGlassBorder,
-            _lerpB.frostedGlassBorder,
-            0.5,
-          ),
-        ),
-      );
+      expect(result.frostedGlassBorder, equals(Color.lerp(_lerpA.frostedGlassBorder, _lerpB.frostedGlassBorder, 0.5)));
     });
 
     // ----------------------------------------------------------------
