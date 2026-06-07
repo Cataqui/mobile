@@ -212,16 +212,16 @@ void main() {
       expect(typography.labelLarge.fontFamily, equals(FontFamily.inter));
     });
 
-    test('labelLarge has 14px font size', () {
+    test('labelLarge has 15px font size', () {
       const typography = QuiTypography();
 
-      expect(typography.labelLarge.fontSize, equals(14));
+      expect(typography.labelLarge.fontSize, equals(15));
     });
 
-    test('labelLarge letter spacing is -0.28', () {
+    test('labelLarge letter spacing is -0.30', () {
       const typography = QuiTypography();
 
-      expect(typography.labelLarge.letterSpacing, equals(-0.28));
+      expect(typography.labelLarge.letterSpacing, equals(-0.30));
     });
 
     test('labelMedium has 12px font size', () {
@@ -250,10 +250,7 @@ void main() {
   });
 
   group('QuiThemeData', () {
-    QuiThemeData _themeData({
-      Color primary = _brandColor,
-      QuiTypography? typography,
-    }) {
+    QuiThemeData _themeData({Color primary = _brandColor, QuiTypography? typography}) {
       return QuiThemeData(
         colors: QuiColors.light(primary: primary),
         typography: typography ?? const QuiTypography(),
@@ -298,10 +295,7 @@ void main() {
       final bAlt = b.copyWith(colors: bColors);
       final result = a.lerp(bAlt, 0.5);
 
-      expect(
-        result.colors.background,
-        equals(const Color.from(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)),
-      );
+      expect(result.colors.background, equals(const Color.from(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)));
     });
 
     test('lerp interpolates primaryColor between two themes', () {
@@ -364,10 +358,7 @@ void main() {
     test('light theme applies Inter font family to textTheme bodyMedium', () {
       final theme = QuiTheme.light(primaryColor: _brandColor);
 
-      expect(
-        theme.textTheme.bodyMedium?.fontFamily,
-        equals(FontFamily.inter),
-      );
+      expect(theme.textTheme.bodyMedium?.fontFamily, equals(FontFamily.inter));
     });
 
     test('light theme textTheme bodyMedium has w400 weight', () {
@@ -385,9 +376,7 @@ void main() {
   });
 
   group('QuiThemeContext', () {
-    testWidgets('extension retrieves QuiThemeData from BuildContext', (
-      tester,
-    ) async {
+    testWidgets('extension retrieves QuiThemeData from BuildContext', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: QuiTheme.light(primaryColor: _brandColor),

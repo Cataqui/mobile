@@ -18,3 +18,4 @@ export 'src/widgets/qui_swipe_list/qui_swipe_list.dart'
         QuiSwipeListLoadMoreCallback,
         QuiSwipeListLoadMoreErrorBuilder,
         QuiSwipeListProgressCallback;
+export 'src/widgets/qui_text_button.dart' show QuiTextButton, QuiTextButtonIconPosition;
