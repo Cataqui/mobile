@@ -17,13 +17,17 @@ void main() {
           ),
           GoldenTestScenario(
             name: 'leading icon',
-            child: QuiTextButton(text: 'Buscar', icon: const Icon(Icons.search, size: 18), onPressed: () {}),
+            child: QuiTextButton(
+              text: 'Buscar',
+              iconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: 18),
+              onPressed: () {},
+            ),
           ),
           GoldenTestScenario(
             name: 'trailing icon',
             child: QuiTextButton(
               text: 'Continuar',
-              icon: const Icon(Icons.arrow_forward, size: 18),
+              iconBuilder: (state) => Icon(Icons.arrow_forward, color: state.recommendedIconColor, size: 18),
               iconPosition: QuiTextButtonIconPosition.trailing,
               onPressed: () {},
             ),
@@ -36,14 +40,16 @@ void main() {
             name: 'independent icon color',
             child: QuiTextButton(
               text: 'Mapa',
-              icon: const Icon(Icons.location_on, size: 18, color: Color(0xFF00A676)),
-              iconMatchesTextColor: false,
+              iconBuilder: (state) => const Icon(Icons.location_on, size: 18, color: Color(0xFF00A676)),
               onPressed: () {},
             ),
           ),
           GoldenTestScenario(
             name: 'disabled',
-            child: const QuiTextButton(text: 'Indisponivel', icon: Icon(Icons.lock, size: 18)),
+            child: QuiTextButton(
+              text: 'Indisponivel',
+              iconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: 18),
+            ),
           ),
         ],
       ),

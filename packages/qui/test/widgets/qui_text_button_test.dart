@@ -49,7 +49,12 @@ void main() {
     testWidgets('when icon spacing is customized, it should use the provided spacing', (tester) async {
       await tester.pumpWidget(
         _TestApp(
-          child: QuiTextButton(text: 'Buscar', icon: const Icon(Icons.search), iconSpacing: 10, onPressed: () {}),
+          child: QuiTextButton(
+            text: 'Buscar',
+            iconBuilder: (state) => const Icon(Icons.search),
+            iconSpacing: 10,
+            onPressed: () {},
+          ),
         ),
       );
 
@@ -58,45 +63,60 @@ void main() {
       expect(padding.padding, equals(const EdgeInsets.only(right: 10)));
     });
 
-    testWidgets('when icon matching is enabled, it should provide the text color', (tester) async {
-      Color? iconThemeColor;
+    testWidgets('when enabled, it should pass the recommended icon color to iconBuilder', (tester) async {
+      Color? recommendedIconColor;
 
       await tester.pumpWidget(
         _TestApp(
           child: QuiTextButton(
             text: 'Buscar',
             color: const Color(0xFFFF4A4B),
-            icon: Builder(
-              builder: (context) {
-                iconThemeColor = IconTheme.of(context).color;
-                return const Icon(Icons.search);
-              },
-            ),
+            iconBuilder: (state) {
+              recommendedIconColor = state.recommendedIconColor;
+              return const Icon(Icons.search);
+            },
             onPressed: () {},
           ),
         ),
       );
 
-      expect(iconThemeColor, equals(const Color(0xFFFF4A4B)));
+      expect(recommendedIconColor, equals(const Color(0xFFFF4A4B)));
     });
 
-    testWidgets('when icon matching is enabled, it should tint any widget icon', (tester) async {
+    testWidgets('when disabled, it should pass disabled state to iconBuilder', (tester) async {
+      bool? isEnabled;
+
       await tester.pumpWidget(
         _TestApp(
           child: QuiTextButton(
-            text: 'Buscar',
-            color: const Color(0xFFFF4A4B),
-            icon: Container(width: 12, height: 12, color: Colors.blue),
-            onPressed: () {},
+            text: 'Indisponivel',
+            iconBuilder: (state) {
+              isEnabled = state.isEnabled;
+              return const Icon(Icons.lock);
+            },
           ),
         ),
       );
 
-      final colorFiltered = tester.widget<ColorFiltered>(
-        find.descendant(of: find.byType(QuiTextButton), matching: find.byType(ColorFiltered)),
+      expect(isEnabled, isFalse);
+    });
+
+    testWidgets('when disabled, it should pass placeholder color to iconBuilder', (tester) async {
+      Color? recommendedIconColor;
+
+      await tester.pumpWidget(
+        _TestApp(
+          child: QuiTextButton(
+            text: 'Indisponivel',
+            iconBuilder: (state) {
+              recommendedIconColor = state.recommendedIconColor;
+              return const Icon(Icons.lock);
+            },
+          ),
+        ),
       );
 
-      expect(colorFiltered.colorFilter, equals(const ColorFilter.mode(Color(0xFFFF4A4B), BlendMode.srcIn)));
+      expect(recommendedIconColor, equals(const Color(0xFF9E9E9E)));
     });
   });
 }

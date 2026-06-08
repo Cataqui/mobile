@@ -6,6 +6,7 @@ import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
 
 part 'qui_text_button_enums.dart';
+part 'qui_text_button_types.dart';
 
 /// A lightweight Cataquí text button with optional icon support.
 ///
@@ -17,11 +18,10 @@ class QuiTextButton extends StatefulWidget {
     required this.text,
     super.key,
     this.onPressed,
-    this.icon,
+    this.iconBuilder,
     this.iconPosition = QuiTextButtonIconPosition.leading,
     this.iconSpacing = 4,
     this.color,
-    this.iconMatchesTextColor = true,
   });
 
   /// Visible button label.
@@ -33,12 +33,12 @@ class QuiTextButton extends StatefulWidget {
   final VoidCallback? onPressed;
 
   /// Optional icon rendered before or after [text].
-  final Widget? icon;
+  final QuiTextButtonIconBuilder? iconBuilder;
 
-  /// Controls whether [icon] is leading or trailing.
+  /// Controls whether the built icon is leading or trailing.
   final QuiTextButtonIconPosition iconPosition;
 
-  /// Horizontal spacing between [icon] and [text].
+  /// Horizontal spacing between the built icon and [text].
   final double iconSpacing;
 
   /// Text and matched-icon color.
@@ -46,9 +46,6 @@ class QuiTextButton extends StatefulWidget {
   /// Defaults to `context.qui.colors.textPrimary` when enabled and
   /// `context.qui.colors.placeholder` when disabled.
   final Color? color;
-
-  /// Whether [icon] should be tinted with the same color as [text].
-  final bool iconMatchesTextColor;
 
   @override
   State<QuiTextButton> createState() => _QuiTextButtonState();
@@ -64,10 +61,11 @@ class _QuiTextButtonState extends State<QuiTextButton> {
 
     Widget content = Text(widget.text, style: context.qui.typography.labelLarge.copyWith(color: resolvedColor));
 
-    final icon = widget.icon;
+    final iconBuilder = widget.iconBuilder;
 
-    if (icon != null) {
-      final resolvedIcon = widget.iconMatchesTextColor ? _tintIcon(icon, resolvedColor) : icon;
+    if (iconBuilder != null) {
+      final iconState = QuiTextButtonIconState(isEnabled: _isEnabled, recommendedIconColor: resolvedColor);
+      final icon = iconBuilder(iconState);
 
       content = Row(
         mainAxisSize: MainAxisSize.min,
@@ -75,7 +73,7 @@ class _QuiTextButtonState extends State<QuiTextButton> {
           QuiTextButtonIconPosition.leading => [
             Padding(
               padding: EdgeInsets.only(right: widget.iconSpacing),
-              child: resolvedIcon,
+              child: icon,
             ),
             content,
           ],
@@ -83,7 +81,7 @@ class _QuiTextButtonState extends State<QuiTextButton> {
             content,
             Padding(
               padding: EdgeInsets.only(left: widget.iconSpacing),
-              child: resolvedIcon,
+              child: icon,
             ),
           ],
         },
@@ -95,16 +93,6 @@ class _QuiTextButtonState extends State<QuiTextButton> {
       enabled: _isEnabled,
       onTap: _isEnabled ? widget.onPressed : null,
       child: QuiTapAnimation(onPressed: widget.onPressed, animation: QuiTapAnimationType.scaleFade, child: content),
-    );
-  }
-
-  Widget _tintIcon(Widget icon, Color color) {
-    return ColorFiltered(
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-      child: IconTheme.merge(
-        data: IconThemeData(color: color),
-        child: icon,
-      ),
     );
   }
 }
@@ -123,11 +111,15 @@ Widget quiTextButtonPreview() {
           children: [
             QuiTextButton(text: 'Ver oportunidades', onPressed: () {}),
             const SizedBox(height: 20),
-            QuiTextButton(text: 'Buscar', icon: const Icon(Icons.search, size: 18), onPressed: () {}),
+            QuiTextButton(
+              text: 'Buscar',
+              iconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: 18),
+              onPressed: () {},
+            ),
             const SizedBox(height: 20),
             QuiTextButton(
               text: 'Continuar',
-              icon: const Icon(Icons.arrow_forward, size: 18),
+              iconBuilder: (state) => Icon(Icons.arrow_forward, color: state.recommendedIconColor, size: 18),
               iconPosition: QuiTextButtonIconPosition.trailing,
               color: const Color(0xFFFF4A4B),
               onPressed: () {},
@@ -135,12 +127,14 @@ Widget quiTextButtonPreview() {
             const SizedBox(height: 20),
             QuiTextButton(
               text: 'Mapa',
-              icon: const Icon(Icons.location_on, size: 18, color: Color(0xFF00A676)),
-              iconMatchesTextColor: false,
+              iconBuilder: (state) => const Icon(Icons.location_on, size: 18, color: Color(0xFF00A676)),
               onPressed: () {},
             ),
             const SizedBox(height: 20),
-            const QuiTextButton(text: 'Indisponivel', icon: Icon(Icons.lock, size: 18)),
+            QuiTextButton(
+              text: 'Indisponivel',
+              iconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: 18),
+            ),
           ],
         ),
       ),
