@@ -24,24 +24,15 @@ export PATH="$PATH":"$HOME/.pub-cache/bin"
 # Install Flutter version
 fvm install
 
-# Install dependencies
-fvm flutter pub get
-
 # Configure local environment variables
 cp .env.example .env
 
-# Run code generation
-fvm dart run build_runner build --workspace --delete-conflicting-outputs
+melos setup
 ```
 
 Before running the app, set the local environment variables in `.env`. Use `.env.example` as the committed template.
 
 Regenerate code after changing environment values so [Envied](https://pub.dev/packages/envied) can refresh the generated Dart config.
-
-The `app` package is configured for DTO code generation with Freezed and
-json_serializable. Add DTOs with `freezed_annotation` and `json_annotation`
-imports, then regenerate with `melos gen:all`. Generated `.freezed.dart` and
-`.g.dart` files under `app/lib/core/dtos/` are gitignored.
 
 ## Development
 
@@ -61,6 +52,9 @@ melos analyze
 
 # Code generation (workspace-wide)
 melos gen:all
+
+# Code generation (interactive package selection)
+melos gen
 
 # Update approved visual goldens after intentional UI changes
 melos goldens:update

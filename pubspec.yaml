@@ -72,6 +72,7 @@ melos:
     setup:
       description: Set up workspace and activate global packages
       run: |
+        fvm flutter pub get && \
         fvm dart pub global activate remove_from_coverage && \
         melos run gen:all
 
@@ -99,7 +100,9 @@ melos:
 
     gen:
       description: Run code generation for selected packages (interactive)
-      run: fvm dart run build_runner build
+      run: |
+        ln -sf ../.env .env 2>/dev/null || true
+        fvm dart run build_runner build
       exec:
         concurrency: 1
       packageFilters:
