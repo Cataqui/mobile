@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:qui/gen/assets.gen.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
@@ -73,7 +74,6 @@ class QuiLocationRadiusMap extends StatefulWidget {
        assert(zoom == null || zoom >= tileMinZoom, 'zoom must be greater than or equal to tileMinZoom');
 
   static const _openMapTilesSource = 'openmaptiles';
-  static const _styleAssetPath = 'packages/qui/assets/maps/qui_light_map_style.json';
   static const _earthMetersPerDegree = 111320.0;
   static const _minimumFitRadiusInMeters = 50.0;
 
@@ -262,7 +262,7 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> {
   }
 
   Future<_QuiMapStyle> _loadStyle() async {
-    final styleText = await rootBundle.loadString(QuiLocationRadiusMap._styleAssetPath, cache: false);
+    final styleText = await rootBundle.loadString(Assets.maps.quiLightMapStyle, cache: false);
     final decodedStyle = jsonDecode(styleText);
 
     if (decodedStyle is! Map<String, dynamic>) throw StateError('Qui light map style must be a JSON object.');

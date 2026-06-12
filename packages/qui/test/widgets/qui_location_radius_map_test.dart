@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qui/gen/assets.gen.dart';
 import 'package:qui/qui.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 
@@ -270,6 +271,12 @@ void main() {
       );
 
       expect(_mapFallbackFinder, findsOneWidget);
+    });
+  });
+
+  group('QuiLocationRadiusMap asset path prefix', () {
+    test('the generated asset path should include the packages/qui/ prefix', () {
+      expect(Assets.maps.quiLightMapStyle, 'packages/qui/assets/maps/qui_light_map_style.json');
     });
   });
 }

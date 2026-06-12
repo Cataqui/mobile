@@ -117,10 +117,7 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
       switchOutCurve: Curves.easeIn,
       transitionBuilder: (child, animation) {
         return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(animation),
+          position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(animation),
           child: FadeTransition(opacity: animation, child: child),
         );
       },
@@ -133,11 +130,8 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
                 child: Assets.icons.cross.svg(
                   width: 16,
                   height: 16,
-                  package: 'qui',
-                  colorFilter: ColorFilter.mode(
-                    colors.primary,
-                    BlendMode.srcIn,
-                  ),
+                  package: Assets.package,
+                  colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
                 ),
               )
             : Center(
@@ -145,10 +139,7 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
                   width: 20,
                   height: 20,
                   package: 'qui',
-                  colorFilter: ColorFilter.mode(
-                    colors.searchBarPlaceholder,
-                    BlendMode.srcIn,
-                  ),
+                  colorFilter: ColorFilter.mode(colors.searchBarPlaceholder, BlendMode.srcIn),
                 ),
               ),
       ),
@@ -173,14 +164,9 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
             maxLines: null,
             decoration: InputDecoration(
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: _horizontalPadding,
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
               hintText: widget.placeholder,
-              hintStyle: TextStyle(
-                color: colors.searchBarPlaceholder,
-                fontFamily: FontFamily.inter,
-              ),
+              hintStyle: TextStyle(color: colors.searchBarPlaceholder, fontFamily: FontFamily.inter),
             ),
             style: const TextStyle(fontFamily: FontFamily.inter),
           ),
@@ -204,10 +190,7 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
         borderRadius: BorderRadius.circular(27.5),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: ColoredBox(
-            color: colors.frostedGlassBackground,
-            child: content,
-          ),
+          child: ColoredBox(color: colors.frostedGlassBackground, child: content),
         ),
       );
     }
@@ -218,14 +201,10 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
         height: 65,
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
-          color: widget.isFrostedGlass
-              ? colors.background.withValues(alpha: 0.6)
-              : colors.searchBarBackground,
+          color: widget.isFrostedGlass ? colors.background.withValues(alpha: 0.6) : colors.searchBarBackground,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(27.5),
-            side: widget.isFrostedGlass
-                ? BorderSide(color: colors.frostedGlassBorder)
-                : BorderSide.none,
+            side: widget.isFrostedGlass ? BorderSide(color: colors.frostedGlassBorder) : BorderSide.none,
           ),
         ),
         child: content,
@@ -276,15 +255,9 @@ Widget quiSearchBarFrostedPreview() {
           child: Column(
             children: [
               SizedBox(height: 60),
-              QuiSearchBar(
-                placeholder: 'Buscar oportunidades...',
-                isFrostedGlass: true,
-              ),
+              QuiSearchBar(placeholder: 'Buscar oportunidades...', isFrostedGlass: true),
               SizedBox(height: 16),
-              SizedBox(
-                width: 280,
-                child: QuiSearchBar(placeholder: 'Short', isFrostedGlass: true),
-              ),
+              SizedBox(width: 280, child: QuiSearchBar(placeholder: 'Short', isFrostedGlass: true)),
             ],
           ),
         ),

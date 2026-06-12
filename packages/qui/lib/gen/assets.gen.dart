@@ -32,7 +32,8 @@ class $AssetsMapsGen {
   const $AssetsMapsGen();
 
   /// File path: assets/maps/qui_light_map_style.json
-  String get quiLightMapStyle => 'assets/maps/qui_light_map_style.json';
+  String get quiLightMapStyle =>
+      'packages/qui/assets/maps/qui_light_map_style.json';
 
   /// List of all assets
   List<String> get values => [quiLightMapStyle];
@@ -40,6 +41,8 @@ class $AssetsMapsGen {
 
 class Assets {
   const Assets._();
+
+  static const String package = 'qui';
 
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsMapsGen maps = $AssetsMapsGen();
@@ -57,11 +60,14 @@ class SvgGenImage {
   final Set<String> flavors;
   final bool _isVecFormat;
 
+  static const String package = 'qui';
+
   _svg.SvgPicture svg({
     Key? key,
     bool matchTextDirection = false,
     AssetBundle? bundle,
-    String? package,
+    @Deprecated('Do not specify package for a generated library asset')
+    String? package = package,
     double? width,
     double? height,
     BoxFit fit = BoxFit.contain,
@@ -116,5 +122,5 @@ class SvgGenImage {
 
   String get path => _assetName;
 
-  String get keyName => _assetName;
+  String get keyName => 'packages/qui/$_assetName';
 }
