@@ -13,7 +13,6 @@ import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_tile_renderer/vector_tile_renderer.dart' as vector_renderer;
 
 part '_qui_map_style.dart';
-part 'qui_map_location.dart';
 part 'radius_style.dart';
 
 /// Static vector map that highlights an approximate location radius.
@@ -49,11 +48,11 @@ class QuiLocationRadiusMap extends StatefulWidget {
   /// ```dart
   /// QuiLocationRadiusMap(
   ///   tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
-  ///   location: QuiMapLocation(latitude: -23.55052, longitude: -46.633308),
+  ///   location: (latitude: -23.55052, longitude: -46.633308),
   ///   radiusInMeters: 500,
   /// )
   /// ```
-  const QuiLocationRadiusMap({
+  QuiLocationRadiusMap({
     required this.tileUrlTemplate,
     required this.location,
     required this.radiusInMeters,
@@ -62,7 +61,12 @@ class QuiLocationRadiusMap extends StatefulWidget {
     this.tileMinZoom = 1,
     this.tileMaxZoom = 14,
     this.zoom,
-  }) : assert(radiusInMeters >= 0, 'radiusInMeters must be greater than or equal to zero'),
+  }) : assert(location.latitude >= -90 && location.latitude <= 90, 'location.latitude must be between -90 and 90'),
+       assert(
+         location.longitude >= -180 && location.longitude <= 180,
+         'location.longitude must be between -180 and 180',
+       ),
+       assert(radiusInMeters >= 0, 'radiusInMeters must be greater than or equal to zero'),
        assert(tileMinZoom >= 0, 'tileMinZoom must be greater than or equal to zero'),
        assert(tileMaxZoom > 0, 'tileMaxZoom must be greater than zero'),
        assert(tileMinZoom <= tileMaxZoom, 'tileMinZoom must be less than or equal to tileMaxZoom'),
@@ -91,7 +95,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
   ///
   /// The map camera is centered on this point. The point itself is not rendered
   /// as a pin; only the surrounding radius is shown.
-  final QuiMapLocation location;
+  final ({double latitude, double longitude}) location;
 
   /// Diameter of the visible radius circle in meters.
   ///
@@ -293,17 +297,17 @@ Widget quiLocationRadiusMapPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
+    home: Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: SizedBox(
             height: 220,
             width: double.infinity,
             child: QuiLocationRadiusMap(
               tileUrlTemplate: 'https://tiles.example.com/openmaptiles/{z}/{x}/{y}.mvt',
-              location: QuiMapLocation(latitude: -23.55052, longitude: -46.633308),
+              location: const (latitude: -23.55052, longitude: -46.633308),
               radiusInMeters: 500,
             ),
           ),

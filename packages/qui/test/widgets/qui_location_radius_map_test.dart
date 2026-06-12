@@ -7,24 +7,6 @@ import 'package:qui/qui.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 
 void main() {
-  group('QuiMapLocation assertions', () {
-    test('when latitude is below the valid range, it should assert', () {
-      expect(() => QuiMapLocation(latitude: -90.1, longitude: 0), throwsAssertionError);
-    });
-
-    test('when latitude is above the valid range, it should assert', () {
-      expect(() => QuiMapLocation(latitude: 90.1, longitude: 0), throwsAssertionError);
-    });
-
-    test('when longitude is below the valid range, it should assert', () {
-      expect(() => QuiMapLocation(latitude: 0, longitude: -180.1), throwsAssertionError);
-    });
-
-    test('when longitude is above the valid range, it should assert', () {
-      expect(() => QuiMapLocation(latitude: 0, longitude: 180.1), throwsAssertionError);
-    });
-  });
-
   group('RadiusStyle assertions', () {
     test('when borderWidth is negative, it should assert', () {
       expect(() => RadiusStyle(borderWidth: -0.1), throwsAssertionError);
@@ -50,6 +32,34 @@ void main() {
 
     test('when zoom is lower than tileMinZoom, it should assert', () {
       expect(() => _map(tileMinZoom: 12, zoom: 11.9), throwsAssertionError);
+    });
+
+    test('when latitude is below -90, it should assert', () {
+      expect(
+        () => _map(location: (latitude: -90.1, longitude: 0)),
+        throwsAssertionError,
+      );
+    });
+
+    test('when latitude is above 90, it should assert', () {
+      expect(
+        () => _map(location: (latitude: 90.1, longitude: 0)),
+        throwsAssertionError,
+      );
+    });
+
+    test('when longitude is below -180, it should assert', () {
+      expect(
+        () => _map(location: (latitude: 0, longitude: -180.1)),
+        throwsAssertionError,
+      );
+    });
+
+    test('when longitude is above 180, it should assert', () {
+      expect(
+        () => _map(location: (latitude: 0, longitude: 180.1)),
+        throwsAssertionError,
+      );
     });
   });
 
@@ -83,13 +93,13 @@ void main() {
     });
 
     testWidgets('when location is provided, it should center the circle on that latitude', (tester) async {
-      await _pumpMap(tester, location: const QuiMapLocation(latitude: -23.556391, longitude: -46.844076));
+      await _pumpMap(tester, location: const (latitude: -23.556391, longitude: -46.844076));
 
       expect(_circleMarker(tester).point.latitude, closeTo(-23.556391, 0.000001));
     });
 
     testWidgets('when location is provided, it should center the circle on that longitude', (tester) async {
-      await _pumpMap(tester, location: const QuiMapLocation(latitude: -23.556391, longitude: -46.844076));
+      await _pumpMap(tester, location: const (latitude: -23.556391, longitude: -46.844076));
 
       expect(_circleMarker(tester).point.longitude, closeTo(-46.844076, 0.000001));
     });
@@ -147,7 +157,7 @@ void main() {
     testWidgets('when radius is 2km, it should calculate the longitude diameter using the latitude scale', (
       tester,
     ) async {
-      const location = QuiMapLocation(latitude: -23.556391, longitude: -46.844076);
+      const location = (latitude: -23.556391, longitude: -46.844076);
       final metersPerLongitudeDegree = 111320 * math.cos(location.latitude * math.pi / 180).abs();
 
       await _pumpMap(tester, location: location, radiusInMeters: 2000);
@@ -165,7 +175,7 @@ void main() {
     });
 
     testWidgets('when location is near the north pole, it should clamp the north bound', (tester) async {
-      await _pumpMap(tester, location: const QuiMapLocation(latitude: 89.999, longitude: 0), radiusInMeters: 2000);
+      await _pumpMap(tester, location: const (latitude: 89.999, longitude: 0), radiusInMeters: 2000);
 
       expect(_fitBounds(tester).bounds.north, 90);
     });
@@ -197,13 +207,13 @@ void main() {
     });
 
     testWidgets('when zoom is provided, it should keep the map centered on latitude', (tester) async {
-      await _pumpMap(tester, zoom: 13, location: const QuiMapLocation(latitude: -23.556391, longitude: -46.844076));
+      await _pumpMap(tester, zoom: 13, location: const (latitude: -23.556391, longitude: -46.844076));
 
       expect(_mapOptions(tester).initialCenter.latitude, closeTo(-23.556391, 0.000001));
     });
 
     testWidgets('when zoom is provided, it should keep the map centered on longitude', (tester) async {
-      await _pumpMap(tester, zoom: 13, location: const QuiMapLocation(latitude: -23.556391, longitude: -46.844076));
+      await _pumpMap(tester, zoom: 13, location: const (latitude: -23.556391, longitude: -46.844076));
 
       expect(_mapOptions(tester).initialCenter.longitude, closeTo(-46.844076, 0.000001));
     });
@@ -264,7 +274,7 @@ void main() {
   });
 }
 
-const _defaultLocation = QuiMapLocation(latitude: -23.55052, longitude: -46.633308);
+const _defaultLocation = (latitude: -23.55052, longitude: -46.633308);
 final _mapFallbackFinder = find.descendant(
   of: find.byType(QuiLocationRadiusMap),
   matching: find.byWidgetPredicate((widget) => widget is ColoredBox && widget.color == Colors.white),
@@ -272,7 +282,7 @@ final _mapFallbackFinder = find.descendant(
 
 QuiLocationRadiusMap _map({
   String tileUrlTemplate = 'https://tiles.example.com/{z}/{x}/{y}.mvt',
-  QuiMapLocation location = _defaultLocation,
+  ({double latitude, double longitude}) location = _defaultLocation,
   double radiusInMeters = 500,
   RadiusStyle radiusStyle = const RadiusStyle(),
   int tileMinZoom = 1,
@@ -293,7 +303,7 @@ QuiLocationRadiusMap _map({
 Future<void> _pumpMap(
   WidgetTester tester, {
   Size size = const Size(320, 220),
-  QuiMapLocation location = _defaultLocation,
+  ({double latitude, double longitude}) location = _defaultLocation,
   double radiusInMeters = 500,
   RadiusStyle radiusStyle = const RadiusStyle(),
   int tileMinZoom = 1,

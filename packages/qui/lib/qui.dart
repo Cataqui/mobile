@@ -8,7 +8,7 @@ export 'src/theme/qui_theme_data.dart' show QuiThemeData;
 export 'src/theme/qui_typography.dart' show QuiTypography;
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
 export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart'
-    show QuiLocationRadiusMap, QuiMapLocation, RadiusStyle;
+    show QuiLocationRadiusMap, RadiusStyle;
 export 'src/widgets/qui_search_bar.dart' show QuiSearchBar;
 export 'src/widgets/qui_swipe_list/qui_swipe_list.dart'
     show
