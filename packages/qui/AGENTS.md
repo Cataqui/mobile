@@ -4,6 +4,29 @@
 
 `qui` (Cataquí UI) is the reusable design system package for the Cataquí platform. It contains foundational UI components, tokens, and patterns used across all Cataquí apps (mobile, web, and beyond).
 
+## Public Package Portability
+
+Treat `qui` as a package that can be released publicly on pub.dev and used by
+apps outside Cataquí. Widgets must be portable, defensive, and configurable for
+reasonable environment differences instead of assuming Cataquí's internal
+services, infrastructure, assets, data shapes, or provider capabilities.
+
+### Portability rules
+
+- Do not hardcode Cataquí-only URLs, signed tokens, backend assumptions, or
+  environment-specific operational details in reusable widgets.
+- Public widget APIs should describe real external capabilities when those
+  capabilities can vary by consumer. For example, map widgets should accept
+  tile source capability bounds such as `tileMinZoom` and `tileMaxZoom` instead
+  of assuming every provider supports the same zoom range as Cataquí's tiles.
+- Keep convenience defaults for Cataquí's current use case only when they are
+  broadly safe and easy for external consumers to override.
+- Before adding a widget assumption, ask whether it can break if a consuming app
+  has a different tile server, locale, asset setup, theme, screen size, input
+  data, platform, network policy, or accessibility configuration.
+- Prefer small explicit configuration over hidden fixed behavior when the value
+  represents an external system contract rather than visual taste.
+
 ## Preview Requirement
 
 Every widget in `qui` **must** have a `@Preview` annotation attached to a top-level preview function at the bottom of the widget's own `.dart` file. This ensures all components are visually documented and testable in the Flutter Widget Previewer.
@@ -57,6 +80,9 @@ lib/
 ## Conventions
 
 - All public widgets are exported from `lib/qui.dart` with explicit `show`.
-- Widgets live in `lib/src/widgets/` — one file per widget.
+- Widgets live in `lib/src/widgets/`. Simple widgets may use one file. Larger
+  widgets may use a same-named folder with one public entrypoint and focused
+  `part` files for public value types, controllers, actions, and other support
+  classes, following the `qui_swipe_list` structure.
 - Every widget file includes a `@Preview` annotated preview function at the bottom.
 - Preview functions are **not** exported from the barrel file — they are only discovered by the Widget Previewer at development time.

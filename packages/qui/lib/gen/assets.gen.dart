@@ -28,10 +28,21 @@ class $AssetsIconsGen {
   List<SvgGenImage> get values => [cross, magnifierGlass];
 }
 
+class $AssetsMapsGen {
+  const $AssetsMapsGen();
+
+  /// File path: assets/maps/qui_light_map_style.json
+  String get quiLightMapStyle => 'assets/maps/qui_light_map_style.json';
+
+  /// List of all assets
+  List<String> get values => [quiLightMapStyle];
+}
+
 class Assets {
   const Assets._();
 
   static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsMapsGen maps = $AssetsMapsGen();
 }
 
 class SvgGenImage {
