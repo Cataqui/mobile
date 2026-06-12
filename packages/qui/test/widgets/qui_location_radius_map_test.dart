@@ -68,7 +68,9 @@ void main() {
   });
 
   group('QuiLocationRadiusMap radius rendering', () {
-    testWidgets('when radiusInMeters is provided, it should pass half to CircleMarker as the center-to-edge radius', (tester) async {
+    testWidgets('when radiusInMeters is provided, it should pass half to CircleMarker as the center-to-edge radius', (
+      tester,
+    ) async {
       await _pumpMap(tester, radiusInMeters: 2000);
 
       expect(_circleMarker(tester).radius, 1000);
@@ -142,7 +144,9 @@ void main() {
       expect(_fitBounds(tester).bounds.north - _fitBounds(tester).bounds.south, closeTo(2000 / 111320, 0.000001));
     });
 
-    testWidgets('when radius is 2km, it should calculate the longitude diameter using the latitude scale', (tester) async {
+    testWidgets('when radius is 2km, it should calculate the longitude diameter using the latitude scale', (
+      tester,
+    ) async {
       const location = QuiMapLocation(latitude: -23.556391, longitude: -46.844076);
       final metersPerLongitudeDegree = 111320 * math.cos(location.latitude * math.pi / 180).abs();
 
@@ -255,13 +259,16 @@ void main() {
         ),
       );
 
-      final whiteBoxes = find.byWidgetPredicate((w) => w is ColoredBox && w.color == Colors.white);
-      expect(whiteBoxes, findsOneWidget);
+      expect(_mapFallbackFinder, findsOneWidget);
     });
   });
 }
 
 const _defaultLocation = QuiMapLocation(latitude: -23.55052, longitude: -46.633308);
+final _mapFallbackFinder = find.descendant(
+  of: find.byType(QuiLocationRadiusMap),
+  matching: find.byWidgetPredicate((widget) => widget is ColoredBox && widget.color == Colors.white),
+);
 
 QuiLocationRadiusMap _map({
   String tileUrlTemplate = 'https://tiles.example.com/{z}/{x}/{y}.mvt',

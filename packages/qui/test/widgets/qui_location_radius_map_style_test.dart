@@ -129,6 +129,21 @@ void main() {
       );
     });
 
+    test('when inspecting normal streets, it should use the approved visible white color', () async {
+      final style = await _loadStyle();
+
+      expect(_lineColor(_layer(style, 'road_minor')), '#ffffff');
+    });
+
+    test('when inspecting normal streets, it should keep them narrower than important roads', () async {
+      final style = await _loadStyle();
+
+      expect(
+        _lineWidthAtZoom(_layer(style, 'road_minor'), 14) < _lineWidthAtZoom(_layer(style, 'road_tertiary'), 14),
+        isTrue,
+      );
+    });
+
     test('when inspecting region labels, it should start showing neighborhoods at zoom 11', () async {
       final style = await _loadStyle();
 
@@ -139,6 +154,66 @@ void main() {
       final style = await _loadStyle();
 
       expect(_layer(style, 'place_region_label')['maxzoom'], 16);
+    });
+
+    test('when inspecting label sizes at zoom 14, it should make regions larger than major roads', () async {
+      final style = await _loadStyle();
+
+      expect(
+        _textSizeAtZoom(_layer(style, 'place_region_label'), 14) >
+            _textSizeAtZoom(_layer(style, 'road_major_label'), 14),
+        isTrue,
+      );
+    });
+
+    test('when inspecting region labels at zoom 14, it should use the approved larger size', () async {
+      final style = await _loadStyle();
+
+      expect(_textSizeAtZoom(_layer(style, 'place_region_label'), 14), 15);
+    });
+
+    test('when inspecting major road labels at zoom 14, it should use the approved smaller size', () async {
+      final style = await _loadStyle();
+
+      expect(_textSizeAtZoom(_layer(style, 'road_major_label'), 14), 10);
+    });
+
+    test('when inspecting city labels, it should use the approved darker color', () async {
+      final style = await _loadStyle();
+
+      expect(_textColor(_layer(style, 'place_city_label')), '#555657');
+    });
+
+    test('when inspecting megacity labels, it should use the approved darker color', () async {
+      final style = await _loadStyle();
+
+      expect(_textColor(_layer(style, 'place_megacity_label')), '#555657');
+    });
+
+    test('when inspecting region labels, it should use the approved middle color', () async {
+      final style = await _loadStyle();
+
+      expect(_textColor(_layer(style, 'place_region_label')), '#68696a');
+    });
+
+    test('when inspecting text colors, it should make regions darker than major roads', () async {
+      final style = await _loadStyle();
+
+      expect(
+        _relativeLuminance(_textColor(_layer(style, 'place_region_label'))) <
+            _relativeLuminance(_textColor(_layer(style, 'road_major_label'))),
+        isTrue,
+      );
+    });
+
+    test('when inspecting text colors, it should make cities darker than regions', () async {
+      final style = await _loadStyle();
+
+      expect(
+        _relativeLuminance(_textColor(_layer(style, 'place_city_label'))) <
+            _relativeLuminance(_textColor(_layer(style, 'place_region_label'))),
+        isTrue,
+      );
     });
 
     test('when inspecting major road labels, it should start showing them at zoom 13', () async {
@@ -224,6 +299,47 @@ double _lineWidthAtZoom(Map<String, Object?> layer, int zoom) {
   }
 
   throw StateError('Expected line-width stop at zoom $zoom.');
+}
+
+double _textSizeAtZoom(Map<String, Object?> layer, int zoom) {
+  final layout = layer['layout'];
+  if (layout is Map<String, Object?>) {
+    final textSize = layout['text-size'];
+    if (textSize is Map<String, Object?>) {
+      final stops = textSize['stops'];
+      if (stops is List<Object?>) {
+        for (final stop in stops) {
+          final values = _listFromJson(stop);
+          if (values.first == zoom) return (values.last! as num).toDouble();
+        }
+      }
+    }
+  }
+
+  throw StateError('Expected text-size stop at zoom $zoom.');
+}
+
+String _textColor(Map<String, Object?> layer) {
+  final color = _paint(layer)['text-color'];
+  if (color is String) return color;
+
+  throw StateError('Expected text-color.');
+}
+
+String _lineColor(Map<String, Object?> layer) {
+  final color = _paint(layer)['line-color'];
+  if (color is String) return color;
+
+  throw StateError('Expected line-color.');
+}
+
+int _relativeLuminance(String hexColor) {
+  final normalizedColor = hexColor.replaceFirst('#', '');
+  final red = int.parse(normalizedColor.substring(0, 2), radix: 16);
+  final green = int.parse(normalizedColor.substring(2, 4), radix: 16);
+  final blue = int.parse(normalizedColor.substring(4, 6), radix: 16);
+
+  return (red * 299) + (green * 587) + (blue * 114);
 }
 
 Map<String, Object?> _mapFromJson(Object? value) {
