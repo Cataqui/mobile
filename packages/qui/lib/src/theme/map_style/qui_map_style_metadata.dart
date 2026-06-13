@@ -25,8 +25,8 @@ part 'qui_map_style_metadata.freezed.dart';
 part 'qui_map_style_metadata.g.dart';
 
 @Freezed(toJson: true, fromJson: false)
-abstract class QuiMapStyleMetadata with _$QuiMapStyleMetadata {
-  const factory QuiMapStyleMetadata({
+abstract class QuiMapLibreStyleMetadata with _$QuiMapLibreStyleMetadata {
+  const factory QuiMapLibreStyleMetadata({
     /// Whether Mapbox GL can auto-composite raster tiles.
     ///
     /// Mapped to the `mapbox:autocomposite` JSON key. Set to `false` for
@@ -44,5 +44,5 @@ abstract class QuiMapStyleMetadata with _$QuiMapStyleMetadata {
     /// Mapped to the `qui:style` JSON key. Identifies the theme variant for
     /// debugging and asset auditing (e.g. `"light"`, `"dark"`).
     @JsonKey(name: 'qui:style') required String quiStyle,
-  }) = _QuiMapStyleMetadata;
+  }) = _QuiMapLibreStyleMetadata;
 }

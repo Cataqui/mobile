@@ -1,18 +1,17 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/src/theme/map_style/qui_map_style.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_layer.dart';
-import 'package:vector_tile_renderer/vector_tile_renderer.dart' as vector_renderer;
 
 void main() {
   // ── Permanent: Property-based tests ─────────────────────────────────────
-  group('QuiMapStyle light theme properties', () {
-    late QuiMapStyle style;
+  group('QuiMapLibreStyle light theme properties', () {
+    late QuiMapLibreStyle style;
 
     setUpAll(() {
-      style = QuiMapStyle.light(tileUrlTemplate: '{tileUrlTemplate}');
+      style = QuiMapLibreStyle.light(
+        tileUrlTemplate: '{tileUrlTemplate}',
+        fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+      );
     });
 
     test('when creating the light style, it should be a MapLibre version 8 style', () {
@@ -25,10 +24,6 @@ void main() {
 
     test('when creating the light style, it should have the expected style name', () {
       expect(style.name, 'Qui Light');
-    });
-
-    test('when parsing the light style with ThemeReader, it should not throw', () {
-      expect(() => vector_renderer.ThemeReader().read(style.toJson()), returnsNormally);
     });
 
     test('when inspecting sources, it should define openmaptiles as vector', () {
@@ -182,53 +177,60 @@ void main() {
       final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'place_city_label');
       expect(layer.toJson()['minzoom'], lessThanOrEqualTo(10));
     });
+
+    test('when inspecting city labels, it should use the configured glyph font stack', () {
+      expect(_textFont(style, 'place_city_label'), ['Inter Regular']);
+    });
+
+    test('when creating the light style, it should set the glyphs URL from fontConfig', () {
+      expect(style.glyphs, 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf');
+    });
   });
 }
 
-Future<Map<String, Object?>> _loadOriginalJson() async {
-  final styleText = await rootBundle.loadString('packages/qui/assets/maps/qui_light_map_style.json', cache: false);
-  final decodedStyle = jsonDecode(styleText);
-  if (decodedStyle is Map<String, Object?>) return decodedStyle;
-  throw StateError('Expected style to decode as a JSON object.');
-}
-
-double _lineWidthAtZoom(QuiMapStyle style, String layerId, int zoom) {
+double _lineWidthAtZoom(QuiMapLibreStyle style, String layerId, int zoom) {
   final paint = _layerJson(style, layerId)['paint'] as Map<String, dynamic>;
   final lineWidth = paint['line-width'];
-  if (lineWidth is Map<String, dynamic>) {
-    final stops = lineWidth['stops'] as List;
-    for (final stop in stops) {
-      final values = stop as List;
-      if ((values[0] as num).toInt() == zoom) return (values[1] as num).toDouble();
+  if (lineWidth is List) {
+    // Expression: ["interpolate", ["linear"], ["zoom"], z1, v1, z2, v2, ...]
+    for (var i = 3; i < lineWidth.length; i += 2) {
+      if ((lineWidth[i] as num).toInt() == zoom) return (lineWidth[i + 1] as num).toDouble();
     }
   }
   if (lineWidth is num) return lineWidth.toDouble();
-  throw StateError('Expected line-width stop at zoom $zoom.');
+  throw StateError('Expected line-width value at zoom $zoom.');
 }
 
-double _lineWidthAtZoom14(QuiMapStyle style, String layerId) => _lineWidthAtZoom(style, layerId, 14);
+double _lineWidthAtZoom14(QuiMapLibreStyle style, String layerId) => _lineWidthAtZoom(style, layerId, 14);
 
-double _textSizeAtZoom(QuiMapStyle style, String layerId, int zoom) {
+double _textSizeAtZoom(QuiMapLibreStyle style, String layerId, int zoom) {
   final layerJson = _layerJson(style, layerId);
   final layout = layerJson['layout'] as Map<String, dynamic>?;
   if (layout == null) throw StateError('Expected layout');
   final textSize = layout['text-size'];
-  if (textSize is Map<String, dynamic>) {
-    final stops = textSize['stops'] as List;
-    for (final stop in stops) {
-      final values = stop as List;
-      if ((values[0] as num).toInt() == zoom) return (values[1] as num).toDouble();
+  if (textSize is List) {
+    // Expression: ["interpolate", ["linear"], ["zoom"], z1, v1, z2, v2, ...]
+    for (var i = 3; i < textSize.length; i += 2) {
+      if ((textSize[i] as num).toInt() == zoom) return (textSize[i + 1] as num).toDouble();
     }
   }
   if (textSize is num) return textSize.toDouble();
-  throw StateError('Expected text-size stop at zoom $zoom.');
+  throw StateError('Expected text-size value at zoom $zoom.');
 }
 
-String _textColor(QuiMapStyle style, String layerId) {
+String _textColor(QuiMapLibreStyle style, String layerId) {
   final paint = _layerJson(style, layerId)['paint'] as Map<String, dynamic>;
   final textColor = paint['text-color'] as String?;
   if (textColor != null) return textColor;
   throw StateError('Expected text-color');
+}
+
+List<dynamic> _textFont(QuiMapLibreStyle style, String layerId) {
+  final layout = _layerJson(style, layerId)['layout'] as Map<String, dynamic>?;
+  if (layout == null) throw StateError('Expected layout');
+  final textFont = layout['text-font'] as List<dynamic>?;
+  if (textFont != null) return textFont;
+  throw StateError('Expected text-font');
 }
 
 int _relativeLuminance(String hexColor) {
@@ -239,6 +241,6 @@ int _relativeLuminance(String hexColor) {
   return (red * 299) + (green * 587) + (blue * 114);
 }
 
-Map<String, dynamic> _layerJson(QuiMapStyle style, String id) {
+Map<String, dynamic> _layerJson(QuiMapLibreStyle style, String id) {
   return style.layers.firstWhere((l) => l.toJson()['id'] == id).toJson();
 }

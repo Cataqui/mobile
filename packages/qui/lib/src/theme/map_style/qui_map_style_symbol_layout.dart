@@ -29,8 +29,8 @@ part 'qui_map_style_symbol_layout.freezed.dart';
 part 'qui_map_style_symbol_layout.g.dart';
 
 @Freezed(toJson: true, fromJson: false)
-abstract class QuiMapStyleSymbolLayout with _$QuiMapStyleSymbolLayout {
-  const factory QuiMapStyleSymbolLayout({
+abstract class QuiMapLibreStyleSymbolLayout with _$QuiMapLibreStyleSymbolLayout {
+  const factory QuiMapLibreStyleSymbolLayout({
     /// The text content expression (e.g. `"{name}"` to use a feature property).
     ///
     /// Mapped to the `text-field` JSON key. Accepts a field reference (in
@@ -48,10 +48,8 @@ abstract class QuiMapStyleSymbolLayout with _$QuiMapStyleSymbolLayout {
     /// function.
     ///
     /// Mapped to the `text-size` JSON key in pixels. Uses
-    /// [QuiMapStyleValueConverter] for serialization.
-    @JsonKey(name: 'text-size')
-    @QuiMapStyleValueConverter()
-    QuiMapStyleValue? textSize,
+    /// [QuiMapLibreStyleValueConverter] for serialization.
+    @JsonKey(name: 'text-size') @QuiMapLibreStyleValueConverter() QuiMapLibreStyleValue? textSize,
 
     /// The maximum line width for text wrapping, in ems.
     ///
@@ -84,5 +82,5 @@ abstract class QuiMapStyleSymbolLayout with _$QuiMapStyleSymbolLayout {
     /// fixed points; `"line"` places them along lines (useful for road names).
     /// When null, `"point"` applies.
     @JsonKey(name: 'symbol-placement') String? symbolPlacement,
-  }) = _QuiMapStyleSymbolLayout;
+  }) = _QuiMapLibreStyleSymbolLayout;
 }

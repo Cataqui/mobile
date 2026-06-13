@@ -26,48 +26,48 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'qui_map_style_filter.freezed.dart';
 
 @Freezed(toJson: false, fromJson: false)
-sealed class QuiMapStyleFilter with _$QuiMapStyleFilter {
+sealed class QuiMapLibreStyleFilter with _$QuiMapLibreStyleFilter {
   /// Creates a filter that matches features where [key] equals [value].
   ///
   /// Corresponds to the MapLibre `["==", key, value]` expression.
-  const factory QuiMapStyleFilter.equals({
+  const factory QuiMapLibreStyleFilter.equals({
     required String key,
     required Object value,
-  }) = QuiMapStyleEqualsFilter;
+  }) = QuiMapLibreStyleEqualsFilter;
 
   /// Creates a filter that matches features where [key] `>=` [value].
   ///
   /// Corresponds to the MapLibre `[">=", key, value]` expression.
-  const factory QuiMapStyleFilter.greaterThanOrEqual({
+  const factory QuiMapLibreStyleFilter.greaterThanOrEqual({
     required String key,
     required num value,
-  }) = QuiMapStyleGteFilter;
+  }) = QuiMapLibreStyleGteFilter;
 
   /// Creates a filter that matches features where [key] `<=` [value].
   ///
   /// Corresponds to the MapLibre `["<=", key, value]` expression.
-  const factory QuiMapStyleFilter.lessThanOrEqual({
+  const factory QuiMapLibreStyleFilter.lessThanOrEqual({
     required String key,
     required num value,
-  }) = QuiMapStyleLteFilter;
+  }) = QuiMapLibreStyleLteFilter;
 
   /// Creates a filter that matches features matching any of [filters].
   ///
   /// Corresponds to the MapLibre `["any", ...]` expression. Child filters
   /// are evaluated with logical OR semantics.
-  const factory QuiMapStyleFilter.any({
-    required List<QuiMapStyleFilter> filters,
-  }) = QuiMapStyleAnyFilter;
+  const factory QuiMapLibreStyleFilter.any({
+    required List<QuiMapLibreStyleFilter> filters,
+  }) = QuiMapLibreStyleAnyFilter;
 }
 
-/// JSON serialization extension for [QuiMapStyleFilter].
-extension QuiMapStyleFilterJson on QuiMapStyleFilter {
+/// JSON serialization extension for [QuiMapLibreStyleFilter].
+extension QuiMapLibreStyleFilterJson on QuiMapLibreStyleFilter {
   /// Serializes this filter to a MapLibre-compatible array expression.
   List<dynamic> toJson() => switch (this) {
-        QuiMapStyleEqualsFilter(:final key, :final value) => ['==', key, value],
-        QuiMapStyleGteFilter(:final key, :final value) => ['>=', key, value],
-        QuiMapStyleLteFilter(:final key, :final value) => ['<=', key, value],
-        QuiMapStyleAnyFilter(:final filters) => [
+        QuiMapLibreStyleEqualsFilter(:final key, :final value) => ['==', key, value],
+        QuiMapLibreStyleGteFilter(:final key, :final value) => ['>=', key, value],
+        QuiMapLibreStyleLteFilter(:final key, :final value) => ['<=', key, value],
+        QuiMapLibreStyleAnyFilter(:final filters) => [
           'any',
           ...filters.map((f) => f.toJson()),
         ],

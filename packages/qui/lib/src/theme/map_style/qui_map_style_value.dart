@@ -16,8 +16,8 @@ part 'qui_map_style_value.freezed.dart';
 /// integers and fractional numbers as JSON doubles, matching the original
 /// MapLibre style file exactly.
 @Freezed(toJson: false, fromJson: false)
-sealed class QuiMapStyleZoomStop with _$QuiMapStyleZoomStop {
-  const factory QuiMapStyleZoomStop({
+sealed class QuiMapLibreStyleZoomStop with _$QuiMapLibreStyleZoomStop {
+  const factory QuiMapLibreStyleZoomStop({
     /// The zoom level for this stop. Integer zoom levels (e.g. `10`) match
     /// discrete zoom transitions; fractional values would produce
     /// interpolated results.
@@ -26,42 +26,55 @@ sealed class QuiMapStyleZoomStop with _$QuiMapStyleZoomStop {
     /// The paint or layout property value at this stop's zoom level.
     /// The type depends on the property (pixel width, font size, opacity, etc.).
     required num value,
-  }) = _QuiMapStyleZoomStop;
+  }) = _QuiMapLibreStyleZoomStop;
 }
 
 /// A typed representation of a MapLibre GL paint or layout property value.
 ///
 /// In the MapLibre GL Style Specification, properties can be either:
 /// - A constant scalar (e.g. `"line-width": 2`)
-/// - A zoom-dependent stop function (e.g. `"line-width": { "stops": [[10, 1], [16, 6]] }`)
+/// - A zoom-dependent interpolation expression
+///   (e.g. `"line-width": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6]`)
 ///
-/// This sealed class models both forms. Use [QuiMapStyleValue.scalar] for
-/// constant values and [QuiMapStyleValue.stops] for zoom-dependent values.
+/// This sealed class models both forms. Use [QuiMapLibreStyleValue.scalar] for
+/// constant values and [QuiMapLibreStyleValue.stops] for zoom-dependent values.
 ///
 /// ## MapLibre JSON mapping
 /// ```json
 /// // Scalar
 /// 13
-/// // Stop function
-/// { "stops": [[10, 1], [16, 6]] }
+/// // Zoom-dependent interpolation
+/// ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6]
 /// ```
 @Freezed(toJson: false, fromJson: false)
-sealed class QuiMapStyleValue with _$QuiMapStyleValue {
-  const factory QuiMapStyleValue.scalar(num value) = QuiMapStyleScalarValue;
-  const factory QuiMapStyleValue.stops(List<QuiMapStyleZoomStop> stops) = QuiMapStyleStopsValue;
+sealed class QuiMapLibreStyleValue with _$QuiMapLibreStyleValue {
+  const factory QuiMapLibreStyleValue.scalar(num value) = QuiMapLibreStyleScalarValue;
+  const factory QuiMapLibreStyleValue.stops(List<QuiMapLibreStyleZoomStop> stops) = QuiMapLibreStyleStopsValue;
 }
 
-/// JSON serialization extension for [QuiMapStyleZoomStop].
-extension QuiMapStyleZoomStopJson on QuiMapStyleZoomStop {
+/// JSON serialization extension for [QuiMapLibreStyleZoomStop].
+extension QuiMapLibreStyleZoomStopJson on QuiMapLibreStyleZoomStop {
   /// Returns `[zoom, value]` as a list of two numbers.
   List<num> toJson() => [zoom, value];
 }
 
-/// JSON serialization extension for [QuiMapStyleValue].
-extension QuiMapStyleValueJson on QuiMapStyleValue {
-  /// Returns either a raw number (for scalar values) or a stops object map.
+/// JSON serialization extension for [QuiMapLibreStyleValue].
+extension QuiMapLibreStyleValueJson on QuiMapLibreStyleValue {
+  /// Returns either a raw number (for scalar values) or an expression array for
+  /// zoom-dependent interpolation.
+  ///
+  /// Scalar values are inlined as-is. Stop functions are converted to MapLibre
+  /// interpolation expressions:
+  /// ```json
+  /// ["interpolate", ["linear"], ["zoom"], z1, v1, z2, v2, ...]
+  /// ```
   Object toJson() => switch (this) {
-    QuiMapStyleScalarValue(:final value) => value,
-    QuiMapStyleStopsValue(:final stops) => {'stops': stops.map((s) => s.toJson()).toList()},
+    QuiMapLibreStyleScalarValue(:final value) => value,
+    QuiMapLibreStyleStopsValue(:final stops) => [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      ...stops.expand((s) => [s.zoom, s.value]),
+    ],
   };
 }

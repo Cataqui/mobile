@@ -23,8 +23,8 @@ part 'qui_map_style_symbol_paint.freezed.dart';
 part 'qui_map_style_symbol_paint.g.dart';
 
 @Freezed(toJson: true, fromJson: false)
-abstract class QuiMapStyleSymbolPaint with _$QuiMapStyleSymbolPaint {
-  const factory QuiMapStyleSymbolPaint({
+abstract class QuiMapLibreStyleSymbolPaint with _$QuiMapLibreStyleSymbolPaint {
+  const factory QuiMapLibreStyleSymbolPaint({
     /// The text fill color as a hex string (e.g. `"#555657"`).
     ///
     /// Mapped to the `text-color` JSON key.
@@ -46,5 +46,5 @@ abstract class QuiMapStyleSymbolPaint with _$QuiMapStyleSymbolPaint {
     /// Mapped to the `text-opacity` JSON key. When null, defaults to 1
     /// in MapLibre.
     @JsonKey(name: 'text-opacity') double? textOpacity,
-  }) = _QuiMapStyleSymbolPaint;
+  }) = _QuiMapLibreStyleSymbolPaint;
 }

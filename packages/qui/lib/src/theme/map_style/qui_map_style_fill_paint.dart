@@ -21,8 +21,8 @@ part 'qui_map_style_fill_paint.freezed.dart';
 part 'qui_map_style_fill_paint.g.dart';
 
 @Freezed(toJson: true, fromJson: false)
-abstract class QuiMapStyleFillPaint with _$QuiMapStyleFillPaint {
-  const factory QuiMapStyleFillPaint({
+abstract class QuiMapLibreStyleFillPaint with _$QuiMapLibreStyleFillPaint {
+  const factory QuiMapLibreStyleFillPaint({
     /// The fill color as a hex string (e.g. `"#d7d9db"`).
     ///
     /// Mapped to the `fill-color` JSON key.
@@ -39,5 +39,5 @@ abstract class QuiMapStyleFillPaint with _$QuiMapStyleFillPaint {
     /// uses the same color as the fill. Only rendered for polygons; ignored
     /// for point or line data.
     @JsonKey(name: 'fill-outline-color') String? fillOutlineColor,
-  }) = _QuiMapStyleFillPaint;
+  }) = _QuiMapLibreStyleFillPaint;
 }

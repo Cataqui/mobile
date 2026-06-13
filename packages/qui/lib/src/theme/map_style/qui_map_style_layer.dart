@@ -44,59 +44,59 @@ import 'package:qui/src/theme/map_style/qui_map_style_symbol_paint.dart';
 part 'qui_map_style_layer.freezed.dart';
 
 @Freezed(toJson: false, fromJson: false)
-sealed class QuiMapStyleLayer with _$QuiMapStyleLayer {
+sealed class QuiMapLibreStyleLayer with _$QuiMapLibreStyleLayer {
   /// Creates a `background` layer that fills the entire map canvas.
   ///
   /// Background layers do not reference a source or source layer — they
   /// cover the full viewport. Typically the first layer in the layer stack.
-  const factory QuiMapStyleLayer.background({
+  const factory QuiMapLibreStyleLayer.background({
     required String id,
-    required QuiMapStyleBackgroundPaint paint,
+    required QuiMapLibreStyleBackgroundPaint paint,
   }) = QuiMapBackgroundLayer;
 
   /// Creates a `fill` layer that renders filled polygons.
   ///
   /// Used for landcover, landuse, water bodies, parks, and building footprints.
-  const factory QuiMapStyleLayer.fill({
+  const factory QuiMapLibreStyleLayer.fill({
     required String id,
-    required QuiMapStyleFillPaint paint,
+    required QuiMapLibreStyleFillPaint paint,
     String? source,
     String? sourceLayer,
     double? minzoom,
     double? maxzoom,
-    QuiMapStyleFilter? filter,
+    QuiMapLibreStyleFilter? filter,
   }) = QuiMapFillLayer;
 
   /// Creates a `line` layer that renders stroked paths.
   ///
   /// Used for roads, boundaries, waterways, tunnels, and bridges.
-  const factory QuiMapStyleLayer.line({
+  const factory QuiMapLibreStyleLayer.line({
     required String id,
-    required QuiMapStyleLinePaint paint,
+    required QuiMapLibreStyleLinePaint paint,
     String? source,
     String? sourceLayer,
     double? minzoom,
     double? maxzoom,
-    QuiMapStyleFilter? filter,
+    QuiMapLibreStyleFilter? filter,
   }) = QuiMapLineLayer;
 
   /// Creates a `symbol` layer that renders text labels.
   ///
   /// Used for place names (cities, towns, regions), road labels, and POI labels.
-  const factory QuiMapStyleLayer.symbol({
+  const factory QuiMapLibreStyleLayer.symbol({
     required String id,
-    required QuiMapStyleSymbolPaint paint,
+    required QuiMapLibreStyleSymbolPaint paint,
     String? source,
     String? sourceLayer,
     double? minzoom,
     double? maxzoom,
-    QuiMapStyleFilter? filter,
-    QuiMapStyleSymbolLayout? layout,
+    QuiMapLibreStyleFilter? filter,
+    QuiMapLibreStyleSymbolLayout? layout,
   }) = QuiMapSymbolLayer;
 }
 
-/// JSON serialization extension for [QuiMapStyleLayer].
-extension QuiMapStyleLayerJson on QuiMapStyleLayer {
+/// JSON serialization extension for [QuiMapLibreStyleLayer].
+extension QuiMapLibreStyleLayerJson on QuiMapLibreStyleLayer {
   /// Serializes this layer to a MapLibre-compatible JSON map.
   ///
   /// Includes only non-null optional fields (source, sourceLayer, minzoom,

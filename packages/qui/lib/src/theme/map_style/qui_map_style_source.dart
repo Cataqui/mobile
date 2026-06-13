@@ -22,15 +22,14 @@
 library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:qui/qui.dart' show QuiMapStyle;
-import 'package:qui/src/theme/map_style/qui_map_style.dart' show QuiMapStyle;
+import 'package:qui/src/theme/map_style/qui_map_style.dart' show QuiMapLibreStyle;
 
 part 'qui_map_style_source.freezed.dart';
 part 'qui_map_style_source.g.dart';
 
 @Freezed(toJson: true, fromJson: false)
-abstract class QuiMapStyleSource with _$QuiMapStyleSource {
-  const factory QuiMapStyleSource({
+abstract class QuiMapLibreStyleSource with _$QuiMapLibreStyleSource {
+  const factory QuiMapLibreStyleSource({
     /// The source type. Must be `"vector"` for vector tile sources.
     required String type,
 
@@ -38,7 +37,7 @@ abstract class QuiMapStyleSource with _$QuiMapStyleSource {
     ///
     /// Each template may contain `{x}`, `{y}`, `{z}` placeholders for tile
     /// coordinates, and a custom placeholder like `{tileUrlTemplate}` that
-    /// is resolved at runtime via [QuiMapStyle.light].
+    /// is resolved at runtime via [QuiMapLibreStyle.light].
     required List<String> tiles,
 
     /// Minimum zoom level for which tiles are available.
@@ -46,5 +45,5 @@ abstract class QuiMapStyleSource with _$QuiMapStyleSource {
 
     /// Maximum zoom level for which tiles are available.
     required int maxzoom,
-  }) = _QuiMapStyleSource;
+  }) = _QuiMapLibreStyleSource;
 }

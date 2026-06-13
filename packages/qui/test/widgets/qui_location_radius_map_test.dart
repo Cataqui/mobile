@@ -1,383 +1,245 @@
-import 'dart:math' as math;
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/gen/assets.gen.dart';
-import 'package:qui/qui.dart';
-import 'package:vector_map_tiles/vector_map_tiles.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:qui/src/widgets/qui_location_radius_map/qui_location_radius_map.dart';
 
 void main() {
   group('RadiusStyle assertions', () {
     test('when borderWidth is negative, it should assert', () {
-      expect(() => RadiusStyle(borderWidth: -0.1), throwsAssertionError);
+      expect(() => RadiusStyle(borderWidth: -1), throwsAssertionError);
     });
   });
 
   group('QuiLocationRadiusMap assertions', () {
-    test('when radiusInMeters is negative, it should assert', () {
-      expect(() => _map(radiusInMeters: -1), throwsAssertionError);
-    });
-
-    test('when tileMinZoom is negative, it should assert', () {
-      expect(() => _map(tileMinZoom: -1), throwsAssertionError);
-    });
-
-    test('when tileMaxZoom is zero, it should assert', () {
-      expect(() => _map(tileMaxZoom: 0), throwsAssertionError);
-    });
-
-    test('when tileMinZoom is greater than tileMaxZoom, it should assert', () {
-      expect(() => _map(tileMinZoom: 15, tileMaxZoom: 14), throwsAssertionError);
-    });
-
-    test('when zoom is lower than tileMinZoom, it should assert', () {
-      expect(() => _map(tileMinZoom: 12, zoom: 11.9), throwsAssertionError);
-    });
-
     test('when latitude is below -90, it should assert', () {
       expect(
-        () => _map(location: (latitude: -90.1, longitude: 0)),
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: -91, longitude: 0),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+        ),
         throwsAssertionError,
       );
     });
 
     test('when latitude is above 90, it should assert', () {
       expect(
-        () => _map(location: (latitude: 90.1, longitude: 0)),
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 91, longitude: 0),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+        ),
         throwsAssertionError,
       );
     });
 
     test('when longitude is below -180, it should assert', () {
       expect(
-        () => _map(location: (latitude: 0, longitude: -180.1)),
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: -181),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+        ),
         throwsAssertionError,
       );
     });
 
     test('when longitude is above 180, it should assert', () {
       expect(
-        () => _map(location: (latitude: 0, longitude: 180.1)),
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 181),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('when radiusInMeters is negative, it should assert', () {
+      expect(
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 0),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: -1,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('when tileMinZoom is negative, it should assert', () {
+      expect(
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 0),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+          tileMinZoom: -1,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('when tileMaxZoom is zero, it should assert', () {
+      expect(
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 0),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+          tileMaxZoom: 0,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('when tileMinZoom is greater than tileMaxZoom, it should assert', () {
+      expect(
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 0),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+          tileMinZoom: 10,
+          tileMaxZoom: 5,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('when zoom is lower than tileMinZoom, it should assert', () {
+      expect(
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 0),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 500,
+          tileMinZoom: 10,
+          tileMaxZoom: 15,
+          zoom: 5,
+        ),
         throwsAssertionError,
       );
     });
   });
 
   group('QuiLocationRadiusMap layout', () {
-    testWidgets('when parent gives a height, it should use the parent height', (tester) async {
-      await _pumpMap(tester, size: const Size(320, 260));
-
-      expect(tester.getSize(find.byType(QuiLocationRadiusMap)).height, 260);
-    });
-
-    testWidgets('when parent gives a width, it should use the parent width', (tester) async {
-      await _pumpMap(tester, size: const Size(320, 260));
-
-      expect(tester.getSize(find.byType(QuiLocationRadiusMap)).width, 320);
-    });
-  });
-
-  group('QuiLocationRadiusMap radius rendering', () {
-    testWidgets('when radiusInMeters is provided, it should pass half to CircleMarker as the center-to-edge radius', (
-      tester,
-    ) async {
-      await _pumpMap(tester, radiusInMeters: 2000);
-
-      expect(_circleMarker(tester).radius, 1000);
-    });
-
-    testWidgets('when radiusInMeters is provided, it should render the radius in meters', (tester) async {
-      await _pumpMap(tester, radiusInMeters: 2000);
-
-      expect(_circleMarker(tester).useRadiusInMeter, isTrue);
-    });
-
-    testWidgets('when location is provided, it should center the circle on that latitude', (tester) async {
-      await _pumpMap(tester, location: const (latitude: -23.556391, longitude: -46.844076));
-
-      expect(_circleMarker(tester).point.latitude, closeTo(-23.556391, 0.000001));
-    });
-
-    testWidgets('when location is provided, it should center the circle on that longitude', (tester) async {
-      await _pumpMap(tester, location: const (latitude: -23.556391, longitude: -46.844076));
-
-      expect(_circleMarker(tester).point.longitude, closeTo(-46.844076, 0.000001));
-    });
-
-    testWidgets('when using the default radiusStyle, it should use primary color for the fill', (tester) async {
-      await _pumpMap(tester);
-
-      expect(_circleMarker(tester).color, const Color(0xFFFF4A4B).withValues(alpha: 0.15));
-    });
-
-    testWidgets('when using the default radiusStyle, it should use primary color for the border', (tester) async {
-      await _pumpMap(tester);
-
-      expect(_circleMarker(tester).borderColor, const Color(0xFFFF4A4B).withValues(alpha: 0.4));
-    });
-
-    testWidgets('when using the default radiusStyle, it should use the default border width', (tester) async {
-      await _pumpMap(tester);
-
-      expect(_circleMarker(tester).borderStrokeWidth, 0);
-    });
-
-    testWidgets('when radiusStyle sets color, it should use the custom fill color', (tester) async {
-      await _pumpMap(tester, radiusStyle: const RadiusStyle(color: Color(0xFF123456)));
-
-      expect(_circleMarker(tester).color, const Color(0xFF123456));
-    });
-
-    testWidgets('when radiusStyle sets borderColor, it should use the custom border color', (tester) async {
-      await _pumpMap(tester, radiusStyle: const RadiusStyle(borderColor: Color(0xFF654321)));
-
-      expect(_circleMarker(tester).borderColor, const Color(0xFF654321));
-    });
-
-    testWidgets('when radiusStyle sets borderWidth, it should use the custom border width', (tester) async {
-      await _pumpMap(tester, radiusStyle: const RadiusStyle(borderWidth: 4));
-
-      expect(_circleMarker(tester).borderStrokeWidth, 4);
-    });
-  });
-
-  group('QuiLocationRadiusMap camera fit', () {
-    testWidgets('when zoom is omitted, it should create a camera fit around the radius', (tester) async {
-      await _pumpMap(tester);
-
-      expect(_mapOptions(tester).initialCameraFit, isA<FitBounds>());
-    });
-
-    testWidgets('when radius is 2km, it should calculate a 2km latitude diameter', (tester) async {
-      await _pumpMap(tester, radiusInMeters: 2000);
-
-      expect(_fitBounds(tester).bounds.north - _fitBounds(tester).bounds.south, closeTo(2000 / 111320, 0.000001));
-    });
-
-    testWidgets('when radius is 2km, it should calculate the longitude diameter using the latitude scale', (
-      tester,
-    ) async {
-      const location = (latitude: -23.556391, longitude: -46.844076);
-      final metersPerLongitudeDegree = 111320 * math.cos(location.latitude * math.pi / 180).abs();
-
-      await _pumpMap(tester, location: location, radiusInMeters: 2000);
-
-      expect(
-        _fitBounds(tester).bounds.east - _fitBounds(tester).bounds.west,
-        closeTo(2000 / metersPerLongitudeDegree, 0.000001),
+    testWidgets('when parent gives a height and width, it should render within bounds', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            height: 400,
+            width: 300,
+            child: QuiLocationRadiusMap(
+              tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+              location: (latitude: -23.55, longitude: -46.63),
+              fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+              radiusInMeters: 2000,
+            ),
+          ),
+        ),
       );
-    });
 
-    testWidgets('when radius is zero, it should use the minimum fit radius for latitude bounds', (tester) async {
-      await _pumpMap(tester, radiusInMeters: 0);
-
-      expect(_fitBounds(tester).bounds.north - _fitBounds(tester).bounds.south, closeTo(50 / 111320, 0.000001));
-    });
-
-    testWidgets('when location is near the north pole, it should clamp the north bound', (tester) async {
-      await _pumpMap(tester, location: const (latitude: 89.999, longitude: 0), radiusInMeters: 2000);
-
-      expect(_fitBounds(tester).bounds.north, 90);
-    });
-
-    testWidgets('when tileMinZoom is provided, it should pass it to the camera fit', (tester) async {
-      await _pumpMap(tester, tileMinZoom: 12, tileMaxZoom: 14);
-
-      expect(_fitBounds(tester).minZoom, 12);
-    });
-
-    testWidgets('when tileMaxZoom is provided, it should pass it to the camera fit', (tester) async {
-      await _pumpMap(tester, tileMaxZoom: 14);
-
-      expect(_fitBounds(tester).maxZoom, 14);
-    });
-  });
-
-  group('QuiLocationRadiusMap fixed zoom', () {
-    testWidgets('when zoom is provided, it should skip automatic camera fit', (tester) async {
-      await _pumpMap(tester, zoom: 13);
-
-      expect(_mapOptions(tester).initialCameraFit, isNull);
-    });
-
-    testWidgets('when zoom is provided, it should use it as the initial zoom', (tester) async {
-      await _pumpMap(tester, zoom: 13);
-
-      expect(_mapOptions(tester).initialZoom, 13);
-    });
-
-    testWidgets('when zoom is provided, it should keep the map centered on latitude', (tester) async {
-      await _pumpMap(tester, zoom: 13, location: const (latitude: -23.556391, longitude: -46.844076));
-
-      expect(_mapOptions(tester).initialCenter.latitude, closeTo(-23.556391, 0.000001));
-    });
-
-    testWidgets('when zoom is provided, it should keep the map centered on longitude', (tester) async {
-      await _pumpMap(tester, zoom: 13, location: const (latitude: -23.556391, longitude: -46.844076));
-
-      expect(_mapOptions(tester).initialCenter.longitude, closeTo(-46.844076, 0.000001));
-    });
-
-    testWidgets('when zoom is greater than tileMaxZoom, it should use zoom as the map max zoom', (tester) async {
-      await _pumpMap(tester, tileMaxZoom: 14, zoom: 16);
-
-      expect(_mapOptions(tester).maxZoom, 16);
-    });
-
-    testWidgets('when zoom is below tileMaxZoom, it should keep tileMaxZoom as the map max zoom', (tester) async {
-      await _pumpMap(tester, tileMaxZoom: 14, zoom: 13);
-
-      expect(_mapOptions(tester).maxZoom, 14);
+      expect(find.byType(QuiLocationRadiusMap), findsOneWidget);
     });
   });
 
   group('QuiLocationRadiusMap map configuration', () {
-    testWidgets('when rendered, it should disable map gestures', (tester) async {
-      await _pumpMap(tester);
-
-      expect(_mapOptions(tester).interactionOptions.flags, InteractiveFlag.none);
-    });
-
-    testWidgets('when rendered, it should render vector tiles in raster mode', (tester) async {
-      await _pumpMap(tester);
-
-      expect(_vectorTileLayer(tester).layerMode, VectorTileLayerMode.raster);
-    });
-
-    testWidgets('when overzooming, it should pass the overzoom value to the vector layer', (tester) async {
-      await _pumpMap(tester, tileMaxZoom: 14, zoom: 16);
-
-      expect(_vectorTileLayer(tester).maximumZoom, 16);
-    });
-
-    testWidgets('when tileMinZoom is provided, it should pass it to the tile provider', (tester) async {
-      await _pumpMap(tester, tileMinZoom: 12, tileMaxZoom: 14);
-
-      expect(_networkProvider(tester).minimumZoom, 12);
-    });
-
-    testWidgets('when tileMaxZoom is provided, it should pass it to the tile provider', (tester) async {
-      await _pumpMap(tester, tileMinZoom: 12, tileMaxZoom: 14);
-
-      expect(_networkProvider(tester).maximumZoom, 14);
-    });
-
-    testWidgets('when style is still loading, it should render a white fallback', (tester) async {
+    testWidgets('when rendered, it should wrap the map in ClipRRect', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
-          child: SizedBox.fromSize(size: const Size(320, 220), child: _map()),
+        MaterialApp(
+          home: SizedBox(
+            height: 400,
+            width: 300,
+            child: QuiLocationRadiusMap(
+              tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+              location: (latitude: -23.55, longitude: -46.63),
+              fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+              radiusInMeters: 2000,
+            ),
+          ),
         ),
       );
 
-      expect(_mapFallbackFinder, findsOneWidget);
+      expect(find.byType(ClipRRect), findsOneWidget);
     });
-  });
 
-  group('QuiLocationRadiusMap asset path prefix', () {
-    test('the generated asset path should include the packages/qui/ prefix', () {
-      expect(Assets.maps.quiLightMapStyle, 'packages/qui/assets/maps/qui_light_map_style.json');
+    testWidgets('when rendered, it should include a MapLibreMap widget', (tester) async {
+      await _pumpMap(tester);
+
+      expect(find.byType(MapLibreMap), findsOneWidget);
+    });
+
+    testWidgets('when zoom is provided, it should use it as the initial zoom', (tester) async {
+      await _pumpMap(tester, zoom: 14);
+
+      expect(find.byType(MapLibreMap), findsOneWidget);
+    });
+
+    testWidgets('when rendered, it should pass the generated style to MapLibre', (tester) async {
+      await _pumpMap(tester);
+
+      expect(_mapStyle(tester)['version'], 8);
+    });
+
+    testWidgets('when rendered, it should include the tile URL in the MapLibre style', (tester) async {
+      await _pumpMap(tester);
+
+      final sources = _mapStyle(tester)['sources'] as Map<String, dynamic>;
+      final openMapTiles = sources['openmaptiles'] as Map<String, dynamic>;
+      expect(openMapTiles['tiles'], ['https://tiles.example.com/{z}/{x}/{y}.mvt']);
+    });
+
+    testWidgets('when rendered, it should include a glyphs template in the MapLibre style', (tester) async {
+      await _pumpMap(tester);
+
+      expect(
+        _mapStyle(tester)['glyphs'],
+        'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+      );
+    });
+
+    testWidgets('when rendered, it should use the bundled Inter Regular glyph font stack', (tester) async {
+      await _pumpMap(tester);
+
+      expect(_textFont(_mapStyle(tester), 'place_city_label'), ['Inter Regular']);
     });
   });
 }
 
-const _defaultLocation = (latitude: -23.55052, longitude: -46.633308);
-final _mapFallbackFinder = find.descendant(
-  of: find.byType(QuiLocationRadiusMap),
-  matching: find.byWidgetPredicate((widget) => widget is ColoredBox && widget.color == Colors.white),
-);
-
-QuiLocationRadiusMap _map({
-  String tileUrlTemplate = 'https://tiles.example.com/{z}/{x}/{y}.mvt',
-  ({double latitude, double longitude}) location = _defaultLocation,
-  double radiusInMeters = 500,
-  RadiusStyle radiusStyle = const RadiusStyle(),
-  int tileMinZoom = 1,
-  int tileMaxZoom = 14,
-  double? zoom,
-}) {
-  return QuiLocationRadiusMap(
-    tileUrlTemplate: tileUrlTemplate,
-    location: location,
-    radiusInMeters: radiusInMeters,
-    radiusStyle: radiusStyle,
-    tileMinZoom: tileMinZoom,
-    tileMaxZoom: tileMaxZoom,
-    zoom: zoom,
-  );
-}
-
-Future<void> _pumpMap(
-  WidgetTester tester, {
-  Size size = const Size(320, 220),
-  ({double latitude, double longitude}) location = _defaultLocation,
-  double radiusInMeters = 500,
-  RadiusStyle radiusStyle = const RadiusStyle(),
-  int tileMinZoom = 1,
-  int tileMaxZoom = 14,
-  double? zoom,
-}) async {
+Future<void> _pumpMap(WidgetTester tester, {double? zoom}) async {
   await tester.pumpWidget(
-    _TestApp(
-      child: SizedBox.fromSize(
-        size: size,
-        child: _map(
-          location: location,
-          radiusInMeters: radiusInMeters,
-          radiusStyle: radiusStyle,
-          tileMinZoom: tileMinZoom,
-          tileMaxZoom: tileMaxZoom,
+    MaterialApp(
+      home: SizedBox(
+        height: 400,
+        width: 300,
+        child: QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: -23.55, longitude: -46.63),
+          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          radiusInMeters: 2000,
           zoom: zoom,
         ),
       ),
     ),
   );
-  await tester.pump();
-  await tester.pump();
-  await tester.pump(const Duration(seconds: 4));
-  await tester.pump();
+  await tester.pumpAndSettle();
 }
 
-CircleMarker<Object> _circleMarker(WidgetTester tester) {
-  return _circleLayer(tester).circles.single;
+Map<String, dynamic> _mapStyle(WidgetTester tester) {
+  final map = tester.widget<MapLibreMap>(find.byType(MapLibreMap));
+  return jsonDecode(map.styleString) as Map<String, dynamic>;
 }
 
-CircleLayer<Object> _circleLayer(WidgetTester tester) {
-  return tester.widget<CircleLayer<Object>>(find.byWidgetPredicate((widget) => widget is CircleLayer<Object>));
-}
-
-MapOptions _mapOptions(WidgetTester tester) {
-  return tester.widget<FlutterMap>(find.byType(FlutterMap)).options;
-}
-
-FitBounds _fitBounds(WidgetTester tester) {
-  final cameraFit = _mapOptions(tester).initialCameraFit;
-  if (cameraFit is FitBounds) return cameraFit;
-
-  throw StateError('Expected initialCameraFit to be FitBounds.');
-}
-
-VectorTileLayer _vectorTileLayer(WidgetTester tester) {
-  return tester.widget<VectorTileLayer>(find.byType(VectorTileLayer));
-}
-
-NetworkVectorTileProvider _networkProvider(WidgetTester tester) {
-  final provider = _vectorTileLayer(tester).tileProviders.get('openmaptiles');
-  if (provider is NetworkVectorTileProvider) return provider;
-
-  throw StateError('Expected openmaptiles provider to be NetworkVectorTileProvider.');
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(body: Center(child: child)),
-    );
-  }
+List<dynamic> _textFont(Map<String, dynamic> style, String layerId) {
+  final layers = style['layers'] as List<dynamic>;
+  final layer = layers.cast<Map<String, dynamic>>().firstWhere((layer) => layer['id'] == layerId);
+  final layout = layer['layout'] as Map<String, dynamic>;
+  return layout['text-font'] as List<dynamic>;
 }

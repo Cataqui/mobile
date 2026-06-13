@@ -25,24 +25,27 @@ const _openMapTilesSource = 'openmaptiles';
 /// version, id, name, metadata, sources, and layers.
 ///
 /// ## Usage
-/// Build a style instance via the [QuiMapStyle.light] factory and call
-/// `toJson()` to produce the MapLibre-compatible JSON map for use with
-/// `vector_tile_renderer.ThemeReader`:
+/// Build a style instance via the [QuiMapLibreStyle.light] factory and call
+/// `toJson()` to produce the MapLibre-compatible JSON map. Pass the
+/// serialized JSON string directly to `maplibre_gl`'s `styleString`:
 ///
 /// ```dart
-/// final style = QuiMapStyle.light(tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.pbf');
-/// final jsonMap = style.toJson();
-/// final theme = ThemeReader().read(jsonMap);
+/// final style = QuiMapLibreStyle.light(
+///   tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.pbf',
+///   fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+/// );
+/// final styleJson = jsonEncode(style.toJson());
+/// MapLibreMap(styleString: styleJson);
 /// ```
 ///
 /// ## Architecture
 /// This DTO hierarchy mirrors the MapLibre style structure:
-/// - Root: [QuiMapStyle] with metadata, sources, and layers
-/// - Layers: [QuiMapStyleLayer] (background, fill, line, symbol variants)
+/// - Root: [QuiMapLibreStyle] with metadata, sources, and layers
+/// - Layers: [QuiMapLibreStyleLayer] (background, fill, line, symbol variants)
 /// - Paint properties: type-specific paint DTOs
-/// - Layout properties: [QuiMapStyleSymbolLayout]
-/// - Values: [QuiMapStyleValue] (scalar or zoom-stop function)
-/// - Filters: [QuiMapStyleFilter] (equals, gte, lte, any operators)
+/// - Layout properties: [QuiMapLibreStyleSymbolLayout]
+/// - Values: [QuiMapLibreStyleValue] (scalar or zoom-stop function)
+/// - Filters: [QuiMapLibreStyleFilter] (equals, gte, lte, any operators)
 ///
 /// ## MapLibre JSON mapping
 /// ```json
@@ -56,28 +59,32 @@ const _openMapTilesSource = 'openmaptiles';
 /// }
 /// ```
 @Freezed(toJson: true, fromJson: false)
-abstract class QuiMapStyle with _$QuiMapStyle {
+abstract class QuiMapLibreStyle with _$QuiMapLibreStyle {
   /// Creates a full MapLibre style document.
   ///
-  /// All fields are required. For a pre-built light theme, use [QuiMapStyle.light].
-  const factory QuiMapStyle({
+  /// All fields are required. For a pre-built light theme, use [QuiMapLibreStyle.light].
+  const factory QuiMapLibreStyle({
     required int version,
     required String id,
     required String name,
-    required QuiMapStyleMetadata metadata,
-    required Map<String, QuiMapStyleSource> sources,
-    @QuiMapStyleLayerConverter() required List<QuiMapStyleLayer> layers,
-  }) = _QuiMapStyle;
+    required String glyphs,
+    required QuiMapLibreStyleMetadata metadata,
+    required Map<String, QuiMapLibreStyleSource> sources,
+    @QuiMapLibreStyleLayerConverter() required List<QuiMapLibreStyleLayer> layers,
+  }) = _QuiMapLibreStyle;
 
-  /// Builds the Cataquí light map style with runtime-configurable tile source.
+  /// Builds the Cataquí light map style with runtime-configurable tile and
+  /// font sources.
   ///
   /// The resulting style is ready for serialization with `toJson()`, producing
-  /// a MapLibre-compatible JSON map that the `vector_tile_renderer` package's
-  /// `ThemeReader` can consume.
+  /// a MapLibre-compatible JSON map that `maplibre_gl`'s native engine can
+  /// consume directly via the `styleString` parameter.
   ///
   /// ## Configuration
   /// [tileUrlTemplate] is injected into the `openmaptiles` source's `tiles`
   /// array. [tileMinZoom] and [tileMaxZoom] control the source zoom bounds.
+  /// [fontConfig] provides the font stack and glyphs URL template used by
+  /// text label layers.
   ///
   /// ## Layer stack
   /// The returned style contains 24 layers in the standard rendering order:
@@ -89,401 +96,427 @@ abstract class QuiMapStyle with _$QuiMapStyle {
   /// 5. Label layers — place_state_label, place_megacity_label,
   ///    place_city_label, place_town_label, place_region_label,
   ///    road_major_label, road_local_label, poi_label (8 layers)
-  factory QuiMapStyle.light({required String tileUrlTemplate, int tileMinZoom = 1, int tileMaxZoom = 14}) =>
-      _buildLightStyle(tileUrlTemplate: tileUrlTemplate, tileMinZoom: tileMinZoom, tileMaxZoom: tileMaxZoom);
+  factory QuiMapLibreStyle.light({
+    required String tileUrlTemplate,
+    required ({String fontStack, String glyphUrlTemplate}) fontConfig,
+    int tileMinZoom = 1,
+    int tileMaxZoom = 14,
+  }) => _buildLightStyle(
+    tileUrlTemplate: tileUrlTemplate,
+    fontStack: fontConfig.fontStack,
+    glyphUrlTemplate: fontConfig.glyphUrlTemplate,
+    tileMinZoom: tileMinZoom,
+    tileMaxZoom: tileMaxZoom,
+  );
 }
 
-QuiMapStyle _buildLightStyle({required String tileUrlTemplate, required int tileMinZoom, required int tileMaxZoom}) {
-  return QuiMapStyle(
+QuiMapLibreStyle _buildLightStyle({
+  required String tileUrlTemplate,
+  required String fontStack,
+  required String glyphUrlTemplate,
+  required int tileMinZoom,
+  required int tileMaxZoom,
+}) {
+  return QuiMapLibreStyle(
     version: 8,
     id: 'qui-light',
     name: 'Qui Light',
-    metadata: const QuiMapStyleMetadata(mapboxAutocomposite: false, mapboxType: 'template', quiStyle: 'light'),
+    glyphs: glyphUrlTemplate,
+    metadata: const QuiMapLibreStyleMetadata(mapboxAutocomposite: false, mapboxType: 'template', quiStyle: 'light'),
     sources: {
-      _openMapTilesSource: QuiMapStyleSource(
+      _openMapTilesSource: QuiMapLibreStyleSource(
         type: 'vector',
         tiles: [tileUrlTemplate],
         minzoom: tileMinZoom,
         maxzoom: tileMaxZoom,
       ),
     },
-    layers: _buildLightLayers(),
+    layers: _buildLightLayers(fontStack: fontStack),
   );
 }
 
-List<QuiMapStyleLayer> _buildLightLayers() {
-  return const [
+List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
+  return [
     // ── Background ──────────────────────────────────────────────────────
-    QuiMapStyleLayer.background(
+    const QuiMapLibreStyleLayer.background(
       id: 'background',
-      paint: QuiMapStyleBackgroundPaint(backgroundColor: '#ebedef'),
+      paint: QuiMapLibreStyleBackgroundPaint(backgroundColor: '#ebedef'),
     ),
 
     // ── Fill layers ────────────────────────────────────────────────────
-    QuiMapStyleLayer.fill(
+    const QuiMapLibreStyleLayer.fill(
       id: 'landcover',
       source: _openMapTilesSource,
       sourceLayer: 'landcover',
-      paint: QuiMapStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.8),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.8),
     ),
-    QuiMapStyleLayer.fill(
+    const QuiMapLibreStyleLayer.fill(
       id: 'landuse',
       source: _openMapTilesSource,
       sourceLayer: 'landuse',
-      paint: QuiMapStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.9),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.9),
     ),
-    QuiMapStyleLayer.fill(
+    const QuiMapLibreStyleLayer.fill(
       id: 'park',
       source: _openMapTilesSource,
       sourceLayer: 'park',
-      paint: QuiMapStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.8),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.8),
     ),
-    QuiMapStyleLayer.fill(
+    const QuiMapLibreStyleLayer.fill(
       id: 'water',
       source: _openMapTilesSource,
       sourceLayer: 'water',
-      paint: QuiMapStyleFillPaint(fillColor: '#dadbdc', fillOpacity: 1),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#dadbdc', fillOpacity: 1),
     ),
 
     // ── Line layers ────────────────────────────────────────────────────
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'waterway',
       source: _openMapTilesSource,
       sourceLayer: 'waterway',
-      paint: QuiMapStyleLinePaint(
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#dadbdc',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 10, value: 0.7),
-          QuiMapStyleZoomStop(zoom: 16, value: 2.2),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 10, value: 0.7),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 2.2),
         ]),
         lineOpacity: 0.9,
       ),
     ),
-    QuiMapStyleLayer.fill(
+    const QuiMapLibreStyleLayer.fill(
       id: 'building',
       source: _openMapTilesSource,
       sourceLayer: 'building',
       minzoom: 13,
-      paint: QuiMapStyleFillPaint(fillColor: '#e8e8e8', fillOutlineColor: '#d9d9d9', fillOpacity: 0.45),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#e8e8e8', fillOutlineColor: '#d9d9d9', fillOpacity: 0.45),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'boundary',
       source: _openMapTilesSource,
       sourceLayer: 'boundary',
-      paint: QuiMapStyleLinePaint(lineColor: '#b3b3b3', lineWidth: QuiMapStyleValue.scalar(0.7), lineOpacity: 0.65),
+      paint: QuiMapLibreStyleLinePaint(
+        lineColor: '#b3b3b3',
+        lineWidth: QuiMapLibreStyleValue.scalar(0.7),
+        lineOpacity: 0.65,
+      ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'tunnel',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.equals(key: 'brunnel', value: 'tunnel'),
-      paint: QuiMapStyleLinePaint(
+      filter: QuiMapLibreStyleFilter.equals(key: 'brunnel', value: 'tunnel'),
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#dedede',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 10, value: 0.3),
-          QuiMapStyleZoomStop(zoom: 14, value: 2),
-          QuiMapStyleZoomStop(zoom: 16, value: 6),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 10, value: 0.3),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 2),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 6),
         ]),
         lineOpacity: 0.45,
       ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'road_minor',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.any(
+      filter: QuiMapLibreStyleFilter.any(
         filters: [
-          QuiMapStyleFilter.equals(key: 'class', value: 'minor'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'service'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'track'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'path'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'minor'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'service'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'track'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'path'),
         ],
       ),
-      paint: QuiMapStyleLinePaint(
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#ffffff',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 11, value: 0.15),
-          QuiMapStyleZoomStop(zoom: 14, value: 0.45),
-          QuiMapStyleZoomStop(zoom: 16, value: 1.4),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 11, value: 0.15),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 0.45),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 1.4),
         ]),
         lineOpacity: 0.95,
       ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'road_tertiary',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.equals(key: 'class', value: 'tertiary'),
-      paint: QuiMapStyleLinePaint(
+      filter: QuiMapLibreStyleFilter.equals(key: 'class', value: 'tertiary'),
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#ffffff',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 8, value: 0.25),
-          QuiMapStyleZoomStop(zoom: 12, value: 0.9),
-          QuiMapStyleZoomStop(zoom: 14, value: 2.4),
-          QuiMapStyleZoomStop(zoom: 16, value: 5.2),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 8, value: 0.25),
+          QuiMapLibreStyleZoomStop(zoom: 12, value: 0.9),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 2.4),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 5.2),
         ]),
         lineOpacity: 0.82,
       ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'road_secondary',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.equals(key: 'class', value: 'secondary'),
-      paint: QuiMapStyleLinePaint(
+      filter: QuiMapLibreStyleFilter.equals(key: 'class', value: 'secondary'),
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#ffffff',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 8, value: 0.35),
-          QuiMapStyleZoomStop(zoom: 12, value: 1.2),
-          QuiMapStyleZoomStop(zoom: 14, value: 3.3),
-          QuiMapStyleZoomStop(zoom: 16, value: 7),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 8, value: 0.35),
+          QuiMapLibreStyleZoomStop(zoom: 12, value: 1.2),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 3.3),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 7),
         ]),
         lineOpacity: 0.86,
       ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'road_primary',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.equals(key: 'class', value: 'primary'),
-      paint: QuiMapStyleLinePaint(
+      filter: QuiMapLibreStyleFilter.equals(key: 'class', value: 'primary'),
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#ffffff',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 8, value: 0.45),
-          QuiMapStyleZoomStop(zoom: 12, value: 1.7),
-          QuiMapStyleZoomStop(zoom: 14, value: 4.5),
-          QuiMapStyleZoomStop(zoom: 16, value: 9),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 8, value: 0.45),
+          QuiMapLibreStyleZoomStop(zoom: 12, value: 1.7),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 4.5),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 9),
         ]),
         lineOpacity: 0.9,
       ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'road_trunk',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.equals(key: 'class', value: 'trunk'),
-      paint: QuiMapStyleLinePaint(
+      filter: QuiMapLibreStyleFilter.equals(key: 'class', value: 'trunk'),
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#ffffff',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 7, value: 0.55),
-          QuiMapStyleZoomStop(zoom: 12, value: 2.2),
-          QuiMapStyleZoomStop(zoom: 14, value: 5.8),
-          QuiMapStyleZoomStop(zoom: 16, value: 11.5),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 7, value: 0.55),
+          QuiMapLibreStyleZoomStop(zoom: 12, value: 2.2),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 5.8),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 11.5),
         ]),
         lineOpacity: 0.92,
       ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'road_motorway',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.equals(key: 'class', value: 'motorway'),
-      paint: QuiMapStyleLinePaint(
+      filter: QuiMapLibreStyleFilter.equals(key: 'class', value: 'motorway'),
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#ffffff',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 5, value: 0.6),
-          QuiMapStyleZoomStop(zoom: 10, value: 1.5),
-          QuiMapStyleZoomStop(zoom: 14, value: 6),
-          QuiMapStyleZoomStop(zoom: 16, value: 13.5),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 5, value: 0.6),
+          QuiMapLibreStyleZoomStop(zoom: 10, value: 1.5),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 6),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 13.5),
         ]),
         lineOpacity: 0.95,
       ),
     ),
-    QuiMapStyleLayer.line(
+    const QuiMapLibreStyleLayer.line(
       id: 'bridge',
       source: _openMapTilesSource,
       sourceLayer: 'transportation',
-      filter: QuiMapStyleFilter.equals(key: 'brunnel', value: 'bridge'),
-      paint: QuiMapStyleLinePaint(
+      filter: QuiMapLibreStyleFilter.equals(key: 'brunnel', value: 'bridge'),
+      paint: QuiMapLibreStyleLinePaint(
         lineColor: '#ffffff',
-        lineWidth: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 10, value: 0.5),
-          QuiMapStyleZoomStop(zoom: 14, value: 3),
-          QuiMapStyleZoomStop(zoom: 16, value: 12),
+        lineWidth: QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 10, value: 0.5),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 3),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 12),
         ]),
         lineOpacity: 0.9,
       ),
     ),
 
     // ── Symbol layers ──────────────────────────────────────────────────
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'place_state_label',
       source: _openMapTilesSource,
       sourceLayer: 'place',
       minzoom: 3,
       maxzoom: 9,
-      filter: QuiMapStyleFilter.equals(key: 'class', value: 'state'),
-      layout: QuiMapStyleSymbolLayout(
+      filter: const QuiMapLibreStyleFilter.equals(key: 'class', value: 'state'),
+      layout: QuiMapLibreStyleSymbolLayout(
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 3, value: 7),
-          QuiMapStyleZoomStop(zoom: 4, value: 9),
-          QuiMapStyleZoomStop(zoom: 5, value: 12),
-          QuiMapStyleZoomStop(zoom: 8, value: 18),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 3, value: 7),
+          QuiMapLibreStyleZoomStop(zoom: 4, value: 9),
+          QuiMapLibreStyleZoomStop(zoom: 5, value: 12),
+          QuiMapLibreStyleZoomStop(zoom: 8, value: 18),
         ]),
         textMaxWidth: 5,
         textTransform: 'uppercase',
         textLetterSpacing: 0.15,
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#7b7c7d', textHaloColor: '#ffffff', textHaloWidth: 1, textOpacity: 0.5),
+      paint: const QuiMapLibreStyleSymbolPaint(
+        textColor: '#7b7c7d',
+        textHaloColor: '#ffffff',
+        textHaloWidth: 1,
+        textOpacity: 0.5,
+      ),
     ),
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'place_megacity_label',
       source: _openMapTilesSource,
       sourceLayer: 'place',
       minzoom: 4,
       maxzoom: 11,
-      filter: QuiMapStyleFilter.greaterThanOrEqual(key: 'capital', value: 2),
-      layout: QuiMapStyleSymbolLayout(
+      filter: const QuiMapLibreStyleFilter.greaterThanOrEqual(key: 'capital', value: 2),
+      layout: QuiMapLibreStyleSymbolLayout(
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 4, value: 7),
-          QuiMapStyleZoomStop(zoom: 5, value: 11),
-          QuiMapStyleZoomStop(zoom: 8, value: 15.5),
-          QuiMapStyleZoomStop(zoom: 10, value: 18),
-          QuiMapStyleZoomStop(zoom: 11, value: 22),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 4, value: 7),
+          QuiMapLibreStyleZoomStop(zoom: 5, value: 11),
+          QuiMapLibreStyleZoomStop(zoom: 8, value: 15.5),
+          QuiMapLibreStyleZoomStop(zoom: 10, value: 18),
+          QuiMapLibreStyleZoomStop(zoom: 11, value: 22),
         ]),
         textMaxWidth: 14,
         textAnchor: 'bottom',
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#555657', textHaloColor: '#ffffff', textHaloWidth: 1),
+      paint: const QuiMapLibreStyleSymbolPaint(textColor: '#555657', textHaloColor: '#ffffff', textHaloWidth: 1),
     ),
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'place_city_label',
       source: _openMapTilesSource,
       sourceLayer: 'place',
       minzoom: 5,
       maxzoom: 11,
-      filter: QuiMapStyleFilter.any(
+      filter: const QuiMapLibreStyleFilter.any(
         filters: [
-          QuiMapStyleFilter.equals(key: 'class', value: 'city'),
-          QuiMapStyleFilter.lessThanOrEqual(key: 'rank', value: 4),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'city'),
+          QuiMapLibreStyleFilter.lessThanOrEqual(key: 'rank', value: 4),
         ],
       ),
-      layout: QuiMapStyleSymbolLayout(
+      layout: QuiMapLibreStyleSymbolLayout(
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 5, value: 10),
-          QuiMapStyleZoomStop(zoom: 8, value: 14),
-          QuiMapStyleZoomStop(zoom: 10, value: 18),
-          QuiMapStyleZoomStop(zoom: 11, value: 20),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 5, value: 10),
+          QuiMapLibreStyleZoomStop(zoom: 8, value: 14),
+          QuiMapLibreStyleZoomStop(zoom: 10, value: 18),
+          QuiMapLibreStyleZoomStop(zoom: 11, value: 20),
         ]),
         textMaxWidth: 10,
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#555657', textHaloColor: '#ffffff', textHaloWidth: 1),
+      paint: const QuiMapLibreStyleSymbolPaint(textColor: '#555657', textHaloColor: '#ffffff', textHaloWidth: 1),
     ),
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'place_town_label',
       source: _openMapTilesSource,
       sourceLayer: 'place',
       minzoom: 8,
-      filter: QuiMapStyleFilter.equals(key: 'class', value: 'town'),
-      layout: QuiMapStyleSymbolLayout(
+      filter: const QuiMapLibreStyleFilter.equals(key: 'class', value: 'town'),
+      layout: QuiMapLibreStyleSymbolLayout(
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 8, value: 11),
-          QuiMapStyleZoomStop(zoom: 10, value: 13),
-          QuiMapStyleZoomStop(zoom: 14, value: 18),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 8, value: 11),
+          QuiMapLibreStyleZoomStop(zoom: 10, value: 13),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 18),
         ]),
         textMaxWidth: 8,
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#b3b4b5', textHaloColor: '#ffffff', textHaloWidth: 1),
+      paint: const QuiMapLibreStyleSymbolPaint(textColor: '#b3b4b5', textHaloColor: '#ffffff', textHaloWidth: 1),
     ),
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'place_region_label',
       source: _openMapTilesSource,
       sourceLayer: 'place',
       minzoom: 11,
       maxzoom: 16,
-      filter: QuiMapStyleFilter.any(
+      filter: const QuiMapLibreStyleFilter.any(
         filters: [
-          QuiMapStyleFilter.equals(key: 'class', value: 'suburb'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'neighbourhood'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'neighborhood'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'quarter'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'hamlet'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'village'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'suburb'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'neighbourhood'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'neighborhood'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'quarter'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'hamlet'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'village'),
         ],
       ),
-      layout: QuiMapStyleSymbolLayout(
+      layout: QuiMapLibreStyleSymbolLayout(
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 11, value: 11),
-          QuiMapStyleZoomStop(zoom: 12, value: 13),
-          QuiMapStyleZoomStop(zoom: 14, value: 15),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 11, value: 11),
+          QuiMapLibreStyleZoomStop(zoom: 12, value: 13),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 15),
         ]),
         textMaxWidth: 11,
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#68696a', textHaloColor: '#ffffff', textHaloWidth: 1),
+      paint: const QuiMapLibreStyleSymbolPaint(textColor: '#68696a', textHaloColor: '#ffffff', textHaloWidth: 1),
     ),
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'road_major_label',
       source: _openMapTilesSource,
       sourceLayer: 'transportation_name',
       minzoom: 13,
       maxzoom: 18,
-      filter: QuiMapStyleFilter.any(
+      filter: const QuiMapLibreStyleFilter.any(
         filters: [
-          QuiMapStyleFilter.equals(key: 'class', value: 'motorway'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'trunk'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'primary'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'secondary'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'tertiary'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'motorway'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'trunk'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'primary'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'secondary'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'tertiary'),
         ],
       ),
-      layout: QuiMapStyleSymbolLayout(
+      layout: QuiMapLibreStyleSymbolLayout(
         symbolPlacement: 'line',
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 13, value: 8),
-          QuiMapStyleZoomStop(zoom: 14, value: 10),
-          QuiMapStyleZoomStop(zoom: 16, value: 12),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 13, value: 8),
+          QuiMapLibreStyleZoomStop(zoom: 14, value: 10),
+          QuiMapLibreStyleZoomStop(zoom: 16, value: 12),
         ]),
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#7b7c7d', textHaloColor: '#ffffff', textHaloWidth: 1),
+      paint: const QuiMapLibreStyleSymbolPaint(textColor: '#7b7c7d', textHaloColor: '#ffffff', textHaloWidth: 1),
     ),
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'road_local_label',
       source: _openMapTilesSource,
       sourceLayer: 'transportation_name',
       minzoom: 15,
-      filter: QuiMapStyleFilter.any(
+      filter: const QuiMapLibreStyleFilter.any(
         filters: [
-          QuiMapStyleFilter.equals(key: 'class', value: 'minor'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'service'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'track'),
-          QuiMapStyleFilter.equals(key: 'class', value: 'path'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'minor'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'service'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'track'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'path'),
         ],
       ),
-      layout: QuiMapStyleSymbolLayout(
+      layout: QuiMapLibreStyleSymbolLayout(
         symbolPlacement: 'line',
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.stops([
-          QuiMapStyleZoomStop(zoom: 15, value: 8),
-          QuiMapStyleZoomStop(zoom: 18, value: 11),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.stops([
+          QuiMapLibreStyleZoomStop(zoom: 15, value: 8),
+          QuiMapLibreStyleZoomStop(zoom: 18, value: 11),
         ]),
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#9c9d9e', textHaloColor: '#ffffff', textHaloWidth: 1),
+      paint: const QuiMapLibreStyleSymbolPaint(textColor: '#9c9d9e', textHaloColor: '#ffffff', textHaloWidth: 1),
     ),
-    QuiMapStyleLayer.symbol(
+    QuiMapLibreStyleLayer.symbol(
       id: 'poi_label',
       source: _openMapTilesSource,
       sourceLayer: 'poi',
       minzoom: 15,
-      layout: QuiMapStyleSymbolLayout(
+      layout: QuiMapLibreStyleSymbolLayout(
         textField: '{name}',
-        textFont: ['Inter'],
-        textSize: QuiMapStyleValue.scalar(13),
+        textFont: [fontStack],
+        textSize: const QuiMapLibreStyleValue.scalar(13),
         textMaxWidth: 7,
       ),
-      paint: QuiMapStyleSymbolPaint(textColor: '#9c9d9e', textHaloColor: '#ffffff', textHaloWidth: 1),
+      paint: const QuiMapLibreStyleSymbolPaint(textColor: '#9c9d9e', textHaloColor: '#ffffff', textHaloWidth: 1),
     ),
   ];
 }

@@ -11,13 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^4.0.0
-  flutter_map: ^8.3.0
   flutter_svg: ^2.0.17
   freezed_annotation: ^3.1.0
   json_annotation: ^4.11.0
-  latlong2: ^0.9.1
-  vector_map_tiles: 9.0.0-beta.9
-  vector_tile_renderer: ^6.1.0
+  maplibre_gl: ^0.26.1
 
 dev_dependencies:
   alchemist: ^0.14.0

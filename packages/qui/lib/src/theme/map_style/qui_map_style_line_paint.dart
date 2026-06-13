@@ -23,8 +23,8 @@ part 'qui_map_style_line_paint.freezed.dart';
 part 'qui_map_style_line_paint.g.dart';
 
 @Freezed(toJson: true, fromJson: false)
-abstract class QuiMapStyleLinePaint with _$QuiMapStyleLinePaint {
-  const factory QuiMapStyleLinePaint({
+abstract class QuiMapLibreStyleLinePaint with _$QuiMapLibreStyleLinePaint {
+  const factory QuiMapLibreStyleLinePaint({
     /// The line color as a hex string (e.g. `"#ffffff"`).
     ///
     /// Mapped to the `line-color` JSON key.
@@ -33,16 +33,16 @@ abstract class QuiMapStyleLinePaint with _$QuiMapStyleLinePaint {
     /// The line width, which may be a constant scalar or a zoom-dependent stop
     /// function.
     ///
-    /// Mapped to the `line-width` JSON key. Uses [QuiMapStyleValueConverter]
+    /// Mapped to the `line-width` JSON key. Uses [QuiMapLibreStyleValueConverter]
     /// to serialize as either a raw number or a stops object.
-    /// See [QuiMapStyleValue] for value representations.
+    /// See [QuiMapLibreStyleValue] for value representations.
     @JsonKey(name: 'line-width')
-    @QuiMapStyleValueConverter()
-    required QuiMapStyleValue lineWidth,
+    @QuiMapLibreStyleValueConverter()
+    required QuiMapLibreStyleValue lineWidth,
 
     /// The line opacity from 0 (transparent) to 1 (opaque).
     ///
     /// Mapped to the `line-opacity` JSON key.
     @JsonKey(name: 'line-opacity') required double lineOpacity,
-  }) = _QuiMapStyleLinePaint;
+  }) = _QuiMapLibreStyleLinePaint;
 }

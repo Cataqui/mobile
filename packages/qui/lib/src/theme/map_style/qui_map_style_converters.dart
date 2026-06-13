@@ -1,4 +1,4 @@
-/// JSON serialization converters for [QuiMapStyleValue] and [QuiMapStyleLayer].
+/// JSON serialization converters for [QuiMapLibreStyleValue] and [QuiMapLibreStyleLayer].
 ///
 /// These converters are used by `json_serializable` when generating `toJson`
 /// code for Freezed DTOs that contain these types. They delegate to the
@@ -11,30 +11,30 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_layer.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_value.dart';
 
-/// Converts [QuiMapStyleValue] to/from its JSON representation.
+/// Converts [QuiMapLibreStyleValue] to/from its JSON representation.
 ///
-/// Used via `@QuiMapStyleValueConverter()` annotation on DTO fields.
-class QuiMapStyleValueConverter implements JsonConverter<QuiMapStyleValue, Object> {
-  const QuiMapStyleValueConverter();
+/// Used via `@QuiMapLibreStyleValueConverter()` annotation on DTO fields.
+class QuiMapLibreStyleValueConverter implements JsonConverter<QuiMapLibreStyleValue, Object> {
+  const QuiMapLibreStyleValueConverter();
 
   @override
-  QuiMapStyleValue fromJson(Object json) => throw UnsupportedError('QuiMapStyleValue.fromJson is not supported');
+  QuiMapLibreStyleValue fromJson(Object json) => throw UnsupportedError('QuiMapLibreStyleValue.fromJson is not supported');
 
   @override
-  Object toJson(QuiMapStyleValue value) => value.toJson();
+  Object toJson(QuiMapLibreStyleValue value) => value.toJson();
 }
 
-/// Converts a list of [QuiMapStyleLayer] to/from its JSON representation.
+/// Converts a list of [QuiMapLibreStyleLayer] to/from its JSON representation.
 ///
-/// Used via `@QuiMapStyleLayerConverter()` annotation on DTO fields.
-class QuiMapStyleLayerConverter implements JsonConverter<List<QuiMapStyleLayer>, List<dynamic>> {
-  const QuiMapStyleLayerConverter();
+/// Used via `@QuiMapLibreStyleLayerConverter()` annotation on DTO fields.
+class QuiMapLibreStyleLayerConverter implements JsonConverter<List<QuiMapLibreStyleLayer>, List<dynamic>> {
+  const QuiMapLibreStyleLayerConverter();
 
   @override
-  List<QuiMapStyleLayer> fromJson(List<dynamic> json) =>
-      throw UnsupportedError('QuiMapStyleLayer.fromJson is not supported');
+  List<QuiMapLibreStyleLayer> fromJson(List<dynamic> json) =>
+      throw UnsupportedError('QuiMapLibreStyleLayer.fromJson is not supported');
 
   @override
-  List<dynamic> toJson(List<QuiMapStyleLayer> layers) =>
+  List<dynamic> toJson(List<QuiMapLibreStyleLayer> layers) =>
       layers.map((l) => l.toJson()).toList();
 }

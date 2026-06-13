@@ -1,19 +1,14 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide Theme;
-import 'package:flutter/services.dart';
+import 'package:cataqui_core/cataqui_core.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:qui/gen/assets.gen.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:qui/src/theme/map_style/qui_map_style.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
-import 'package:vector_map_tiles/vector_map_tiles.dart';
-import 'package:vector_tile_renderer/vector_tile_renderer.dart' as vector_renderer;
 
-part '_qui_map_style.dart';
 part 'radius_style.dart';
 
 /// Static vector map that highlights an approximate location radius.
@@ -50,6 +45,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
   /// QuiLocationRadiusMap(
   ///   tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
   ///   location: (latitude: -23.55052, longitude: -46.633308),
+  ///   fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'https://.../{fontstack}/{range}.pbf'),
   ///   radiusInMeters: 500,
   /// )
   /// ```
@@ -57,6 +53,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
     required this.tileUrlTemplate,
     required this.location,
     required this.radiusInMeters,
+    required this.fontConfig,
     super.key,
     this.radiusStyle = const RadiusStyle(),
     this.tileMinZoom = 1,
@@ -73,8 +70,6 @@ class QuiLocationRadiusMap extends StatefulWidget {
        assert(tileMinZoom <= tileMaxZoom, 'tileMinZoom must be less than or equal to tileMaxZoom'),
        assert(zoom == null || zoom >= tileMinZoom, 'zoom must be greater than or equal to tileMinZoom');
 
-  static const _openMapTilesSource = 'openmaptiles';
-  static const _earthMetersPerDegree = 111320.0;
   static const _minimumFitRadiusInMeters = 50.0;
 
   /// Vector tile URL template used to fetch map tiles.
@@ -146,148 +141,125 @@ class QuiLocationRadiusMap extends StatefulWidget {
   /// This value must be greater than or equal to [tileMinZoom].
   final double? zoom;
 
+  /// Font stack and glyphs URL for text labels on the map.
+  final ({String fontStack, String glyphUrlTemplate}) fontConfig;
+
   @override
   State<QuiLocationRadiusMap> createState() => _QuiLocationRadiusMapState();
 }
 
 class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> {
-  late Future<_QuiMapStyle> _styleFuture;
+  late final String _styleJson = jsonEncode(
+    QuiMapLibreStyle.light(
+      tileUrlTemplate: widget.tileUrlTemplate,
+      fontConfig: widget.fontConfig,
+      tileMinZoom: widget.tileMinZoom,
+      tileMaxZoom: widget.tileMaxZoom,
+    ),
+  );
 
-  LatLng get _center => LatLng(widget.location.latitude, widget.location.longitude);
+  MapLibreMapController? _mapController;
+  double? _computedZoom;
+
+  double get _effectiveMaxZoom => math.max(widget.zoom ?? widget.tileMaxZoom.toDouble(), widget.tileMaxZoom.toDouble());
 
   @override
   void initState() {
     super.initState();
-    _styleFuture = _loadStyle();
   }
 
-  @override
-  void didUpdateWidget(covariant QuiLocationRadiusMap oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  double _computeZoomForRadius(Size viewport) {
+    const earthCircumference = 40075016.686;
+    const tileSize = 256.0;
+    const padding = 36.0;
 
-    if (oldWidget.tileUrlTemplate != widget.tileUrlTemplate ||
-        oldWidget.tileMinZoom != widget.tileMinZoom ||
-        oldWidget.tileMaxZoom != widget.tileMaxZoom) {
-      _styleFuture = _loadStyle();
-    }
+    final centerToEdge = math.max(widget.radiusInMeters / 2, QuiLocationRadiusMap._minimumFitRadiusInMeters / 2);
+    final usablePixels = math.min(viewport.width, viewport.height) - padding * 2;
+
+    if (usablePixels <= 0) return widget.tileMinZoom.toDouble();
+
+    final latRad = widget.location.latitude * math.pi / 180;
+    final cosLat = math.max(math.cos(latRad).abs(), 0.01);
+
+    final twoToZoom = usablePixels * earthCircumference / (2 * centerToEdge * tileSize * cosLat);
+    final zoom = math.log(twoToZoom) / math.ln2;
+
+    return zoom.clamp(widget.tileMinZoom.toDouble(), _effectiveMaxZoom);
   }
 
-  @override
-  void reassemble() {
-    super.reassemble();
-
-    if (kDebugMode) setState(() => _styleFuture = _loadStyle());
+  double _metersToPixels(double meters, double zoom, double latitude) {
+    const earthCircumference = 40075016.686;
+    final latRad = latitude * math.pi / 180;
+    final metersPerPixel = earthCircumference * math.cos(latRad).abs() / (256 * math.pow(2, zoom));
+    return meters / metersPerPixel;
   }
 
-  double get _effectiveMaxZoom => math.max(widget.zoom ?? widget.tileMaxZoom.toDouble(), widget.tileMaxZoom.toDouble());
+  // Required callback signature; cannot be a setter.
+  // ignore: use_setters_to_change_properties
+  void _onMapCreated(MapLibreMapController controller) {
+    _mapController = controller;
+  }
 
-  CameraFit _buildInitialCameraFit() {
-    final diameter = math.max(widget.radiusInMeters, QuiLocationRadiusMap._minimumFitRadiusInMeters);
-    final halfSpan = diameter / 2;
-    final latitudeDelta = halfSpan / QuiLocationRadiusMap._earthMetersPerDegree;
-    final latitudeRadians = widget.location.latitude * math.pi / 180;
-    final longitudeMetersPerDegree = math.max(
-      QuiLocationRadiusMap._earthMetersPerDegree * math.cos(latitudeRadians).abs(),
-      1,
-    );
-    final longitudeDelta = halfSpan / longitudeMetersPerDegree;
+  void _onStyleLoaded() {
+    final zoom = widget.zoom ?? _computedZoom;
 
-    final southWest = LatLng(
-      (widget.location.latitude - latitudeDelta).clamp(-90.0, 90.0),
-      (widget.location.longitude - longitudeDelta).clamp(-180.0, 180.0),
-    );
+    if (zoom == null) return;
 
-    final northEast = LatLng(
-      (widget.location.latitude + latitudeDelta).clamp(-90.0, 90.0),
-      (widget.location.longitude + longitudeDelta).clamp(-180.0, 180.0),
-    );
+    _addRadiusCircle(zoom);
+  }
 
-    return CameraFit.bounds(
-      bounds: LatLngBounds(southWest, northEast),
-      padding: const EdgeInsets.all(36),
-      minZoom: widget.tileMinZoom.toDouble(),
-      maxZoom: _effectiveMaxZoom,
+  void _addRadiusCircle(double zoom) {
+    final centerToEdge = widget.radiusInMeters / 2;
+    final pixelRadius = _metersToPixels(centerToEdge, zoom, widget.location.latitude);
+
+    final primaryColor = context.qui.colors.primary;
+    final style = widget.radiusStyle;
+    final fillColor = style.color ?? primaryColor.withValues(alpha: 0.15);
+    final borderColor = style.borderColor ?? primaryColor.withValues(alpha: 0.4);
+
+    _mapController?.addCircle(
+      CircleOptions(
+        geometry: LatLng(widget.location.latitude, widget.location.longitude),
+        circleRadius: pixelRadius < 1 ? 1 : pixelRadius,
+        circleColor: fillColor.toHex(),
+        circleOpacity: fillColor.a,
+        circleStrokeWidth: style.borderWidth,
+        circleStrokeColor: borderColor.toHex(),
+        circleStrokeOpacity: borderColor.a,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = context.qui.colors.primary;
-    final radiusStyle = widget.radiusStyle;
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: IgnorePointer(
-        child: FutureBuilder<_QuiMapStyle>(
-          future: _styleFuture,
-          builder: (context, snapshot) {
-            final mapStyle = snapshot.data;
-            if (mapStyle == null) return const ColoredBox(color: Colors.white);
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          _computedZoom ??= _computeZoomForRadius(Size(constraints.maxWidth, constraints.maxHeight));
 
-            return FlutterMap(
-              options: MapOptions(
-                initialCenter: _center,
-                initialCameraFit: widget.zoom == null ? _buildInitialCameraFit() : null,
-                initialZoom: widget.zoom ?? widget.tileMinZoom.toDouble(),
-                minZoom: widget.tileMinZoom.toDouble(),
-                maxZoom: _effectiveMaxZoom,
-                backgroundColor: context.qui.colors.background,
-                interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
-              ),
-              children: [
-                VectorTileLayer(
-                  layerMode: VectorTileLayerMode.raster,
-                  tileProviders: mapStyle.tileProviders,
-                  theme: mapStyle.theme,
-                  maximumZoom: _effectiveMaxZoom,
-                ),
-                CircleLayer(
-                  circles: [
-                    CircleMarker(
-                      point: _center,
-                      radius: widget.radiusInMeters / 2,
-                      useRadiusInMeter: true,
-                      color: radiusStyle.color ?? primaryColor.withValues(alpha: 0.15),
-                      borderColor: radiusStyle.borderColor ?? primaryColor.withValues(alpha: 0.4),
-                      borderStrokeWidth: radiusStyle.borderWidth,
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
+          return MapLibreMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(widget.location.latitude, widget.location.longitude),
+              zoom: widget.zoom ?? _computedZoom!,
+            ),
+            styleString: _styleJson,
+            attributionButtonMargins: const math.Point(-50, -50),
+            attributionButtonPosition: AttributionButtonPosition.topRight,
+            onMapCreated: _onMapCreated,
+            onStyleLoadedCallback: _onStyleLoaded,
+            dragEnabled: false,
+            rotateGesturesEnabled: false,
+            scrollGesturesEnabled: false,
+            zoomGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            doubleClickZoomEnabled: false,
+            compassEnabled: false,
+            logoEnabled: false,
+            minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
+          );
+        },
       ),
-    );
-  }
-
-  Future<_QuiMapStyle> _loadStyle() async {
-    final styleText = await rootBundle.loadString(Assets.maps.quiLightMapStyle, cache: false);
-    final decodedStyle = jsonDecode(styleText);
-
-    if (decodedStyle is! Map<String, dynamic>) throw StateError('Qui light map style must be a JSON object.');
-
-    final sources = decodedStyle['sources'];
-    if (sources is! Map<String, dynamic>) throw StateError('Qui light map style must define sources.');
-
-    final openMapTilesSource = sources[QuiLocationRadiusMap._openMapTilesSource];
-    if (openMapTilesSource is! Map<String, dynamic>) {
-      throw StateError('Qui light map style must define the openmaptiles source.');
-    }
-
-    openMapTilesSource['tiles'] = <String>[widget.tileUrlTemplate];
-    openMapTilesSource['minzoom'] = widget.tileMinZoom;
-    openMapTilesSource['maxzoom'] = widget.tileMaxZoom;
-
-    return _QuiMapStyle(
-      theme: vector_renderer.ThemeReader().read(decodedStyle),
-      tileProviders: TileProviders({
-        QuiLocationRadiusMap._openMapTilesSource: NetworkVectorTileProvider(
-          urlTemplate: widget.tileUrlTemplate,
-          minimumZoom: widget.tileMinZoom,
-          maximumZoom: widget.tileMaxZoom,
-        ),
-      }),
     );
   }
 }
@@ -308,6 +280,10 @@ Widget quiLocationRadiusMapPreview() {
             child: QuiLocationRadiusMap(
               tileUrlTemplate: 'https://tiles.example.com/openmaptiles/{z}/{x}/{y}.mvt',
               location: const (latitude: -23.55052, longitude: -46.633308),
+              fontConfig: (
+                fontStack: 'Inter Regular',
+                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+              ),
               radiusInMeters: 500,
             ),
           ),
