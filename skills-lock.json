@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "clean-code": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/clean-code/SKILL.md",
+      "computedHash": "74bf6ded4f61ddcb593e7a29beb96c284f888cbe0639ad6e23710447c36ff19a"
+    },
+    "dart-add-unit-test": {
+      "source": "dart-lang/skills",
+      "sourceType": "github",
+      "skillPath": "skills/dart-add-unit-test/SKILL.md",
+      "computedHash": "326a2b6cb57bcb4f40203e063a1060e9549a8cea0ece1a5c9a0d39a2f2b85bc8"
+    },
     "dart-best-practices": {
       "source": "kevmoo/dash_skills",
       "sourceType": "github",
@@ -18,6 +30,12 @@
       "sourceType": "github",
       "skillPath": "skills/flutter-add-widget-preview/SKILL.md",
       "computedHash": "1b59c009558aab7a8e4b7b101fbe535b06054c0672780e9cea7e5c98a9c48dc4"
+    },
+    "flutter-add-widget-test": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "skillPath": "skills/flutter-add-widget-test/SKILL.md",
+      "computedHash": "c4f263c59cfe331ef42dba2aa81e25142aa4f7284518907c6b847e04502676b0"
     },
     "flutter-animations": {
       "source": "madteacher/mad-agents-skills",

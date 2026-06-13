@@ -1,6 +1,18 @@
 /// Cataquí UI — reusable design system components for the Cataqui platform.
 library;
 
+export 'src/common/qui_vector_map_tile_provider.dart' show QuiVectorMapTileProvider, QuiVectorTileLoadState;
+export 'src/theme/map_style/qui_map_style.dart' show QuiMapStyle;
+export 'src/theme/map_style/qui_map_style_background_paint.dart' show QuiMapStyleBackgroundPaint;
+export 'src/theme/map_style/qui_map_style_fill_paint.dart' show QuiMapStyleFillPaint;
+export 'src/theme/map_style/qui_map_style_filter.dart' show QuiMapStyleFilter;
+export 'src/theme/map_style/qui_map_style_layer.dart' show QuiMapStyleLayer;
+export 'src/theme/map_style/qui_map_style_line_paint.dart' show QuiMapStyleLinePaint;
+export 'src/theme/map_style/qui_map_style_metadata.dart' show QuiMapStyleMetadata;
+export 'src/theme/map_style/qui_map_style_source.dart' show QuiMapStyleSource;
+export 'src/theme/map_style/qui_map_style_symbol_layout.dart' show QuiMapStyleSymbolLayout;
+export 'src/theme/map_style/qui_map_style_symbol_paint.dart' show QuiMapStyleSymbolPaint;
+export 'src/theme/map_style/qui_map_style_value.dart' show QuiMapStyleValue, QuiMapStyleZoomStop;
 export 'src/theme/qui_colors.dart' show QuiColors;
 export 'src/theme/qui_theme.dart' show QuiTheme;
 export 'src/theme/qui_theme_context.dart' show QuiThemeContext;

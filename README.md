@@ -57,7 +57,8 @@ melos gen:all
 melos gen
 
 # Update approved visual goldens after intentional UI changes
-melos goldens:update
+melos goldens:update         # asks which package/app
+melos goldens:update:all     # updates all packages/apps
 ```
 
 ## Project Structure

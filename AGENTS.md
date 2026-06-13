@@ -99,6 +99,10 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 - Reusable typedefs and public callback/function types must live in a dedicated
   `*_types.dart` file for their widget, component, or feature owner.
 
+### One Implementation Class Per File
+
+Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established `qui_location_radius_map` folder structure.
+
 ### Constants Local to Widgets
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
@@ -195,7 +199,8 @@ visual regression guard.
   variant).
 - CI goldens (`test/**/goldens/ci/`) are committed to source control.
   Platform goldens (`test/**/goldens/macos/`, etc.) are gitignored.
-- Run `melos goldens:update` from the repository root to regenerate after
+- Run `melos goldens:update` (asks which package) or `melos goldens:update:all`
+  (all packages) from the repository root to regenerate after
   intentional visual changes. The script filters to packages with
   `dart_test.yaml` and prompts for package selection like `melos test`.
   Review the diff before committing.

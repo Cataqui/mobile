@@ -62,12 +62,16 @@ melos:
         dirExists: test
 
     goldens:update:
-      description: Update approved golden files for packages with golden tests
+      description: Update approved golden files (asks which package/app)
       run: fvm flutter test --update-goldens
       exec:
         concurrency: 1
       packageFilters:
         fileExists: dart_test.yaml
+
+    goldens:update:all:
+      description: Update approved golden files for all packages/apps (no prompt)
+      run: melos run goldens:update --no-select
 
     setup:
       description: Set up workspace and activate global packages

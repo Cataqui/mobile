@@ -1,0 +1,18 @@
+targets:
+  $default:
+    builders:
+      freezed:
+        generate_for:
+          - "lib/**/*.dart"
+          - "!lib/**/*.freezed.dart"
+          - "!lib/**/*.g.dart"
+        options:
+          format: true
+      json_serializable:
+        generate_for:
+          - "lib/**/*.dart"
+          - "!lib/**/*.freezed.dart"
+          - "!lib/**/*.g.dart"
+        options:
+          explicit_to_json: true
+          include_if_null: false
