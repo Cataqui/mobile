@@ -151,7 +151,7 @@ void main() {
   });
 
   group('QuiLocationRadiusMap map configuration', () {
-    testWidgets('when rendered, it should wrap the map in ClipRRect', (tester) async {
+    testWidgets('when rendered, it should wrap the map in AnimatedOpacity', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: SizedBox(
@@ -167,7 +167,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(ClipRRect), findsOneWidget);
+      expect(find.byType(AnimatedOpacity), findsOneWidget);
     });
 
     testWidgets('when rendered, it should include a MapLibreMap widget', (tester) async {

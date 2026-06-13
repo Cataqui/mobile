@@ -148,7 +148,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
   State<QuiLocationRadiusMap> createState() => _QuiLocationRadiusMapState();
 }
 
-class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> {
+class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with SingleTickerProviderStateMixin {
   late final String _styleJson = jsonEncode(
     QuiMapLibreStyle.light(
       tileUrlTemplate: widget.tileUrlTemplate,
@@ -158,14 +158,22 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> {
     ),
   );
 
+  late final AnimationController _animController;
   MapLibreMapController? _mapController;
+  Circle? _radiusCircle;
   double? _computedZoom;
+  double _mapOpacity = 0;
+  double _targetPixelRadius = 0;
+  double _targetFillOpacity = 0;
+  double _targetStrokeOpacity = 0;
 
   double get _effectiveMaxZoom => math.max(widget.zoom ?? widget.tileMaxZoom.toDouble(), widget.tileMaxZoom.toDouble());
 
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))
+      ..addListener(_onAnimationTick);
   }
 
   double _computeZoomForRadius(Size viewport) {
@@ -202,64 +210,95 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> {
 
   void _onStyleLoaded() {
     final zoom = widget.zoom ?? _computedZoom;
-
     if (zoom == null) return;
-
-    _addRadiusCircle(zoom);
+    setState(() => _mapOpacity = 1);
+    _setupRadiusCircle(zoom);
   }
 
-  void _addRadiusCircle(double zoom) {
+  void _onAnimationTick() {
+    final circle = _radiusCircle;
+    final controller = _mapController;
+    if (circle == null || controller == null) return;
+
+    final t = Curves.easeOutCubic.transform(_animController.value);
+    final radius = 1 + (_targetPixelRadius - 1) * t;
+    final opacity = _targetFillOpacity * t;
+    final strokeOpacity = _targetStrokeOpacity * t;
+
+    controller.updateCircle(
+      circle,
+      CircleOptions(circleRadius: radius < 1 ? 1 : radius, circleOpacity: opacity, circleStrokeOpacity: strokeOpacity),
+    );
+  }
+
+  Future<void> _setupRadiusCircle(double zoom) async {
+    final controller = _mapController;
+    if (controller == null) return;
+
     final centerToEdge = widget.radiusInMeters / 2;
-    final pixelRadius = _metersToPixels(centerToEdge, zoom, widget.location.latitude);
+    _targetPixelRadius = _metersToPixels(centerToEdge, zoom, widget.location.latitude);
+    if (_targetPixelRadius < 1) _targetPixelRadius = 1;
 
     final primaryColor = context.qui.colors.primary;
     final style = widget.radiusStyle;
     final fillColor = style.color ?? primaryColor.withValues(alpha: 0.15);
     final borderColor = style.borderColor ?? primaryColor.withValues(alpha: 0.4);
+    _targetFillOpacity = fillColor.a;
+    _targetStrokeOpacity = style.borderWidth > 0 ? borderColor.a : 0;
 
-    _mapController?.addCircle(
+    _radiusCircle = await controller.addCircle(
       CircleOptions(
         geometry: LatLng(widget.location.latitude, widget.location.longitude),
-        circleRadius: pixelRadius < 1 ? 1 : pixelRadius,
+        circleRadius: 1,
         circleColor: fillColor.toHex(),
-        circleOpacity: fillColor.a,
+        circleOpacity: 0,
         circleStrokeWidth: style.borderWidth,
         circleStrokeColor: borderColor.toHex(),
-        circleStrokeOpacity: borderColor.a,
+        circleStrokeOpacity: 0,
       ),
     );
+
+    await _animController.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          _computedZoom ??= _computeZoomForRadius(Size(constraints.maxWidth, constraints.maxHeight));
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _computedZoom ??= _computeZoomForRadius(Size(constraints.maxWidth, constraints.maxHeight));
 
-          return MapLibreMap(
-            initialCameraPosition: CameraPosition(
-              target: LatLng(widget.location.latitude, widget.location.longitude),
-              zoom: widget.zoom ?? _computedZoom!,
-            ),
-            styleString: _styleJson,
-            attributionButtonMargins: const math.Point(-50, -50),
-            attributionButtonPosition: AttributionButtonPosition.topRight,
-            onMapCreated: _onMapCreated,
-            onStyleLoadedCallback: _onStyleLoaded,
-            dragEnabled: false,
-            rotateGesturesEnabled: false,
-            scrollGesturesEnabled: false,
-            zoomGesturesEnabled: false,
-            tiltGesturesEnabled: false,
-            doubleClickZoomEnabled: false,
-            compassEnabled: false,
-            logoEnabled: false,
-            minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
-          );
-        },
-      ),
+        return AnimatedOpacity(
+          opacity: _mapOpacity,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOut,
+          child: MapLibreMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(widget.location.latitude, widget.location.longitude),
+                zoom: widget.zoom ?? _computedZoom!,
+              ),
+              styleString: _styleJson,
+              attributionButtonMargins: const math.Point(-50, -50),
+              attributionButtonPosition: AttributionButtonPosition.topRight,
+              onMapCreated: _onMapCreated,
+              onStyleLoadedCallback: _onStyleLoaded,
+              dragEnabled: false,
+              rotateGesturesEnabled: false,
+              scrollGesturesEnabled: false,
+              zoomGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              doubleClickZoomEnabled: false,
+              compassEnabled: false,
+              logoEnabled: false,
+              minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
+          ),
+        );
+      },
     );
   }
 }
