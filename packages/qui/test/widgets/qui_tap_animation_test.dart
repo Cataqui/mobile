@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
@@ -44,6 +45,51 @@ void main() {
       await tester.tap(find.text('Tap'));
 
       expect(tapCount, equals(0));
+    });
+
+    testWidgets('when tapped down, it should call HapticFeedback.lightImpact', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) {
+          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(
+        _TestApp(
+          child: QuiTapAnimation(onPressed: () {}, child: const Text('Tap')),
+        ),
+      );
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
+      await tester.pump();
+
+      expect(hapticCalls, hasLength(1));
+      expect(hapticCalls[0].method, equals('HapticFeedback.vibrate'));
+
+      addTearDown(gesture.up);
+    });
+
+    testWidgets('when disabled and tapped down, it should not call HapticFeedback', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) {
+          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(const _TestApp(child: QuiTapAnimation(child: Text('Tap'))));
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
+      await tester.pump();
+
+      expect(hapticCalls, isEmpty);
+
+      addTearDown(gesture.up);
     });
   });
 }

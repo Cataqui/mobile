@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 part 'qui_tap_animation_enums.dart';
 
@@ -45,6 +46,7 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> {
 
   void _handleTapDown(TapDownDetails details) {
     if (!_isEnabled) return;
+    HapticFeedback.lightImpact();
     _setPressed(true);
   }
 
