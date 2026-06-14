@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -164,15 +165,20 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   double? _computedZoom;
   double _mapOpacity = 0;
   double _targetPixelRadius = 0;
-  double _targetFillOpacity = 0;
-  double _targetStrokeOpacity = 0;
+  bool _hasSetUpRadius = false;
+  Timer? _wobbleTimer;
+  late LatLng _wobbleFromLatLng;
+  late LatLng _wobbleToLatLng;
+  double _wobbleFromRadius = 1;
+  double _wobbleToRadius = 1;
+  double? _pendingSettleZoom;
 
   double get _effectiveMaxZoom => math.max(widget.zoom ?? widget.tileMaxZoom.toDouble(), widget.tileMaxZoom.toDouble());
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400))
       ..addListener(_onAnimationTick);
   }
 
@@ -209,10 +215,9 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   }
 
   void _onStyleLoaded() {
-    final zoom = widget.zoom ?? _computedZoom;
-    if (zoom == null) return;
     setState(() => _mapOpacity = 1);
-    _setupRadiusCircle(zoom);
+    if (_radiusCircle != null) return;
+    _createAndStartWobble();
   }
 
   void _onAnimationTick() {
@@ -221,17 +226,69 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     if (circle == null || controller == null) return;
 
     final t = Curves.easeOutCubic.transform(_animController.value);
-    final radius = 1 + (_targetPixelRadius - 1) * t;
-    final opacity = _targetFillOpacity * t;
-    final strokeOpacity = _targetStrokeOpacity * t;
+    final lat = _wobbleFromLatLng.latitude + (_wobbleToLatLng.latitude - _wobbleFromLatLng.latitude) * t;
+    final lng = _wobbleFromLatLng.longitude + (_wobbleToLatLng.longitude - _wobbleFromLatLng.longitude) * t;
+    final radius = _wobbleFromRadius + (_wobbleToRadius - _wobbleFromRadius) * t;
 
-    controller.updateCircle(
-      circle,
-      CircleOptions(circleRadius: radius < 1 ? 1 : radius, circleOpacity: opacity, circleStrokeOpacity: strokeOpacity),
-    );
+    controller.updateCircle(circle, CircleOptions(geometry: LatLng(lat, lng), circleRadius: radius < 1 ? 1 : radius));
   }
 
-  Future<void> _setupRadiusCircle(double zoom) async {
+  Future<void> _createAndStartWobble() async {
+    final controller = _mapController;
+    if (controller == null) return;
+
+    final rng = math.Random();
+    final latOffset = (rng.nextDouble() - 0.5) * 0.008;
+    final lngOffset = (rng.nextDouble() - 0.5) * 0.008;
+    final randomLat = widget.location.latitude + latOffset;
+    final randomLng = widget.location.longitude + lngOffset;
+    final randomRadius = rng.nextDouble() * 40 + 20;
+
+    final primaryColor = context.qui.colors.primary;
+    final style = widget.radiusStyle;
+    final fillColor = style.color ?? primaryColor.withValues(alpha: 0.15);
+    final borderColor = style.borderColor ?? primaryColor.withValues(alpha: 0.4);
+
+    _radiusCircle = await controller.addCircle(
+      CircleOptions(
+        geometry: LatLng(randomLat, randomLng),
+        circleRadius: randomRadius,
+        circleColor: fillColor.toHex(),
+        circleOpacity: fillColor.a,
+        circleStrokeWidth: style.borderWidth,
+        circleStrokeColor: borderColor.toHex(),
+        circleStrokeOpacity: style.borderWidth > 0 ? borderColor.a : 0,
+      ),
+    );
+
+    _wobbleFromLatLng = LatLng(randomLat, randomLng);
+    _wobbleToLatLng = LatLng(randomLat, randomLng);
+    _wobbleFromRadius = randomRadius;
+    _wobbleToRadius = randomRadius;
+
+    _wobbleTimer = Timer.periodic(const Duration(milliseconds: 600), (_) {
+      if (_pendingSettleZoom != null) {
+        _wobbleTimer?.cancel();
+        _wobbleTimer = null;
+        _settleCircleToTarget(_pendingSettleZoom!);
+        _pendingSettleZoom = null;
+        return;
+      }
+
+      _wobbleFromLatLng = _wobbleToLatLng;
+      _wobbleFromRadius = _wobbleToRadius;
+      _wobbleToLatLng = LatLng(
+        widget.location.latitude + (rng.nextDouble() - 0.5) * 0.008,
+        widget.location.longitude + (rng.nextDouble() - 0.5) * 0.008,
+      );
+      _wobbleToRadius = rng.nextDouble() * 40 + 20;
+      _animController.forward(from: 0);
+    });
+
+    unawaited(_animController.forward(from: 0));
+  }
+
+  void _settleCircleToTarget(double zoom) {
     final controller = _mapController;
     if (controller == null) return;
 
@@ -239,30 +296,22 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     _targetPixelRadius = _metersToPixels(centerToEdge, zoom, widget.location.latitude);
     if (_targetPixelRadius < 1) _targetPixelRadius = 1;
 
-    final primaryColor = context.qui.colors.primary;
-    final style = widget.radiusStyle;
-    final fillColor = style.color ?? primaryColor.withValues(alpha: 0.15);
-    final borderColor = style.borderColor ?? primaryColor.withValues(alpha: 0.4);
-    _targetFillOpacity = fillColor.a;
-    _targetStrokeOpacity = style.borderWidth > 0 ? borderColor.a : 0;
+    final t = Curves.easeOutCubic.transform(_animController.value);
+    final currentLat = _wobbleFromLatLng.latitude + (_wobbleToLatLng.latitude - _wobbleFromLatLng.latitude) * t;
+    final currentLng = _wobbleFromLatLng.longitude + (_wobbleToLatLng.longitude - _wobbleFromLatLng.longitude) * t;
+    final currentRadius = _wobbleFromRadius + (_wobbleToRadius - _wobbleFromRadius) * t;
 
-    _radiusCircle = await controller.addCircle(
-      CircleOptions(
-        geometry: LatLng(widget.location.latitude, widget.location.longitude),
-        circleRadius: 1,
-        circleColor: fillColor.toHex(),
-        circleOpacity: 0,
-        circleStrokeWidth: style.borderWidth,
-        circleStrokeColor: borderColor.toHex(),
-        circleStrokeOpacity: 0,
-      ),
-    );
+    _wobbleFromLatLng = LatLng(currentLat, currentLng);
+    _wobbleFromRadius = currentRadius;
+    _wobbleToLatLng = LatLng(widget.location.latitude, widget.location.longitude);
+    _wobbleToRadius = _targetPixelRadius;
 
-    await _animController.forward(from: 0);
+    _animController.forward(from: 0);
   }
 
   @override
   void dispose() {
+    _wobbleTimer?.cancel();
     _animController.dispose();
     super.dispose();
   }
@@ -278,24 +327,29 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOut,
           child: MapLibreMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(widget.location.latitude, widget.location.longitude),
-                zoom: widget.zoom ?? _computedZoom!,
-              ),
-              styleString: _styleJson,
-              attributionButtonMargins: const math.Point(-50, -50),
-              attributionButtonPosition: AttributionButtonPosition.topRight,
-              onMapCreated: _onMapCreated,
-              onStyleLoadedCallback: _onStyleLoaded,
-              dragEnabled: false,
-              rotateGesturesEnabled: false,
-              scrollGesturesEnabled: false,
-              zoomGesturesEnabled: false,
-              tiltGesturesEnabled: false,
-              doubleClickZoomEnabled: false,
-              compassEnabled: false,
-              logoEnabled: false,
-              minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
+            initialCameraPosition: CameraPosition(
+              target: LatLng(widget.location.latitude, widget.location.longitude),
+              zoom: widget.zoom ?? _computedZoom!,
+            ),
+            styleString: _styleJson,
+            attributionButtonMargins: const math.Point(-50, -50),
+            attributionButtonPosition: AttributionButtonPosition.topRight,
+            onMapCreated: _onMapCreated,
+            onStyleLoadedCallback: _onStyleLoaded,
+            onMapIdle: () {
+              if (_hasSetUpRadius) return;
+              _hasSetUpRadius = true;
+              _pendingSettleZoom = widget.zoom ?? _computedZoom;
+            },
+            dragEnabled: false,
+            rotateGesturesEnabled: false,
+            scrollGesturesEnabled: false,
+            zoomGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            doubleClickZoomEnabled: false,
+            compassEnabled: false,
+            logoEnabled: false,
+            minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
           ),
         );
       },
