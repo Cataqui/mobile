@@ -4,6 +4,12 @@
 
 `qui` (Cataquí UI) is the reusable design system package for the Cataquí platform. It contains foundational UI components, tokens, and patterns used across all Cataquí apps (mobile, web, and beyond).
 
+## Dart Documentation Naming
+
+In Dart doc comments for this package, always refer to the design system as
+`QUI`, not `Cataquí`. The package name means "Q" + "UI", standing for
+`Cataquí UI`, so public API documentation should use the package-oriented name.
+
 ## Public Package Portability
 
 Treat `qui` as a package that can be released publicly on pub.dev and used by

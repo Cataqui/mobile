@@ -17,9 +17,9 @@ export 'src/theme/qui_theme.dart' show QuiTheme;
 export 'src/theme/qui_theme_context.dart' show QuiThemeContext;
 export 'src/theme/qui_theme_data.dart' show QuiThemeData;
 export 'src/theme/qui_typography.dart' show QuiTypography;
+export 'src/widgets/qui_buttons_bar.dart' show QuiButtonsBar, QuiButtonsBarFit, QuiButtonsBarOrientation;
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
-export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart'
-    show QuiLocationRadiusMap, RadiusStyle;
+export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap, RadiusStyle;
 export 'src/widgets/qui_search_bar.dart' show QuiSearchBar;
 export 'src/widgets/qui_swipe_list/qui_swipe_list.dart'
     show

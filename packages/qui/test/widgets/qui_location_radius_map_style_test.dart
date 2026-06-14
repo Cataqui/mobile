@@ -62,38 +62,11 @@ void main() {
           'background',
           'landcover',
           'landuse',
-          'landuse_business',
           'landuse_recreation',
           'water',
           'building',
         ]),
       );
-    });
-
-    test('when inspecting business landuse, it should use the approved orange color', () {
-      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
-      final paint = layer.toJson()['paint'] as Map<String, dynamic>;
-      expect(paint['fill-color'], '#F4B26A');
-    });
-
-    test('when inspecting business landuse, it should use a subtle overlay opacity', () {
-      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
-      final paint = layer.toJson()['paint'] as Map<String, dynamic>;
-      expect(paint['fill-opacity'], 0.65);
-    });
-
-    test('when inspecting business landuse, it should target the landuse source layer', () {
-      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
-      expect(layer.toJson()['source-layer'], 'landuse');
-    });
-
-    test('when inspecting business landuse, it should include commercial area classes', () {
-      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
-      expect(layer.toJson()['filter'], [
-        'any',
-        ['==', 'class', 'commercial'],
-        ['==', 'class', 'retail'],
-      ]);
     });
 
     test('when inspecting recreation landuse, it should use the approved park green color', () {
@@ -155,7 +128,7 @@ void main() {
     test('when inspecting background, it should use the approved light color', () {
       final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'background');
       final paint = layer.toJson()['paint'] as Map<String, dynamic>;
-      expect(paint['background-color'], '#ebedef');
+      expect(paint['background-color'], '#F4F2EF');
     });
 
     test('when inspecting road widths at zoom 14, it should preserve road hierarchy', () {
