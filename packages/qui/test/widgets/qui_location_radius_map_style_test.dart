@@ -10,7 +10,10 @@ void main() {
     setUpAll(() {
       style = QuiMapLibreStyle.light(
         tileUrlTemplate: '{tileUrlTemplate}',
-        fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+        fontConfig: (
+          fontStack: 'Inter Regular',
+          glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+        ),
       );
     });
 
@@ -53,7 +56,72 @@ void main() {
 
     test('when inspecting layers, it should include the required base layers', () {
       final layerIds = style.layers.map((l) => l.toJson()['id'] as String).toSet();
-      expect(layerIds, containsAll(<String>['background', 'landcover', 'landuse', 'water', 'building']));
+      expect(
+        layerIds,
+        containsAll(<String>[
+          'background',
+          'landcover',
+          'landuse',
+          'landuse_business',
+          'landuse_recreation',
+          'water',
+          'building',
+        ]),
+      );
+    });
+
+    test('when inspecting business landuse, it should use the approved orange color', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
+      final paint = layer.toJson()['paint'] as Map<String, dynamic>;
+      expect(paint['fill-color'], '#F4B26A');
+    });
+
+    test('when inspecting business landuse, it should use a subtle overlay opacity', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
+      final paint = layer.toJson()['paint'] as Map<String, dynamic>;
+      expect(paint['fill-opacity'], 0.65);
+    });
+
+    test('when inspecting business landuse, it should target the landuse source layer', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
+      expect(layer.toJson()['source-layer'], 'landuse');
+    });
+
+    test('when inspecting business landuse, it should include commercial area classes', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
+      expect(layer.toJson()['filter'], [
+        'any',
+        ['==', 'class', 'commercial'],
+        ['==', 'class', 'retail'],
+      ]);
+    });
+
+    test('when inspecting recreation landuse, it should use the approved park green color', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_recreation');
+      final paint = layer.toJson()['paint'] as Map<String, dynamic>;
+      expect(paint['fill-color'], '#D2F3BF');
+    });
+
+    test('when inspecting recreation landuse, it should use the approved park opacity', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_recreation');
+      final paint = layer.toJson()['paint'] as Map<String, dynamic>;
+      expect(paint['fill-opacity'], 0.8);
+    });
+
+    test('when inspecting recreation landuse, it should target the landuse source layer', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_recreation');
+      expect(layer.toJson()['source-layer'], 'landuse');
+    });
+
+    test('when inspecting recreation landuse, it should include sports field classes', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_recreation');
+      expect(layer.toJson()['filter'], [
+        'any',
+        ['==', 'class', 'pitch'],
+        ['==', 'class', 'playground'],
+        ['==', 'class', 'track'],
+        ['==', 'class', 'stadium'],
+      ]);
     });
 
     test('when inspecting layers, it should include the required road layers', () {

@@ -87,9 +87,9 @@ abstract class QuiMapLibreStyle with _$QuiMapLibreStyle {
   /// text label layers.
   ///
   /// ## Layer stack
-  /// The returned style contains 24 layers in the standard rendering order:
+  /// The returned style contains 26 layers in the standard rendering order:
   /// 1. Background (1 layer)
-  /// 2. Base fill layers — landcover, landuse, park, water (4 layers)
+  /// 2. Base fill layers — landcover, landuse, business, recreation, park, water (6 layers)
   /// 3. Base line layers — waterway, building, boundary (3 layers)
   /// 4. Road layers — tunnel, road_minor, road_tertiary, road_secondary,
   ///    road_primary, road_trunk, road_motorway, bridge (8 layers)
@@ -140,7 +140,7 @@ List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
     // ── Background ──────────────────────────────────────────────────────
     const QuiMapLibreStyleLayer.background(
       id: 'background',
-      paint: QuiMapLibreStyleBackgroundPaint(backgroundColor: '#ebedef'),
+      paint: QuiMapLibreStyleBackgroundPaint(backgroundColor: '#F4F2EF'),
     ),
 
     // ── Fill layers ────────────────────────────────────────────────────
@@ -148,25 +148,39 @@ List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
       id: 'landcover',
       source: _openMapTilesSource,
       sourceLayer: 'landcover',
-      paint: QuiMapLibreStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.8),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#D2F3BF', fillOpacity: 0.8),
     ),
     const QuiMapLibreStyleLayer.fill(
       id: 'landuse',
       source: _openMapTilesSource,
       sourceLayer: 'landuse',
-      paint: QuiMapLibreStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.9),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#F4F2EF', fillOpacity: 0.9),
+    ),
+    const QuiMapLibreStyleLayer.fill(
+      id: 'landuse_recreation',
+      source: _openMapTilesSource,
+      sourceLayer: 'landuse',
+      filter: QuiMapLibreStyleFilter.any(
+        filters: [
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'pitch'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'playground'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'track'),
+          QuiMapLibreStyleFilter.equals(key: 'class', value: 'stadium'),
+        ],
+      ),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#D2F3BF', fillOpacity: 0.8),
     ),
     const QuiMapLibreStyleLayer.fill(
       id: 'park',
       source: _openMapTilesSource,
       sourceLayer: 'park',
-      paint: QuiMapLibreStyleFillPaint(fillColor: '#d7d9db', fillOpacity: 0.8),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#D2F3BF', fillOpacity: 0.8),
     ),
     const QuiMapLibreStyleLayer.fill(
       id: 'water',
       source: _openMapTilesSource,
       sourceLayer: 'water',
-      paint: QuiMapLibreStyleFillPaint(fillColor: '#dadbdc', fillOpacity: 1),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#C2E9F3', fillOpacity: 1),
     ),
 
     // ── Line layers ────────────────────────────────────────────────────
@@ -175,7 +189,7 @@ List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
       source: _openMapTilesSource,
       sourceLayer: 'waterway',
       paint: QuiMapLibreStyleLinePaint(
-        lineColor: '#dadbdc',
+        lineColor: '#C2E9F3',
         lineWidth: QuiMapLibreStyleValue.stops([
           QuiMapLibreStyleZoomStop(zoom: 10, value: 0.7),
           QuiMapLibreStyleZoomStop(zoom: 16, value: 2.2),
@@ -188,7 +202,7 @@ List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
       source: _openMapTilesSource,
       sourceLayer: 'building',
       minzoom: 13,
-      paint: QuiMapLibreStyleFillPaint(fillColor: '#e8e8e8', fillOutlineColor: '#d9d9d9', fillOpacity: 0.45),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#F4F2EF', fillOutlineColor: '#F4F2EF', fillOpacity: 1),
     ),
     const QuiMapLibreStyleLayer.line(
       id: 'boundary',
