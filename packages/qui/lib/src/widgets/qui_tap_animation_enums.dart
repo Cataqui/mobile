@@ -4,4 +4,7 @@ part of 'qui_tap_animation.dart';
 enum QuiTapAnimationType {
   /// Scales down and fades while pressed.
   scaleFade,
+
+  /// Scales down while pressed, with no opacity change.
+  scale,
 }

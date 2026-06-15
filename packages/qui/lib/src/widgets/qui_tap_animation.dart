@@ -18,8 +18,12 @@ class QuiTapAnimation extends StatefulWidget {
 
   /// Called when the child is pressed.
   ///
+  /// The [animation] future resolves when the release animation completes.
+  /// Callers may `await animation` to wait for the visual feedback before
+  /// performing navigation or other side effects.
+  ///
   /// When null, the child renders without pointer feedback and ignores taps.
-  final VoidCallback? onPressed;
+  final Future<void> Function(Future<void> animation)? onPressed;
 
   /// The tap feedback style.
   final QuiTapAnimationType animation;
@@ -54,7 +58,7 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> {
     if (!_isEnabled) return;
 
     _setPressed(false);
-    widget.onPressed?.call();
+    widget.onPressed?.call(Future.delayed(_releaseDuration));
   }
 
   void _handleTapCancel() {
@@ -91,6 +95,12 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> {
               opacity: shouldShowPressedState ? _pressedOpacity : 1,
               child: widget.child,
             ),
+          ),
+          QuiTapAnimationType.scale => AnimatedScale(
+            duration: disableAnimations ? Duration.zero : animationDuration,
+            curve: shouldShowPressedState ? Curves.easeOutCubic : Curves.easeOutBack,
+            scale: shouldShowPressedState ? _pressedScale : 1,
+            child: widget.child,
           ),
         },
       ),

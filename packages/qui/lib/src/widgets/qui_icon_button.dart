@@ -77,7 +77,7 @@ class QuiIconButton extends StatelessWidget {
       label: resolvedLabel,
       onTap: isEnabled ? onPressed : null,
       child: QuiTapAnimation(
-        onPressed: onPressed,
+        onPressed: onPressed != null ? (animation) async { onPressed!(); } : null,
         child: Container(
           key: const Key('qui_icon_button_circle'),
           width: buttonSize,

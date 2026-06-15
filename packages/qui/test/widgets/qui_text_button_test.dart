@@ -14,6 +14,7 @@ void main() {
       );
 
       await tester.tap(find.text('Ver oportunidades'));
+      await tester.pump(const Duration(milliseconds: 800));
 
       expect(tapCount, equals(1));
     });
@@ -33,7 +34,7 @@ void main() {
       expect(opacity.opacity, equals(0.2));
 
       await gesture.up();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 800));
     });
 
     testWidgets('when disabled, it should expose disabled semantics', (tester) async {

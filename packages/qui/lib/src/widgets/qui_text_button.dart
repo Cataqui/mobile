@@ -92,7 +92,11 @@ class _QuiTextButtonState extends State<QuiTextButton> {
       button: true,
       enabled: _isEnabled,
       onTap: _isEnabled ? widget.onPressed : null,
-      child: QuiTapAnimation(onPressed: widget.onPressed, animation: QuiTapAnimationType.scaleFade, child: content),
+      child: QuiTapAnimation(
+        onPressed: widget.onPressed != null ? (animation) async { widget.onPressed!(); } : null,
+        animation: QuiTapAnimationType.scaleFade,
+        child: content,
+      ),
     );
   }
 }

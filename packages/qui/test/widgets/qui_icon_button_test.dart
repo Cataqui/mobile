@@ -17,6 +17,7 @@ void main() {
       );
 
       await tester.tap(find.byType(QuiIconButton));
+      await tester.pump(const Duration(milliseconds: 800));
 
       expect(tapCount, equals(1));
     });
