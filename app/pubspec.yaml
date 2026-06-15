@@ -20,6 +20,7 @@ dependencies:
   flutter_riverpod: ^3.3.1
   freezed_annotation: ^3.1.0
   go_router: ^14.0.0
+  intl: ^0.20.2
   json_annotation: ^4.11.0
   qui:
     path: ../packages/qui
