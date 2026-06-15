@@ -20,3 +20,22 @@ targets:
           - "lib/**/*.dart"
           - "!lib/**/*.freezed.dart"
           - "!lib/**/*.g.dart"
+      slang_build_runner:
+        options:
+          base_locale: pt-BR
+          fallback_strategy: base_locale
+          input_directory: lib/i18n
+          input_file_pattern: .i18n.json
+          output_directory: lib/i18n
+          output_file_name: strings.g.dart
+          translate_var: t
+          enum_name: AppLocale
+          class_name: Translations
+          lazy: true
+          locale_handling: true
+          flutter_integration: true
+          namespaces: false
+          string_interpolation: dart
+          flat_map: true
+          timestamp: false
+          statistics: true

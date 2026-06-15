@@ -56,3 +56,6 @@ lib/core/config/env.g.dart
 
 # Generated View Models
 lib/views/**/*_view_model.g.dart
+
+# Generated i18n files
+lib/i18n/**/*.g.dart
