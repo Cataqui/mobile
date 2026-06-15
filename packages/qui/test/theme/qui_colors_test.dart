@@ -9,7 +9,7 @@ const _lerpA = QuiColors(
   background: Color(0xFFFFFFFF),
   surface: Color(0xFFFFFFFF),
   textPrimary: Color(0xFF1A1A1A),
-  textSecondary: Color(0xFF757575),
+  textSecondary: Color(0xFFB3B3B3),
   placeholder: Color(0xFF9E9E9E),
   disabledButtonBackground: Color(0xFFE1E1E1),
   disabledButtonForeground: Color(0xFF8E8E8E),
@@ -17,6 +17,7 @@ const _lerpA = QuiColors(
   searchBarPlaceholder: Color(0xFF9E9E9E),
   frostedGlassBackground: Color(0x4DFFFFFF),
   frostedGlassBorder: Color(0xFFE0E0E0),
+  money: Color(0xFF00DD55),
 );
 
 const _lerpB = QuiColors(
@@ -32,6 +33,7 @@ const _lerpB = QuiColors(
   searchBarPlaceholder: Color(0xFF000000),
   frostedGlassBackground: Color(0xFF000000),
   frostedGlassBorder: Color(0xFF000000),
+  money: Color(0xFF000000),
 );
 
 void main() {
@@ -56,8 +58,8 @@ void main() {
       expect(_lightColors.textPrimary, equals(const Color(0xFF1A1A1A)));
     });
 
-    test('light() sets textSecondary to medium gray', () {
-      expect(_lightColors.textSecondary, equals(const Color(0xFF757575)));
+    test('light() sets textSecondary to soft gray', () {
+      expect(_lightColors.textSecondary, equals(const Color(0xFFB3B3B3)));
     });
 
     test('light() sets placeholder to light gray', () {
@@ -88,6 +90,10 @@ void main() {
       expect(_lightColors.frostedGlassBorder, equals(const Color(0xFFE0E0E0)));
     });
 
+    test('light() sets money to green', () {
+      expect(_lightColors.money, equals(const Color(0xFF00DD55)));
+    });
+
     test('light(primary:) overrides primary color', () {
       const custom = Color(0xFF0984E3);
       const colors = QuiColors.light(primary: custom);
@@ -101,7 +107,7 @@ void main() {
         background: Color(0xFFFFFFFF),
         surface: Color(0xFFFFFFFF),
         textPrimary: Color(0xFF1A1A1A),
-        textSecondary: Color(0xFF757575),
+        textSecondary: Color(0xFFB3B3B3),
         placeholder: Color(0xFF9E9E9E),
         disabledButtonBackground: Color(0xFFE1E1E1),
         disabledButtonForeground: Color(0xFF8E8E8E),
@@ -109,6 +115,7 @@ void main() {
         searchBarPlaceholder: Color(0xFF9E9E9E),
         frostedGlassBackground: Color(0x4DFFFFFF),
         frostedGlassBorder: Color(0xFFE0E0E0),
+        money: Color(0xFF00DD55),
       );
 
       expect(colors, isA<QuiColors>());
@@ -206,6 +213,13 @@ void main() {
       final result = _lightColors.copyWith(frostedGlassBorder: custom);
 
       expect(result.frostedGlassBorder, equals(custom));
+    });
+
+    test('copyWith replaces money when provided', () {
+      const custom = Color(0xFF00AA55);
+      final result = _lightColors.copyWith(money: custom);
+
+      expect(result.money, equals(custom));
     });
 
     // ----------------------------------------------------------------
@@ -309,6 +323,12 @@ void main() {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
       expect(result.frostedGlassBorder, equals(Color.lerp(_lerpA.frostedGlassBorder, _lerpB.frostedGlassBorder, 0.5)));
+    });
+
+    test('lerp interpolates money at t=0.5', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(result.money, equals(Color.lerp(_lerpA.money, _lerpB.money, 0.5)));
     });
 
     // ----------------------------------------------------------------

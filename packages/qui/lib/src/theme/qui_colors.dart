@@ -34,6 +34,7 @@ class QuiColors {
     required this.searchBarPlaceholder,
     required this.frostedGlassBackground,
     required this.frostedGlassBorder,
+    required this.money,
   });
 
   /// Light-theme defaults.
@@ -82,6 +83,9 @@ class QuiColors {
   /// The border color of the frosted-glass search bar variant.
   final Color frostedGlassBorder;
 
+  /// The color used for representing money amounts and payment highlights.
+  final Color money;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -98,7 +102,8 @@ class QuiColors {
           searchBarBackground == other.searchBarBackground &&
           searchBarPlaceholder == other.searchBarPlaceholder &&
           frostedGlassBackground == other.frostedGlassBackground &&
-          frostedGlassBorder == other.frostedGlassBorder;
+           frostedGlassBorder == other.frostedGlassBorder &&
+           money == other.money;
 
   @override
   int get hashCode => Object.hash(
@@ -114,6 +119,7 @@ class QuiColors {
     searchBarPlaceholder,
     frostedGlassBackground,
     frostedGlassBorder,
+    money,
   );
 
   /// Returns a copy of this [QuiColors] with the given fields replaced.
@@ -130,6 +136,7 @@ class QuiColors {
     Color? searchBarPlaceholder,
     Color? frostedGlassBackground,
     Color? frostedGlassBorder,
+    Color? money,
   }) {
     return QuiColors(
       primary: primary ?? this.primary,
@@ -144,6 +151,7 @@ class QuiColors {
       searchBarPlaceholder: searchBarPlaceholder ?? this.searchBarPlaceholder,
       frostedGlassBackground: frostedGlassBackground ?? this.frostedGlassBackground,
       frostedGlassBorder: frostedGlassBorder ?? this.frostedGlassBorder,
+      money: money ?? this.money,
     );
   }
 
@@ -165,6 +173,7 @@ class QuiColors {
       searchBarPlaceholder: Color.lerp(a.searchBarPlaceholder, b.searchBarPlaceholder, t)!,
       frostedGlassBackground: Color.lerp(a.frostedGlassBackground, b.frostedGlassBackground, t)!,
       frostedGlassBorder: Color.lerp(a.frostedGlassBorder, b.frostedGlassBorder, t)!,
+      money: Color.lerp(a.money, b.money, t)!,
     );
   }
 }
@@ -175,7 +184,7 @@ class _LightQuiColors extends QuiColors {
         background: const Color(0xFFFFFFFF),
         surface: const Color(0xFFFFFFFF),
         textPrimary: const Color(0xFF1A1A1A),
-        textSecondary: const Color(0xFF757575),
+        textSecondary: const Color(0xFF888888),
         placeholder: const Color(0xFF9E9E9E),
         disabledButtonBackground: const Color(0xFFE1E1E1),
         disabledButtonForeground: const Color(0xFF8E8E8E),
@@ -183,5 +192,6 @@ class _LightQuiColors extends QuiColors {
         searchBarPlaceholder: const Color(0xFF9E9E9E),
         frostedGlassBackground: const Color(0x4DFFFFFF),
         frostedGlassBorder: const Color(0xFFE0E0E0),
+        money: const Color(0xFF00DD55),
       );
 }
