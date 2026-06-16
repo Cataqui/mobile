@@ -10,11 +10,11 @@ part 'job_payment_dto.g.dart';
 sealed class JobPaymentDto with _$JobPaymentDto {
   const factory JobPaymentDto({
     @JsonKey(unknownEnumValue: JobPaymentType.unknown) required JobPaymentType type,
-    @JsonKey(name: 'min_amount') required num minAmount,
-    @JsonKey(name: 'max_amount') required num maxAmount,
     @JsonKey(name: 'amount_period', unknownEnumValue: JobPaymentAmountPeriod.unknown)
     required JobPaymentAmountPeriod amountPeriod,
     required String currency,
+    @JsonKey(name: 'min_amount') num? minAmount,
+    @JsonKey(name: 'max_amount') num? maxAmount,
     @JsonKey(name: 'note') @Default('') String note,
   }) = _JobPaymentDto;
 
@@ -32,22 +32,33 @@ sealed class JobPaymentDto with _$JobPaymentDto {
   );
 
   String formatPayment(Translations t) {
-    if (type == JobPaymentType.flexible) return t.jobPayment.paymentFlexible;
+    return switch (type) {
+      JobPaymentType.fixed => _formatFixed(t),
+      JobPaymentType.range => _formatRange(t),
+      JobPaymentType.flexible => t.jobPayment.paymentFlexible,
+      JobPaymentType.other => t.jobPayment.paymentOther,
+      JobPaymentType.unknown => t.jobPayment.paymentUnknown,
+    };
+  }
 
+  String _formatFixed(Translations t) {
     final localeTag = t.$meta.locale.underscoreTag;
-    final hasDecimals = minAmount != minAmount.toInt() || maxAmount != maxAmount.toInt();
+    final hasDecimals = minAmount != minAmount!.toInt();
     final decimals = hasDecimals ? 2 : 0;
     final formatter = NumberFormat.simpleCurrency(name: currency, locale: localeTag, decimalDigits: decimals);
-    final formattedMinAmount = formatter.format(minAmount).replaceAll(RegExp(r'\s'), '');
-    final formattedMaxAmount = formatter.format(maxAmount).replaceAll(RegExp(r'\s'), '');
+    final formattedAmount = formatter.format(minAmount).replaceAll(RegExp(r'\s'), '');
     final suffix = _periodSuffix(t);
+    return t.jobPayment.paymentFixed(value: formattedAmount, period: suffix);
+  }
 
-    return switch (type) {
-      JobPaymentType.fixed => t.jobPayment.paymentFixed(value: formattedMinAmount, period: suffix),
-      JobPaymentType.range => t.jobPayment.paymentRangeUpTo(value: formattedMaxAmount, period: suffix),
-      JobPaymentType.other || JobPaymentType.unknown => formattedMinAmount,
-      JobPaymentType.flexible => t.jobPayment.paymentFlexible,
-    };
+  String _formatRange(Translations t) {
+    final localeTag = t.$meta.locale.underscoreTag;
+    final hasDecimals = maxAmount != maxAmount!.toInt();
+    final decimals = hasDecimals ? 2 : 0;
+    final formatter = NumberFormat.simpleCurrency(name: currency, locale: localeTag, decimalDigits: decimals);
+    final formattedAmount = formatter.format(maxAmount).replaceAll(RegExp(r'\s'), '');
+    final suffix = _periodSuffix(t);
+    return t.jobPayment.paymentRangeUpTo(value: formattedAmount, period: suffix);
   }
 
   String _periodSuffix(Translations t) {

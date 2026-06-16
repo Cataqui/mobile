@@ -30,6 +30,52 @@ void main() {
 
         expect(payment.type, JobPaymentType.unknown);
       });
+
+      test('when min_amount is missing from JSON, it should default to null', () {
+        final payment = JobPaymentDto.fromJson(const <String, Object?>{
+          'type': 'FLEXIBLE',
+          'amount_period': 'SINGLE',
+          'currency': 'BRL',
+          'note': '',
+        });
+
+        expect(payment.minAmount, isNull);
+      });
+
+      test('when max_amount is missing from JSON, it should default to null', () {
+        final payment = JobPaymentDto.fromJson(const <String, Object?>{
+          'type': 'FLEXIBLE',
+          'amount_period': 'SINGLE',
+          'currency': 'BRL',
+          'note': '',
+        });
+
+        expect(payment.maxAmount, isNull);
+      });
+    });
+
+    group('nullable amounts', () {
+      test('when creating a flexible payment, minAmount should default to null', () {
+        const payment = JobPaymentDto(
+          type: JobPaymentType.flexible,
+          amountPeriod: JobPaymentAmountPeriod.single,
+          currency: 'BRL',
+          note: '',
+        );
+
+        expect(payment.minAmount, isNull);
+      });
+
+      test('when creating a flexible payment, maxAmount should default to null', () {
+        const payment = JobPaymentDto(
+          type: JobPaymentType.flexible,
+          amountPeriod: JobPaymentAmountPeriod.single,
+          currency: 'BRL',
+          note: '',
+        );
+
+        expect(payment.maxAmount, isNull);
+      });
     });
 
     group('formatPayment', () {
@@ -90,8 +136,6 @@ void main() {
       test('when payment type is flexible, it should return "Negociável"', () {
         const payment = JobPaymentDto(
           type: JobPaymentType.flexible,
-          minAmount: 0,
-          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.single,
           currency: 'BRL',
           note: '',
@@ -102,11 +146,9 @@ void main() {
         expect(result, equals('Negociável'));
       });
 
-      test('when payment type is other, it should show no period suffix', () {
+      test('when payment type is other, it should return "Outro"', () {
         const payment = JobPaymentDto(
           type: JobPaymentType.other,
-          minAmount: 500,
-          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.monthly,
           currency: 'BRL',
           note: '',
@@ -114,14 +156,12 @@ void main() {
 
         final result = payment.formatPayment(t);
 
-        expect(result.contains('/'), isFalse);
+        expect(result, equals('Outro'));
       });
 
-      test('when payment type is unknown, it should show no period suffix', () {
+      test('when payment type is unknown, it should return "Desconhecido"', () {
         const payment = JobPaymentDto(
           type: JobPaymentType.unknown,
-          minAmount: 100,
-          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.daily,
           currency: 'BRL',
           note: '',
@@ -129,7 +169,7 @@ void main() {
 
         final result = payment.formatPayment(t);
 
-        expect(result.contains('/'), isFalse);
+        expect(result, equals('Desconhecido'));
       });
 
       test('when amount is an integer, it should have no decimal places', () {
