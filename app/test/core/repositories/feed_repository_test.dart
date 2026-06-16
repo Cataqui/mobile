@@ -6,7 +6,38 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
-import '../dtos/dto_json_fixtures.dart';
+
+const _feedEnvelopeJson = <String, Object?>{
+  'data': <Map<String, Object?>>[
+    <String, Object?>{
+      'job_id': 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
+      'title': 'Mock: ajudante para descarregar caminhão',
+      'created_at': '2026-06-06T00:36:46.623Z',
+      'description_summary': 'Experiente em atendimento ao cliente.',
+      'payment': <String, Object?>{
+        'type': 'FIXED',
+        'min_amount': 120,
+        'amount_period': 'SINGLE',
+        'currency': 'BRL',
+      },
+      'location': <String, Object?>{
+        'neighborhood': 'Centro',
+        'city': 'São Paulo',
+        'state': 'SP',
+        'latitude': -23.556391,
+        'longitude': -46.844076,
+        'area_radius': 2000,
+      },
+    },
+  ],
+  'request_id': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
+  'timestamp': '2026-06-06T00:37:46.623Z',
+  'endpoint': '/feed/jobs',
+  'pagination': <String, Object?>{
+    'has_more': true,
+    'next_cursor': 'next-feed-cursor',
+  },
+};
 
 void main() {
   setUpAll(() {
@@ -93,7 +124,7 @@ void main() {
 
     test('when receiving an empty feed, it should map an empty job list', () async {
       final dio = MockDio();
-      _stubFeedJobsRequest(dio: dio, responseJson: <String, Object?>{...feedEnvelopeJson, 'data': <Object?>[]});
+      _stubFeedJobsRequest(dio: dio, responseJson: <String, Object?>{..._feedEnvelopeJson, 'data': <Object?>[]});
       final repository = FeedRepository(dio: dio);
 
       final envelope = await repository.getFeedJobs();
@@ -114,7 +145,7 @@ void main() {
   });
 }
 
-void _stubFeedJobsRequest({required MockDio dio, Map<String, Object?> responseJson = feedEnvelopeJson}) {
+void _stubFeedJobsRequest({required MockDio dio, Map<String, Object?> responseJson = _feedEnvelopeJson}) {
   when(() => dio.get<Map<String, Object?>>(any(), queryParameters: any(named: 'queryParameters'))).thenAnswer(
     (_) async => Response<Map<String, Object?>>(
       data: responseJson,

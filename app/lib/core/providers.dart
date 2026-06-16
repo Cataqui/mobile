@@ -1,11 +1,19 @@
+import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/config/env.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
+import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
+
+final translationProvider = Provider<Translations>((ref) {
+  final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
+  return locale.buildSync();
+});
 
 @Riverpod(keepAlive: true)
 AppConfig appConfig(Ref ref) {

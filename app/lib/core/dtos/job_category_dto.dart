@@ -13,4 +13,10 @@ abstract class JobCategoryDto with _$JobCategoryDto {
 
   factory JobCategoryDto.fromJson(Map<String, Object?> json) =>
       _$JobCategoryDtoFromJson(json);
+
+  factory JobCategoryDto.fixture() => const JobCategoryDto(
+    categoryId: 'afdfd9b2-203d-4528-8a1c-82b6b139039b',
+    name: 'Outro',
+    slug: 'other',
+  );
 }

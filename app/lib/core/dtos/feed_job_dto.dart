@@ -22,7 +22,7 @@ abstract class FeedJobDto with _$FeedJobDto {
   // Freezed-generated classes cannot have custom constructors,
   // so a static factory method is the only option.
   // ignore: prefer_constructors_over_static_methods
-  static FeedJobDto fixture() => FeedJobDto(
+  factory FeedJobDto.fixture() => FeedJobDto(
     jobId: 'job_123',
     title: 'Descarregar Caminhão',
     createdAt: DateTime(2025, 6, 15),

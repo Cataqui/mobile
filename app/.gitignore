@@ -54,8 +54,8 @@ lib/core/providers.g.dart
 # Generated environment files
 lib/core/config/env.g.dart
 
-# Generated View Models
-lib/views/**/*_view_model.g.dart
+# Generated States
+lib/**/*_state.g.dart
 
 # Generated i18n files
 lib/i18n/**/*.g.dart

@@ -10,6 +10,9 @@ void main() {
           'neighborhood': 'Centro',
           'city': 'São Paulo',
           'state': 'SP',
+          'latitude': -23.556391,
+          'longitude': -46.844076,
+          'area_radius': 2000,
         });
 
         expect(location.neighborhood, 'Centro');

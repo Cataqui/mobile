@@ -17,6 +17,7 @@ targets:
           explicit_to_json: true
       riverpod_generator:
         generate_for:
+          - "lib/*.dart"
           - "lib/**/*.dart"
           - "!lib/**/*.freezed.dart"
           - "!lib/**/*.g.dart"
@@ -31,8 +32,9 @@ targets:
           translate_var: t
           enum_name: AppLocale
           class_name: Translations
+          locale_handling: false
+          translation_class_visibility: public
           lazy: true
-          locale_handling: true
           flutter_integration: true
           namespaces: false
           string_interpolation: dart

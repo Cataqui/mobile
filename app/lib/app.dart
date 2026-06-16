@@ -1,3 +1,5 @@
+import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -18,12 +20,13 @@ class CataquiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(_routerProvider);
+    final i18n = ref.watch(translationProvider);
 
     return MaterialApp.router(
-      title: 'Cataquí',
+      title: i18n.app.name,
       routerConfig: router,
       theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      locale: TranslationProvider.of(context).flutterLocale,
+      locale: i18n.$meta.locale.flutterLocale,
       supportedLocales: AppLocaleUtils.supportedLocales,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
     );

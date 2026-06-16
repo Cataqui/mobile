@@ -15,4 +15,10 @@ abstract class JobContactDto with _$JobContactDto {
 
   factory JobContactDto.fromJson(Map<String, Object?> json) =>
       _$JobContactDtoFromJson(json);
+
+  factory JobContactDto.fixture() => const JobContactDto(
+    name: 'Cataqui Teste',
+    phoneNumber: '+5511999999999',
+    contactMethod: JobContactMethod.whatsapp,
+  );
 }

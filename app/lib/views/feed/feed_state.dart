@@ -1,14 +1,14 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/views/feed/feed_view_state.dart';
+import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'feed_view_model.g.dart';
+part 'feed_state.g.dart';
 
 @riverpod
-class FeedViewModel extends _$FeedViewModel {
+class FeedState extends _$FeedState {
   @override
-  Future<FeedViewState> build() {
+  Future<FeedData> build() {
     return _getFirstFeedJobs();
   }
 
@@ -18,16 +18,16 @@ class FeedViewModel extends _$FeedViewModel {
       return;
     }
 
-    state = const AsyncLoading<FeedViewState>();
+    state = const AsyncLoading<FeedData>();
     state = await AsyncValue.guard(_getFirstFeedJobs);
   }
 
-  Future<FeedViewState> _getFirstFeedJobs() async {
+  Future<FeedData> _getFirstFeedJobs() async {
     final feedRepository = ref.read(feedRepositoryProvider);
     final feedJobsEnvelope = await feedRepository.getFeedJobs();
     final pagination = feedJobsEnvelope.pagination;
 
-    return FeedViewState(
+    return FeedData(
       jobs: feedJobsEnvelope.data,
       hasMore: pagination?.hasMore ?? false,
       nextCursor: pagination?.nextCursor,
@@ -41,14 +41,14 @@ class FeedViewModel extends _$FeedViewModel {
       return;
     }
 
-    state = AsyncData<FeedViewState>(currentState.copyWith(isFetchingNextPage: true, paginationError: null));
+    state = AsyncData<FeedData>(currentState.copyWith(isFetchingNextPage: true, paginationError: null));
 
     try {
       final feedRepository = ref.read(feedRepositoryProvider);
       final feedJobsEnvelope = await feedRepository.getFeedJobs(cursor: currentState.nextCursor);
       final pagination = feedJobsEnvelope.pagination;
 
-      state = AsyncData<FeedViewState>(
+      state = AsyncData<FeedData>(
         currentState.copyWith(
           jobs: <FeedJobDto>[...currentState.jobs, ...feedJobsEnvelope.data],
           hasMore: pagination?.hasMore ?? false,
@@ -58,7 +58,7 @@ class FeedViewModel extends _$FeedViewModel {
         ),
       );
     } catch (error) {
-      state = AsyncData<FeedViewState>(currentState.copyWith(isFetchingNextPage: false, paginationError: error));
+      state = AsyncData<FeedData>(currentState.copyWith(isFetchingNextPage: false, paginationError: error));
     }
   }
 }

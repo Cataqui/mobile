@@ -27,16 +27,20 @@ melos:
         fvm flutter test --coverage && \
         if [ -s coverage/lcov.info ]; then \
           remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$' && \
-          genhtml coverage/lcov.info \
+          awk '/^name:/ {print $2; exit}' pubspec.yaml | xargs -I {} genhtml coverage/lcov.info \
             --output-directory coverage/html \
             --rc branch_coverage=1 \
-            --title "Cataquí — Coverage" && \
+            --title "{}" && \
             open coverage/html/index.html; \
         fi
       exec:
         concurrency: 1
       packageFilters:
         dirExists: test
+
+    test:all:
+      description: Run tests with coverage for all packages (no prompt) and open each report
+      run: melos run test --no-select
 
     coverage:
       description: Run tests with coverage, generate HTML, and open (all packages, no prompt)
@@ -78,7 +82,8 @@ melos:
       run: |
         fvm flutter pub get && \
         fvm dart pub global activate remove_from_coverage && \
-        melos run gen:all
+        melos run gen:all && \
+        melos run goldens:update:all
 
     get:
       description: Install dependencies for a package

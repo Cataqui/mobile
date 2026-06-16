@@ -17,4 +17,15 @@ abstract class JobLocationDto with _$JobLocationDto {
   }) = _JobLocationDto;
 
   factory JobLocationDto.fromJson(Map<String, Object?> json) => _$JobLocationDtoFromJson(json);
+
+  factory JobLocationDto.fixture() => const JobLocationDto(
+    neighborhood: 'Centro',
+    city: 'São Paulo',
+    state: 'SP',
+    country: 'BR',
+    latitude: -23.556391,
+    longitude: -46.844076,
+    areaRadius: 2000,
+    street: 'Rua das Flores, 123',
+  );
 }

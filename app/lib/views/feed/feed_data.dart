@@ -1,11 +1,11 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:flutter/foundation.dart';
 
-const Object _feedViewStateUnset = Object();
+const Object _feedDataUnset = Object();
 
 @immutable
-class FeedViewState {
-  const FeedViewState({
+class FeedData {
+  const FeedData({
     required this.jobs,
     required this.hasMore,
     this.nextCursor,
@@ -23,19 +23,19 @@ class FeedViewState {
 
   bool get isPaginationEmpty => jobs.isNotEmpty && !hasMore;
 
-  FeedViewState copyWith({
+  FeedData copyWith({
     List<FeedJobDto>? jobs,
     bool? hasMore,
-    Object? nextCursor = _feedViewStateUnset,
+    Object? nextCursor = _feedDataUnset,
     bool? isFetchingNextPage,
-    Object? paginationError = _feedViewStateUnset,
+    Object? paginationError = _feedDataUnset,
   }) {
-    return FeedViewState(
+    return FeedData(
       jobs: jobs ?? this.jobs,
       hasMore: hasMore ?? this.hasMore,
-      nextCursor: nextCursor == _feedViewStateUnset ? this.nextCursor : nextCursor as String?,
+      nextCursor: nextCursor == _feedDataUnset ? this.nextCursor : nextCursor as String?,
       isFetchingNextPage: isFetchingNextPage ?? this.isFetchingNextPage,
-      paginationError: paginationError == _feedViewStateUnset ? this.paginationError : paginationError,
+      paginationError: paginationError == _feedDataUnset ? this.paginationError : paginationError,
     );
   }
 }

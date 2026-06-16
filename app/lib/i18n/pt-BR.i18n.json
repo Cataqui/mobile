@@ -2,5 +2,13 @@
   "app": {
     "name": "Cataquí",
     "tagline": "Oportunidades em tempo real"
+  },
+  "jobPayment": {
+    "paymentFlexible": "Negociável",
+    "paymentPeriodHourly": "/hora",
+    "paymentPeriodDaily": "/dia",
+    "paymentPeriodWeekly": "/semana",
+    "paymentPeriodMonthly": "/mês",
+    "paymentPeriodYearly": "/ano"
   }
 }

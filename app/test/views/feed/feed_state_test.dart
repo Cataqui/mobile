@@ -3,12 +3,11 @@ import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/enums/feed_sort.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/views/feed/feed_view_model.dart';
+import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../../core/dtos/dto_json_fixtures.dart';
 import '../../mocks.dart';
 
 void main() {
@@ -16,13 +15,13 @@ void main() {
     registerFallbackValue(FeedSort.latest);
   });
 
-  group('FeedViewModel', () {
+  group('FeedState', () {
     test('when first loaded, it should expose feed jobs', () async {
       final repository = MockFeedRepository();
       _stubFeedJobs(repository: repository);
       final container = _createContainer(repository: repository);
 
-      final feedState = await container.read(feedViewModelProvider.future);
+      final feedState = await container.read(feedStateProvider.future);
 
       expect(feedState.jobs.single.jobId, 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502');
     });
@@ -35,7 +34,7 @@ void main() {
       );
       final container = _createContainer(repository: repository);
 
-      final feedState = await container.read(feedViewModelProvider.future);
+      final feedState = await container.read(feedStateProvider.future);
 
       expect(feedState.isEmpty, isTrue);
     });
@@ -45,7 +44,7 @@ void main() {
       _stubFeedJobs(repository: repository);
       final container = _createContainer(repository: repository);
 
-      final feedState = await container.read(feedViewModelProvider.future);
+      final feedState = await container.read(feedStateProvider.future);
 
       expect(feedState.nextCursor, 'next-feed-cursor');
     });
@@ -57,11 +56,11 @@ void main() {
         secondEnvelope: _feedEnvelope(jobs: <FeedJobDto>[_feedJob(jobId: 'second-job')], hasMore: false),
       );
       final container = _createContainer(repository: repository);
-      await container.read(feedViewModelProvider.future);
+      await container.read(feedStateProvider.future);
 
-      await container.read(feedViewModelProvider.notifier).getFeedJobs(fetchNextPage: true);
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
-      expect(container.read(feedViewModelProvider).value?.jobs.map((job) => job.jobId), <String>[
+      expect(container.read(feedStateProvider).value?.jobs.map((job) => job.jobId), <String>[
         'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
         'second-job',
       ]);
@@ -74,9 +73,9 @@ void main() {
         secondEnvelope: _feedEnvelope(jobs: <FeedJobDto>[_feedJob(jobId: 'second-job')], hasMore: false),
       );
       final container = _createContainer(repository: repository);
-      await container.read(feedViewModelProvider.future);
+      await container.read(feedStateProvider.future);
 
-      await container.read(feedViewModelProvider.notifier).getFeedJobs(fetchNextPage: true);
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
       verify(() => repository.getFeedJobs(cursor: 'next-feed-cursor')).called(1);
     });
@@ -88,33 +87,33 @@ void main() {
         secondEnvelope: _feedEnvelope(jobs: <FeedJobDto>[], hasMore: false),
       );
       final container = _createContainer(repository: repository);
-      await container.read(feedViewModelProvider.future);
+      await container.read(feedStateProvider.future);
 
-      await container.read(feedViewModelProvider.notifier).getFeedJobs(fetchNextPage: true);
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
-      expect(container.read(feedViewModelProvider).value?.isPaginationEmpty, isTrue);
+      expect(container.read(feedStateProvider).value?.isPaginationEmpty, isTrue);
     });
 
     test('when next-page fetch fails, it should keep existing jobs', () async {
       final repository = MockFeedRepository();
       _stubFeedJobs(repository: repository, secondError: StateError('next page failed'));
       final container = _createContainer(repository: repository);
-      await container.read(feedViewModelProvider.future);
+      await container.read(feedStateProvider.future);
 
-      await container.read(feedViewModelProvider.notifier).getFeedJobs(fetchNextPage: true);
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
-      expect(container.read(feedViewModelProvider).value?.jobs.single.jobId, 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502');
+      expect(container.read(feedStateProvider).value?.jobs.single.jobId, 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502');
     });
 
     test('when next-page fetch fails, it should store pagination error', () async {
       final repository = MockFeedRepository();
       _stubFeedJobs(repository: repository, secondError: StateError('next page failed'));
       final container = _createContainer(repository: repository);
-      await container.read(feedViewModelProvider.future);
+      await container.read(feedStateProvider.future);
 
-      await container.read(feedViewModelProvider.notifier).getFeedJobs(fetchNextPage: true);
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
-      expect(container.read(feedViewModelProvider).value?.paginationError, isA<StateError>());
+      expect(container.read(feedStateProvider).value?.paginationError, isA<StateError>());
     });
 
     test('when initial fetch fails, it should expose provider-level AsyncError', () async {
@@ -122,16 +121,16 @@ void main() {
       _stubFeedJobs(repository: repository, firstError: StateError('first page failed'));
       final container = _createContainer(repository: repository);
 
-      await expectLater(container.read(feedViewModelProvider.future), throwsA(isA<StateError>()));
+      await expectLater(container.read(feedStateProvider.future), throwsA(isA<StateError>()));
     });
 
     test('when no more pages exist, it should skip the repository call', () async {
       final repository = MockFeedRepository();
       _stubFeedJobs(repository: repository, firstEnvelope: _feedEnvelope(hasMore: false, nextCursor: null));
       final container = _createContainer(repository: repository);
-      await container.read(feedViewModelProvider.future);
+      await container.read(feedStateProvider.future);
 
-      await container.read(feedViewModelProvider.notifier).getFeedJobs(fetchNextPage: true);
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
       verify(
         () => repository.getFeedJobs(
@@ -197,5 +196,5 @@ ApiEnvelopeDto<List<FeedJobDto>> _feedEnvelope({
 }
 
 FeedJobDto _feedJob({String jobId = 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502'}) {
-  return FeedJobDto.fromJson(<String, Object?>{...feedJobsJson.single, 'job_id': jobId});
+  return FeedJobDto.fixture().copyWith(jobId: jobId);
 }

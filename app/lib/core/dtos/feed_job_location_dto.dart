@@ -13,4 +13,11 @@ abstract class FeedJobLocationDto with _$FeedJobLocationDto {
   }) = _FeedJobLocationDto;
 
   factory FeedJobLocationDto.fromJson(Map<String, Object?> json) => _$FeedJobLocationDtoFromJson(json);
+
+  factory FeedJobLocationDto.fixture() => const FeedJobLocationDto(
+    neighborhood: 'Centro',
+    latitude: -23.556391,
+    longitude: -46.844076,
+    areaRadius: 2000,
+  );
 }

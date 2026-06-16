@@ -1,20 +1,21 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'dto_json_fixtures.dart';
 
 void main() {
   group('FeedJobDto', () {
     test('when parsing a feed job, it should map the title', () {
-      final job = FeedJobDto.fromJson(feedJobsJson.first);
+      final job = FeedJobDto.fixture().copyWith(title: 'Descarregar Caminhão');
 
-      expect(job.title, 'Mock: ajudante para descarregar caminhão');
+      expect(job.title, 'Descarregar Caminhão');
     });
 
     test('when parsing a feed job, it should map the location', () {
-      final job = FeedJobDto.fromJson(feedJobsJson.first);
+      final job = FeedJobDto.fixture().copyWith(
+        location: FeedJobLocationDto.fixture().copyWith(neighborhood: 'Pinheiros'),
+      );
 
-      expect(job.location.neighborhood, 'Centro');
+      expect(job.location.neighborhood, 'Pinheiros');
     });
   });
 }

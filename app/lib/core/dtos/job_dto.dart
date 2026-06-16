@@ -25,4 +25,42 @@ abstract class JobDto with _$JobDto {
   }) = _JobDto;
 
   factory JobDto.fromJson(Map<String, Object?> json) => _$JobDtoFromJson(json);
+
+  factory JobDto.fixture() => JobDto(
+    jobId: 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
+    title: 'Mock: ajudante para descarregar caminhão',
+    description: 'Mock job for staging QA. Need one person to help unload '
+        'boxes from a small truck for about two hours near Centro. This is test '
+        'data and should not be treated as a real opportunity.',
+    contact: const JobContactDto(
+      name: 'Cataqui Teste',
+      phoneNumber: '+5511999999999',
+      contactMethod: JobContactMethod.whatsapp,
+    ),
+    location: const JobLocationDto(
+      neighborhood: 'Centro',
+      city: 'São Paulo',
+      state: 'SP',
+      country: 'BR',
+      latitude: -23.556391,
+      longitude: -46.844076,
+      areaRadius: 2000,
+      street: 'Rua das Flores, 123',
+    ),
+    category: const JobCategoryDto(
+      categoryId: 'afdfd9b2-203d-4528-8a1c-82b6b139039b',
+      name: 'Outro',
+      slug: 'other',
+    ),
+    payment: const JobPaymentDto(
+      type: JobPaymentType.fixed,
+      minAmount: 120,
+      amountPeriod: JobPaymentAmountPeriod.single,
+      currency: 'BRL',
+    ),
+    status: JobStatus.active,
+    type: JobType.individual,
+    createdAt: DateTime.parse('2026-06-06T00:36:46.623Z'),
+    updatedAt: DateTime.parse('2026-06-06T00:36:46.623Z'),
+  );
 }

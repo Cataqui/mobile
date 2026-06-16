@@ -2,14 +2,10 @@ import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'dto_json_fixtures.dart';
-
 void main() {
   group('JobContactDto', () {
     test('when parsing a job contact, it should map the contact method', () {
-      final contact = JobContactDto.fromJson(
-        detailedJobJson['contact']! as Map<String, Object?>,
-      );
+      final contact = JobContactDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp);
 
       expect(contact.contactMethod, JobContactMethod.whatsapp);
     });

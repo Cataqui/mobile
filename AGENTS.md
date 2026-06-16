@@ -36,17 +36,6 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 ### Architecture & Frameworks
 
 - **State Management:** **Riverpod** (preferring code-generation workflows via `@riverpod`).
-- **Provider Placement:** Every app-level Riverpod provider must be declared in
-  `app/lib/core/providers.dart`. Do not declare providers alongside
-  repositories, DTOs, widgets, or feature files. Feature view models are the
-  exception: view models and their generated Riverpod providers must live at
-  the same level as their view for easier finding and management.
-- **DTO Code Generation:** The `app` package is configured with **Freezed** and
-  **json_serializable** for immutable API DTOs and type-safe JSON conversion.
-  Run `melos gen:all` after adding or changing generated DTOs. Generated
-  `.freezed.dart` and `.g.dart` files under `app/lib/core/dtos/` are ignored.
-- **DTO File Structure:** Keep exactly one DTO class per Dart source file.
-  Shared enums may live in a dedicated non-DTO enum file.
 - **Networking Layer:** **Dio** (configured with explicit interceptors for standardized error handling and clean timeout controls).
 - **Local Persistence:** High-performance local cache engine (e.g., Isar/Hive) used for offline-first geographic feed continuity.
 
@@ -130,6 +119,10 @@ All testing, analysis, and build routines must run within the **fvm** environmen
 
 Every bug fix must include a corresponding regression test. The test must accurately simulate and reproduce the failure state prior to the implementation of the fix, and pass completely afterward.
 
+### Shared Test Mocks
+
+- Use `mocktail` for shared test mocks, stubs, and verifications. App-level. Reusable mocks must live in `/test/mocks.dart`.
+
 ### Dedicated Test Files
 
 Each source file must have its own dedicated test file. Do not collect unrelated
@@ -137,10 +130,29 @@ coverage in shared catch-all test files; place tests in a path that mirrors the
 source owner, for example `lib/src/extensions/color_extension.dart` maps to
 `test/extensions/color_extension_test.dart`.
 
-### Shared Test Mocks
+### DTO Fixture Tests Must Override Under Test
 
-- Use `mocktail` for shared test mocks, stubs, and verifications. App-level
-  reusable mocks must live in `app/test/mocks.dart`.
+When a test uses `XxxDto.fixture()` and asserts on a specific field, it **must**
+override that field via `copyWith` on the fixture. This ensures the test is
+isolated from fixture default changes.
+
+- **Incorrect (test breaks if fixture default changes):**
+
+```dart
+test('when parsing a feed job, it should map the title', () {
+  final job = FeedJobDto.fixture();
+  expect(job.title, 'Descarregar Caminhão');
+});
+```
+
+- **Correct (explicit override keeps test stable):**
+
+```dart
+test('when parsing a feed job, it should map the title', () {
+  final job = FeedJobDto.fixture().copyWith(title: 'Descarregar Caminhão');
+  expect(job.title, 'Descarregar Caminhão');
+});
+```
 
 ### One Assertion Per Test Case
 
@@ -252,8 +264,9 @@ Always adopt the direct, real-world vernacular of the street. Explicitly exclude
 When executing modifications inside this repository as an AI agent, you must strictly comply with the following behavior rules:
 
 1.  **Context Enforcement:** This file takes absolute precedence over generic coding preferences, standard global LLM training defaults, or speculative architectural habits.
-2.  **No Dead Code:** Do not leave commented-out blocks of logic, unused imports, experimental features, or speculative abstractions behind. Every single line of code must serve the immediate objective.
-3.  **Dependency Lockdown:** Do not add external third-party pub packages unless explicitly instructed. Lean heavily on native Flutter/Dart capabilities and the repository's existing technical stack.
-4.  **No Silent Contracts:** Never modify, rename, or delete public API boundaries, core Riverpod provider definitions, or common data model interfaces without analyzing downstream impacts across the entire monorepo workspace.
-5.  **Fail Safely:** If a structural change cannot be safely implemented within these parameters, immediately halt execution, document the exact technical roadblock, and explicitly state the architectural trade-offs required to move forward.
-6.  **README Sync:** The `README.md` at the project root is the authoritative source of project requirements (prerequisites, setup, scripts). Whenever you modify tooling, dependencies, setup steps, or any requirement that affects onboarding, you **must** update both `README.md` and `AGENTS.md` to stay in sync.
+2.  **Sub-AGENTS.md Precedence:** Each repo, package, or product directory in this monorepo (e.g., `app/`, `qui/`, `cataqui_core/`) has its own `AGENTS.md`. Their rules **always prevail** over any colliding rule in this root `AGENTS.md`.
+3.  **No Dead Code:** Do not leave commented-out blocks of logic, unused imports, experimental features, or speculative abstractions behind. Every single line of code must serve the immediate objective.
+4.  **Dependency Lockdown:** Do not add external third-party pub packages unless explicitly instructed. Lean heavily on native Flutter/Dart capabilities and the repository's existing technical stack.
+5.  **No Silent Contracts:** Never modify, rename, or delete public API boundaries, core Riverpod provider definitions, or common data model interfaces without analyzing downstream impacts across the entire monorepo workspace.
+6.  **Fail Safely:** If a structural change cannot be safely implemented within these parameters, immediately halt execution, document the exact technical roadblock, and explicitly state the architectural trade-offs required to move forward.
+7.  **README Sync:** The `README.md` at the project root is the authoritative source of project requirements (prerequisites, setup, scripts). Whenever you modify tooling, dependencies, setup steps, or any requirement that affects onboarding, you **must** update both `README.md` and `AGENTS.md` to stay in sync.
