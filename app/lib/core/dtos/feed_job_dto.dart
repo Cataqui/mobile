@@ -28,9 +28,11 @@ abstract class FeedJobDto with _$FeedJobDto {
     createdAt: DateTime(2025, 6, 15),
     payment: const JobPaymentDto(
       type: JobPaymentType.other,
-      minAmount: 120,
+      minAmount: 1245,
+      maxAmount: 8782,
       amountPeriod: JobPaymentAmountPeriod.hourly,
       currency: 'USD',
+      note: '',
     ),
     location: const FeedJobLocationDto(
       neighborhood: 'Pinheiros',

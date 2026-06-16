@@ -18,8 +18,10 @@ FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionS
         const JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 120,
+          maxAmount: 200,
           amountPeriod: JobPaymentAmountPeriod.daily,
           currency: 'BRL',
+          note: '',
         ),
     location: const FeedJobLocationDto(
       neighborhood: 'Pinheiros',

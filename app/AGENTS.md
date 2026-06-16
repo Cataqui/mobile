@@ -42,6 +42,9 @@ with JSON source files and code generation.
   Always name the local variable `i18n`, not `t`.
 - **Variable naming in code:** Use `i18n` everywhere the translation object is
   held, including function/method parameters.
+- **Typed parameters:** Every slang parameter must include a type annotation
+  (e.g., `{value: String}`, `{count: int}`). Never use untyped parameters like
+  `$value` or `{value}`.
 - **Provider:** `translationProvider` is declared in `app/lib/core/providers.dart`
   and reads the locale from `appStateProvider`.
 

@@ -22,8 +22,10 @@ void main() {
         final payment = JobPaymentDto.fromJson(const <String, Object?>{
           'type': 'BONUS',
           'min_amount': 120,
+          'max_amount': 200,
           'amount_period': 'SINGLE',
           'currency': 'BRL',
+          'note': '',
         });
 
         expect(payment.type, JobPaymentType.unknown);
@@ -35,8 +37,10 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 120,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.daily,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -50,8 +54,10 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 20,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.hourly,
           currency: 'USD',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -61,25 +67,34 @@ void main() {
         expect(result.contains('/hora'), isTrue);
       });
 
-      test('when payment type is range, it should include "+"', () {
+      test('when payment type is range, it should show max amount with up-to prefix', () {
         const payment = JobPaymentDto(
           type: JobPaymentType.range,
           minAmount: 150,
+          maxAmount: 250,
           amountPeriod: JobPaymentAmountPeriod.daily,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
 
-        expect(result.contains('+'), isTrue);
+        expect(result.contains('Até'), isTrue);
+        expect(result.contains(r'R$'), isTrue);
+        expect(result.contains('250'), isTrue);
+        expect(result.contains('150'), isFalse);
+        expect(result.contains(' - '), isFalse);
+        expect(result.contains('/dia'), isTrue);
       });
 
       test('when payment type is flexible, it should return "Negociável"', () {
         const payment = JobPaymentDto(
           type: JobPaymentType.flexible,
           minAmount: 0,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.single,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -91,8 +106,10 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.other,
           minAmount: 500,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.monthly,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -104,8 +121,10 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.unknown,
           minAmount: 100,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.daily,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -117,8 +136,10 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 120,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.single,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -130,8 +151,10 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 150.5,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.single,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -143,8 +166,10 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 100,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.single,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
@@ -156,13 +181,44 @@ void main() {
         const payment = JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 100,
+          maxAmount: 0,
           amountPeriod: JobPaymentAmountPeriod.unknown,
           currency: 'BRL',
+          note: '',
         );
 
         final result = payment.formatPayment(t);
 
         expect(result.contains('/'), isFalse);
+      });
+
+      test('when payment type is range with fractional max, it should show decimal places', () {
+        const payment = JobPaymentDto(
+          type: JobPaymentType.range,
+          minAmount: 150,
+          maxAmount: 250.5,
+          amountPeriod: JobPaymentAmountPeriod.single,
+          currency: 'BRL',
+          note: '',
+        );
+
+        final result = payment.formatPayment(t);
+
+        expect(result.contains('Até'), isTrue);
+        expect(result.contains('250,50'), isTrue);
+      });
+
+      test('when note is provided, it should be accessible', () {
+        const payment = JobPaymentDto(
+          type: JobPaymentType.fixed,
+          minAmount: 100,
+          maxAmount: 0,
+          amountPeriod: JobPaymentAmountPeriod.single,
+          currency: 'BRL',
+          note: 'Urgente',
+        );
+
+        expect(payment.note, 'Urgente');
       });
     });
   });

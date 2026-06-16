@@ -5,6 +5,8 @@
   },
   "jobPayment": {
     "paymentFlexible": "Negociável",
+    "paymentFixed": "{value: String}{period: String}",
+    "paymentRangeUpTo": "Até {value: String}{period: String}",
     "paymentPeriodHourly": "/hora",
     "paymentPeriodDaily": "/dia",
     "paymentPeriodWeekly": "/semana",

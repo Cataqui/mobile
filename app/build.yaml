@@ -37,7 +37,7 @@ targets:
           lazy: true
           flutter_integration: true
           namespaces: false
-          string_interpolation: dart
+          string_interpolation: braces
           flat_map: true
           timestamp: false
           statistics: true

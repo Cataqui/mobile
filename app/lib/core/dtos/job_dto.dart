@@ -55,8 +55,10 @@ abstract class JobDto with _$JobDto {
     payment: const JobPaymentDto(
       type: JobPaymentType.fixed,
       minAmount: 120,
+      maxAmount: 200,
       amountPeriod: JobPaymentAmountPeriod.single,
       currency: 'BRL',
+      note: '',
     ),
     status: JobStatus.active,
     type: JobType.individual,

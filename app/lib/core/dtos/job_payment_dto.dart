@@ -11,9 +11,11 @@ sealed class JobPaymentDto with _$JobPaymentDto {
   const factory JobPaymentDto({
     @JsonKey(unknownEnumValue: JobPaymentType.unknown) required JobPaymentType type,
     @JsonKey(name: 'min_amount') required num minAmount,
+    @JsonKey(name: 'max_amount') required num maxAmount,
     @JsonKey(name: 'amount_period', unknownEnumValue: JobPaymentAmountPeriod.unknown)
     required JobPaymentAmountPeriod amountPeriod,
     required String currency,
+    @JsonKey(name: 'note') @Default('') String note,
   }) = _JobPaymentDto;
 
   const JobPaymentDto._();
@@ -23,23 +25,27 @@ sealed class JobPaymentDto with _$JobPaymentDto {
   factory JobPaymentDto.fixture() => const JobPaymentDto(
     type: JobPaymentType.fixed,
     minAmount: 120,
+    maxAmount: 200,
     amountPeriod: JobPaymentAmountPeriod.single,
     currency: 'BRL',
+    note: '',
   );
 
   String formatPayment(Translations t) {
     if (type == JobPaymentType.flexible) return t.jobPayment.paymentFlexible;
 
     final localeTag = t.$meta.locale.underscoreTag;
-    final decimals = minAmount == minAmount.toInt() ? 0 : 2;
+    final hasDecimals = minAmount != minAmount.toInt() || maxAmount != maxAmount.toInt();
+    final decimals = hasDecimals ? 2 : 0;
     final formatter = NumberFormat.simpleCurrency(name: currency, locale: localeTag, decimalDigits: decimals);
-    final formattedAmount = formatter.format(minAmount);
+    final formattedMinAmount = formatter.format(minAmount).replaceAll(RegExp(r'\s'), '');
+    final formattedMaxAmount = formatter.format(maxAmount).replaceAll(RegExp(r'\s'), '');
     final suffix = _periodSuffix(t);
 
     return switch (type) {
-      JobPaymentType.fixed => '$formattedAmount$suffix',
-      JobPaymentType.range => '$formattedAmount+$suffix',
-      JobPaymentType.other || JobPaymentType.unknown => formattedAmount,
+      JobPaymentType.fixed => t.jobPayment.paymentFixed(value: formattedMinAmount, period: suffix),
+      JobPaymentType.range => t.jobPayment.paymentRangeUpTo(value: formattedMaxAmount, period: suffix),
+      JobPaymentType.other || JobPaymentType.unknown => formattedMinAmount,
       JobPaymentType.flexible => t.jobPayment.paymentFlexible,
     };
   }
