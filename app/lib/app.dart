@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
+import 'package:cataqui_app/widgets/feed_job_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,17 +47,52 @@ class _HomeScreenState extends State<_HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cataqui'), backgroundColor: Theme.of(context).colorScheme.primary),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: QuiLocationRadiusMap(
-            tileUrlTemplate:
-                'https://staging.maptiles.cataqui.com/br/2026-06-09/{z}/{x}/{y}.mvt?v=1&sig=8825c0d3b4584856a0f9de9f7825637ada282e964d00651eaa3825830c6f216d&exp=1781137280',
-            location: QuiMapLocation(latitude: -23.55052, longitude: -46.633308),
-            radiusInMeters: 500,
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          const SizedBox(height: 250),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height - 280,
+                width: double.infinity,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(40),
+                  child: Stack(
+                    children: [
+                      QuiLocationRadiusMap(
+                        tileUrlTemplate:
+                            'https://staging.maptiles.cataqui.com/regions/br/2026-06-09/{z}/{x}/{y}.mvt?v=1&sig=ff83557175c2b29719df6e0f2ea5bd01413179e4550191768fecc070b96b9ad3&exp=1781565202',
+                        location: (
+                          // latitude: -23.556391,
+                          // longitude: -46.844076,
+                          latitude: -23.551043,
+                          longitude: -46.633413,
+                          // latitude: -22.885941,
+                          // longitude: -48.444118,
+                        ),
+                        fontConfig: (
+                          fontStack: 'inter',
+                          glyphUrlTemplate:
+                              'https://staging.maptiles.cataqui.com/glyphs/{fontstack}/{range}.pbf?v=1&sig=ff83557175c2b29719df6e0f2ea5bd01413179e4550191768fecc070b96b9ad3&exp=1781565202',
+                        ),
+                        radiusInMeters: 2000,
+                        tileMinZoom: 1,
+                        tileMaxZoom: 14,
+                        zoom: 14,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: FeedJobCard(feedJob: FeedJobDto.fixture(), onTap: () async {}),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,

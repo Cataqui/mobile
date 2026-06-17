@@ -143,7 +143,7 @@ void main() {
 
         final result = payment.formatPayment(t);
 
-        expect(result, equals('Negociável'));
+        expect(result, equals('A Combinar'));
       });
 
       test('when payment type is other, it should return "Outro"', () {
@@ -156,7 +156,7 @@ void main() {
 
         final result = payment.formatPayment(t);
 
-        expect(result, equals('Outro'));
+        expect(result, equals('Alternativo'));
       });
 
       test('when payment type is unknown, it should return "Desconhecido"', () {

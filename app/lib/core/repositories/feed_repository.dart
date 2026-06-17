@@ -10,7 +10,7 @@ class FeedRepository {
 
   Future<ApiEnvelopeDto<List<FeedJobDto>>> getFeedJobs({String? cursor, FeedSort sort = FeedSort.latest}) async {
     final response = await dio.get<Map<String, Object?>>(
-      '/feed/jobs',
+      '/feed',
       queryParameters: <String, Object?>{'sort': sort.apiValue, if (cursor != null) 'cursor': cursor},
     );
 

@@ -36,7 +36,7 @@ void main() {
         data: [FeedJobDto.fixture()],
         requestId: 'req_002',
         timestamp: DateTime(2026, 6, 6, 0, 37, 46),
-        endpoint: '/feed/jobs',
+        endpoint: '/feed',
         pagination: ApiPaginationDto.fixture(),
       );
 
@@ -48,7 +48,7 @@ void main() {
         data: [FeedJobDto.fixture()],
         requestId: 'req_002',
         timestamp: DateTime(2026, 6, 6, 0, 37, 46),
-        endpoint: '/feed/jobs',
+        endpoint: '/feed',
         pagination: ApiPaginationDto.fixture(),
       );
 

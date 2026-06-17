@@ -190,7 +190,7 @@ ApiEnvelopeDto<List<FeedJobDto>> _feedEnvelope({
     data: jobs ?? <FeedJobDto>[_feedJob()],
     requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
     timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-    endpoint: '/feed/jobs',
+    endpoint: '/feed',
     pagination: ApiPaginationDto(hasMore: hasMore, nextCursor: nextCursor),
   );
 }

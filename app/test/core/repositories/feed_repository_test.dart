@@ -13,7 +13,7 @@ final _feedEnvelopeJson = <String, Object?>{
   'data': [FeedJobDto.fixture().toJson()],
   'request_id': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
   'timestamp': '2026-06-06T00:37:46.623Z',
-  'endpoint': '/feed/jobs',
+  'endpoint': '/feed',
   'pagination': ApiPaginationDto.fixture().toJson(),
 };
 
@@ -31,7 +31,7 @@ void main() {
       await repository.getFeedJobs();
 
       verify(
-        () => dio.get<Map<String, Object?>>('/feed/jobs', queryParameters: any(named: 'queryParameters')),
+        () => dio.get<Map<String, Object?>>('/feed', queryParameters: any(named: 'queryParameters')),
       ).called(1);
     });
 
@@ -127,7 +127,7 @@ void _stubFeedJobsRequest({required MockDio dio, Map<String, Object?>? responseJ
   when(() => dio.get<Map<String, Object?>>(any(), queryParameters: any(named: 'queryParameters'))).thenAnswer(
     (_) async => Response<Map<String, Object?>>(
       data: responseJson ?? _feedEnvelopeJson,
-      requestOptions: RequestOptions(path: '/feed/jobs'),
+      requestOptions: RequestOptions(path: '/feed'),
     ),
   );
 }
