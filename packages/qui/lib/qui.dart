@@ -1,6 +1,7 @@
 /// Cataquí UI — reusable design system components for the Cataqui platform.
 library;
 
+export 'src/icons/qui_icons.dart' show QuiIcons;
 export 'src/theme/map_style/qui_map_style.dart' show QuiMapLibreStyle;
 export 'src/theme/map_style/qui_map_style_background_paint.dart' show QuiMapLibreStyleBackgroundPaint;
 export 'src/theme/map_style/qui_map_style_fill_paint.dart' show QuiMapLibreStyleFillPaint;

@@ -17,6 +17,10 @@ import 'package:vector_graphics/vector_graphics.dart' as _vg;
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
+  /// File path: assets/icons/chevron_down.svg
+  SvgGenImage get chevronDown =>
+      const SvgGenImage('assets/icons/chevron_down.svg');
+
   /// File path: assets/icons/cross.svg
   SvgGenImage get cross => const SvgGenImage('assets/icons/cross.svg');
 
@@ -24,8 +28,11 @@ class $AssetsIconsGen {
   SvgGenImage get magnifierGlass =>
       const SvgGenImage('assets/icons/magnifier_glass.svg');
 
+  /// File path: assets/icons/map_pin.svg
+  SvgGenImage get mapPin => const SvgGenImage('assets/icons/map_pin.svg');
+
   /// List of all assets
-  List<SvgGenImage> get values => [cross, magnifierGlass];
+  List<SvgGenImage> get values => [chevronDown, cross, magnifierGlass, mapPin];
 }
 
 class Assets {

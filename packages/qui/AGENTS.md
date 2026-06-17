@@ -77,8 +77,9 @@ All tests must use the `when, should` pattern for descriptions.
 ```
 lib/
 ├── qui.dart                   # Barrel file — single entry point for consumers
-├── gen/                       # Generated code (fonts, assets)
+├── gen/                       # Generated code (fonts, assets) — do not edit
 └── src/
+    ├── icons/                 # QuiIcons — automatic icon accessors (flutter_gen facade)
     ├── theme/                 # Design tokens (colors, typography, theme data)
     └── widgets/               # Reusable UI components (each with attached preview)
 ```
@@ -92,3 +93,4 @@ lib/
   classes, following the `qui_swipe_deck` structure.
 - Every widget file includes a `@Preview` annotated preview function at the bottom.
 - Preview functions are **not** exported from the barrel file — they are only discovered by the Widget Previewer at development time.
+- Access bundled SVG icons via `QuiIcons` (e.g. `QuiIcons.cross.svg(...)`), exported from the barrel. `QuiIcons` is an automatic facade over `flutter_gen`'s generated `Assets.icons` — add an `.svg` to `assets/icons/` and run `melos gen:all` to surface a new accessor. Do not import `gen/assets.gen.dart` directly from widget code; use `QuiIcons`.

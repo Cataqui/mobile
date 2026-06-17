@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import 'package:qui/gen/assets.gen.dart';
 import 'package:qui/gen/fonts.gen.dart';
+import 'package:qui/src/icons/qui_icons.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
@@ -127,18 +127,16 @@ class _QuiSearchBarState extends State<QuiSearchBar> {
         height: 20,
         child: isActive
             ? Center(
-                child: Assets.icons.cross.svg(
+                child: QuiIcons.cross.svg(
                   width: 16,
                   height: 16,
-                  package: Assets.package,
                   colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
                 ),
               )
             : Center(
-                child: Assets.icons.magnifierGlass.svg(
+                child: QuiIcons.magnifierGlass.svg(
                   width: 20,
                   height: 20,
-                  package: 'qui',
                   colorFilter: ColorFilter.mode(colors.searchBarPlaceholder, BlendMode.srcIn),
                 ),
               ),
