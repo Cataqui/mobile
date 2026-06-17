@@ -21,17 +21,17 @@ export 'src/widgets/qui_buttons_bar.dart' show QuiButtonsBar, QuiButtonsBarFit, 
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
 export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap, RadiusStyle;
 export 'src/widgets/qui_search_bar.dart' show QuiSearchBar;
-export 'src/widgets/qui_swipe_list/qui_swipe_list.dart'
+export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
     show
-        QuiSwipeList,
-        QuiSwipeListAction,
-        QuiSwipeListController,
-        QuiSwipeListItemBuilder,
-        QuiSwipeListItemCallback,
-        QuiSwipeListItemProvider,
-        QuiSwipeListLoadMoreCallback,
-        QuiSwipeListLoadMoreErrorBuilder,
-        QuiSwipeListProgressCallback;
+        QuiSwipeDeck,
+        QuiSwipeDeckAction,
+        QuiSwipeDeckController,
+        QuiSwipeDeckItemBuilder,
+        QuiSwipeDeckItemCallback,
+        QuiSwipeDeckItemProvider,
+        QuiSwipeDeckLoadMoreCallback,
+        QuiSwipeDeckLoadMoreErrorBuilder,
+        QuiSwipeDeckProgressCallback;
 export 'src/widgets/qui_tap_animation.dart' show QuiTapAnimation, QuiTapAnimationType;
 export 'src/widgets/qui_text_button.dart'
     show QuiTextButton, QuiTextButtonIconBuilder, QuiTextButtonIconPosition, QuiTextButtonIconState;

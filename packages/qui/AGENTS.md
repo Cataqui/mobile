@@ -89,6 +89,6 @@ lib/
 - Widgets live in `lib/src/widgets/`. Simple widgets may use one file. Larger
   widgets may use a same-named folder with one public entrypoint and focused
   `part` files for public value types, controllers, actions, and other support
-  classes, following the `qui_swipe_list` structure.
+  classes, following the `qui_swipe_deck` structure.
 - Every widget file includes a `@Preview` annotated preview function at the bottom.
 - Preview functions are **not** exported from the barrel file — they are only discovered by the Widget Previewer at development time.

@@ -42,7 +42,7 @@ class _HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<_HomeScreen> {
-  final _controller = QuiSwipeListController();
+  final _controller = QuiSwipeDeckController();
 
   @override
   Widget build(BuildContext context) {

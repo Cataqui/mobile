@@ -6,10 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
 void main() {
-  group('QuiSwipeList Golden Tests', () {
+  group('QuiSwipeDeck Golden Tests', () {
     goldenTest(
       'when rendering static states, it should match the approved goldens',
-      fileName: 'qui_swipe_list_static',
+      fileName: 'qui_swipe_deck_static',
       builder: () => GoldenTestGroup(
         scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 600),
         children: [
@@ -31,7 +31,7 @@ void main() {
 
     goldenTest(
       'when rendering drag states, it should match the approved goldens',
-      fileName: 'qui_swipe_list_drag_states',
+      fileName: 'qui_swipe_deck_drag_states',
       whilePerforming: (tester) async {
         await _holdDrag(tester, 'left_first', const Offset(-150, 20));
         await _holdDrag(tester, 'right_first', const Offset(150, -20));
@@ -60,7 +60,7 @@ void main() {
 
     goldenTest(
       'when rendering after actions, it should match the approved goldens',
-      fileName: 'qui_swipe_list_after_actions',
+      fileName: 'qui_swipe_deck_after_actions',
       whilePerforming: (tester) async {
         await tester.drag(find.byKey(_cardKey('dismiss_first')), const Offset(-180, 0));
         await tester.pumpAndSettle();
@@ -86,7 +86,7 @@ void main() {
 
     goldenTest(
       'when rendering pagination states, it should match the approved goldens',
-      fileName: 'qui_swipe_list_pagination_states',
+      fileName: 'qui_swipe_deck_pagination_states',
       whilePerforming: (tester) async {
         await tester.pump();
         await tester.drag(find.byKey(_cardKey('loading_dismissed')), const Offset(-180, 0));
@@ -190,7 +190,7 @@ class _GoldenSwipeList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QuiSwipeList<String>(
+    return QuiSwipeDeck<String>(
       itemCount: items.length,
       itemProvider: (index) => items[index],
       loadMoreThreshold: loadMoreThreshold,

@@ -5,10 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
 typedef _ItemLog<T> = ({T item, int index});
-typedef _ProgressLog = ({QuiSwipeListAction action, double percentage});
+typedef _ProgressLog = ({QuiSwipeDeckAction action, double percentage});
 
 void main() {
-  group('QuiSwipeList rendering', () {
+  group('QuiSwipeDeck rendering', () {
     testWidgets('when items are provided, it should render the current item', (tester) async {
       await _pumpSwipeList(tester);
 
@@ -91,7 +91,7 @@ void main() {
     });
   });
 
-  group('QuiSwipeList left dismiss', () {
+  group('QuiSwipeDeck left dismiss', () {
     testWidgets('when dragging left below dismissThreshold, it should keep the same current item', (tester) async {
       await _pumpSwipeList(tester);
 
@@ -164,7 +164,7 @@ void main() {
     });
   });
 
-  group('QuiSwipeList right accept', () {
+  group('QuiSwipeDeck right accept', () {
     testWidgets('when dragging right below acceptThreshold, it should not call onAccept', (tester) async {
       final acceptLogs = <_ItemLog<String>>[];
 
@@ -237,9 +237,9 @@ void main() {
     });
   });
 
-  group('QuiSwipeList controller', () {
+  group('QuiSwipeDeck controller', () {
     testWidgets('when controller.dismiss is called, it should advance to the next item', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller);
       final dismissFuture = controller.dismiss();
@@ -250,7 +250,7 @@ void main() {
     });
 
     testWidgets('when controller.dismiss is called, it should call onDismiss with the current item', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
       final dismissLogs = <_ItemLog<String>>[];
 
       await _pumpSwipeList(
@@ -266,7 +266,7 @@ void main() {
     });
 
     testWidgets('when controller.dismiss is called, it should call onDismiss with the current index', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
       final dismissLogs = <_ItemLog<String>>[];
 
       await _pumpSwipeList(
@@ -282,7 +282,7 @@ void main() {
     });
 
     testWidgets('when controller.dismiss is called on the final item, it should render endBuilder', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller, items: const ['first']);
       final dismissFuture = controller.dismiss();
@@ -293,7 +293,7 @@ void main() {
     });
 
     testWidgets('when controller.dismiss is called with no current item, it should return false', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller, items: const []);
       final result = await controller.dismiss();
@@ -302,7 +302,7 @@ void main() {
     });
 
     testWidgets('when controller.dismiss is called while detached, it should return false', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       final result = await controller.dismiss();
 
@@ -312,7 +312,7 @@ void main() {
     testWidgets('when controller.dismiss is called, it should report dismiss progress during animation', (
       tester,
     ) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
       final progressLogs = <_ProgressLog>[];
 
       await _pumpSwipeList(
@@ -333,7 +333,7 @@ void main() {
     });
 
     testWidgets('when reduced motion is enabled, controller.dismiss should advance immediately', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller, disableAnimations: true);
       await controller.dismiss();
@@ -343,7 +343,7 @@ void main() {
     });
 
     testWidgets('when controller.accept is called, it should call onAccept', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
       final acceptLogs = <_ItemLog<String>>[];
 
       await _pumpSwipeList(
@@ -357,7 +357,7 @@ void main() {
     });
 
     testWidgets('when controller.accept is called, it should keep the same current item', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller);
       await controller.accept();
@@ -367,7 +367,7 @@ void main() {
     });
 
     testWidgets('when controller.accept is called, it should return true', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller);
       final result = await controller.accept();
@@ -376,7 +376,7 @@ void main() {
     });
 
     testWidgets('when controller.accept is called with no current item, it should return false', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller, items: const []);
       final result = await controller.accept();
@@ -385,7 +385,7 @@ void main() {
     });
 
     testWidgets('when controller.accept is called while detached, it should return false', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       final result = await controller.accept();
 
@@ -393,7 +393,7 @@ void main() {
     });
 
     testWidgets('when controller.accept is called, it should not call onDismiss', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
       final dismissLogs = <_ItemLog<String>>[];
 
       await _pumpSwipeList(
@@ -407,7 +407,7 @@ void main() {
     });
 
     testWidgets('when controller.accept is called, it should not emit swipe progress', (tester) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
       final progressLogs = <_ProgressLog>[];
 
       await _pumpSwipeList(
@@ -425,7 +425,7 @@ void main() {
     testWidgets('when a controller action is already running, it should return false for a second action', (
       tester,
     ) async {
-      final controller = QuiSwipeListController();
+      final controller = QuiSwipeDeckController();
 
       await _pumpSwipeList(tester, controller: controller);
       final dismissFuture = controller.dismiss();
@@ -439,8 +439,8 @@ void main() {
     });
 
     testWidgets('when the widget swaps controllers, it should detach the old one and use the new one', (tester) async {
-      final firstController = QuiSwipeListController();
-      final secondController = QuiSwipeListController();
+      final firstController = QuiSwipeDeckController();
+      final secondController = QuiSwipeDeckController();
 
       await tester.pumpWidget(
         _ControllerSwapHost(firstController: firstController, secondController: secondController),
@@ -459,8 +459,8 @@ void main() {
     });
   });
 
-  group('QuiSwipeList swipe progress', () {
-    testWidgets('when dragging left, it should report QuiSwipeListAction.dismiss', (tester) async {
+  group('QuiSwipeDeck swipe progress', () {
+    testWidgets('when dragging left, it should report QuiSwipeDeckAction.dismiss', (tester) async {
       final progressLogs = <_ProgressLog>[];
 
       await _pumpSwipeList(
@@ -472,10 +472,10 @@ void main() {
 
       await _dragCard(tester, 'first', const Offset(-80, 0));
 
-      expect(progressLogs.first.action, QuiSwipeListAction.dismiss);
+      expect(progressLogs.first.action, QuiSwipeDeckAction.dismiss);
     });
 
-    testWidgets('when dragging right, it should report QuiSwipeListAction.accept', (tester) async {
+    testWidgets('when dragging right, it should report QuiSwipeDeckAction.accept', (tester) async {
       final progressLogs = <_ProgressLog>[];
 
       await _pumpSwipeList(
@@ -487,7 +487,7 @@ void main() {
 
       await _dragCard(tester, 'first', const Offset(80, 0));
 
-      expect(progressLogs.first.action, QuiSwipeListAction.accept);
+      expect(progressLogs.first.action, QuiSwipeDeckAction.accept);
     });
 
     testWidgets('when dragging halfway across the width, it should report percentage close to 0.5', (tester) async {
@@ -572,7 +572,7 @@ void main() {
     });
   });
 
-  group('QuiSwipeList threshold configuration', () {
+  group('QuiSwipeDeck threshold configuration', () {
     testWidgets('when dismissThreshold is custom, it should use that value for left dismissal', (tester) async {
       await _pumpSwipeList(tester, dismissThreshold: 0.6);
 
@@ -597,7 +597,7 @@ void main() {
 
     testWidgets('when dismissThreshold is invalid at 0, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(
+        () => QuiSwipeDeck<String>(
           itemCount: 0,
           itemProvider: (index) => 'item',
           dismissThreshold: 0,
@@ -609,7 +609,7 @@ void main() {
 
     testWidgets('when dismissThreshold is invalid above 1, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(
+        () => QuiSwipeDeck<String>(
           itemCount: 0,
           itemProvider: (index) => 'item',
           dismissThreshold: 1.1,
@@ -621,7 +621,7 @@ void main() {
 
     testWidgets('when acceptThreshold is invalid at 0, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(
+        () => QuiSwipeDeck<String>(
           itemCount: 0,
           itemProvider: (index) => 'item',
           acceptThreshold: 0,
@@ -633,7 +633,7 @@ void main() {
 
     testWidgets('when acceptThreshold is invalid above 1, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(
+        () => QuiSwipeDeck<String>(
           itemCount: 0,
           itemProvider: (index) => 'item',
           acceptThreshold: 1.1,
@@ -645,7 +645,7 @@ void main() {
 
     testWidgets('when maxRotation is negative, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(
+        () => QuiSwipeDeck<String>(
           itemCount: 0,
           itemProvider: (index) => 'item',
           maxRotation: -0.1,
@@ -657,7 +657,7 @@ void main() {
 
     testWidgets('when itemCount is negative, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(itemCount: -1, itemProvider: (index) => 'item', builder: _defaultCardBuilder),
+        () => QuiSwipeDeck<String>(itemCount: -1, itemProvider: (index) => 'item', builder: _defaultCardBuilder),
         throwsAssertionError,
       );
     });
@@ -677,7 +677,7 @@ void main() {
     });
   });
 
-  group('QuiSwipeList widget lifecycle and updates', () {
+  group('QuiSwipeDeck widget lifecycle and updates', () {
     testWidgets('when the parent rebuilds with the same items, it should preserve the current index', (tester) async {
       await tester.pumpWidget(const _MutableSwipeListHost());
       await _dragCard(tester, 'first', const Offset(-180, 0));
@@ -739,7 +739,7 @@ void main() {
     );
   });
 
-  group('QuiSwipeList state preservation', () {
+  group('QuiSwipeDeck state preservation', () {
     testWidgets('when cards are stateful, dismissing should not leak old card state into the new current card', (
       tester,
     ) async {
@@ -766,7 +766,7 @@ void main() {
     );
   });
 
-  group('QuiSwipeList reduced motion', () {
+  group('QuiSwipeDeck reduced motion', () {
     testWidgets(
       'when MediaQuery.disableAnimations is true and a left dismiss completes, it should advance immediately',
       (tester) async {
@@ -822,7 +822,7 @@ void main() {
     });
   });
 
-  group('QuiSwipeList pagination', () {
+  group('QuiSwipeDeck pagination', () {
     testWidgets('when loadMoreThreshold is 1.0, it should load only at the last loaded card', (tester) async {
       var loadMoreCount = 0;
 
@@ -958,7 +958,7 @@ void main() {
 
     testWidgets('when loadMoreThreshold is below 0, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(
+        () => QuiSwipeDeck<String>(
           itemCount: 0,
           itemProvider: (index) => 'item',
           loadMoreThreshold: -0.1,
@@ -970,7 +970,7 @@ void main() {
 
     testWidgets('when loadMoreThreshold is above 1, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiSwipeList<String>(
+        () => QuiSwipeDeck<String>(
           itemCount: 0,
           itemProvider: (index) => 'item',
           loadMoreThreshold: 1.1,
@@ -1009,10 +1009,10 @@ const _replaceButtonKey = Key('replace_button');
 const _hideButtonKey = Key('hide_button');
 const _appendButtonKey = Key('append_button');
 const _swapControllerButtonKey = Key('swap_controller_button');
-const _loadingKey = Key('qui_swipe_list_loading');
-const _loadMoreErrorKey = Key('qui_swipe_list_load_more_error');
-const _loadMoreRetryKey = Key('qui_swipe_list_load_more_retry');
-const _endKey = Key('qui_swipe_list_end');
+const _loadingKey = Key('qui_swipe_deck_loading');
+const _loadMoreErrorKey = Key('qui_swipe_deck_load_more_error');
+const _loadMoreRetryKey = Key('qui_swipe_deck_load_more_retry');
+const _endKey = Key('qui_swipe_deck_end');
 
 Key _cardKey(String item) => Key('card_$item');
 
@@ -1027,19 +1027,19 @@ Future<void> _pumpSwipeList(
   double acceptThreshold = 0.35,
   double loadMoreThreshold = 1,
   double maxRotation = 0.18,
-  QuiSwipeListController? controller,
-  void Function({required QuiSwipeListAction action, required double percentage})? onSwipeProgress,
-  QuiSwipeListItemCallback<String>? onDismiss,
-  QuiSwipeListItemCallback<String>? onAccept,
-  QuiSwipeListLoadMoreCallback? onLoadMore,
+  QuiSwipeDeckController? controller,
+  void Function({required QuiSwipeDeckAction action, required double percentage})? onSwipeProgress,
+  QuiSwipeDeckItemCallback<String>? onDismiss,
+  QuiSwipeDeckItemCallback<String>? onAccept,
+  QuiSwipeDeckLoadMoreCallback? onLoadMore,
   WidgetBuilder? loadingMoreBuilder,
-  QuiSwipeListLoadMoreErrorBuilder? buildLoadMoreError,
+  QuiSwipeDeckLoadMoreErrorBuilder? buildLoadMoreError,
   WidgetBuilder? endBuilder,
 }) {
   return tester.pumpWidget(
     _HarnessApp(
       disableAnimations: disableAnimations,
-      child: QuiSwipeList<String>(
+      child: QuiSwipeDeck<String>(
         itemCount: items.length,
         itemProvider: (index) => items[index],
         dismissThreshold: dismissThreshold,
@@ -1065,14 +1065,14 @@ Future<void> _pumpTypedSwipeList<T>(
   required Widget Function(BuildContext context, T item, int index) builder,
   List<T>? items,
   int? itemCount,
-  QuiSwipeListItemProvider<T>? itemProvider,
-  QuiSwipeListLoadMoreCallback? onLoadMore,
+  QuiSwipeDeckItemProvider<T>? itemProvider,
+  QuiSwipeDeckLoadMoreCallback? onLoadMore,
 }) {
   final providedItems = items;
 
   return tester.pumpWidget(
     _HarnessApp(
-      child: QuiSwipeList<T>(
+      child: QuiSwipeDeck<T>(
         itemCount: itemCount ?? providedItems!.length,
         itemProvider: itemProvider ?? (index) => providedItems![index],
         onLoadMore: onLoadMore,
@@ -1086,7 +1086,7 @@ Future<void> _pumpTypedSwipeList<T>(
 Future<void> _pumpStatefulSwipeList(WidgetTester tester) {
   return tester.pumpWidget(
     _HarnessApp(
-      child: QuiSwipeList<String>(
+      child: QuiSwipeDeck<String>(
         itemCount: 2,
         itemProvider: (index) => const ['first', 'second'][index],
         endBuilder: _endBuilder,
@@ -1109,7 +1109,7 @@ Future<void> _dragCurrentCard(WidgetTester tester, Offset offset) async {
 
 String _currentCardLabel(WidgetTester tester) {
   final activeGestureDetector = find.descendant(
-    of: find.byType(QuiSwipeList<String>),
+    of: find.byType(QuiSwipeDeck<String>),
     matching: find.byType(GestureDetector),
   );
   final text = tester.widget<Text>(find.descendant(of: activeGestureDetector, matching: find.byType(Text)));
@@ -1175,8 +1175,8 @@ class _TestCard extends StatelessWidget {
 class _ControllerSwapHost extends StatefulWidget {
   const _ControllerSwapHost({required this.firstController, required this.secondController});
 
-  final QuiSwipeListController firstController;
-  final QuiSwipeListController secondController;
+  final QuiSwipeDeckController firstController;
+  final QuiSwipeDeckController secondController;
 
   @override
   State<_ControllerSwapHost> createState() => _ControllerSwapHostState();
@@ -1196,7 +1196,7 @@ class _ControllerSwapHostState extends State<_ControllerSwapHost> {
             child: const Text('swap controller'),
           ),
           Expanded(
-            child: QuiSwipeList<String>(
+            child: QuiSwipeDeck<String>(
               controller: _useSecondController ? widget.secondController : widget.firstController,
               itemCount: 2,
               itemProvider: (index) => const ['first', 'second'][index],
@@ -1253,7 +1253,7 @@ class _MutableSwipeListHostState extends State<_MutableSwipeListHost> {
           ),
           Expanded(
             child: _isVisible
-                ? QuiSwipeList<String>(
+                ? QuiSwipeDeck<String>(
                     itemCount: _items.length,
                     itemProvider: (index) => _items[index],
                     endBuilder: _endBuilder,
@@ -1288,7 +1288,7 @@ class _PaginatedSwipeListHostState extends State<_PaginatedSwipeListHost> {
             child: const Text('append'),
           ),
           Expanded(
-            child: QuiSwipeList<String>(
+            child: QuiSwipeDeck<String>(
               itemCount: _items.length,
               itemProvider: (index) => _items[index],
               onLoadMore: () async {},

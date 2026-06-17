@@ -8,18 +8,18 @@ import 'package:flutter/widget_previews.dart';
 
 import 'package:qui/src/theme/qui_theme.dart';
 
-part 'qui_swipe_list_action.dart';
-part 'qui_swipe_list_controller.dart';
-part 'qui_swipe_list_types.dart';
+part 'qui_swipe_deck_action.dart';
+part 'qui_swipe_deck_controller.dart';
+part 'qui_swipe_deck_types.dart';
 
-/// A generic Tinder-style swipe list for arbitrary item widgets.
+/// A generic Tinder-style swipe deck for arbitrary item widgets.
 ///
 /// The widget renders one active item at a time. Swiping left dismisses the
 /// item and advances to the next entry. Swiping right calls [onAccept] and
 /// snaps the same item back to the center.
-class QuiSwipeList<T> extends StatefulWidget {
-  /// Creates a swipeable generic list.
-  const QuiSwipeList({
+class QuiSwipeDeck<T> extends StatefulWidget {
+  /// Creates a swipeable generic deck.
+  const QuiSwipeDeck({
     required this.itemCount,
     required this.itemProvider,
     required this.builder,
@@ -51,43 +51,43 @@ class QuiSwipeList<T> extends StatefulWidget {
        assert(itemCount >= 0, 'itemCount must be greater than or equal to 0.'),
        assert(maxRotation >= 0, 'maxRotation must be greater than or equal to 0.');
 
-  /// Number of items available to the swipe list.
+  /// Number of items available to the swipe deck.
   final int itemCount;
 
   /// Lazily provides an item by index.
   ///
   /// Only the current item and, when available, the next item are requested.
-  final QuiSwipeListItemProvider<T> itemProvider;
+  final QuiSwipeDeckItemProvider<T> itemProvider;
 
   /// Builds each item widget.
-  final QuiSwipeListItemBuilder<T> builder;
+  final QuiSwipeDeckItemBuilder<T> builder;
 
-  /// Controls this swipe list from parent code.
-  final QuiSwipeListController? controller;
+  /// Controls this swipe deck from parent code.
+  final QuiSwipeDeckController? controller;
 
   /// Builds the loading card shown while more items are loading.
   final WidgetBuilder? loadingMoreBuilder;
 
-  /// Builds the load-more error card shown at the end of the list.
+  /// Builds the load-more error card shown at the end of the deck.
   ///
   /// When null, loading more is treated as error-free.
   /// If provided, it treats as having a load-more error immediately.
-  final QuiSwipeListLoadMoreErrorBuilder? buildLoadMoreError;
+  final QuiSwipeDeckLoadMoreErrorBuilder? buildLoadMoreError;
 
   /// Builds content when pagination ends after all loaded cards are dismissed.
   final WidgetBuilder? endBuilder;
 
   /// Called whenever the swipe position changes.
-  final QuiSwipeListProgressCallback? onSwipeProgress;
+  final QuiSwipeDeckProgressCallback? onSwipeProgress;
 
-  /// Called after a left dismiss completes and the list advances.
-  final QuiSwipeListItemCallback<T>? onDismiss;
+  /// Called after a left dismiss completes and the deck advances.
+  final QuiSwipeDeckItemCallback<T>? onDismiss;
 
   /// Called when a right accept is released past the threshold.
-  final QuiSwipeListItemCallback<T>? onAccept;
+  final QuiSwipeDeckItemCallback<T>? onAccept;
 
   /// Called when the current index reaches [loadMoreThreshold].
-  final QuiSwipeListLoadMoreCallback? onLoadMore;
+  final QuiSwipeDeckLoadMoreCallback? onLoadMore;
 
   /// Percentage of the widget width required to dismiss left.
   final double dismissThreshold;
@@ -95,19 +95,19 @@ class QuiSwipeList<T> extends StatefulWidget {
   /// Percentage of the widget width required to accept right.
   final double acceptThreshold;
 
-  /// Loaded-list progress required to call [onLoadMore].
+  /// Loaded-deck progress required to call [onLoadMore].
   final double loadMoreThreshold;
 
   /// Maximum card rotation in radians while dragging.
   final double maxRotation;
 
   @override
-  State<QuiSwipeList<T>> createState() => _QuiSwipeListState<T>();
+  State<QuiSwipeDeck<T>> createState() => _QuiSwipeDeckState<T>();
 }
 
-class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
+class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
     with SingleTickerProviderStateMixin
-    implements _QuiSwipeListControllerClient {
+    implements _QuiSwipeDeckControllerClient {
   static const _settleDuration = Duration(milliseconds: 260);
   static const _dismissDuration = Duration(milliseconds: 220);
 
@@ -115,7 +115,7 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
 
   Animation<Offset>? _positionAnimation;
   Offset _dragOffset = Offset.zero;
-  QuiSwipeListAction _lastAction = QuiSwipeListAction.dismiss;
+  QuiSwipeDeckAction _lastAction = QuiSwipeDeckAction.dismiss;
   int _currentIndex = 0;
   int? _exhaustedItemCount;
   double _lastKnownWidth = 1;
@@ -135,7 +135,7 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
   }
 
   @override
-  void didUpdateWidget(covariant QuiSwipeList<T> oldWidget) {
+  void didUpdateWidget(covariant QuiSwipeDeck<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (!identical(oldWidget.controller, widget.controller)) {
@@ -253,8 +253,8 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
     final action = value.dx == 0
         ? _lastAction
         : value.dx > 0
-        ? QuiSwipeListAction.accept
-        : QuiSwipeListAction.dismiss;
+        ? QuiSwipeDeckAction.accept
+        : QuiSwipeDeckAction.dismiss;
 
     _lastAction = action;
 
@@ -267,8 +267,8 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
 
   double _rotationForDrag(double progress) {
     final direction = switch (_lastAction) {
-      QuiSwipeListAction.dismiss => -1,
-      QuiSwipeListAction.accept => 1,
+      QuiSwipeDeckAction.dismiss => -1,
+      QuiSwipeDeckAction.accept => 1,
     };
 
     return direction * math.min(progress, 1) * widget.maxRotation;
@@ -396,7 +396,7 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
                 child: Opacity(
                   opacity: nextOpacity,
                   child: KeyedSubtree(
-                    key: ValueKey('qui_swipe_list_next_$nextIndex'),
+                    key: ValueKey('qui_swipe_deck_next_$nextIndex'),
                     child: widget.builder(context, widget.itemProvider(nextIndex), nextIndex),
                   ),
                 ),
@@ -416,7 +416,7 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
                 child: Transform.rotate(
                   angle: _rotationForDrag(progress),
                   child: KeyedSubtree(
-                    key: ValueKey('qui_swipe_list_current_$_currentIndex'),
+                    key: ValueKey('qui_swipe_deck_current_$_currentIndex'),
                     child: widget.builder(context, currentItem, _currentIndex),
                   ),
                 ),
@@ -452,8 +452,8 @@ class _QuiSwipeListState<T> extends State<QuiSwipeList<T>>
   }
 }
 
-@Preview(name: 'QuiSwipeList', group: 'Lists')
-Widget quiSwipeListPreview() {
+@Preview(name: 'QuiSwipeDeck', group: 'Decks')
+Widget quiSwipeDeckPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
@@ -464,7 +464,7 @@ Widget quiSwipeListPreview() {
           child: SizedBox(
             width: 340,
             height: 460,
-            child: QuiSwipeList<_PreviewOpportunity>(
+            child: QuiSwipeDeck<_PreviewOpportunity>(
               itemCount: _previewOpportunities.length,
               itemProvider: (index) => _previewOpportunities[index],
               builder: (context, opportunity, index) {
