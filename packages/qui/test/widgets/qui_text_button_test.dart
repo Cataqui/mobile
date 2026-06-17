@@ -47,13 +47,13 @@ void main() {
       expect(semantics.properties.enabled, isFalse);
     });
 
-    testWidgets('when icon spacing is customized, it should use the provided spacing', (tester) async {
+    testWidgets('when leading icon spacing is customized, it should use the provided spacing', (tester) async {
       await tester.pumpWidget(
         _TestApp(
           child: QuiTextButton(
             text: 'Buscar',
-            iconBuilder: (state) => const Icon(Icons.search),
-            iconSpacing: 10,
+            leadingIconBuilder: (state) => const Icon(Icons.search),
+            leadingIconSpacing: 10,
             onPressed: () {},
           ),
         ),
@@ -64,7 +64,7 @@ void main() {
       expect(padding.padding, equals(const EdgeInsets.only(right: 10)));
     });
 
-    testWidgets('when enabled, it should pass the recommended icon color to iconBuilder', (tester) async {
+    testWidgets('when enabled, it should pass the recommended icon color to leadingIconBuilder', (tester) async {
       Color? recommendedIconColor;
 
       await tester.pumpWidget(
@@ -72,7 +72,7 @@ void main() {
           child: QuiTextButton(
             text: 'Buscar',
             color: const Color(0xFFFF4A4B),
-            iconBuilder: (state) {
+            leadingIconBuilder: (state) {
               recommendedIconColor = state.recommendedIconColor;
               return const Icon(Icons.search);
             },
@@ -84,14 +84,14 @@ void main() {
       expect(recommendedIconColor, equals(const Color(0xFFFF4A4B)));
     });
 
-    testWidgets('when disabled, it should pass disabled state to iconBuilder', (tester) async {
+    testWidgets('when disabled, it should pass disabled state to leadingIconBuilder', (tester) async {
       bool? isEnabled;
 
       await tester.pumpWidget(
         _TestApp(
           child: QuiTextButton(
             text: 'Indisponivel',
-            iconBuilder: (state) {
+            leadingIconBuilder: (state) {
               isEnabled = state.isEnabled;
               return const Icon(Icons.lock);
             },
@@ -102,14 +102,14 @@ void main() {
       expect(isEnabled, isFalse);
     });
 
-    testWidgets('when disabled, it should pass placeholder color to iconBuilder', (tester) async {
+    testWidgets('when disabled, it should pass placeholder color to leadingIconBuilder', (tester) async {
       Color? recommendedIconColor;
 
       await tester.pumpWidget(
         _TestApp(
           child: QuiTextButton(
             text: 'Indisponivel',
-            iconBuilder: (state) {
+            leadingIconBuilder: (state) {
               recommendedIconColor = state.recommendedIconColor;
               return const Icon(Icons.lock);
             },
@@ -118,6 +118,69 @@ void main() {
       );
 
       expect(recommendedIconColor, equals(const Color(0xFF9E9E9E)));
+    });
+
+    testWidgets('when trailing icon spacing is customized, it should use the provided spacing', (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: QuiTextButton(
+            text: 'Continuar',
+            trailingIconBuilder: (state) => const Icon(Icons.arrow_forward),
+            trailingIconSpacing: 12,
+            onPressed: () {},
+          ),
+        ),
+      );
+
+      final padding = tester.widget<Padding>(find.descendant(of: find.byType(Row), matching: find.byType(Padding)));
+
+      expect(padding.padding, equals(const EdgeInsets.only(left: 12)));
+    });
+
+    testWidgets('when both icons are provided, it should render three children in the row', (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: QuiTextButton(
+            text: 'Distância',
+            leadingIconBuilder: (state) => const Icon(Icons.near_me),
+            trailingIconBuilder: (state) => const Icon(Icons.info_outline),
+            onPressed: () {},
+          ),
+        ),
+      );
+
+      final row = tester.widget<Row>(find.byType(Row));
+      expect(row.children.length, equals(3));
+    });
+
+    testWidgets('when both icons are provided, it should render the leading icon', (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: QuiTextButton(
+            text: 'Distância',
+            leadingIconBuilder: (state) => const Icon(Icons.near_me),
+            trailingIconBuilder: (state) => const Icon(Icons.info_outline),
+            onPressed: () {},
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.near_me), findsOneWidget);
+    });
+
+    testWidgets('when both icons are provided, it should render the trailing icon', (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: QuiTextButton(
+            text: 'Distância',
+            leadingIconBuilder: (state) => const Icon(Icons.near_me),
+            trailingIconBuilder: (state) => const Icon(Icons.info_outline),
+            onPressed: () {},
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
   });
 }

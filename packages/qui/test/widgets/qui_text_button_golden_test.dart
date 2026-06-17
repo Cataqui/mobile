@@ -9,7 +9,7 @@ void main() {
       'when rendering visual states, it should match the approved goldens',
       fileName: 'qui_text_button_states',
       builder: () => GoldenTestGroup(
-        scenarioConstraints: const BoxConstraints(minWidth: 180),
+        scenarioConstraints: const BoxConstraints(minWidth: 260),
         children: [
           GoldenTestScenario(
             name: 'resting text only',
@@ -19,7 +19,7 @@ void main() {
             name: 'leading icon',
             child: QuiTextButton(
               text: 'Buscar',
-              iconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: 18),
+              leadingIconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: 18),
               onPressed: () {},
             ),
           ),
@@ -27,8 +27,7 @@ void main() {
             name: 'trailing icon',
             child: QuiTextButton(
               text: 'Continuar',
-              iconBuilder: (state) => Icon(Icons.arrow_forward, color: state.recommendedIconColor, size: 18),
-              iconPosition: QuiTextButtonIconPosition.trailing,
+              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.recommendedIconColor, size: 18),
               onPressed: () {},
             ),
           ),
@@ -40,7 +39,16 @@ void main() {
             name: 'independent icon color',
             child: QuiTextButton(
               text: 'Mapa',
-              iconBuilder: (state) => const Icon(Icons.location_on, size: 18, color: Color(0xFF00A676)),
+              leadingIconBuilder: (state) => const Icon(Icons.location_on, size: 18, color: Color(0xFF00A676)),
+              onPressed: () {},
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'both icons',
+            child: QuiTextButton(
+              text: 'Distância',
+              leadingIconBuilder: (state) => Icon(Icons.near_me, color: state.recommendedIconColor, size: 18),
+              trailingIconBuilder: (state) => Icon(Icons.info_outline, color: state.recommendedIconColor, size: 18),
               onPressed: () {},
             ),
           ),
@@ -48,7 +56,7 @@ void main() {
             name: 'disabled',
             child: QuiTextButton(
               text: 'Indisponivel',
-              iconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: 18),
+              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: 18),
             ),
           ),
         ],
