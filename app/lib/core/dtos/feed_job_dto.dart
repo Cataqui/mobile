@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
+import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'feed_job_dto.freezed.dart';
@@ -34,11 +35,12 @@ abstract class FeedJobDto with _$FeedJobDto {
       currency: 'USD',
       note: '',
     ),
-    location: const FeedJobLocationDto(
+    location: FeedJobLocationDto(
       neighborhood: 'Pinheiros',
       latitude: -23.556391,
       longitude: -46.844076,
       areaRadius: 2000,
+      mapConfig: MapConfigDto.fixture(),
     ),
     descriptionSummary: 'Experiente em atendimento ao cliente, disponibilidade para finais de semana e feriados.',
   );

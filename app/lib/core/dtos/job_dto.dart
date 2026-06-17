@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
+import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'job_dto.freezed.dart';
@@ -37,7 +38,7 @@ abstract class JobDto with _$JobDto {
       phoneNumber: '+5511999999999',
       contactMethod: JobContactMethod.whatsapp,
     ),
-    location: const JobLocationDto(
+    location: JobLocationDto(
       neighborhood: 'Centro',
       city: 'São Paulo',
       state: 'SP',
@@ -45,6 +46,7 @@ abstract class JobDto with _$JobDto {
       latitude: -23.556391,
       longitude: -46.844076,
       areaRadius: 2000,
+      mapConfig: MapConfigDto.fixture(),
       street: 'Rua das Flores, 123',
     ),
     category: const JobCategoryDto(

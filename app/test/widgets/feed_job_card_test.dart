@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
+import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/widgets/feed_job_card.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,8 @@ FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionS
     jobId: 'job_123',
     title: title ?? 'Garçom para Fim de Semana',
     createdAt: DateTime(2025, 6, 15),
-    payment: payment ??
+    payment:
+        payment ??
         const JobPaymentDto(
           type: JobPaymentType.fixed,
           minAmount: 120,
@@ -23,20 +25,19 @@ FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionS
           currency: 'BRL',
           note: '',
         ),
-    location: const FeedJobLocationDto(
+    location: FeedJobLocationDto(
       neighborhood: 'Pinheiros',
       latitude: -23.556391,
       longitude: -46.844076,
       areaRadius: 2000,
+      mapConfig: MapConfigDto.fixture(),
     ),
     descriptionSummary: descriptionSummary ?? 'Experiente em atendimento ao cliente.',
   );
 }
 
 Widget _wrap(Widget child) {
-  return ProviderScope(
-    child: TestApp(child: child),
-  );
+  return ProviderScope(child: TestApp(child: child));
 }
 
 void main() {
