@@ -25,10 +25,18 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   );
 }
 
+Future<ByteData> _loadFontAsset(String path) async {
+  try {
+    return await rootBundle.load('packages/qui/assets/fonts/$path');
+  } catch (_) {
+    return rootBundle.load('assets/fonts/$path');
+  }
+}
+
 Future<void> _loadQuiFonts() async {
   final interLoader = FontLoader(FontFamily.inter)
-    ..addFont(rootBundle.load('packages/qui/assets/fonts/inter_variable.ttf'))
-    ..addFont(rootBundle.load('packages/qui/assets/fonts/inter_italic.ttf'));
+    ..addFont(_loadFontAsset('inter_variable.ttf'))
+    ..addFont(_loadFontAsset('inter_italic.ttf'));
 
   await interLoader.load();
 }

@@ -22,6 +22,8 @@ export 'src/three_d/qui_3d.dart' show Qui3d;
 export 'src/widgets/qui_buttons_bar.dart' show QuiButtonsBar, QuiButtonsBarFit, QuiButtonsBarOrientation;
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
 export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap, RadiusStyle;
+export 'src/widgets/qui_orbit/qui_orbit.dart'
+    show QuiOrbit, QuiOrbitDirection, QuiOrbitItem;
 export 'src/widgets/qui_search_bar.dart' show QuiSearchBar;
 export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
     show

@@ -4,9 +4,6 @@ import 'package:qui/gen/assets.gen.dart';
 
 /// Type-safe accessors for every 3D image asset bundled with the QUI design system.
 ///
-/// `Qui3d` mirrors the contents of `qui/assets/three_d/`. Add a new `.webp`
-/// (or other image format) to that directory, run `melos gen:all`, and the
-/// accessor appears here automatically — no manual edits required.
 ///
 /// Each accessor returns an [AssetGenImage] that renders with `.image()`:
 ///
