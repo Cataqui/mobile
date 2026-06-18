@@ -35,12 +35,152 @@ class $AssetsIconsGen {
   List<SvgGenImage> get values => [chevronDown, cross, magnifierGlass, mapPin];
 }
 
+class $AssetsThreeDGen {
+  const $AssetsThreeDGen();
+
+  /// File path: assets/three_d/box.webp
+  AssetGenImage get box => const AssetGenImage('assets/three_d/box.webp');
+
+  /// File path: assets/three_d/brush.webp
+  AssetGenImage get brush => const AssetGenImage('assets/three_d/brush.webp');
+
+  /// File path: assets/three_d/hammer.webp
+  AssetGenImage get hammer => const AssetGenImage('assets/three_d/hammer.webp');
+
+  /// File path: assets/three_d/ladder.webp
+  AssetGenImage get ladder => const AssetGenImage('assets/three_d/ladder.webp');
+
+  /// File path: assets/three_d/motorcycle.webp
+  AssetGenImage get motorcycle =>
+      const AssetGenImage('assets/three_d/motorcycle.webp');
+
+  /// File path: assets/three_d/shopping_cart.webp
+  AssetGenImage get shoppingCart =>
+      const AssetGenImage('assets/three_d/shopping_cart.webp');
+
+  /// File path: assets/three_d/small_truck.webp
+  AssetGenImage get smallTruck =>
+      const AssetGenImage('assets/three_d/small_truck.webp');
+
+  /// File path: assets/three_d/tool_box.webp
+  AssetGenImage get toolBox =>
+      const AssetGenImage('assets/three_d/tool_box.webp');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [
+    box,
+    brush,
+    hammer,
+    ladder,
+    motorcycle,
+    shoppingCart,
+    smallTruck,
+    toolBox,
+  ];
+}
+
 class Assets {
   const Assets._();
 
   static const String package = 'qui';
 
   static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsThreeDGen threeD = $AssetsThreeDGen();
+}
+
+class AssetGenImage {
+  const AssetGenImage(
+    this._assetName, {
+    this.size,
+    this.flavors = const {},
+    this.animation,
+  });
+
+  final String _assetName;
+
+  static const String package = 'qui';
+
+  final Size? size;
+  final Set<String> flavors;
+  final AssetGenImageAnimation? animation;
+
+  Image image({
+    Key? key,
+    AssetBundle? bundle,
+    ImageFrameBuilder? frameBuilder,
+    ImageErrorWidgetBuilder? errorBuilder,
+    String? semanticLabel,
+    bool excludeFromSemantics = false,
+    double? scale,
+    double? width,
+    double? height,
+    Color? color,
+    Animation<double>? opacity,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect? centerSlice,
+    bool matchTextDirection = false,
+    bool gaplessPlayback = true,
+    bool isAntiAlias = false,
+    @Deprecated('Do not specify package for a generated library asset')
+    String? package = package,
+    FilterQuality filterQuality = FilterQuality.medium,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) {
+    return Image.asset(
+      _assetName,
+      key: key,
+      bundle: bundle,
+      frameBuilder: frameBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      scale: scale,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      isAntiAlias: isAntiAlias,
+      package: package,
+      filterQuality: filterQuality,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+
+  ImageProvider provider({
+    AssetBundle? bundle,
+    @Deprecated('Do not specify package for a generated library asset')
+    String? package = package,
+  }) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
+  }
+
+  String get path => _assetName;
+
+  String get keyName => 'packages/qui/$_assetName';
+}
+
+class AssetGenImageAnimation {
+  const AssetGenImageAnimation({
+    required this.isAnimation,
+    required this.duration,
+    required this.frames,
+  });
+
+  final bool isAnimation;
+  final Duration duration;
+  final int frames;
 }
 
 class SvgGenImage {

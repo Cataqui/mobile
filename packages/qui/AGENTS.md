@@ -81,6 +81,7 @@ lib/
 └── src/
     ├── icons/                 # QuiIcons — automatic icon accessors (flutter_gen facade)
     ├── theme/                 # Design tokens (colors, typography, theme data)
+    ├── three_d/               # Qui3d — automatic 3D image asset accessors (flutter_gen facade)
     └── widgets/               # Reusable UI components (each with attached preview)
 ```
 
@@ -94,3 +95,4 @@ lib/
 - Every widget file includes a `@Preview` annotated preview function at the bottom.
 - Preview functions are **not** exported from the barrel file — they are only discovered by the Widget Previewer at development time.
 - Access bundled SVG icons via `QuiIcons` (e.g. `QuiIcons.cross.svg(...)`), exported from the barrel. `QuiIcons` is an automatic facade over `flutter_gen`'s generated `Assets.icons` — add an `.svg` to `assets/icons/` and run `melos gen:all` to surface a new accessor. Do not import `gen/assets.gen.dart` directly from widget code; use `QuiIcons`.
+- Access bundled 3D image assets via `Qui3d` (e.g. `Qui3d.box.image(width: 200, height: 200)`), exported from the barrel. `Qui3d` is an automatic facade over `flutter_gen`'s generated `Assets.threeD` — add an image file (e.g. `.webp`, `.png`, `.jpg`) to `assets/three_d/` and run `melos gen:all` to surface a new accessor. Do not import `gen/assets.gen.dart` directly from widget code; use `Qui3d`.
