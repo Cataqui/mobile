@@ -27,6 +27,7 @@ class QuiColors {
     required this.surface,
     required this.textPrimary,
     required this.textSecondary,
+    required this.borderOnBackground,
     required this.placeholder,
     required this.disabledButtonBackground,
     required this.disabledButtonForeground,
@@ -35,6 +36,9 @@ class QuiColors {
     required this.frostedGlassBackground,
     required this.frostedGlassBorder,
     required this.money,
+    required this.ghost,
+    required this.shimmerTextBase,
+    required this.shimmerTextGlow,
   });
 
   /// Light-theme defaults.
@@ -58,6 +62,9 @@ class QuiColors {
 
   /// The muted color for secondary or supporting text.
   final Color textSecondary;
+
+  /// The border color for elements drawn directly on the background color.
+  final Color borderOnBackground;
 
   /// The subdued color for placeholder text and inactive icons when the
   /// component does **not** have a dedicated placeholder token.
@@ -86,6 +93,22 @@ class QuiColors {
   /// The color used for representing money amounts and payment highlights.
   final Color money;
 
+  /// The color used for representing ghost elements, such as placeholders, loading states, something blocked, skeletons etc.
+  final Color ghost;
+
+  /// The base text color for shimmer loading animations.
+  ///
+  /// Represents the static resting color of shimmer text before the glow
+  /// sweep passes over it.
+  final Color shimmerTextBase;
+
+  /// The glow highlight color for shimmer loading animations.
+  ///
+  /// This is the bright sweep that travels across the shimmer text.
+  /// Typically a lightened version of [shimmerTextBase] so the sweep is
+  /// visible but not abrupt.
+  final Color shimmerTextGlow;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -96,14 +119,18 @@ class QuiColors {
           surface == other.surface &&
           textPrimary == other.textPrimary &&
           textSecondary == other.textSecondary &&
+          borderOnBackground == other.borderOnBackground &&
           placeholder == other.placeholder &&
           disabledButtonBackground == other.disabledButtonBackground &&
           disabledButtonForeground == other.disabledButtonForeground &&
           searchBarBackground == other.searchBarBackground &&
           searchBarPlaceholder == other.searchBarPlaceholder &&
           frostedGlassBackground == other.frostedGlassBackground &&
-           frostedGlassBorder == other.frostedGlassBorder &&
-           money == other.money;
+          frostedGlassBorder == other.frostedGlassBorder &&
+          money == other.money &&
+          ghost == other.ghost &&
+          shimmerTextBase == other.shimmerTextBase &&
+          shimmerTextGlow == other.shimmerTextGlow;
 
   @override
   int get hashCode => Object.hash(
@@ -112,6 +139,7 @@ class QuiColors {
     surface,
     textPrimary,
     textSecondary,
+    borderOnBackground,
     placeholder,
     disabledButtonBackground,
     disabledButtonForeground,
@@ -120,6 +148,9 @@ class QuiColors {
     frostedGlassBackground,
     frostedGlassBorder,
     money,
+    ghost,
+    shimmerTextBase,
+    shimmerTextGlow,
   );
 
   /// Returns a copy of this [QuiColors] with the given fields replaced.
@@ -129,6 +160,7 @@ class QuiColors {
     Color? surface,
     Color? textPrimary,
     Color? textSecondary,
+    Color? borderOnBackground,
     Color? placeholder,
     Color? disabledButtonBackground,
     Color? disabledButtonForeground,
@@ -137,6 +169,9 @@ class QuiColors {
     Color? frostedGlassBackground,
     Color? frostedGlassBorder,
     Color? money,
+    Color? ghost,
+    Color? shimmerTextBase,
+    Color? shimmerTextGlow,
   }) {
     return QuiColors(
       primary: primary ?? this.primary,
@@ -144,6 +179,7 @@ class QuiColors {
       surface: surface ?? this.surface,
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
+      borderOnBackground: borderOnBackground ?? this.borderOnBackground,
       placeholder: placeholder ?? this.placeholder,
       disabledButtonBackground: disabledButtonBackground ?? this.disabledButtonBackground,
       disabledButtonForeground: disabledButtonForeground ?? this.disabledButtonForeground,
@@ -152,6 +188,9 @@ class QuiColors {
       frostedGlassBackground: frostedGlassBackground ?? this.frostedGlassBackground,
       frostedGlassBorder: frostedGlassBorder ?? this.frostedGlassBorder,
       money: money ?? this.money,
+      ghost: ghost ?? this.ghost,
+      shimmerTextBase: shimmerTextBase ?? this.shimmerTextBase,
+      shimmerTextGlow: shimmerTextGlow ?? this.shimmerTextGlow,
     );
   }
 
@@ -166,6 +205,7 @@ class QuiColors {
       surface: Color.lerp(a.surface, b.surface, t)!,
       textPrimary: Color.lerp(a.textPrimary, b.textPrimary, t)!,
       textSecondary: Color.lerp(a.textSecondary, b.textSecondary, t)!,
+      borderOnBackground: Color.lerp(a.borderOnBackground, b.borderOnBackground, t)!,
       placeholder: Color.lerp(a.placeholder, b.placeholder, t)!,
       disabledButtonBackground: Color.lerp(a.disabledButtonBackground, b.disabledButtonBackground, t)!,
       disabledButtonForeground: Color.lerp(a.disabledButtonForeground, b.disabledButtonForeground, t)!,
@@ -174,6 +214,9 @@ class QuiColors {
       frostedGlassBackground: Color.lerp(a.frostedGlassBackground, b.frostedGlassBackground, t)!,
       frostedGlassBorder: Color.lerp(a.frostedGlassBorder, b.frostedGlassBorder, t)!,
       money: Color.lerp(a.money, b.money, t)!,
+      ghost: Color.lerp(a.ghost, b.ghost, t)!,
+      shimmerTextBase: Color.lerp(a.shimmerTextBase, b.shimmerTextBase, t)!,
+      shimmerTextGlow: Color.lerp(a.shimmerTextGlow, b.shimmerTextGlow, t)!,
     );
   }
 }
@@ -185,6 +228,7 @@ class _LightQuiColors extends QuiColors {
         surface: const Color(0xFFFFFFFF),
         textPrimary: const Color(0xFF1A1A1A),
         textSecondary: const Color(0xFFB3B3B3),
+        borderOnBackground: const Color(0xFFE6E6E6),
         placeholder: const Color(0xFF9E9E9E),
         disabledButtonBackground: const Color(0xFFE1E1E1),
         disabledButtonForeground: const Color(0xFF8E8E8E),
@@ -193,5 +237,8 @@ class _LightQuiColors extends QuiColors {
         frostedGlassBackground: const Color(0x4DFFFFFF),
         frostedGlassBorder: const Color(0xFFE0E0E0),
         money: const Color(0xFF00DD55),
+        ghost: const Color(0xFFCDCDCD),
+        shimmerTextBase: const Color(0xFFB3B3B3),
+        shimmerTextGlow: const Color(0xFFE0E0E0),
       );
 }

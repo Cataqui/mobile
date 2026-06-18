@@ -10,6 +10,7 @@ const _lerpA = QuiColors(
   surface: Color(0xFFFFFFFF),
   textPrimary: Color(0xFF1A1A1A),
   textSecondary: Color(0xFFB3B3B3),
+  borderOnBackground: Color(0xFF9E9E9E),
   placeholder: Color(0xFF9E9E9E),
   disabledButtonBackground: Color(0xFFE1E1E1),
   disabledButtonForeground: Color(0xFF8E8E8E),
@@ -18,6 +19,9 @@ const _lerpA = QuiColors(
   frostedGlassBackground: Color(0x4DFFFFFF),
   frostedGlassBorder: Color(0xFFE0E0E0),
   money: Color(0xFF00DD55),
+  ghost: Color(0xFFCDCDCD),
+  shimmerTextBase: Color(0xFFB3B3B3),
+  shimmerTextGlow: Color(0xFFE0E0E0),
 );
 
 const _lerpB = QuiColors(
@@ -26,6 +30,7 @@ const _lerpB = QuiColors(
   surface: Color(0xFF000000),
   textPrimary: Color(0xFF000000),
   textSecondary: Color(0xFF000000),
+  borderOnBackground: Color(0xFF000000),
   placeholder: Color(0xFF000000),
   disabledButtonBackground: Color(0xFF000000),
   disabledButtonForeground: Color(0xFF000000),
@@ -34,6 +39,9 @@ const _lerpB = QuiColors(
   frostedGlassBackground: Color(0xFF000000),
   frostedGlassBorder: Color(0xFF000000),
   money: Color(0xFF000000),
+  ghost: Color(0xFF000000),
+  shimmerTextBase: Color(0xFF000000),
+  shimmerTextGlow: Color(0xFF000000),
 );
 
 void main() {
@@ -62,6 +70,10 @@ void main() {
       expect(_lightColors.textSecondary, equals(const Color(0xFFB3B3B3)));
     });
 
+    test('when light colors are created, it should set borderOnBackground to light gray', () {
+      expect(_lightColors.borderOnBackground, equals(const Color(0xFFE6E6E6)));
+    });
+
     test('light() sets placeholder to light gray', () {
       expect(_lightColors.placeholder, equals(const Color(0xFF9E9E9E)));
     });
@@ -80,6 +92,14 @@ void main() {
 
     test('light() sets searchBarPlaceholder to light gray', () {
       expect(_lightColors.searchBarPlaceholder, equals(const Color(0xFF9E9E9E)));
+    });
+
+    test('light() sets shimmerTextBase to soft gray', () {
+      expect(_lightColors.shimmerTextBase, equals(const Color(0xFFB3B3B3)));
+    });
+
+    test('light() sets shimmerTextGlow to light gray', () {
+      expect(_lightColors.shimmerTextGlow, equals(const Color(0xFFE0E0E0)));
     });
 
     test('light() sets frostedGlassBackground to semi-transparent white', () {
@@ -108,6 +128,7 @@ void main() {
         surface: Color(0xFFFFFFFF),
         textPrimary: Color(0xFF1A1A1A),
         textSecondary: Color(0xFFB3B3B3),
+        borderOnBackground: Color(0xFF9E9E9E),
         placeholder: Color(0xFF9E9E9E),
         disabledButtonBackground: Color(0xFFE1E1E1),
         disabledButtonForeground: Color(0xFF8E8E8E),
@@ -116,6 +137,9 @@ void main() {
         frostedGlassBackground: Color(0x4DFFFFFF),
         frostedGlassBorder: Color(0xFFE0E0E0),
         money: Color(0xFF00DD55),
+        ghost: Color(0xFFCDCDCD),
+        shimmerTextBase: Color(0xFFB3B3B3),
+        shimmerTextGlow: Color(0xFFE0E0E0),
       );
 
       expect(colors, isA<QuiColors>());
@@ -164,6 +188,13 @@ void main() {
       final result = _lightColors.copyWith(textSecondary: custom);
 
       expect(result.textSecondary, equals(custom));
+    });
+
+    test('when copyWith receives borderOnBackground, it should replace borderOnBackground', () {
+      const custom = Color(0xFF8F8F8F);
+      final result = _lightColors.copyWith(borderOnBackground: custom);
+
+      expect(result.borderOnBackground, equals(custom));
     });
 
     test('copyWith replaces placeholder when provided', () {
@@ -268,6 +299,12 @@ void main() {
       expect(result.textSecondary, equals(Color.lerp(_lerpA.textSecondary, _lerpB.textSecondary, 0.5)));
     });
 
+    test('when lerping at t=0.5, it should interpolate borderOnBackground', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(result.borderOnBackground, equals(Color.lerp(_lerpA.borderOnBackground, _lerpB.borderOnBackground, 0.5)));
+    });
+
     test('lerp interpolates placeholder at t=0.5', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
@@ -356,6 +393,13 @@ void main() {
       expect(a == b, isFalse);
     });
 
+    test('when borderOnBackground differs, it should return false for equality', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(borderOnBackground: const Color(0xFF000000));
+
+      expect(a == b, isFalse);
+    });
+
     test('equal instances have identical hash codes', () {
       const a = QuiColors.light();
       const b = QuiColors.light();
@@ -366,6 +410,13 @@ void main() {
     test('different instances have distinct hash codes', () {
       const a = QuiColors.light();
       const b = QuiColors.light(primary: Color(0xFF000000));
+
+      expect(a.hashCode, isNot(equals(b.hashCode)));
+    });
+
+    test('when borderOnBackground differs, it should have a distinct hash code', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(borderOnBackground: const Color(0xFF000000));
 
       expect(a.hashCode, isNot(equals(b.hashCode)));
     });
