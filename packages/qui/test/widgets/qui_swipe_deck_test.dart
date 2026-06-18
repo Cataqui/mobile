@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
@@ -1000,6 +1001,125 @@ void main() {
       expect(requestedIndexes.toSet(), {0, 1});
     });
   });
+
+  group('QuiSwipeDeck haptic feedback', () {
+    testWidgets('when dragging the card, it should emit haptic feedback', (tester) async {
+    final hapticCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      },
+    );
+
+    await _pumpSwipeList(tester);
+
+    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+    await tester.pumpAndSettle();
+
+    expect(hapticCalls, isNotEmpty);
+  });
+
+  testWidgets('when dragging the card continuously, it should emit more than one haptic', (tester) async {
+    final hapticCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      },
+    );
+
+    await _pumpSwipeList(tester);
+
+    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+    await tester.pumpAndSettle();
+
+    expect(hapticCalls.length, greaterThan(1));
+  });
+
+  testWidgets('when dragging, it should use the lightImpact haptic type', (tester) async {
+    final hapticCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      },
+    );
+
+    await _pumpSwipeList(tester);
+
+    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+    await tester.pumpAndSettle();
+
+    expect(hapticCalls.first.arguments, 'HapticFeedbackType.lightImpact');
+  });
+
+  testWidgets('when enableHapticFeedback is false, it should not emit haptic feedback', (tester) async {
+    final hapticCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      },
+    );
+
+    await _pumpSwipeList(tester, enableHapticFeedback: false);
+
+    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+    await tester.pumpAndSettle();
+
+    expect(hapticCalls, isEmpty);
+  });
+
+  testWidgets('when a controller dismiss is triggered, it should not emit haptic feedback', (tester) async {
+    final hapticCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      },
+    );
+
+    final controller = QuiSwipeDeckController();
+
+    await _pumpSwipeList(tester, controller: controller);
+    final dismissFuture = controller.dismiss();
+    await tester.pumpAndSettle();
+    await dismissFuture;
+
+    expect(hapticCalls, isEmpty);
+  });
+
+  testWidgets('when dragging back toward center, it should emit haptic feedback for the reverse motion', (
+    tester,
+  ) async {
+    final hapticCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      },
+    );
+
+    await _pumpSwipeList(tester);
+
+    final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+    await gesture.moveBy(const Offset(200, 0));
+    await tester.pump();
+    hapticCalls.clear();
+    await gesture.moveBy(const Offset(-200, 0));
+    await tester.pump();
+    await gesture.up();
+
+    expect(hapticCalls, isNotEmpty);
+  });
+  });
 }
 
 const _listSize = Size(400, 600);
@@ -1023,6 +1143,7 @@ Future<void> _pumpSwipeList(
   List<String> items = const ['first', 'second', 'third'],
   bool includeEndBuilder = true,
   bool disableAnimations = false,
+  bool enableHapticFeedback = true,
   double dismissThreshold = 0.35,
   double acceptThreshold = 0.35,
   double loadMoreThreshold = 1,
@@ -1046,6 +1167,7 @@ Future<void> _pumpSwipeList(
         acceptThreshold: acceptThreshold,
         loadMoreThreshold: loadMoreThreshold,
         maxRotation: maxRotation,
+        enableHapticFeedback: enableHapticFeedback,
         controller: controller,
         onSwipeProgress: onSwipeProgress,
         onDismiss: onDismiss,

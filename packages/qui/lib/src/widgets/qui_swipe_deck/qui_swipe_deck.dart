@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 
 import 'package:qui/src/theme/qui_theme.dart';
@@ -36,6 +37,7 @@ class QuiSwipeDeck<T> extends StatefulWidget {
     this.acceptThreshold = 0.35,
     this.loadMoreThreshold = 1,
     this.maxRotation = 0.18,
+    this.enableHapticFeedback = true,
   }) : assert(
          dismissThreshold > 0 && dismissThreshold <= 1,
          'dismissThreshold must be greater than 0 and less than or equal to 1.',
@@ -101,6 +103,11 @@ class QuiSwipeDeck<T> extends StatefulWidget {
   /// Maximum card rotation in radians while dragging.
   final double maxRotation;
 
+  /// Whether the deck emits soft haptic ticks while the user drags a card.
+  ///
+  /// Defaults to `true`. Set to `false` to disable all drag haptics.
+  final bool enableHapticFeedback;
+
   @override
   State<QuiSwipeDeck<T>> createState() => _QuiSwipeDeckState<T>();
 }
@@ -122,6 +129,7 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
   bool _isLoadingMore = false;
   bool _isLoadMoreScheduled = false;
   bool _isControllerActionRunning = false;
+  int _lastHapticStep = -1;
 
   bool get _hasCurrentItem => _currentIndex < widget.itemCount;
   bool get _hasLoadMoreError => widget.buildLoadMoreError != null;
@@ -175,12 +183,23 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
     if (_isControllerActionRunning) return;
 
     _animationController.stop();
+    _lastHapticStep = -1;
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
     if (_isControllerActionRunning) return;
 
     _setDragOffset(_dragOffset + details.delta);
+
+    if (widget.enableHapticFeedback) {
+      final progress = _horizontalPercentage(_dragOffset.dx);
+      const stepSize = 0.08;
+      final currentStep = (progress / stepSize).floor();
+      if (currentStep != _lastHapticStep) {
+        _lastHapticStep = currentStep;
+        HapticFeedback.lightImpact();
+      }
+    }
   }
 
   Future<void> _onPanEnd(DragEndDetails details) async {
