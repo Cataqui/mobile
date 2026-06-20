@@ -25,7 +25,12 @@ export 'src/widgets/qui_loading_text.dart' show QuiLoadingText;
 export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap, RadiusStyle;
 export 'src/widgets/qui_orbit/qui_orbit.dart'
     show QuiOrbit, QuiOrbitDirection, QuiOrbitItem;
-export 'src/widgets/qui_search_bar.dart' show QuiSearchBar;
+export 'src/widgets/qui_primary_button.dart'
+    show QuiPrimaryButton, QuiPrimaryButtonFit, QuiPrimaryButtonIconBuilder, QuiPrimaryButtonIconState;
+export 'src/widgets/qui_pulse/qui_pulse.dart' show QuiPulse, QuiPulseStep;
+export 'src/widgets/qui_search_bar_button.dart' show QuiSearchBarButton;
+export 'src/widgets/qui_secondary_button.dart'
+    show QuiSecondaryButton, QuiSecondaryButtonFit, QuiSecondaryButtonIconBuilder, QuiSecondaryButtonIconState;
 export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
     show
         QuiSwipeDeck,

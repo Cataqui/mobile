@@ -14,10 +14,8 @@ const _lerpA = QuiColors(
   placeholder: Color(0xFF9E9E9E),
   disabledButtonBackground: Color(0xFFE1E1E1),
   disabledButtonForeground: Color(0xFF8E8E8E),
-  searchBarBackground: Color(0xFFFAFAFA),
-  searchBarPlaceholder: Color(0xFF9E9E9E),
-  frostedGlassBackground: Color(0x4DFFFFFF),
-  frostedGlassBorder: Color(0xFFE0E0E0),
+  searchBarButtonBackground: Color(0xFFFAFAFA),
+  searchBarButtonShadow: Color(0x1A000000),
   money: Color(0xFF00DD55),
   ghost: Color(0xFFCDCDCD),
   shimmerTextBase: Color(0xFFB3B3B3),
@@ -34,10 +32,8 @@ const _lerpB = QuiColors(
   placeholder: Color(0xFF000000),
   disabledButtonBackground: Color(0xFF000000),
   disabledButtonForeground: Color(0xFF000000),
-  searchBarBackground: Color(0xFF000000),
-  searchBarPlaceholder: Color(0xFF000000),
-  frostedGlassBackground: Color(0xFF000000),
-  frostedGlassBorder: Color(0xFF000000),
+  searchBarButtonBackground: Color(0xFF000000),
+  searchBarButtonShadow: Color(0xFF000000),
   money: Color(0xFF000000),
   ghost: Color(0xFF000000),
   shimmerTextBase: Color(0xFF000000),
@@ -86,12 +82,12 @@ void main() {
       expect(_lightColors.disabledButtonForeground, equals(const Color(0xFF8E8E8E)));
     });
 
-    test('light() sets searchBarBackground to off-white', () {
-      expect(_lightColors.searchBarBackground, equals(const Color(0xFFFAFAFA)));
+    test('when light colors are created, it should set searchBarButtonBackground to off-white', () {
+      expect(_lightColors.searchBarButtonBackground, equals(const Color(0xFFFAFAFA)));
     });
 
-    test('light() sets searchBarPlaceholder to light gray', () {
-      expect(_lightColors.searchBarPlaceholder, equals(const Color(0xFF9E9E9E)));
+    test('when light colors are created, it should set searchBarButtonShadow to black with baked alpha', () {
+      expect(_lightColors.searchBarButtonShadow, equals(const Color(0x1A000000)));
     });
 
     test('light() sets shimmerTextBase to soft gray', () {
@@ -100,14 +96,6 @@ void main() {
 
     test('light() sets shimmerTextGlow to light gray', () {
       expect(_lightColors.shimmerTextGlow, equals(const Color(0xFFE0E0E0)));
-    });
-
-    test('light() sets frostedGlassBackground to semi-transparent white', () {
-      expect(_lightColors.frostedGlassBackground, equals(const Color(0x4DFFFFFF)));
-    });
-
-    test('light() sets frostedGlassBorder to light gray', () {
-      expect(_lightColors.frostedGlassBorder, equals(const Color(0xFFE0E0E0)));
     });
 
     test('light() sets money to green', () {
@@ -132,10 +120,8 @@ void main() {
         placeholder: Color(0xFF9E9E9E),
         disabledButtonBackground: Color(0xFFE1E1E1),
         disabledButtonForeground: Color(0xFF8E8E8E),
-        searchBarBackground: Color(0xFFFAFAFA),
-        searchBarPlaceholder: Color(0xFF9E9E9E),
-        frostedGlassBackground: Color(0x4DFFFFFF),
-        frostedGlassBorder: Color(0xFFE0E0E0),
+        searchBarButtonBackground: Color(0xFFFAFAFA),
+        searchBarButtonShadow: Color(0x1A000000),
         money: Color(0xFF00DD55),
         ghost: Color(0xFFCDCDCD),
         shimmerTextBase: Color(0xFFB3B3B3),
@@ -218,32 +204,18 @@ void main() {
       expect(result.disabledButtonForeground, equals(custom));
     });
 
-    test('copyWith replaces searchBarBackground when provided', () {
+    test('when copyWith receives searchBarButtonBackground, it should replace searchBarButtonBackground', () {
       const custom = Color(0xFFF0F0F0);
-      final result = _lightColors.copyWith(searchBarBackground: custom);
+      final result = _lightColors.copyWith(searchBarButtonBackground: custom);
 
-      expect(result.searchBarBackground, equals(custom));
+      expect(result.searchBarButtonBackground, equals(custom));
     });
 
-    test('copyWith replaces searchBarPlaceholder when provided', () {
-      const custom = Color(0xFFCCCCCC);
-      final result = _lightColors.copyWith(searchBarPlaceholder: custom);
+    test('when copyWith receives searchBarButtonShadow, it should replace searchBarButtonShadow', () {
+      const custom = Color(0xFF000000);
+      final result = _lightColors.copyWith(searchBarButtonShadow: custom);
 
-      expect(result.searchBarPlaceholder, equals(custom));
-    });
-
-    test('copyWith replaces frostedGlassBackground when provided', () {
-      const custom = Color(0x80FFFFFF);
-      final result = _lightColors.copyWith(frostedGlassBackground: custom);
-
-      expect(result.frostedGlassBackground, equals(custom));
-    });
-
-    test('copyWith replaces frostedGlassBorder when provided', () {
-      const custom = Color(0xFFCCCCCC);
-      final result = _lightColors.copyWith(frostedGlassBorder: custom);
-
-      expect(result.frostedGlassBorder, equals(custom));
+      expect(result.searchBarButtonShadow, equals(custom));
     });
 
     test('copyWith replaces money when provided', () {
@@ -329,37 +301,22 @@ void main() {
       );
     });
 
-    test('lerp interpolates searchBarBackground at t=0.5', () {
+    test('when lerping at t=0.5, it should interpolate searchBarButtonBackground', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
       expect(
-        result.searchBarBackground,
-        equals(Color.lerp(_lerpA.searchBarBackground, _lerpB.searchBarBackground, 0.5)),
+        result.searchBarButtonBackground,
+        equals(Color.lerp(_lerpA.searchBarButtonBackground, _lerpB.searchBarButtonBackground, 0.5)),
       );
     });
 
-    test('lerp interpolates searchBarPlaceholder at t=0.5', () {
+    test('when lerping at t=0.5, it should interpolate searchBarButtonShadow', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
       expect(
-        result.searchBarPlaceholder,
-        equals(Color.lerp(_lerpA.searchBarPlaceholder, _lerpB.searchBarPlaceholder, 0.5)),
+        result.searchBarButtonShadow,
+        equals(Color.lerp(_lerpA.searchBarButtonShadow, _lerpB.searchBarButtonShadow, 0.5)),
       );
-    });
-
-    test('lerp interpolates frostedGlassBackground at t=0.5', () {
-      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
-
-      expect(
-        result.frostedGlassBackground,
-        equals(Color.lerp(_lerpA.frostedGlassBackground, _lerpB.frostedGlassBackground, 0.5)),
-      );
-    });
-
-    test('lerp interpolates frostedGlassBorder at t=0.5', () {
-      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
-
-      expect(result.frostedGlassBorder, equals(Color.lerp(_lerpA.frostedGlassBorder, _lerpB.frostedGlassBorder, 0.5)));
     });
 
     test('lerp interpolates money at t=0.5', () {

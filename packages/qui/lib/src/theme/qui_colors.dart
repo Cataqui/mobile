@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 ///
 /// ```dart
 /// Container(
-///   color: context.qui.colors.searchBarBackground,
+///   color: context.qui.colors.searchBarButtonBackground,
 /// )
 /// ```
 ///
@@ -31,10 +31,8 @@ class QuiColors {
     required this.placeholder,
     required this.disabledButtonBackground,
     required this.disabledButtonForeground,
-    required this.searchBarBackground,
-    required this.searchBarPlaceholder,
-    required this.frostedGlassBackground,
-    required this.frostedGlassBorder,
+    required this.searchBarButtonBackground,
+    required this.searchBarButtonShadow,
     required this.money,
     required this.ghost,
     required this.shimmerTextBase,
@@ -76,24 +74,18 @@ class QuiColors {
   /// Recommended foreground color used by disabled filled buttons.
   final Color disabledButtonForeground;
 
-  /// The background color of the search bar in its resting (non-frosted)
-  /// state.
-  final Color searchBarBackground;
+  /// The background color of the search bar button in its resting state.
+  final Color searchBarButtonBackground;
 
-  /// The color of the search bar's placeholder text and magnifier icon.
-  final Color searchBarPlaceholder;
-
-  /// The translucent overlay applied on top of the blurred content in the
-  /// frosted-glass search bar variant.
-  final Color frostedGlassBackground;
-
-  /// The border color of the frosted-glass search bar variant.
-  final Color frostedGlassBorder;
+  /// Shadow color cast by the search bar button at rest; alpha baked into
+  /// the hex literal so no `.withValues()` call is needed at the usage site.
+  final Color searchBarButtonShadow;
 
   /// The color used for representing money amounts and payment highlights.
   final Color money;
 
-  /// The color used for representing ghost elements, such as placeholders, loading states, something blocked, skeletons etc.
+  /// The color used for representing ghost elements, such as placeholders,
+  /// loading states, something blocked, skeletons etc.
   final Color ghost;
 
   /// The base text color for shimmer loading animations.
@@ -123,10 +115,8 @@ class QuiColors {
           placeholder == other.placeholder &&
           disabledButtonBackground == other.disabledButtonBackground &&
           disabledButtonForeground == other.disabledButtonForeground &&
-          searchBarBackground == other.searchBarBackground &&
-          searchBarPlaceholder == other.searchBarPlaceholder &&
-          frostedGlassBackground == other.frostedGlassBackground &&
-          frostedGlassBorder == other.frostedGlassBorder &&
+          searchBarButtonBackground == other.searchBarButtonBackground &&
+          searchBarButtonShadow == other.searchBarButtonShadow &&
           money == other.money &&
           ghost == other.ghost &&
           shimmerTextBase == other.shimmerTextBase &&
@@ -143,10 +133,8 @@ class QuiColors {
     placeholder,
     disabledButtonBackground,
     disabledButtonForeground,
-    searchBarBackground,
-    searchBarPlaceholder,
-    frostedGlassBackground,
-    frostedGlassBorder,
+    searchBarButtonBackground,
+    searchBarButtonShadow,
     money,
     ghost,
     shimmerTextBase,
@@ -164,10 +152,8 @@ class QuiColors {
     Color? placeholder,
     Color? disabledButtonBackground,
     Color? disabledButtonForeground,
-    Color? searchBarBackground,
-    Color? searchBarPlaceholder,
-    Color? frostedGlassBackground,
-    Color? frostedGlassBorder,
+    Color? searchBarButtonBackground,
+    Color? searchBarButtonShadow,
     Color? money,
     Color? ghost,
     Color? shimmerTextBase,
@@ -183,10 +169,8 @@ class QuiColors {
       placeholder: placeholder ?? this.placeholder,
       disabledButtonBackground: disabledButtonBackground ?? this.disabledButtonBackground,
       disabledButtonForeground: disabledButtonForeground ?? this.disabledButtonForeground,
-      searchBarBackground: searchBarBackground ?? this.searchBarBackground,
-      searchBarPlaceholder: searchBarPlaceholder ?? this.searchBarPlaceholder,
-      frostedGlassBackground: frostedGlassBackground ?? this.frostedGlassBackground,
-      frostedGlassBorder: frostedGlassBorder ?? this.frostedGlassBorder,
+      searchBarButtonBackground: searchBarButtonBackground ?? this.searchBarButtonBackground,
+      searchBarButtonShadow: searchBarButtonShadow ?? this.searchBarButtonShadow,
       money: money ?? this.money,
       ghost: ghost ?? this.ghost,
       shimmerTextBase: shimmerTextBase ?? this.shimmerTextBase,
@@ -209,10 +193,8 @@ class QuiColors {
       placeholder: Color.lerp(a.placeholder, b.placeholder, t)!,
       disabledButtonBackground: Color.lerp(a.disabledButtonBackground, b.disabledButtonBackground, t)!,
       disabledButtonForeground: Color.lerp(a.disabledButtonForeground, b.disabledButtonForeground, t)!,
-      searchBarBackground: Color.lerp(a.searchBarBackground, b.searchBarBackground, t)!,
-      searchBarPlaceholder: Color.lerp(a.searchBarPlaceholder, b.searchBarPlaceholder, t)!,
-      frostedGlassBackground: Color.lerp(a.frostedGlassBackground, b.frostedGlassBackground, t)!,
-      frostedGlassBorder: Color.lerp(a.frostedGlassBorder, b.frostedGlassBorder, t)!,
+      searchBarButtonBackground: Color.lerp(a.searchBarButtonBackground, b.searchBarButtonBackground, t)!,
+      searchBarButtonShadow: Color.lerp(a.searchBarButtonShadow, b.searchBarButtonShadow, t)!,
       money: Color.lerp(a.money, b.money, t)!,
       ghost: Color.lerp(a.ghost, b.ghost, t)!,
       shimmerTextBase: Color.lerp(a.shimmerTextBase, b.shimmerTextBase, t)!,
@@ -232,10 +214,8 @@ class _LightQuiColors extends QuiColors {
         placeholder: const Color(0xFF9E9E9E),
         disabledButtonBackground: const Color(0xFFE1E1E1),
         disabledButtonForeground: const Color(0xFF8E8E8E),
-        searchBarBackground: const Color(0xFFFAFAFA),
-        searchBarPlaceholder: const Color(0xFF9E9E9E),
-        frostedGlassBackground: const Color(0x4DFFFFFF),
-        frostedGlassBorder: const Color(0xFFE0E0E0),
+        searchBarButtonBackground: const Color(0xFFFAFAFA),
+        searchBarButtonShadow: const Color(0x1A000000),
         money: const Color(0xFF00DD55),
         ghost: const Color(0xFFCDCDCD),
         shimmerTextBase: const Color(0xFFB3B3B3),

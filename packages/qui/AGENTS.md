@@ -69,7 +69,7 @@ Every new widget in `qui` must have a corresponding golden test file at
 All tests must use the `when, should` pattern for descriptions.
 
 - **Format:** `when <condition/action>, it should <expected result>`
-- **Example:** `when QuiSearchBar is frosted, it should render a blurred background`
+- **Example:** `when QuiSearchBarButton is tapped, it should invoke the onTap callback`
 - Avoid vague descriptions like `renders correctly` or `test login`.
 
 ## Structure

@@ -13,7 +13,7 @@ import 'qui_typography.dart';
 ///
 /// ```dart
 /// Container(
-///   color: context.qui.colors.searchBarBackground,
+///   color: context.qui.colors.searchBarButtonBackground,
 /// )
 /// ```
 @immutable
