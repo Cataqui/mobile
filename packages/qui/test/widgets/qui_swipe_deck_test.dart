@@ -974,6 +974,24 @@ void main() {
       expect(find.byKey(_endKey), findsOneWidget);
     });
 
+    testWidgets('when swiping the last card after pagination is exhausted, it should show the end card behind the outgoing card during the dismiss animation', (
+      tester,
+    ) async {
+      await _pumpSwipeList(
+        tester,
+        items: const ['first'],
+        onLoadMore: () async {},
+        endBuilder: _endBuilder,
+      );
+      await tester.pump();
+      await tester.pump();
+
+      await tester.drag(find.byKey(_cardKey('first')), const Offset(-180, 0));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.byKey(_endKey), findsOneWidget);
+    });
+
     testWidgets('when loadMoreThreshold is below 0, it should throw an assertion error', (tester) async {
       expect(
         () => QuiSwipeDeck<String>(

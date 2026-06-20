@@ -120,6 +120,17 @@ All testing, analysis, and build routines must run within the **fvm** environmen
 
 Every bug fix must include a corresponding regression test. The test must accurately simulate and reproduce the failure state prior to the implementation of the fix, and pass completely afterward.
 
+### Bug Fix Workflow: Test-First When Possible
+
+When the root cause of a bug is clearly understood and a regression test can be written before modifying production code, follow **test-first**:
+
+1. Write the regression test that reproduces the bug
+2. Run it — **it must fail** (confirming the test correctly captures the bug)
+3. Implement the fix in production code
+4. Run the test again — **it must pass** (confirming the fix resolves it)
+
+This guarantees the regression test is valid and not vacuously passing. If the exact cause is not yet clear or you cannot write a meaningful test before changing code, implement the fix first and add the regression test afterward. Use judgment: test-first is preferred when the path is clear; code-first is acceptable when exploration is still needed.
+
 ### Shared Test Mocks
 
 - Use `mocktail` for shared test mocks, stubs, and verifications. App-level. Reusable mocks must live in `/test/mocks.dart`.

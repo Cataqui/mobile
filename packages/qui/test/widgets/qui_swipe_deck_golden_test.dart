@@ -122,6 +122,28 @@ void main() {
         ],
       ),
     );
+
+    goldenTest(
+      'when rendering an exhausted deck during a drag, it should show the end card behind the outgoing card',
+      fileName: 'qui_swipe_deck_exhausted_drag',
+      whilePerforming: (tester) async {
+        await tester.pump();
+        await tester.pump();
+        await _holdDrag(tester, 'solo', const Offset(-80, 5));
+        return null;
+      },
+      builder: () => GoldenTestGroup(
+        scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 600),
+        children: [
+          GoldenTestScenario(
+            name: 'exhausted last card dragged',
+            child: const _GoldenFrame(
+              child: _GoldenSwipeList(items: ['solo'], showEndState: true, isExhausted: true),
+            ),
+          ),
+        ],
+      ),
+    );
   });
 }
 
@@ -180,6 +202,7 @@ class _GoldenSwipeList extends StatelessWidget {
     this.isLoadingFixture = false,
     this.showLoadMoreError = false,
     this.showEndState = false,
+    this.isExhausted = false,
   });
 
   final List<String> items;
@@ -187,6 +210,7 @@ class _GoldenSwipeList extends StatelessWidget {
   final bool isLoadingFixture;
   final bool showLoadMoreError;
   final bool showEndState;
+  final bool isExhausted;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +218,11 @@ class _GoldenSwipeList extends StatelessWidget {
       itemCount: items.length,
       itemProvider: (index) => items[index],
       loadMoreThreshold: loadMoreThreshold,
-      onLoadMore: isLoadingFixture ? () => Completer<void>().future : null,
+      onLoadMore: isLoadingFixture
+          ? () => Completer<void>().future
+          : isExhausted
+              ? () async {}
+              : null,
       loadingMoreBuilder: _loadingMoreBuilder,
       buildLoadMoreError: showLoadMoreError ? _buildLoadMoreError : null,
       endBuilder: showEndState ? _endBuilder : null,

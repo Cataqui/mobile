@@ -1,7 +1,6 @@
 import 'package:cataqui_core/cataqui_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
@@ -77,7 +76,11 @@ class QuiIconButton extends StatelessWidget {
       label: resolvedLabel,
       onTap: isEnabled ? onPressed : null,
       child: QuiTapAnimation(
-        onPressed: onPressed != null ? (animation) async { onPressed!(); } : null,
+        onPressed: onPressed != null
+            ? (animation) async {
+                onPressed!();
+              }
+            : null,
         child: Container(
           key: const Key('qui_icon_button_circle'),
           width: buttonSize,

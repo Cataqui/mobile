@@ -490,6 +490,9 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
     if (_hasLoadMoreError) return _buildLoadMoreErrorCard(context);
     if (_isLoadingMore) return _buildLoadingCard(context);
 
+    final hasNextItem = _currentIndex + 1 < widget.itemCount;
+    if (!hasNextItem && _exhaustedItemCount == widget.itemCount) return widget.endBuilder?.call(context);
+
     return null;
   }
 
