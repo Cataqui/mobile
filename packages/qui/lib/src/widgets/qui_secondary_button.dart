@@ -101,10 +101,7 @@ class QuiSecondaryButton extends StatelessWidget {
 
     Widget content = Text(label, style: labelStyle);
 
-    final iconState = QuiSecondaryButtonIconState(
-      isEnabled: isEnabled,
-      recommendedIconColor: resolvedForeground,
-    );
+    final iconState = QuiSecondaryButtonIconState(isEnabled: isEnabled, recommendedIconColor: resolvedForeground);
 
     final hasLeading = leadingIconBuilder != null;
     final hasTrailing = trailingIconBuilder != null;
@@ -136,11 +133,8 @@ class QuiSecondaryButton extends StatelessWidget {
     final button = Container(
       key: const Key('qui_secondary_button_container'),
       width: fit == QuiSecondaryButtonFit.expand ? double.infinity : null,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: resolvedBackground,
-        borderRadius: BorderRadius.circular(9999),
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      decoration: BoxDecoration(color: resolvedBackground, borderRadius: BorderRadius.circular(9999)),
       child: fit == QuiSecondaryButtonFit.expand ? Center(child: content) : content,
     );
 
@@ -201,11 +195,7 @@ Widget quiSecondaryButtonPreview() {
             const SizedBox(height: 20),
             SizedBox(
               width: 300,
-              child: QuiSecondaryButton(
-                label: 'Expandido',
-                fit: QuiSecondaryButtonFit.expand,
-                onPressed: () {},
-              ),
+              child: QuiSecondaryButton(label: 'Expandido', fit: QuiSecondaryButtonFit.expand, onPressed: () {}),
             ),
           ],
         ),
