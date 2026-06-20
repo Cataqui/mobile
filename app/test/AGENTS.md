@@ -147,3 +147,45 @@ goldenTest('job detail loaded state', (tester) async {
 ```
 
 Exceptions are permitted when the interaction requires an external dependency that cannot be simulated (e.g., camera, biometrics, push notification opt-in). Document the exception in the test description.
+
+## 9. Never Assert on Hardcoded Translation Strings
+
+Tests must never assert on hardcoded Portuguese string literals that are translation values. When a test checks for text that comes from the i18n layer (`find.text`, `find.textContaining`, `expect(result.contains(...))`, `expect(result, equals(...))`), it must read the expected string through the `Translations` API so the test stays green when copy changes.
+
+### Canonical Setup
+
+Build the `Translations` instance once per test file and name the variable `i18n` (per `app/AGENTS.md`):
+
+```dart
+import 'package:cataqui_app/i18n/strings.g.dart';
+
+late Translations i18n;
+
+setUpAll(() async {
+  i18n = await AppLocale.ptBr.build();
+});
+```
+
+### Usage
+
+```dart
+// ✅ Correct — reads from the Translations API
+expect(find.text(i18n.feed.error.description), findsOneWidget);
+expect(find.textContaining(i18n.jobPayment.paymentPeriodDaily), findsOneWidget);
+expect(result, equals(i18n.jobPayment.paymentFlexible));
+
+// ❌ Incorrect — hardcoded translation value
+expect(find.text('Que estranho, não era pra isso acontecer. Tenta de novo'), findsOneWidget);
+expect(find.textContaining('/dia'), findsOneWidget);
+expect(result, equals('A Combinar'));
+```
+
+### Out of Scope
+
+- **Fixture data** (job titles, descriptions used as test input) is not a translation and stays hardcoded or in a shared constant.
+- **Non-translatable content** (currency symbols like `r'R$'`, numeric amounts like `'120'`) stays hardcoded.
+- **Source-side i18n debt** (strings hardcoded in `app/lib/` source that should be translations but aren't yet) is a source issue — the test faithfully reflects current source behavior.
+
+### Exception: Parameterized Template Fragments
+
+Some translation values are parameterized templates (e.g. `paymentRangeUpTo`, `"Até {value}{period}"`). A test that checks for a fragment of the template (like `'Até'`) where no standalone translation key exists may remain hardcoded with a clarifying comment. Resolving this properly requires adding a new key to the JSON (a source-side change).

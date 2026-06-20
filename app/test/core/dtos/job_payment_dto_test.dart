@@ -4,10 +4,10 @@ import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  late Translations t;
+  late Translations i18n;
 
   setUpAll(() async {
-    t = await AppLocale.ptBr.build();
+    i18n = await AppLocale.ptBr.build();
   });
 
   group('JobPaymentDto', () {
@@ -89,11 +89,11 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains(r'R$'), isTrue);
         expect(result.contains('120'), isTrue);
-        expect(result.contains('/dia'), isTrue);
+        expect(result.contains(i18n.jobPayment.paymentPeriodDaily), isTrue);
       });
 
       test(r'when payment type is fixed with USD and hourly, it should format with $ and /hora', () {
@@ -106,11 +106,11 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains(r'$'), isTrue);
         expect(result.contains('20'), isTrue);
-        expect(result.contains('/hora'), isTrue);
+        expect(result.contains(i18n.jobPayment.paymentPeriodHourly), isTrue);
       });
 
       test('when payment type is range, it should show max amount with up-to prefix', () {
@@ -123,14 +123,14 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains('Até'), isTrue);
         expect(result.contains(r'R$'), isTrue);
         expect(result.contains('250'), isTrue);
         expect(result.contains('150'), isFalse);
         expect(result.contains(' - '), isFalse);
-        expect(result.contains('/dia'), isTrue);
+        expect(result.contains(i18n.jobPayment.paymentPeriodDaily), isTrue);
       });
 
       test('when payment type is flexible, it should return "Negociável"', () {
@@ -141,9 +141,9 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
-        expect(result, equals('A Combinar'));
+        expect(result, equals(i18n.jobPayment.paymentFlexible));
       });
 
       test('when payment type is other, it should return "Outro"', () {
@@ -154,9 +154,9 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
-        expect(result, equals('Alternativo'));
+        expect(result, equals(i18n.jobPayment.paymentOther));
       });
 
       test('when payment type is unknown, it should return "Desconhecido"', () {
@@ -167,9 +167,9 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
-        expect(result, equals('Desconhecido'));
+        expect(result, equals(i18n.jobPayment.paymentUnknown));
       });
 
       test('when amount is an integer, it should have no decimal places', () {
@@ -182,7 +182,7 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains(','), isFalse);
       });
@@ -197,7 +197,7 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains(','), isTrue);
       });
@@ -212,7 +212,7 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains('/'), isFalse);
       });
@@ -227,7 +227,7 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains('/'), isFalse);
       });
@@ -242,7 +242,7 @@ void main() {
           note: '',
         );
 
-        final result = payment.formatPayment(t);
+        final result = payment.formatPayment(i18n);
 
         expect(result.contains('Até'), isTrue);
         expect(result.contains('250,50'), isTrue);

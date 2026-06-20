@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
+import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/widgets/feed_job_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,6 +42,12 @@ Widget _wrap(Widget child) {
 }
 
 void main() {
+  late Translations i18n;
+
+  setUpAll(() async {
+    i18n = await AppLocale.ptBr.build();
+  });
+
   group('FeedJobCard', () {
     group('rendering', () {
       testWidgets('when created with a job, it should display the title', (tester) async {
@@ -54,7 +61,7 @@ void main() {
 
         expect(find.textContaining(r'R$'), findsOneWidget);
         expect(find.textContaining('120'), findsOneWidget);
-        expect(find.textContaining('/dia'), findsOneWidget);
+        expect(find.textContaining(i18n.jobPayment.paymentPeriodDaily), findsOneWidget);
       });
 
       testWidgets('when created with a job, it should display the description', (tester) async {

@@ -1,3 +1,4 @@
+import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/widgets/feed_job_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,12 @@ import 'package:qui/qui.dart';
 import 'feed_view_test_helpers.dart';
 
 void main() {
+  late Translations i18n;
+
+  setUpAll(() async {
+    i18n = await AppLocale.ptBr.build();
+  });
+
   group('FeedView', () {
     group('chrome', () {
       testWidgets('when the view renders in any state, it should show the São Paulo location button', (tester) async {
@@ -25,7 +32,7 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.text('Buscar Oportunidades'), findsOneWidget);
+        expect(find.text(i18n.feed.searchPlaceholder), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -65,7 +72,7 @@ void main() {
           tester: tester,
           feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
         );
-        expect(find.text('Xiii... Deu erro'), findsNothing);
+        expect(find.text(i18n.feed.error.title), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -74,7 +81,7 @@ void main() {
           tester: tester,
           feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
         );
-        expect(find.text('Sem mais oportunidades'), findsNothing);
+        expect(find.text(i18n.feed.empty.title), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
@@ -86,7 +93,7 @@ void main() {
           feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
         );
         await tester.pump();
-        expect(find.text('Xiii... Deu erro'), findsOneWidget);
+        expect(find.text(i18n.feed.error.title), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -96,7 +103,7 @@ void main() {
           feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
         );
         await tester.pump();
-        expect(find.text('Que estranho, não era pra isso acontecer. Tenta de novo'), findsOneWidget);
+        expect(find.text(i18n.feed.error.description), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -106,7 +113,7 @@ void main() {
           feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
         );
         await tester.pump();
-        expect(find.text('Tentar de novo'), findsOneWidget);
+        expect(find.text(i18n.feed.error.retryButtonTitle), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -126,7 +133,7 @@ void main() {
           feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
         );
         await tester.pump();
-        expect(find.text('Sem mais oportunidades'), findsNothing);
+        expect(find.text(i18n.feed.empty.title), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
@@ -138,7 +145,7 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.text('Sem mais oportunidades'), findsOneWidget);
+        expect(find.text(i18n.feed.empty.title), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -149,7 +156,7 @@ void main() {
         );
         await tester.pump();
         expect(
-          find.text('Novas aparecem o tempo todo. Tente novamente mais tarde ou ajuste sua área de interesse.'),
+          find.text(i18n.feed.empty.description),
           findsOneWidget,
         );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
@@ -161,7 +168,7 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.text('Ajustar minha área'), findsOneWidget);
+        expect(find.text(i18n.feed.empty.adjustAreaButtonTitle), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -171,7 +178,7 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        await tester.tap(find.text('Ajustar minha área'));
+        await tester.tap(find.text(i18n.feed.empty.adjustAreaButtonTitle));
         await tester.pump(const Duration(milliseconds: 900));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
