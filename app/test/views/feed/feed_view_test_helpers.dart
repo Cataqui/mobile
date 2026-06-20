@@ -60,9 +60,8 @@ class FeedViewTestHelpers {
   }
 
   static void mockMapChannels() {
-    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-
-    messenger.setMockMethodCallHandler(SystemChannels.platform_views, _handlePlatformViewCall);
+    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      ..setMockMethodCallHandler(SystemChannels.platform_views, _handlePlatformViewCall);
     for (var id = 0; id < 20; id++) {
       messenger.setMockMethodCallHandler(MethodChannel('plugins.flutter.io/maplibre_gl_$id'), _handleMapLibreCall);
     }

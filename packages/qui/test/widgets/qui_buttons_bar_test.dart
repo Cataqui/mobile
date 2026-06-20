@@ -1,36 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+import '../test_app.dart';
 
 void main() {
   group('QuiButtonsBar', () {
     testWidgets('when rendered, it should use theme background color', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: _TestButtonsBar()));
+      await tester.pumpWidget(const TestApp(child: _TestButtonsBar()));
 
       expect(_barDecoration(tester).color, equals(const Color(0xFFFFFFFF)));
     });
 
     testWidgets('when rendered, it should apply item padding', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: _TestButtonsBar()));
+      await tester.pumpWidget(const TestApp(child: _TestButtonsBar()));
 
       expect(_barContainer(tester).padding, equals(const EdgeInsets.all(12)));
     });
 
     testWidgets('when multiple items are provided, it should space them by forty pixels', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: _TestButtonsBar()));
+      await tester.pumpWidget(const TestApp(child: _TestButtonsBar()));
 
       expect(_itemGap(tester), equals(40));
     });
 
     testWidgets('when widthFit is fitItems, it should size to content width', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: _TestButtonsBar()));
+      await tester.pumpWidget(const TestApp(child: _TestButtonsBar()));
 
       expect(tester.getSize(find.byKey(const Key('qui_buttons_bar_container'))).width, equals(104));
     });
 
     testWidgets('when widthFit is expand, it should fill finite available width', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(
+        const TestApp(
           child: SizedBox(width: 260, child: _TestButtonsBar(widthFit: QuiButtonsBarFit.expand)),
         ),
       );
@@ -39,21 +40,21 @@ void main() {
     });
 
     testWidgets('when height is not constrained, it should size height to content', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: _TestButtonsBar()));
+      await tester.pumpWidget(const TestApp(child: _TestButtonsBar()));
 
       expect(tester.getSize(find.byKey(const Key('qui_buttons_bar_container'))).height, equals(44));
     });
 
     testWidgets('when constraints specify fixed height, it should use that height', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(child: _TestButtonsBar(constraints: BoxConstraints.tightFor(height: 100))),
+        const TestApp(child: _TestButtonsBar(constraints: BoxConstraints.tightFor(height: 100))),
       );
 
       expect(tester.getSize(find.byKey(const Key('qui_buttons_bar_container'))).height, equals(100));
     });
 
     testWidgets('when constraints specify fixed width, it should use that width', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: _TestButtonsBar(constraints: BoxConstraints.tightFor(width: 220))));
+      await tester.pumpWidget(const TestApp(child: _TestButtonsBar(constraints: BoxConstraints.tightFor(width: 220))));
 
       expect(tester.getSize(find.byKey(const Key('qui_buttons_bar_container'))).width, equals(220));
     });
@@ -94,20 +95,6 @@ class _TestButtonsBar extends StatelessWidget {
         SizedBox.square(key: Key('qui_buttons_bar_test_first_item'), dimension: 20),
         SizedBox.square(key: Key('qui_buttons_bar_test_second_item'), dimension: 20),
       ],
-    );
-  }
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(body: Center(child: child)),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+import '../test_app.dart';
 
 /// Pumps a frame to flush flutter_animate's deferred startup timer.
 ///
@@ -16,7 +17,7 @@ void main() {
   group('QuiLoadingText', () {
     testWidgets('when provided with text, it should render the text', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(child: QuiLoadingText(text: 'Carregando...')),
+        const TestApp(child: QuiLoadingText(text: 'Carregando...')),
       );
       await pumpWithAnimation(tester);
 
@@ -25,7 +26,7 @@ void main() {
 
     testWidgets('when rendered, it should show a CircularProgressIndicator', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(child: QuiLoadingText(text: 'Carregando...')),
+        const TestApp(child: QuiLoadingText(text: 'Carregando...')),
       );
       await pumpWithAnimation(tester);
 
@@ -34,7 +35,7 @@ void main() {
 
     testWidgets('when rendered without custom color, it should resolve to primary', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(child: QuiLoadingText(text: 'Carregando...')),
+        const TestApp(child: QuiLoadingText(text: 'Carregando...')),
       );
       await pumpWithAnimation(tester);
 
@@ -49,7 +50,7 @@ void main() {
       const customColor = Color(0xFF00A676);
 
       await tester.pumpWidget(
-        const _TestApp(
+        const TestApp(
           child: QuiLoadingText(
             text: 'Buscando...',
             progressIndicatorColor: customColor,
@@ -67,7 +68,7 @@ void main() {
 
     testWidgets('when animations are enabled, it should apply shimmer to the text', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(child: QuiLoadingText(text: 'Carregando...')),
+        const TestApp(child: QuiLoadingText(text: 'Carregando...')),
       );
       await pumpWithAnimation(tester);
 
@@ -76,7 +77,7 @@ void main() {
 
     testWidgets('when animations are disabled, it should not apply shimmer', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(
+        const TestApp(
           child: MediaQuery(
             data: MediaQueryData(disableAnimations: true),
             child: QuiLoadingText(text: 'Carregando...'),
@@ -89,18 +90,4 @@ void main() {
 
 
   });
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(body: Center(child: child)),
-    );
-  }
 }

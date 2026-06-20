@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+import '../test_app.dart';
 
 void main() {
   group('QuiTapAnimation', () {
@@ -9,7 +10,7 @@ void main() {
       var tapCount = 0;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTapAnimation(onPressed: (animation) async { tapCount += 1; }, child: const Text('Tap')),
         ),
       );
@@ -22,7 +23,7 @@ void main() {
 
     testWidgets('when pressed, it should apply pressed opacity', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTapAnimation(onPressed: (animation) async {}, child: const Text('Tap')),
         ),
       );
@@ -40,7 +41,7 @@ void main() {
 
     testWidgets('when pressed, it should apply pressed scale', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTapAnimation(onPressed: (animation) async {}, child: const Text('Tap')),
         ),
       );
@@ -60,7 +61,7 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: _TestApp(
+          child: TestApp(
             child: QuiTapAnimation(onPressed: (animation) async {}, child: const Text('Tap')),
           ),
         ),
@@ -80,7 +81,7 @@ void main() {
     testWidgets('when disabled and tapped, it should not call onPressed', (tester) async {
       const tapCount = 0;
 
-      await tester.pumpWidget(const _TestApp(child: QuiTapAnimation(child: Text('Tap'))));
+      await tester.pumpWidget(const TestApp(child: QuiTapAnimation(child: Text('Tap'))));
 
       await tester.tap(find.text('Tap'));
 
@@ -98,7 +99,7 @@ void main() {
       );
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTapAnimation(onPressed: (animation) async {}, child: const Text('Tap')),
         ),
       );
@@ -123,7 +124,7 @@ void main() {
         },
       );
 
-      await tester.pumpWidget(const _TestApp(child: QuiTapAnimation(child: Text('Tap'))));
+      await tester.pumpWidget(const TestApp(child: QuiTapAnimation(child: Text('Tap'))));
 
       final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
       await tester.pump();
@@ -135,7 +136,7 @@ void main() {
 
     testWidgets('when scale animation type is used, it should render AnimatedScale without AnimatedOpacity', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTapAnimation(
             animation: QuiTapAnimationType.scale,
             onPressed: (animation) async {},
@@ -150,7 +151,7 @@ void main() {
 
     testWidgets('when scale animation type is used and pressed, it should apply pressed scale', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTapAnimation(
             animation: QuiTapAnimationType.scale,
             onPressed: (animation) async {},
@@ -174,7 +175,7 @@ void main() {
       var animationCompleted = false;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTapAnimation(
             onPressed: (animation) async {
               await animation;
@@ -194,18 +195,4 @@ void main() {
       expect(animationCompleted, isTrue);
     });
   });
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(body: Center(child: child)),
-    );
-  }
 }

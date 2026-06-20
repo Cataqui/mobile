@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+import '../test_app.dart';
 
 void main() {
   group('QuiIconButton', () {
@@ -8,7 +9,7 @@ void main() {
       var tapCount = 0;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
             onPressed: () => tapCount += 1,
@@ -24,7 +25,7 @@ void main() {
 
     testWidgets('when disabled, it should expose disabled semantics', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(iconBuilder: (state) => Icon(Icons.lock, size: state.iconSize)),
         ),
       );
@@ -36,7 +37,7 @@ void main() {
 
     testWidgets('when label is not provided, it should not render label text', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
             onPressed: () {},
@@ -49,7 +50,7 @@ void main() {
 
     testWidgets('when label style is not provided, it should use text primary as label color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             label: 'Buscar',
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
@@ -63,7 +64,7 @@ void main() {
 
     testWidgets('when label style is not provided, it should use label medium size', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             label: 'Buscar',
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
@@ -77,7 +78,7 @@ void main() {
 
     testWidgets('when label style is not provided, it should use semi-bold weight', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             label: 'Buscar',
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
@@ -91,7 +92,7 @@ void main() {
 
     testWidgets('when label style sets color, it should use the provided label color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             label: 'Buscar',
             labelStyle: const TextStyle(color: Color(0xFF00A676)),
@@ -106,7 +107,7 @@ void main() {
 
     testWidgets('when label style omits color, it should keep the default label color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             label: 'Buscar',
             labelStyle: const TextStyle(fontSize: 16),
@@ -121,7 +122,7 @@ void main() {
 
     testWidgets('when disabled, it should use the disabled background color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(iconBuilder: (state) => Icon(Icons.lock, size: state.iconSize)),
         ),
       );
@@ -131,7 +132,7 @@ void main() {
 
     testWidgets('when disabled background color is customized, it should use the provided color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             disabledBackgroundColor: const Color(0xFFDDDDDD),
             iconBuilder: (state) => Icon(Icons.lock, size: state.iconSize),
@@ -144,7 +145,7 @@ void main() {
 
     testWidgets('when button size is not customized, it should use the default size', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
             onPressed: () {},
@@ -157,7 +158,7 @@ void main() {
 
     testWidgets('when button size is customized, it should use the provided size', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             buttonSize: 64,
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
@@ -173,7 +174,7 @@ void main() {
       double? resolvedIconSize;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconBuilder: (state) {
               resolvedIconSize = state.iconSize;
@@ -191,7 +192,7 @@ void main() {
       double? resolvedIconSize;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconSize: 30,
             iconBuilder: (state) {
@@ -208,7 +209,7 @@ void main() {
 
     testWidgets('when icon size is customized, it should size the icon slot', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconSize: 30,
             iconBuilder: (state) => Container(width: 10, height: 20, color: Colors.white),
@@ -222,7 +223,7 @@ void main() {
 
     testWidgets('when icon does not use recommended color, it should keep the icon color unset', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconBuilder: (state) => Icon(Icons.search, size: state.iconSize),
             onPressed: () {},
@@ -237,7 +238,7 @@ void main() {
       Color? resolvedForegroundColor;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             iconBuilder: (state) {
               resolvedForegroundColor = state.recommendedIconColor;
@@ -256,7 +257,7 @@ void main() {
       Color? resolvedForegroundColor;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiIconButton(
             disabledBackgroundColor: const Color(0xFFDDDDDD),
             iconBuilder: (state) {
@@ -285,18 +286,4 @@ Color? _circleColor(WidgetTester tester) {
   final container = tester.widget<Container>(find.byKey(const Key('qui_icon_button_circle')));
   final decoration = container.decoration! as BoxDecoration;
   return decoration.color;
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(body: Center(child: child)),
-    );
-  }
 }

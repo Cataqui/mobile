@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+import '../test_app.dart';
 
 void main() {
   group('QuiOrbit constructor', () {
@@ -58,19 +59,19 @@ void main() {
 
   group('QuiOrbit rendering', () {
     testWidgets('when rendered with 4 items, it should display without error', (tester) async {
-      await tester.pumpWidget(_TestApp(child: _fourItemOrbit()));
+      await tester.pumpWidget(TestApp(child: _fourItemOrbit()));
 
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('when rendered with 6 items, it should display without error', (tester) async {
-      await tester.pumpWidget(_TestApp(child: _sixItemOrbit()));
+      await tester.pumpWidget(TestApp(child: _sixItemOrbit()));
 
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('when rendered with 12 items, it should display without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: QuiOrbit(
           items: List.generate(
             12,
@@ -86,7 +87,7 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: _TestApp(child: _fourItemOrbit()),
+          child: TestApp(child: _fourItemOrbit()),
         ),
       );
 
@@ -94,13 +95,13 @@ void main() {
     });
 
     testWidgets('when animations are enabled, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(child: _fourItemOrbit()));
+      await tester.pumpWidget(TestApp(child: _fourItemOrbit()));
 
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('when rotateItems is true, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: _fourItemOrbit(rotateItems: true),
       ));
 
@@ -108,7 +109,7 @@ void main() {
     });
 
     testWidgets('when rotateItems is false, items should not have Transform.rotate', (tester) async {
-      await tester.pumpWidget(_TestApp(child: _fourItemOrbit()));
+      await tester.pumpWidget(TestApp(child: _fourItemOrbit()));
 
       // Default path (rotateItems: false) — each item's position is animated
       // independently but items are NOT wrapped in Transform.rotate.
@@ -117,7 +118,7 @@ void main() {
     });
 
     testWidgets('when rotateItems is true, items should each have a Transform.rotate', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: _fourItemOrbit(rotateItems: true),
       ));
 
@@ -130,7 +131,7 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: _TestApp(
+          child: TestApp(
             child: _fourItemOrbit(rotateItems: true),
           ),
         ),
@@ -142,7 +143,7 @@ void main() {
     });
 
     testWidgets('when radius is explicitly provided, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: QuiOrbit(
           radius: 80,
           items: List.generate(
@@ -156,7 +157,7 @@ void main() {
     });
 
     testWidgets('when radius is zero, it should render items at center without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: QuiOrbit(
           radius: 0,
           items: List.generate(
@@ -170,7 +171,7 @@ void main() {
     });
 
     testWidgets('when direction is counterclockwise, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: _fourItemOrbit(direction: QuiOrbitDirection.counterclockwise),
       ));
 
@@ -178,7 +179,7 @@ void main() {
     });
 
     testWidgets('when initialAngle is set, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: QuiOrbit(
           initialAngle: 1.5,
           items: List.generate(
@@ -192,7 +193,7 @@ void main() {
     });
 
     testWidgets('when padding is set and radius is auto, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: QuiOrbit(
           padding: 20,
           items: List.generate(
@@ -206,7 +207,7 @@ void main() {
     });
 
     testWidgets('when items have different sizes, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: QuiOrbit(
           items: const [
             QuiOrbitItem(child: SizedBox(width: 40, height: 40), size: Size(40, 40)),
@@ -221,9 +222,9 @@ void main() {
     });
 
     testWidgets('when revolutionDuration is changed, it should rebuild without error', (tester) async {
-      await tester.pumpWidget(_TestApp(child: _fourItemOrbit()));
+      await tester.pumpWidget(TestApp(child: _fourItemOrbit()));
 
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: _fourItemOrbit(revolutionDuration: const Duration(seconds: 10)),
       ));
 
@@ -231,7 +232,7 @@ void main() {
     });
 
     testWidgets('when revolutionDuration is changed to a very short duration, it should render without error', (tester) async {
-      await tester.pumpWidget(_TestApp(
+      await tester.pumpWidget(TestApp(
         child: _fourItemOrbit(revolutionDuration: const Duration(milliseconds: 100)),
       ));
 
@@ -242,7 +243,7 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: _TestApp(
+          child: TestApp(
             child: SizedBox(
               width: 200,
               height: 200,
@@ -259,7 +260,7 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: _TestApp(
+          child: TestApp(
             child: SizedBox(
               width: 100,
               height: 100,
@@ -276,7 +277,7 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: _TestApp(
+          child: TestApp(
             child: OverflowBox(
               minWidth: 0,
               maxWidth: double.infinity,
@@ -350,23 +351,6 @@ class _TestIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(icon, color: Colors.white, size: 22),
-    );
-  }
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(
-        body: Center(child: child),
-      ),
     );
   }
 }

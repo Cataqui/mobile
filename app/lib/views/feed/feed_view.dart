@@ -254,7 +254,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
             ),
             leadingIconSpacing: 10,
             onPressed: () {
-              // TODO: Implement once we add the edit area screen
+              // TODO(RyanHolanda): Implement once we add the edit area screen
             },
           ),
         ],

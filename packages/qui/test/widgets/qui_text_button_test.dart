@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+import '../test_app.dart';
 
 void main() {
   group('QuiTextButton', () {
@@ -8,7 +9,7 @@ void main() {
       var tapCount = 0;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(text: 'Ver oportunidades', onPressed: () => tapCount += 1),
         ),
       );
@@ -21,7 +22,7 @@ void main() {
 
     testWidgets('when pressed, it should show stronger opacity feedback', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(text: 'Ver oportunidades', onPressed: () {}),
         ),
       );
@@ -38,7 +39,7 @@ void main() {
     });
 
     testWidgets('when disabled, it should expose disabled semantics', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: QuiTextButton(text: 'Indisponivel')));
+      await tester.pumpWidget(const TestApp(child: QuiTextButton(text: 'Indisponivel')));
 
       final semantics = tester.widget<Semantics>(
         find.descendant(of: find.byType(QuiTextButton), matching: find.byType(Semantics)),
@@ -49,7 +50,7 @@ void main() {
 
     testWidgets('when leading icon spacing is customized, it should use the provided spacing', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Buscar',
             leadingIconBuilder: (state) => const Icon(Icons.search),
@@ -68,7 +69,7 @@ void main() {
       Color? recommendedIconColor;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Buscar',
             color: const Color(0xFFFF4A4B),
@@ -88,7 +89,7 @@ void main() {
       bool? isEnabled;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Indisponivel',
             leadingIconBuilder: (state) {
@@ -106,7 +107,7 @@ void main() {
       Color? recommendedIconColor;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Indisponivel',
             leadingIconBuilder: (state) {
@@ -122,7 +123,7 @@ void main() {
 
     testWidgets('when trailing icon spacing is customized, it should use the provided spacing', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Continuar',
             trailingIconBuilder: (state) => const Icon(Icons.arrow_forward),
@@ -139,7 +140,7 @@ void main() {
 
     testWidgets('when both icons are provided, it should render three children in the row', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Distância',
             leadingIconBuilder: (state) => const Icon(Icons.near_me),
@@ -155,7 +156,7 @@ void main() {
 
     testWidgets('when both icons are provided, it should render the leading icon', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Distância',
             leadingIconBuilder: (state) => const Icon(Icons.near_me),
@@ -170,7 +171,7 @@ void main() {
 
     testWidgets('when both icons are provided, it should render the trailing icon', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiTextButton(
             text: 'Distância',
             leadingIconBuilder: (state) => const Icon(Icons.near_me),
@@ -183,18 +184,4 @@ void main() {
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
   });
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(body: Center(child: child)),
-    );
-  }
 }

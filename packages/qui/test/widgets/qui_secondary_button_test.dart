@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+import '../test_app.dart';
 
 void main() {
   group('QuiSecondaryButton', () {
@@ -8,7 +9,7 @@ void main() {
       var tapCount = 0;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(label: 'Ver oportunidades', onPressed: () => tapCount += 1),
         ),
       );
@@ -21,7 +22,7 @@ void main() {
 
     testWidgets('when pressed, it should show stronger opacity feedback', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(label: 'Ver oportunidades', onPressed: () {}),
         ),
       );
@@ -38,7 +39,7 @@ void main() {
     });
 
     testWidgets('when disabled, it should expose disabled semantics', (tester) async {
-      await tester.pumpWidget(const _TestApp(child: QuiSecondaryButton(label: 'Indisponivel')));
+      await tester.pumpWidget(const TestApp(child: QuiSecondaryButton(label: 'Indisponivel')));
 
       final semantics = tester.widget<Semantics>(
         find.descendant(of: find.byType(QuiSecondaryButton), matching: find.byType(Semantics)),
@@ -49,7 +50,7 @@ void main() {
 
     testWidgets('when leading icon spacing is customized, it should use the provided spacing', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Buscar',
             leadingIconBuilder: (state) => const Icon(Icons.search),
@@ -66,7 +67,7 @@ void main() {
 
     testWidgets('when trailing icon spacing is customized, it should use the provided spacing', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Continuar',
             trailingIconBuilder: (state) => const Icon(Icons.arrow_forward),
@@ -85,7 +86,7 @@ void main() {
       Color? recommendedIconColor;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Buscar',
             foregroundColor: const Color(0xFFFF4A4B),
@@ -105,7 +106,7 @@ void main() {
       bool? isEnabled;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Indisponivel',
             leadingIconBuilder: (state) {
@@ -123,7 +124,7 @@ void main() {
       Color? recommendedIconColor;
 
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Indisponivel',
             leadingIconBuilder: (state) {
@@ -139,7 +140,7 @@ void main() {
 
     testWidgets('when both icons are provided, it should render three children in the row', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Filtrar',
             leadingIconBuilder: (state) => const Icon(Icons.tune),
@@ -155,7 +156,7 @@ void main() {
 
     testWidgets('when both icons are provided, it should render the leading icon', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Filtrar',
             leadingIconBuilder: (state) => const Icon(Icons.tune),
@@ -170,7 +171,7 @@ void main() {
 
     testWidgets('when both icons are provided, it should render the trailing icon', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Filtrar',
             leadingIconBuilder: (state) => const Icon(Icons.tune),
@@ -185,7 +186,7 @@ void main() {
 
     testWidgets('when background is not customized, it should use primary with 0.1 opacity', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(label: 'Ver oportunidades', onPressed: () {}),
         ),
       );
@@ -195,7 +196,7 @@ void main() {
 
     testWidgets('when background is customized, it should use the provided color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Mapa',
             backgroundColor: const Color(0xFF00A676),
@@ -209,7 +210,7 @@ void main() {
 
     testWidgets('when disabled, it should use the disabled background color', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(child: QuiSecondaryButton(label: 'Indisponivel')),
+        const TestApp(child: QuiSecondaryButton(label: 'Indisponivel')),
       );
 
       expect(_containerColor(tester), equals(const Color(0xFFE1E1E1)));
@@ -217,7 +218,7 @@ void main() {
 
     testWidgets('when disabled background is customized, it should use the provided color', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(
+        const TestApp(
           child: QuiSecondaryButton(
             label: 'Fechado',
             disabledBackgroundColor: Color(0xFFDDDDDD),
@@ -230,7 +231,7 @@ void main() {
 
     testWidgets('when foreground is not customized, it should use primary as the label color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(label: 'Ver oportunidades', onPressed: () {}),
         ),
       );
@@ -240,7 +241,7 @@ void main() {
 
     testWidgets('when foreground is customized, it should use the provided color as the label color', (tester) async {
       await tester.pumpWidget(
-        _TestApp(
+        TestApp(
           child: QuiSecondaryButton(
             label: 'Salvar',
             foregroundColor: const Color(0xFF1A1A1A),
@@ -255,7 +256,7 @@ void main() {
 
     testWidgets('when fit is expand, it should fill the available width', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(
+        const TestApp(
           child: SizedBox(
             width: 300,
             child: QuiSecondaryButton(label: 'Expandir', fit: QuiSecondaryButtonFit.expand, onPressed: null),
@@ -268,7 +269,7 @@ void main() {
 
     testWidgets('when fit is fit, it should size to content', (tester) async {
       await tester.pumpWidget(
-        const _TestApp(
+        const TestApp(
           child: QuiSecondaryButton(label: 'Encaixar', fit: QuiSecondaryButtonFit.fit, onPressed: null),
         ),
       );
@@ -288,18 +289,4 @@ Color? _containerColor(WidgetTester tester) {
   final container = tester.widget<Container>(find.byKey(const Key('qui_secondary_button_container')));
   final decoration = container.decoration! as BoxDecoration;
   return decoration.color;
-}
-
-class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: Scaffold(body: Center(child: child)),
-    );
-  }
 }
