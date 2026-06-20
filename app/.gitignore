@@ -59,3 +59,6 @@ lib/**/*_state.g.dart
 
 # Generated i18n files
 lib/i18n/**/*.g.dart
+
+# FlutterGen assets
+lib/gen/

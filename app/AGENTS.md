@@ -23,6 +23,7 @@ app/lib/
 ├── core/              # DTOs, providers, config
 │   ├── dtos/          # Freezed JSON DTOs (generated)
 │   └── providers.dart # App-level Riverpod providers
+├── gen/               # FlutterGen generated assets (do not edit, gitignored)
 ├── i18n/              # Slang translation files (pt-BR)
 ├── views/             # Screen-level widgets (pages/routes)
 └── widgets/           # Reusable app-level widgets
@@ -88,3 +89,24 @@ Tests mirror the source at `app/test/views/<feature>/<feature>_state_test.dart`.
   returns a valid instance with realistic test data. Tests should use
   `XxxDto.fixture()` instead of shared fixture JSON files. Use `copyWith` to
   customize specific fields for a test case.
+
+## Assets
+
+The app uses **flutter_gen** for type-safe asset access.
+
+- **Setup:** `flutter_gen_runner` is declared as a dev dependency; configuration
+  lives in `app/pubspec.yaml` under the `flutter_gen:` key. Output goes to
+  `lib/gen/` (gitignored via `app/.gitignore`).
+- **Adding a new asset:**
+  1. Place the file in the appropriate directory under `app/assets/`.
+  2. Declare the directory in `app/pubspec.yaml` under `flutter: assets:`.
+  3. Run `melos gen:all` from the repository root to regenerate.
+- **Access pattern:** Import `package:cataqui_app/gen/assets.gen.dart` and use
+  the `Assets.<category>.<name>` accessor directly. For SVGs, call `.svg()`; for
+  raster images, call `.image()`.
+- **Example:**
+  ```dart
+  Assets.logos.cataqui.svg(width: 120, height: 120);
+  ```
+- **Facades:** The app does **not** use branded facades like `qui`'s
+  `QuiIcons`/`Qui3d` — access the `Assets` entry point directly.
