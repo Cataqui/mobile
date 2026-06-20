@@ -2,14 +2,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:alchemist/alchemist.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/qui.dart';
+import 'package:qui/gen/fonts.gen.dart';
+import 'package:qui/src/theme/qui_theme.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final isRunningInCi = Platform.environment['CI'] == 'true';
+  await _loadQuiFonts();
 
   return AlchemistConfig.runWithConfig(
     config: AlchemistConfig(
@@ -21,4 +23,20 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
     ),
     run: testMain,
   );
+}
+
+Future<ByteData> _loadFontAsset(String path) async {
+  try {
+    return await rootBundle.load('packages/qui/assets/fonts/$path');
+  } catch (_) {
+    return rootBundle.load('assets/fonts/$path');
+  }
+}
+
+Future<void> _loadQuiFonts() async {
+  final interLoader = FontLoader(FontFamily.inter)
+    ..addFont(_loadFontAsset('inter_variable.ttf'))
+    ..addFont(_loadFontAsset('inter_italic.ttf'));
+
+  await interLoader.load();
 }

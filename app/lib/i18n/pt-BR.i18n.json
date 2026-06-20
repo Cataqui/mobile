@@ -3,6 +3,31 @@
     "name": "Cataquí",
     "tagline": "Oportunidades em tempo real"
   },
+  "feed": {
+    "searchPlaceholder": "Buscar Oportunidades",
+    "loading": "Buscando oportunidades perto de você...",
+    "paginationError": "Não conseguimos buscar mais oportunidades.",
+    "retry": "Tentar novamente",
+    "end": "Você viu todas as oportunidades por enquanto.",
+    "loadingMore": {
+      "title": "Buscando mais pra você...",
+      "error": {
+        "title": "Ops, algo deu errado",
+        "description": "Não acreditamos que isso aconteceu logo agora. Tenta de novo",
+        "retryButtonTitle": "Tentar de novo"
+      }
+    },
+    "error": {
+      "title": "Xiii... Deu erro",
+      "description": "Que estranho, não era pra isso acontecer. Tenta de novo",
+      "retryButtonTitle": "Tentar de novo"
+    },
+    "empty": {
+      "title": "Sem mais oportunidades",
+      "description": "Novas aparecem o tempo todo. Tente novamente mais tarde ou ajuste sua área de interesse.",
+      "adjustAreaButtonTitle": "Ajustar minha área"
+    }
+  },
   "jobPayment": {
     "paymentFlexible": "A Combinar",
     "paymentFixed": "{value: String}{period: String}",
