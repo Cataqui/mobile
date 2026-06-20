@@ -36,6 +36,36 @@ void main() {
               ),
             ),
           ),
+          GoldenTestScenario(
+            name: 'expanded full width',
+            child: ProviderScope(
+              child: SizedBox(
+                width: 360,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: FeedJobCard(feedJob: FeedJobDto.fixture(), onTap: () async {}),
+                ),
+              ),
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'expanded minimal content',
+            child: ProviderScope(
+              child: SizedBox(
+                width: 360,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: FeedJobCard(
+                    feedJob: FeedJobDto.fixture().copyWith(
+                      title: 'Ajudante',
+                      descriptionSummary: 'Rápido.',
+                    ),
+                    onTap: () async {},
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -24,6 +24,7 @@ class FeedJobCard extends ConsumerWidget {
       },
       child: Container(
         padding: const EdgeInsets.all(24),
+        width: double.infinity,
         decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(38)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
