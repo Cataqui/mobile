@@ -158,13 +158,34 @@ class _FeedViewState extends ConsumerState<FeedView> {
               revolutionDuration: const Duration(milliseconds: 5000),
               radius: 70,
               items: [
-                QuiOrbitItem(child: Qui3d.brush.image(), size: const Size(50, 50)),
-                QuiOrbitItem(child: Qui3d.hammer.image(), size: const Size(50, 50)),
-                QuiOrbitItem(child: Qui3d.ladder.image(), size: const Size(50, 50)),
-                QuiOrbitItem(child: Qui3d.motorcycle.image(), size: const Size(50, 50)),
-                QuiOrbitItem(child: Qui3d.shoppingCart.image(), size: const Size(50, 50)),
-                QuiOrbitItem(child: Qui3d.smallTruck.image(), size: const Size(50, 50)),
-                QuiOrbitItem(child: Qui3d.toolBox.image(), size: const Size(43, 43)),
+                QuiOrbitItem(
+                  child: Qui3d.brush.image(color: context.qui.colors.ghost),
+                  size: const Size(50, 50),
+                ),
+                QuiOrbitItem(
+                  child: Qui3d.hammer.image(color: context.qui.colors.ghost),
+                  size: const Size(50, 50),
+                ),
+                QuiOrbitItem(
+                  child: Qui3d.ladder.image(color: context.qui.colors.ghost),
+                  size: const Size(50, 50),
+                ),
+                QuiOrbitItem(
+                  child: Qui3d.motorcycle.image(color: context.qui.colors.ghost),
+                  size: const Size(50, 50),
+                ),
+                QuiOrbitItem(
+                  child: Qui3d.shoppingCart.image(color: context.qui.colors.ghost),
+                  size: const Size(50, 50),
+                ),
+                QuiOrbitItem(
+                  child: Qui3d.smallTruck.image(color: context.qui.colors.ghost),
+                  size: const Size(50, 50),
+                ),
+                QuiOrbitItem(
+                  child: Qui3d.toolBox.image(color: context.qui.colors.ghost),
+                  size: const Size(43, 43),
+                ),
               ],
             ),
             const Spacer(),
