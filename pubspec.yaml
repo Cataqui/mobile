@@ -102,10 +102,12 @@ melos:
     i18n:configure:
       description: Sync native locale configs (iOS/Android) with translation files
       run: melos exec --scope=app -- fvm dart run slang configure
+      packageFilters:
+        dirExists: lib/i18n
 
     gen:all:
       description: Run code generation across the workspace
-      run: fvm dart run build_runner build --workspace && melos run i18n:configure
+      run: fvm dart run build_runner build --workspace && melos run gen:i18n && melos run i18n:configure
 
     gen:all:watch:
       description: Watch and regenerate code across the workspace
@@ -118,6 +120,7 @@ melos:
         concurrency: 1
       packageFilters:
         depends-on: slang_build_runner
+        dirExists: lib/i18n
 
     gen:
       description: Run code generation for selected packages (interactive)
