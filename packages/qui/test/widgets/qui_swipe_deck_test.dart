@@ -765,6 +765,23 @@ void main() {
         expect(find.text('first:1'), findsOneWidget);
       },
     );
+
+    testWidgets('when the next card becomes current after a dismiss, it should not recreate the card widget', (
+      tester,
+    ) async {
+      final creations = <String>[];
+
+      await _pumpTypedSwipeList<String>(
+        tester,
+        items: const ['first', 'second', 'third'],
+        builder: (context, item, index) => _CreationTrackingCard(label: item, onCreate: creations.add),
+      );
+      creations.clear();
+
+      await _dragCard(tester, 'first', const Offset(-180, 0));
+
+      expect(creations, isNot(contains('second')));
+    });
   });
 
   group('QuiSwipeDeck reduced motion', () {
@@ -1004,121 +1021,103 @@ void main() {
 
   group('QuiSwipeDeck haptic feedback', () {
     testWidgets('when dragging the card, it should emit haptic feedback', (tester) async {
-    final hapticCalls = <MethodCall>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
         if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
         return null;
-      },
-    );
+      });
 
-    await _pumpSwipeList(tester);
+      await _pumpSwipeList(tester);
 
-    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
-    await tester.pumpAndSettle();
+      await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+      await tester.pumpAndSettle();
 
-    expect(hapticCalls, isNotEmpty);
-  });
+      expect(hapticCalls, isNotEmpty);
+    });
 
-  testWidgets('when dragging the card continuously, it should emit more than one haptic', (tester) async {
-    final hapticCalls = <MethodCall>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) {
+    testWidgets('when dragging the card continuously, it should emit more than one haptic', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
         if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
         return null;
-      },
-    );
+      });
 
-    await _pumpSwipeList(tester);
+      await _pumpSwipeList(tester);
 
-    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
-    await tester.pumpAndSettle();
+      await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+      await tester.pumpAndSettle();
 
-    expect(hapticCalls.length, greaterThan(1));
-  });
+      expect(hapticCalls.length, greaterThan(1));
+    });
 
-  testWidgets('when dragging, it should use the lightImpact haptic type', (tester) async {
-    final hapticCalls = <MethodCall>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) {
+    testWidgets('when dragging, it should use the lightImpact haptic type', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
         if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
         return null;
-      },
-    );
+      });
 
-    await _pumpSwipeList(tester);
+      await _pumpSwipeList(tester);
 
-    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
-    await tester.pumpAndSettle();
+      await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+      await tester.pumpAndSettle();
 
-    expect(hapticCalls.first.arguments, 'HapticFeedbackType.lightImpact');
-  });
+      expect(hapticCalls.first.arguments, 'HapticFeedbackType.lightImpact');
+    });
 
-  testWidgets('when enableHapticFeedback is false, it should not emit haptic feedback', (tester) async {
-    final hapticCalls = <MethodCall>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) {
+    testWidgets('when enableHapticFeedback is false, it should not emit haptic feedback', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
         if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
         return null;
-      },
-    );
+      });
 
-    await _pumpSwipeList(tester, enableHapticFeedback: false);
+      await _pumpSwipeList(tester, enableHapticFeedback: false);
 
-    await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
-    await tester.pumpAndSettle();
+      await tester.drag(find.byType(GestureDetector), const Offset(200, 0));
+      await tester.pumpAndSettle();
 
-    expect(hapticCalls, isEmpty);
-  });
+      expect(hapticCalls, isEmpty);
+    });
 
-  testWidgets('when a controller dismiss is triggered, it should not emit haptic feedback', (tester) async {
-    final hapticCalls = <MethodCall>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) {
+    testWidgets('when a controller dismiss is triggered, it should not emit haptic feedback', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
         if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
         return null;
-      },
-    );
+      });
 
-    final controller = QuiSwipeDeckController();
+      final controller = QuiSwipeDeckController();
 
-    await _pumpSwipeList(tester, controller: controller);
-    final dismissFuture = controller.dismiss();
-    await tester.pumpAndSettle();
-    await dismissFuture;
+      await _pumpSwipeList(tester, controller: controller);
+      final dismissFuture = controller.dismiss();
+      await tester.pumpAndSettle();
+      await dismissFuture;
 
-    expect(hapticCalls, isEmpty);
-  });
+      expect(hapticCalls, isEmpty);
+    });
 
-  testWidgets('when dragging back toward center, it should emit haptic feedback for the reverse motion', (
-    tester,
-  ) async {
-    final hapticCalls = <MethodCall>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) {
+    testWidgets('when dragging back toward center, it should emit haptic feedback for the reverse motion', (
+      tester,
+    ) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
         if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
         return null;
-      },
-    );
+      });
 
-    await _pumpSwipeList(tester);
+      await _pumpSwipeList(tester);
 
-    final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
-    await gesture.moveBy(const Offset(200, 0));
-    await tester.pump();
-    hapticCalls.clear();
-    await gesture.moveBy(const Offset(-200, 0));
-    await tester.pump();
-    await gesture.up();
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+      await gesture.moveBy(const Offset(200, 0));
+      await tester.pump();
+      hapticCalls.clear();
+      await gesture.moveBy(const Offset(-200, 0));
+      await tester.pump();
+      await gesture.up();
 
-    expect(hapticCalls, isNotEmpty);
-  });
+      expect(hapticCalls, isNotEmpty);
+    });
   });
 }
 
@@ -1234,9 +1233,9 @@ String _currentCardLabel(WidgetTester tester) {
     of: find.byType(QuiSwipeDeck<String>),
     matching: find.byType(GestureDetector),
   );
-  final text = tester.widget<Text>(find.descendant(of: activeGestureDetector, matching: find.byType(Text)));
+  final texts = tester.widgetList<Text>(find.descendant(of: activeGestureDetector, matching: find.byType(Text)));
 
-  return text.data ?? '';
+  return texts.last.data ?? '';
 }
 
 Widget _defaultCardBuilder(BuildContext context, String item, int index) {
@@ -1447,6 +1446,34 @@ class _StatefulCardState extends State<_StatefulCard> {
         onPressed: () => setState(() => _count += 1),
         child: Text('${widget.label}:$_count'),
       ),
+    );
+  }
+}
+
+class _CreationTrackingCard extends StatefulWidget {
+  const _CreationTrackingCard({required this.label, required this.onCreate});
+
+  final String label;
+  final void Function(String label) onCreate;
+
+  @override
+  State<_CreationTrackingCard> createState() => _CreationTrackingCardState();
+}
+
+class _CreationTrackingCardState extends State<_CreationTrackingCard> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onCreate(widget.label);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: _cardKey(widget.label),
+      alignment: Alignment.center,
+      color: Colors.white,
+      child: Text(widget.label),
     );
   }
 }

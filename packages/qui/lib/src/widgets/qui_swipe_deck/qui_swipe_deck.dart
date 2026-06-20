@@ -400,50 +400,69 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
         final hasNextItem = nextIndex < widget.itemCount;
         final nextScale = 0.96 + (0.04 * progress);
         final nextOpacity = 0.72 + (0.28 * progress);
-        final currentItem = widget.itemProvider(_currentIndex);
         final paginationCard = _buildPaginationCard(context);
 
         _scheduleLoadMoreIfNeeded();
 
-        return Stack(
-          fit: StackFit.expand,
-          alignment: Alignment.center,
-          children: [
-            if (hasNextItem)
-              Transform.scale(
-                scale: nextScale,
-                child: Opacity(
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onPanStart: _onPanStart,
+          onPanUpdate: _onPanUpdate,
+          onPanEnd: _onPanEnd,
+          child: Stack(
+            fit: StackFit.expand,
+            alignment: Alignment.center,
+            children: [
+              if (hasNextItem)
+                _positionedCard(
+                  index: nextIndex,
+                  scale: nextScale,
+                  translate: Offset.zero,
+                  rotate: 0,
                   opacity: nextOpacity,
-                  child: KeyedSubtree(
-                    key: ValueKey('qui_swipe_deck_next_$nextIndex'),
-                    child: widget.builder(context, widget.itemProvider(nextIndex), nextIndex),
-                  ),
+                )
+              else if (paginationCard != null)
+                Transform.scale(
+                  scale: nextScale,
+                  child: Opacity(opacity: nextOpacity, child: paginationCard),
                 ),
+              _positionedCard(
+                index: _currentIndex,
+                scale: 1,
+                translate: _dragOffset,
+                rotate: _rotationForDrag(progress),
+                opacity: 1,
               ),
-            if (!hasNextItem && paginationCard != null)
-              Transform.scale(
-                scale: nextScale,
-                child: Opacity(opacity: nextOpacity, child: paginationCard),
-              ),
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onPanStart: _onPanStart,
-              onPanUpdate: _onPanUpdate,
-              onPanEnd: _onPanEnd,
-              child: Transform.translate(
-                offset: _dragOffset,
-                child: Transform.rotate(
-                  angle: _rotationForDrag(progress),
-                  child: KeyedSubtree(
-                    key: ValueKey('qui_swipe_deck_current_$_currentIndex'),
-                    child: widget.builder(context, currentItem, _currentIndex),
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         );
       },
+    );
+  }
+
+  Widget _positionedCard({
+    required int index,
+    required double scale,
+    required Offset translate,
+    required double rotate,
+    required double opacity,
+  }) {
+    return Transform.scale(
+      key: ValueKey('qui_swipe_deck_slot_$index'),
+      scale: scale,
+      child: Transform.translate(
+        offset: translate,
+        child: Transform.rotate(
+          angle: rotate,
+          child: Opacity(
+            opacity: opacity,
+            child: KeyedSubtree(
+              key: ValueKey('qui_swipe_deck_card_$index'),
+              child: widget.builder(context, widget.itemProvider(index), index),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
