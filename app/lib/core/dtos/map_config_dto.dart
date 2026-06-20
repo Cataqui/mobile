@@ -4,16 +4,19 @@ part 'map_config_dto.freezed.dart';
 part 'map_config_dto.g.dart';
 
 @freezed
-abstract class MapConfigDto with _$MapConfigDto {
+sealed class MapConfigDto with _$MapConfigDto {
   const factory MapConfigDto({
     @JsonKey(name: 'query_params') required String queryParams,
     @JsonKey(name: 'expires_at') required DateTime expiresAt,
     @JsonKey(name: 'map_version') required String mapVersion,
     @JsonKey(name: 'tiles_url_template') required String tilesUrlTemplate,
     @JsonKey(name: 'glyph_url_template') required String glyphUrlTemplate,
+    required String fontstack,
     @Default(0) @JsonKey(name: 'tile_min_zoom') num tileMinZoom,
     @Default(14) @JsonKey(name: 'tile_max_zoom') num tileMaxZoom,
   }) = _MapConfigDto;
+
+  const MapConfigDto._();
 
   factory MapConfigDto.fromJson(Map<String, Object?> json) => _$MapConfigDtoFromJson(json);
 
@@ -23,7 +26,19 @@ abstract class MapConfigDto with _$MapConfigDto {
     mapVersion: '1.0.0',
     tilesUrlTemplate: 'https://tiles.cataqui.dev/v1/{z}/{x}/{y}.png',
     glyphUrlTemplate: 'https://tiles.cataqui.dev/v1/glyphs/{fontstack}/{range}.pbf',
+    fontstack: 'inter',
     tileMinZoom: 0,
     tileMaxZoom: 16,
   );
+
+  String get authenticatedTileUrl => _appendQueryParams(tilesUrlTemplate);
+  String get authenticatedGlyphUrl => _appendQueryParams(glyphUrlTemplate);
+
+  String _appendQueryParams(String urlTemplate) {
+    if (queryParams.isEmpty) return urlTemplate;
+
+    final separator = urlTemplate.contains('?') ? '&' : '?';
+
+    return '$urlTemplate$separator$queryParams';
+  }
 }
