@@ -1,8 +1,8 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
-import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
+import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/widgets/feed_job_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,13 +63,13 @@ void main() {
         expect(find.text('Experiente em atendimento ao cliente.'), findsOneWidget);
       });
 
-      testWidgets('when created, the card should have 24px border radius', (tester) async {
+      testWidgets('when created, the card should have 38px border radius', (tester) async {
         await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
 
         final container = tester.widget<Container>(find.byType(Container).first);
         final decoration = container.decoration! as BoxDecoration;
 
-        expect(decoration.borderRadius, equals(BorderRadius.circular(24)));
+        expect(decoration.borderRadius, equals(BorderRadius.circular(38)));
       });
 
       testWidgets('when created, the title should use semi-bold weight', (tester) async {

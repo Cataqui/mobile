@@ -23,8 +23,8 @@ class FeedJobCard extends ConsumerWidget {
         await onTap();
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(24)),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(38)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
