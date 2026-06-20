@@ -16,6 +16,7 @@ Cataquí is the real-time opportunity layer of the city: a fast, frictionless, h
 - **Hyperlocal:** Geographically sorted, contextualized for the streets of São Paulo.
 - **Frictionless Loop:** Post an opportunity $\rightarrow$ Discover in feed $\rightarrow$ Tap Direct WhatsApp Contact.
 - **Non-Corporate Brand:** Feels trustworthy, authentic, local, and premium—never look or behave like enterprise HR software, staffing ERPs, or corporate applicant tracking systems (ATS).
+- **Mass-Market by Default:** Cataquí is built for the masses — every line of code must prioritize broad device coverage across Latin America, where low-end devices dominate. Every architectural decision, dependency, animation, layout, and feature must be optimized to run well on low-end hardware, not just flagship phones. If a feature cannot be delivered performantly on low-end devices, it must be rethought or cut.
 
 ---
 
@@ -90,7 +91,7 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 ### One Implementation Class Per File
 
-Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established `qui_location_radius_map` folder structure.
+Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. The only exception is Flutter `StatefulWidget` / `ConsumerStatefulWidget` pairs: the main widget class and its private `_*State` class must always stay in the same file. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established `qui_location_radius_map` folder structure.
 
 ### Constants Local to Widgets
 
@@ -100,7 +101,7 @@ Every source file must contain **at most one** implementation class (a class wit
 
 - **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility `ConsumerWidget` or `HookConsumerWidget` components.
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
-- **Widget Method Ordering:** In Flutter widget classes, place standalone helper methods above `build`. Helper methods whose purpose is to build widget subtrees may stay below `build`.
+- **Widget Method Ordering:** In Flutter widget classes, place helper methods that do not return widgets above `build`. Helper methods that return widgets must stay below `build`.
 
 ---
 
@@ -270,3 +271,4 @@ When executing modifications inside this repository as an AI agent, you must str
 5.  **No Silent Contracts:** Never modify, rename, or delete public API boundaries, core Riverpod provider definitions, or common data model interfaces without analyzing downstream impacts across the entire monorepo workspace.
 6.  **Fail Safely:** If a structural change cannot be safely implemented within these parameters, immediately halt execution, document the exact technical roadblock, and explicitly state the architectural trade-offs required to move forward.
 7.  **README Sync:** The `README.md` at the project root is the authoritative source of project requirements (prerequisites, setup, scripts). Whenever you modify tooling, dependencies, setup steps, or any requirement that affects onboarding, you **must** update both `README.md` and `AGENTS.md` to stay in sync.
+8.  **Low-End Device Gate:** Before implementing any request from the human, analyze whether the proposed solution will work performantly on low-end devices (2-4GB RAM, older SoCs, 60Hz displays common in Latin America). If the approach would only work well on high-end flagship devices, **stop** and warn the human explicitly, explaining why it fails on low-end hardware and suggesting alternatives. Every feature must work well on low-end devices first — top-end device support is a baseline, not a ceiling.
