@@ -17,6 +17,10 @@ import 'package:vector_graphics/vector_graphics.dart' as _vg;
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
+  /// File path: assets/icons/arrow_rotate_clockwise.svg
+  SvgGenImage get arrowRotateClockwise =>
+      const SvgGenImage('assets/icons/arrow_rotate_clockwise.svg');
+
   /// File path: assets/icons/chevron_down.svg
   SvgGenImage get chevronDown =>
       const SvgGenImage('assets/icons/chevron_down.svg');
@@ -31,8 +35,18 @@ class $AssetsIconsGen {
   /// File path: assets/icons/map_pin.svg
   SvgGenImage get mapPin => const SvgGenImage('assets/icons/map_pin.svg');
 
+  /// File path: assets/icons/wrench.svg
+  SvgGenImage get wrench => const SvgGenImage('assets/icons/wrench.svg');
+
   /// List of all assets
-  List<SvgGenImage> get values => [chevronDown, cross, magnifierGlass, mapPin];
+  List<SvgGenImage> get values => [
+    arrowRotateClockwise,
+    chevronDown,
+    cross,
+    magnifierGlass,
+    mapPin,
+    wrench,
+  ];
 }
 
 class $AssetsThreeDGen {
@@ -44,11 +58,27 @@ class $AssetsThreeDGen {
   /// File path: assets/three_d/brush.webp
   AssetGenImage get brush => const AssetGenImage('assets/three_d/brush.webp');
 
+  /// File path: assets/three_d/empty_city_sao_paulo.webp
+  AssetGenImage get emptyCitySaoPaulo =>
+      const AssetGenImage('assets/three_d/empty_city_sao_paulo.webp');
+
   /// File path: assets/three_d/hammer.webp
   AssetGenImage get hammer => const AssetGenImage('assets/three_d/hammer.webp');
 
   /// File path: assets/three_d/ladder.webp
   AssetGenImage get ladder => const AssetGenImage('assets/three_d/ladder.webp');
+
+  /// File path: assets/three_d/location_pin_front.webp
+  AssetGenImage get locationPinFront =>
+      const AssetGenImage('assets/three_d/location_pin_front.webp');
+
+  /// File path: assets/three_d/location_pin_resting.webp
+  AssetGenImage get locationPinResting =>
+      const AssetGenImage('assets/three_d/location_pin_resting.webp');
+
+  /// File path: assets/three_d/location_pin_resting_cracked.webp
+  AssetGenImage get locationPinRestingCracked =>
+      const AssetGenImage('assets/three_d/location_pin_resting_cracked.webp');
 
   /// File path: assets/three_d/motorcycle.webp
   AssetGenImage get motorcycle =>
@@ -66,16 +96,25 @@ class $AssetsThreeDGen {
   AssetGenImage get toolBox =>
       const AssetGenImage('assets/three_d/tool_box.webp');
 
+  /// File path: assets/three_d/work_items_mess.webp
+  AssetGenImage get workItemsMess =>
+      const AssetGenImage('assets/three_d/work_items_mess.webp');
+
   /// List of all assets
   List<AssetGenImage> get values => [
     box,
     brush,
+    emptyCitySaoPaulo,
     hammer,
     ladder,
+    locationPinFront,
+    locationPinResting,
+    locationPinRestingCracked,
     motorcycle,
     shoppingCart,
     smallTruck,
     toolBox,
+    workItemsMess,
   ];
 }
 
