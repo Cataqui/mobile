@@ -6,10 +6,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
-
 import 'package:qui/src/theme/qui_theme.dart';
 
 part 'qui_swipe_deck_action.dart';
+part 'qui_swipe_deck_card_drag_state.dart';
 part 'qui_swipe_deck_controller.dart';
 part 'qui_swipe_deck_types.dart';
 
@@ -130,6 +130,9 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
   bool _isLoadMoreScheduled = false;
   bool _isControllerActionRunning = false;
   int _lastHapticStep = -1;
+  final ValueNotifier<_QuiSwipeDeckCardDragState> _dragStateNotifier = ValueNotifier<_QuiSwipeDeckCardDragState>(
+    const _QuiSwipeDeckCardDragState(offset: Offset.zero, action: QuiSwipeDeckAction.dismiss, currentIndex: 0),
+  );
 
   bool get _hasCurrentItem => _currentIndex < widget.itemCount;
   bool get _hasLoadMoreError => widget.buildLoadMoreError != null;
@@ -140,6 +143,7 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
     _animationController = AnimationController(vsync: this, duration: _settleDuration)
       ..addListener(_syncAnimatedPosition);
     widget.controller?._attach(this);
+    _scheduleLoadMoreIfNeeded();
   }
 
   @override
@@ -154,10 +158,19 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
     if (_currentIndex > widget.itemCount) {
       _currentIndex = widget.itemCount;
       _dragOffset = Offset.zero;
+      _dragStateNotifier.value = _QuiSwipeDeckCardDragState(
+        offset: Offset.zero,
+        action: _lastAction,
+        currentIndex: _currentIndex,
+      );
     }
 
     if (widget.itemCount > oldWidget.itemCount || widget.itemCount > (_exhaustedItemCount ?? -1)) {
       _exhaustedItemCount = null;
+    }
+
+    if (widget.itemCount != oldWidget.itemCount) {
+      _scheduleLoadMoreIfNeeded();
     }
   }
 
@@ -168,6 +181,8 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
     _animationController
       ..removeListener(_syncAnimatedPosition)
       ..dispose();
+
+    _dragStateNotifier.dispose();
 
     super.dispose();
   }
@@ -242,6 +257,12 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
       _dragOffset = Offset.zero;
     });
 
+    _dragStateNotifier.value = _QuiSwipeDeckCardDragState(
+      offset: Offset.zero,
+      action: _lastAction,
+      currentIndex: _currentIndex,
+    );
+
     widget.onDismiss?.call(item, itemIndex);
     _scheduleLoadMoreIfNeeded();
   }
@@ -276,16 +297,16 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
         : QuiSwipeDeckAction.dismiss;
 
     _lastAction = action;
-
-    setState(() => _dragOffset = value);
+    _dragOffset = value;
+    _dragStateNotifier.value = _QuiSwipeDeckCardDragState(offset: value, action: action, currentIndex: _currentIndex);
 
     widget.onSwipeProgress?.call(action: action, percentage: _horizontalPercentage(value.dx));
   }
 
   double _horizontalPercentage(double horizontalOffset) => (horizontalOffset.abs() / _lastKnownWidth).clamp(0, 1);
 
-  double _rotationForDrag(double progress) {
-    final direction = switch (_lastAction) {
+  double _rotationForDrag(QuiSwipeDeckAction action, double progress) {
+    final direction = switch (action) {
       QuiSwipeDeckAction.dismiss => -1,
       QuiSwipeDeckAction.accept => 1,
     };
@@ -395,45 +416,38 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
             ? constraints.maxWidth
             : MediaQuery.sizeOf(context).width;
 
-        final progress = _horizontalPercentage(_dragOffset.dx);
         final nextIndex = _currentIndex + 1;
         final hasNextItem = nextIndex < widget.itemCount;
-        final nextScale = 0.96 + (0.04 * progress);
-        final nextOpacity = 0.72 + (0.28 * progress);
         final paginationCard = _buildPaginationCard(context);
-
-        _scheduleLoadMoreIfNeeded();
 
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onPanStart: _onPanStart,
           onPanUpdate: _onPanUpdate,
           onPanEnd: _onPanEnd,
-          child: Stack(
-            fit: StackFit.expand,
-            alignment: Alignment.center,
-            children: [
-              if (hasNextItem)
-                _positionedCard(
-                  index: nextIndex,
-                  scale: nextScale,
-                  translate: Offset.zero,
-                  rotate: 0,
-                  opacity: nextOpacity,
-                )
-              else if (paginationCard != null)
-                Transform.scale(
-                  scale: nextScale,
-                  child: Opacity(opacity: nextOpacity, child: paginationCard),
-                ),
-              _positionedCard(
-                index: _currentIndex,
-                scale: 1,
-                translate: _dragOffset,
-                rotate: _rotationForDrag(progress),
-                opacity: 1,
-              ),
-            ],
+          child: ValueListenableBuilder<_QuiSwipeDeckCardDragState>(
+            valueListenable: _dragStateNotifier,
+            builder: (context, state, child) {
+              final progress = _horizontalPercentage(state.offset.dx);
+              final nextScale = 0.96 + (0.04 * progress);
+
+              return Stack(
+                fit: StackFit.expand,
+                alignment: Alignment.center,
+                children: [
+                  if (hasNextItem)
+                    _positionedCard(index: nextIndex, scale: nextScale, translate: Offset.zero, rotate: 0)
+                  else if (paginationCard != null)
+                    Transform.scale(scale: nextScale, child: paginationCard),
+                  _positionedCard(
+                    index: state.currentIndex,
+                    scale: 1,
+                    translate: state.offset,
+                    rotate: _rotationForDrag(state.action, progress),
+                  ),
+                ],
+              );
+            },
           ),
         );
       },
@@ -445,22 +459,20 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
     required double scale,
     required Offset translate,
     required double rotate,
-    required double opacity,
   }) {
-    return Transform.scale(
+    final transformMatrix = Matrix4.identity()
+      ..scaleByDouble(scale, scale, 1, 1)
+      ..translateByDouble(translate.dx, translate.dy, 0, 1)
+      ..rotateZ(rotate);
+
+    return RepaintBoundary(
       key: ValueKey('qui_swipe_deck_slot_$index'),
-      scale: scale,
-      child: Transform.translate(
-        offset: translate,
-        child: Transform.rotate(
-          angle: rotate,
-          child: Opacity(
-            opacity: opacity,
-            child: KeyedSubtree(
-              key: ValueKey('qui_swipe_deck_card_$index'),
-              child: widget.builder(context, widget.itemProvider(index), index),
-            ),
-          ),
+      child: Transform(
+        transform: transformMatrix,
+        alignment: Alignment.center,
+        child: KeyedSubtree(
+          key: ValueKey('qui_swipe_deck_card_$index'),
+          child: widget.builder(context, widget.itemProvider(index), index),
         ),
       ),
     );
