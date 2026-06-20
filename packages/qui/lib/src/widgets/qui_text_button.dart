@@ -62,7 +62,10 @@ class _QuiTextButtonState extends State<QuiTextButton> {
     final colors = context.qui.colors;
     final resolvedColor = _isEnabled ? widget.color ?? colors.textPrimary : colors.placeholder;
 
-    Widget content = Text(widget.text, style: TextStyle(fontSize: 18, color: resolvedColor));
+    Widget content = Text(
+      widget.text,
+      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: resolvedColor),
+    );
 
     final iconState = QuiTextButtonIconState(isEnabled: _isEnabled, recommendedIconColor: resolvedColor);
     final hasLeading = widget.leadingIconBuilder != null;
