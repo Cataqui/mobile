@@ -65,3 +65,85 @@ This inherits the correct `runBuild()` from `_$FeedState` while letting us overr
 Also: `extends Mock implements FeedState {}` (without `_$FeedState`) won't work — the Riverpod framework needs the real `state`/`ref`/`runBuild()` from the base class hierarchy, which only `extends FeedState` (→ `_$FeedState`) provides.
 
 This is the **only** exception to Rule 1. Any future `Fake*` class must be justified by the same constraint (inaccessible generated base class).
+
+## 6. One Golden File Per Golden Test
+
+Each golden test must produce **exactly one** golden image file. Do not use multi-scenario `groupId` grouping that writes multiple goldens from a single `goldenTest` invocation. If a widget has multiple states, write separate `goldenTest` blocks — one per state, each with its own descriptive name and a single `pumpWidget` + `screenMatchesGolden`.
+
+```dart
+// Correct — one golden per test
+goldenTest('when loaded, it should render the feed with job cards',
+    (tester) async {
+  await tester.pumpWidget(...);
+  await screenMatchesGolden(tester, 'feed_view_loaded');
+});
+
+goldenTest('when empty, it should render the empty state message',
+    (tester) async {
+  await tester.pumpWidget(...);
+  await screenMatchesGolden(tester, 'feed_view_empty');
+});
+```
+
+```dart
+// Incorrect — do NOT group multiple states in one goldenTest
+goldenTest('feed view states', (tester) async {
+  await tester.pumpWidget(loaded);
+  await screenMatchesGolden(tester, 'feed_view_loaded');
+  // ... then re-pump for empty, error, etc. → multiple goldens in one test
+});
+```
+
+## 7. Screen-State Coverage Matrix
+
+Every screen must have a golden test for **every distinct visual state** it can render. The minimum set is:
+
+| State        | When to test                                             |
+| ------------ | -------------------------------------------------------- |
+| `loading`    | Initial async loading spinner or skeleton                |
+| `loaded`     | Happy path with realistic content                        |
+| `empty`      | Zero results but no error (e.g., "Nenhuma oportunidade") |
+| `error`      | Network or server failure with retry UI                  |
+| `refreshing` | Pull-to-refresh or silent background refresh indicator   |
+
+Additional states (e.g., `focused`, `disabled`, `selected`, `frosted`) must also be covered when the screen supports them.
+
+```dart
+goldenTest('when loading, it should show shimmer placeholders',
+    (tester) async { ... });
+
+goldenTest('when loaded, it should render opportunity cards',
+    (tester) async { ... });
+
+goldenTest('when empty, it should show the no-results illustration',
+    (tester) async { ... });
+
+goldenTest('when error, it should show the error state with retry',
+    (tester) async { ... });
+```
+
+State coverage applies to all screens, every component that changes appearance based on state must have full golden coverage.
+
+## 8. Real Interactions in Golden Tests
+
+Prefer driving real user interactions (`tester.tap`, `tester.drag`, `tester.enterText`, `tester.pumpAndSettle`) over stubbing intermediate states. This catches usability bugs — not just visual regressions:
+
+```dart
+// ✅ Prefer this — simulate real navigation flow
+goldenTest('when tapping a job card, it should navigate to the detail screen',
+    (tester) async {
+  await tester.pumpWidget(createApp());
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Descarregar Caminhão'));
+  await tester.pumpAndSettle();
+  await screenMatchesGolden(tester, 'job_detail_loaded');
+});
+
+// ❌ Avoid this — bypasses navigation, misses transition bugs
+goldenTest('job detail loaded state', (tester) async {
+  await tester.pumpWidget(createApp(initialRoute: '/job/123'));
+  await screenMatchesGolden(tester, 'job_detail_loaded');
+});
+```
+
+Exceptions are permitted when the interaction requires an external dependency that cannot be simulated (e.g., camera, biometrics, push notification opt-in). Document the exception in the test description.
