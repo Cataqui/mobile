@@ -408,8 +408,6 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasCurrentItem) return _buildTerminalCard(context);
-
     return LayoutBuilder(
       builder: (context, constraints) {
         _lastKnownWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
@@ -418,13 +416,14 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
 
         final nextIndex = _currentIndex + 1;
         final hasNextItem = nextIndex < widget.itemCount;
-        final paginationCard = _buildPaginationCard(context);
+        final paginationCard = _hasCurrentItem ? _buildPaginationCard(context) : null;
+        final terminalCard = _hasCurrentItem ? null : _buildTerminalCard(context);
 
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onPanStart: _onPanStart,
-          onPanUpdate: _onPanUpdate,
-          onPanEnd: _onPanEnd,
+          onPanStart: _hasCurrentItem ? _onPanStart : null,
+          onPanUpdate: _hasCurrentItem ? _onPanUpdate : null,
+          onPanEnd: _hasCurrentItem ? _onPanEnd : null,
           child: ValueListenableBuilder<_QuiSwipeDeckCardDragState>(
             valueListenable: _dragStateNotifier,
             builder: (context, state, child) {
@@ -435,16 +434,19 @@ class _QuiSwipeDeckState<T> extends State<QuiSwipeDeck<T>>
                 fit: StackFit.expand,
                 alignment: Alignment.center,
                 children: [
-                  if (hasNextItem)
-                    _positionedCard(index: nextIndex, scale: nextScale, translate: Offset.zero, rotate: 0)
-                  else if (paginationCard != null)
-                    Transform.scale(scale: nextScale, child: paginationCard),
-                  _positionedCard(
-                    index: state.currentIndex,
-                    scale: 1,
-                    translate: state.offset,
-                    rotate: _rotationForDrag(state.action, progress),
-                  ),
+                  if (_hasCurrentItem) ...[
+                    if (hasNextItem)
+                      _positionedCard(index: nextIndex, scale: nextScale, translate: Offset.zero, rotate: 0)
+                    else if (paginationCard != null)
+                      Transform.scale(scale: nextScale, child: paginationCard),
+                    _positionedCard(
+                      index: state.currentIndex,
+                      scale: 1,
+                      translate: state.offset,
+                      rotate: _rotationForDrag(state.action, progress),
+                    ),
+                  ] else
+                    Transform.scale(scale: 1, child: terminalCard),
                 ],
               );
             },

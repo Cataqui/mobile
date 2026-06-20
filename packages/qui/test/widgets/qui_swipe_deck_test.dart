@@ -992,6 +992,27 @@ void main() {
       expect(find.byKey(_endKey), findsOneWidget);
     });
 
+    testWidgets('when the last card is dismissed while loading more, it should preserve the loading card state across the transition', (
+      tester,
+    ) async {
+      var initStateCallCount = 0;
+
+      await _pumpSwipeList(
+        tester,
+        items: const ['first'],
+        onLoadMore: () => Completer<void>().future,
+        loadingMoreBuilder: (context) => _InitTrackingWidget(onInit: () => initStateCallCount += 1),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(initStateCallCount, 1);
+
+      await _dragCard(tester, 'first', const Offset(-180, 0));
+
+      expect(initStateCallCount, 1);
+    });
+
     testWidgets('when loadMoreThreshold is below 0, it should throw an assertion error', (tester) async {
       expect(
         () => QuiSwipeDeck<String>(
@@ -1493,5 +1514,27 @@ class _CreationTrackingCardState extends State<_CreationTrackingCard> {
       color: Colors.white,
       child: Text(widget.label),
     );
+  }
+}
+
+class _InitTrackingWidget extends StatefulWidget {
+  const _InitTrackingWidget({required this.onInit});
+
+  final VoidCallback onInit;
+
+  @override
+  State<_InitTrackingWidget> createState() => _InitTrackingWidgetState();
+}
+
+class _InitTrackingWidgetState extends State<_InitTrackingWidget> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onInit();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('Loading'));
   }
 }
