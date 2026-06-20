@@ -41,3 +41,4 @@ targets:
           flat_map: true
           timestamp: false
           statistics: true
+          missing_translation_strategy: fail
