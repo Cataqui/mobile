@@ -60,6 +60,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
     this.tileMinZoom = 1,
     this.tileMaxZoom = 14,
     this.zoom,
+    this.offset = Offset.zero,
   }) : assert(location.latitude >= -90 && location.latitude <= 90, 'location.latitude must be between -90 and 90'),
        assert(
          location.longitude >= -180 && location.longitude <= 180,
@@ -69,7 +70,8 @@ class QuiLocationRadiusMap extends StatefulWidget {
        assert(tileMinZoom >= 0, 'tileMinZoom must be greater than or equal to zero'),
        assert(tileMaxZoom > 0, 'tileMaxZoom must be greater than zero'),
        assert(tileMinZoom <= tileMaxZoom, 'tileMinZoom must be less than or equal to tileMaxZoom'),
-       assert(zoom == null || zoom >= tileMinZoom, 'zoom must be greater than or equal to tileMinZoom');
+       assert(zoom == null || zoom >= tileMinZoom, 'zoom must be greater than or equal to tileMinZoom'),
+       assert(offset.isFinite, 'offset must be finite and not NaN');
 
   static const _minimumFitRadiusInMeters = 50.0;
 
@@ -142,6 +144,39 @@ class QuiLocationRadiusMap extends StatefulWidget {
   /// This value must be greater than or equal to [tileMinZoom].
   final double? zoom;
 
+  /// Displacement of the radius circle from the viewport center, in logical
+  /// pixels.
+  ///
+  /// The map camera shifts so that the radius circle (still geographically at
+  /// [location]) renders at `center + offset` on screen. This lets callers
+  /// frame the map with more visible area on one side without moving the
+  /// location anchor itself.
+  ///
+  /// Defaults to `Offset.zero`, which keeps the radius centered.
+  ///
+  /// **Sign convention:**
+  /// - `Offset.zero` — radius at viewport center (default).
+  /// - `+dx` — radius shifts right; more map visible on the left.
+  /// - `+dy` — radius shifts down; more map visible on the top.
+  /// - `-dy` — radius shifts up; more map visible on the bottom.
+  ///
+  /// This value is applied once at build time through the
+  /// `initialCameraPosition`. Changing it after creation has no effect.
+  ///
+  /// ```dart
+  /// QuiLocationRadiusMap(
+  ///   tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+  ///   location: (latitude: -23.55052, longitude: -46.633308),
+  ///   fontConfig: (
+  ///     fontStack: 'Inter Regular',
+  ///     glyphUrlTemplate: 'https://example.com/glyphs/{fontstack}/{range}.pbf',
+  ///   ),
+  ///   radiusInMeters: 500,
+  ///   offset: Offset(0, -40),
+  /// )
+  /// ```
+  final Offset offset;
+
   /// Font stack and glyphs URL for text labels on the map.
   final ({String fontStack, String glyphUrlTemplate}) fontConfig;
 
@@ -206,6 +241,20 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     final latRad = latitude * math.pi / 180;
     final metersPerPixel = earthCircumference * math.cos(latRad).abs() / (256 * math.pow(2, zoom));
     return meters / metersPerPixel;
+  }
+
+  LatLng _cameraTargetForOffset(double zoom) {
+    final offset = widget.offset;
+    if (offset == Offset.zero) return LatLng(widget.location.latitude, widget.location.longitude);
+
+    const tileSize = 256.0;
+    final latRad = widget.location.latitude * math.pi / 180;
+    final cosLat = math.max(math.cos(latRad).abs(), 0.01);
+    final degreesPerPixel = 360.0 / (tileSize * math.pow(2, zoom));
+    return LatLng(
+      widget.location.latitude + offset.dy * degreesPerPixel * cosLat,
+      widget.location.longitude - offset.dx * degreesPerPixel,
+    );
   }
 
   // Required callback signature; cannot be a setter.
@@ -328,7 +377,7 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
           curve: Curves.easeOut,
           child: MapLibreMap(
             initialCameraPosition: CameraPosition(
-              target: LatLng(widget.location.latitude, widget.location.longitude),
+              target: _cameraTargetForOffset(widget.zoom ?? _computedZoom!),
               zoom: widget.zoom ?? _computedZoom!,
             ),
             styleString: _styleJson,
@@ -378,6 +427,36 @@ Widget quiLocationRadiusMapPreview() {
                 glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
               ),
               radiusInMeters: 500,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+@Preview(name: 'QuiLocationRadiusMap with offset', group: 'Maps')
+Widget quiLocationRadiusMapWithOffsetPreview() {
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+    home: Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: SizedBox(
+            height: 220,
+            width: double.infinity,
+            child: QuiLocationRadiusMap(
+              tileUrlTemplate: 'https://tiles.example.com/openmaptiles/{z}/{x}/{y}.mvt',
+              location: const (latitude: -23.55052, longitude: -46.633308),
+              fontConfig: (
+                fontStack: 'Inter Regular',
+                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+              ),
+              radiusInMeters: 500,
+              offset: const Offset(0, -40),
             ),
           ),
         ),
