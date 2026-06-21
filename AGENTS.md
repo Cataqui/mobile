@@ -103,6 +103,37 @@ Every source file must contain **at most one** implementation class (a class wit
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
 - **Widget Method Ordering:** In Flutter widget classes, place helper methods that do not return widgets above `build`. Helper methods that return widgets must stay below `build`.
 
+### Early Returns Over if/else
+
+- Prefer early returns over if/else branches. They reduce nesting and make the non-viable paths immediately visible.
+- if/else chaining should be deeply avoided — it forces the reader to hold all branches in their head to understand each one. Only chain if/else when no cleaner alternative exists (e.g. exhaustive switch over an enum with 3+ cases, or a genuinely unavoidable three-way choice that cannot be decomposed).
+- When a function has a guard clause, return early and avoid wrapping the entire body in an if block:
+
+```dart
+// Good — guard returns early, main path is flat
+void _resumeOrSkipTransition() {
+  if (_phase == QuiWidgetTransitionPhase.idle) return;
+  if (_isDisabled) {
+    _skipToIdle();
+    return;
+  }
+  _animationController.forward();
+}
+```
+
+```dart
+// Avoid — else adds unnecessary nesting
+void _resumeOrSkipTransition() {
+  if (_phase != QuiWidgetTransitionPhase.idle) {
+    if (_isDisabled) {
+      _skipToIdle();
+    } else {
+      _animationController.forward();
+    }
+  }
+}
+```
+
 ---
 
 ## 4. Testing Protocol
