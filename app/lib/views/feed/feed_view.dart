@@ -105,7 +105,9 @@ class _FeedViewState extends ConsumerState<FeedView> {
                   fontConfig: (fontStack: mapConfig.fontstack, glyphUrlTemplate: mapConfig.authenticatedGlyphUrl),
                   tileMinZoom: mapConfig.tileMinZoom.toInt(),
                   tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
-                  zoom: 13.5,
+                  zoom: 12.8,
+                  offset: const Offset(0, 30),
+                  radiusStyle: RadiusStyle(color: Colors.blue.withValues(alpha: 0.2)),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(9),
