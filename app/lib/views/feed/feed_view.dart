@@ -17,6 +17,7 @@ class FeedView extends ConsumerStatefulWidget {
 class _FeedViewState extends ConsumerState<FeedView> {
   final QuiSwipeDeckController _swipeDeckController = QuiSwipeDeckController();
   final cardBorderRadius = BorderRadius.circular(44);
+  final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
 
   Future<void> _openJobDetails() async {}
 
@@ -47,7 +48,6 @@ class _FeedViewState extends ConsumerState<FeedView> {
                   trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
                     colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
                     height: 8,
-                    // width: 16,
                   ),
                   onPressed: () {},
                 ),
@@ -56,10 +56,38 @@ class _FeedViewState extends ConsumerState<FeedView> {
 
             const SizedBox(height: 30),
             Expanded(
-              child: feedState.when(
-                data: (feedData) => _buildFeedContent(context, feedData),
-                error: (error, stackTrace) => _buildInitialError(context, error),
-                loading: () => _buildInitialLoading(context),
+              child: QuiWidgetTransition(
+                builder: (context) => feedState.when(
+                  data: (data) =>
+                      KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
+                  error: (error, st) =>
+                      KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
+                  loading: () =>
+                      KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
+                ),
+                outDuration: const Duration(milliseconds: 600),
+                outTransition: (child, animation) => FadeTransition(
+                  opacity: Tween<double>(begin: 1, end: 0).animate(animation),
+                  child: RepaintBoundary(child: child),
+                ),
+                inDuration: const Duration(milliseconds: 600),
+                inTransition: (child, animation) {
+                  final wrapped = RepaintBoundary(child: child);
+
+                  return feedState.maybeWhen(
+                    data: (_) => FadeTransition(
+                      opacity: _feedInCurve.animate(animation),
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.30),
+                          end: Offset.zero,
+                        ).chain(_feedInCurve).animate(animation),
+                        child: wrapped,
+                      ),
+                    ),
+                    orElse: () => FadeTransition(opacity: _feedInCurve.animate(animation), child: wrapped),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 30),

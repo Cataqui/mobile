@@ -133,6 +133,9 @@ class FeedViewTestHelpers {
         child: buildScope(feedState: feedState, child: const FeedView()),
       ),
     );
+    await tester.pump(); // Microtask resolves, data arrives, exit starts
+    await tester.pump(const Duration(milliseconds: 900)); // Exit completes
+    await tester.pump(); // Enter starts, content renders in tree
   }
 
   static Widget buildFeedViewApp({required FakeFeedState feedState, bool disableAnimations = false}) {
