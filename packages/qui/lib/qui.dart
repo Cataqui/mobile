@@ -45,6 +45,4 @@ export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
 export 'src/widgets/qui_tap_animation.dart' show QuiTapAnimation, QuiTapAnimationType;
 export 'src/widgets/qui_text_button.dart' show QuiTextButton, QuiTextButtonIconBuilder, QuiTextButtonIconState;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
-    show
-        QuiWidgetTransition,
-        QuiWidgetTransitionAnimationBuilder;
+    show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;

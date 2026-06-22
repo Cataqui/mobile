@@ -10,7 +10,11 @@ workspace:
 
 dev_dependencies:
   build_runner: ^2.15.0
-  dart_husky: ^1.4.1
+  # TODO: Update to pub.dev version if released
+  dart_husky:
+    git:
+      url: https://github.com/RyanHolanda/dart_husky.git
+      ref: main
   melos: ^7.8.0
   very_good_analysis: ^7.0.0
 
