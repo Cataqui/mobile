@@ -220,13 +220,5 @@ void main() {
         expect(e.error, isA<OmfOfflineConnectionDioException>().having((o) => o.cause, 'cause', same(originalError)));
       }
     });
-
-    test('when dispose is called, it should dispose the InternetConnection', () async {
-      final interceptor = OmfOfflineErrorDioInterceptor.test(internetConnection: mockConnection);
-
-      await interceptor.dispose();
-
-      verify(() => mockConnection.dispose()).called(1);
-    });
   });
 }

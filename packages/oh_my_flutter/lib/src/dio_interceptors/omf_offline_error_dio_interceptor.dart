@@ -39,11 +39,6 @@ class OmfOfflineErrorDioInterceptor extends Interceptor {
 
   static const _checkTimeout = Duration(seconds: 5);
 
-  /// Releases the [InternetConnection] instance held by this interceptor.
-  Future<void> dispose() async {
-    await _internetConnection.dispose();
-  }
-
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (!_shouldCheckConnectivity(err)) {
