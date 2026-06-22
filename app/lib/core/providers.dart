@@ -6,6 +6,7 @@ import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
@@ -38,9 +39,10 @@ Dio cataquiDio(Ref ref) {
   );
 
   if (appConfig.isDevelopment) {
-    dio.interceptors.add(
+    dio.interceptors.addAll([
       LogInterceptor(requestBody: true, responseBody: true, logPrint: (object) => debugPrint(object.toString())),
-    );
+      OmfOfflineErrorDioInterceptor(),
+    ]);
   }
 
   return dio;

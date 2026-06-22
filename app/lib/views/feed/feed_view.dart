@@ -5,6 +5,7 @@ import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/widgets/feed_job_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 class FeedView extends ConsumerStatefulWidget {
@@ -230,7 +231,16 @@ class _FeedViewState extends ConsumerState<FeedView> {
   }
 
   Widget _buildLoadMoreError(BuildContext context, VoidCallback retry) {
+    final paginationError = ref.read(feedStateProvider).value?.paginationError;
     final i18n = ref.watch(translationProvider);
+
+    if (paginationError.isOmfOfflineConnectionDioException) {
+      return QuiOfflineErrorState(
+        title: i18n.feed.loadingMore.offline.title,
+        description: i18n.feed.loadingMore.offline.description,
+        retry: (label: i18n.feed.loadingMore.offline.retryButtonTitle, onRetry: retry),
+      );
+    }
 
     return Center(
       child: Column(
@@ -334,6 +344,17 @@ class _FeedViewState extends ConsumerState<FeedView> {
 
   Widget _buildInitialError(BuildContext context, Object error) {
     final i18n = ref.watch(translationProvider);
+
+    if (error.isOmfOfflineConnectionDioException) {
+      return QuiOfflineErrorState(
+        title: i18n.feed.offline.title,
+        description: i18n.feed.offline.description,
+        retry: (
+          label: i18n.feed.offline.retryButtonTitle,
+          onRetry: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
+        ),
+      );
+    }
 
     return Center(
       child: Column(

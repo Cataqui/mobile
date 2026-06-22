@@ -45,6 +45,14 @@ void main() {
             ),
           ),
           GoldenTestScenario(
+            name: 'offline',
+            child: _goldenScenario(
+              feedState: FakeFeedState(
+                initialAsyncValue: AsyncError(FeedViewTestHelpers.offlineDioException(), StackTrace.current),
+              ),
+            ),
+          ),
+          GoldenTestScenario(
             name: 'empty',
             child: _goldenScenario(
               feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
@@ -102,6 +110,22 @@ void main() {
       },
       builder: () => _goldenScenario(
         feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataWithPaginationError())),
+      ),
+    );
+
+    goldenTest(
+      'when an offline error occurs loading more jobs after swiping, it should show the offline error state',
+      fileName: 'feed_view_swiped_offline_error_state',
+      whilePerforming: (tester) async {
+        await FeedViewTestHelpers.prepareGoldenCapture(tester: tester, contextFinder: find.byType(MaterialApp));
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+
+        return null;
+      },
+      builder: () => _goldenScenario(
+        feedState: FakeFeedState(
+          initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataWithOfflinePaginationError()),
+        ),
       ),
     );
   });

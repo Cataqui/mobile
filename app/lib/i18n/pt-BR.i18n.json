@@ -9,11 +9,21 @@
     "paginationError": "Não conseguimos buscar mais oportunidades.",
     "retry": "Tentar novamente",
     "end": "Você viu todas as oportunidades por enquanto.",
+    "offline": {
+      "title": "Sem Internet",
+      "description": "Parece que a internet não tá funcionando. Dá uma olhada e tenta de novo",
+      "retryButtonTitle": "Tentar de novo"
+    },
     "loadingMore": {
       "title": "Buscando mais pra você...",
       "error": {
         "title": "Ops, algo deu errado",
         "description": "Não acreditamos que isso aconteceu logo agora. Tenta de novo",
+        "retryButtonTitle": "Tentar de novo"
+      },
+      "offline": {
+        "title": "Sem Internet",
+        "description": "Parece que a internet não tá funcionando. Dá uma olhada e tenta de novo",
         "retryButtonTitle": "Tentar de novo"
       }
     },

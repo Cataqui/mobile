@@ -139,6 +139,68 @@ void main() {
       });
     });
 
+    group('initial offline error', () {
+      testWidgets('when initial error is offline, it should render the QuiOfflineErrorState', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(
+            initialAsyncValue: AsyncError(FeedViewTestHelpers.offlineDioException(), StackTrace.current),
+          ),
+        );
+        await tester.pump();
+        expect(find.byType(QuiOfflineErrorState), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when initial error is offline, it should render the offline title', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(
+            initialAsyncValue: AsyncError(FeedViewTestHelpers.offlineDioException(), StackTrace.current),
+          ),
+        );
+        await tester.pump();
+        expect(find.text(i18n.feed.offline.title), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when initial error is offline, it should render the offline description', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(
+            initialAsyncValue: AsyncError(FeedViewTestHelpers.offlineDioException(), StackTrace.current),
+          ),
+        );
+        await tester.pump();
+        expect(find.text(i18n.feed.offline.description), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when initial error is offline, it should render the offline retry button', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(
+            initialAsyncValue: AsyncError(FeedViewTestHelpers.offlineDioException(), StackTrace.current),
+          ),
+        );
+        await tester.pump();
+        expect(find.text(i18n.feed.offline.retryButtonTitle), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when initial error is offline, it should not render the generic error title', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(
+            initialAsyncValue: AsyncError(FeedViewTestHelpers.offlineDioException(), StackTrace.current),
+          ),
+        );
+        await tester.pump();
+        expect(find.text(i18n.feed.error.title), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+    });
+
     group('data — empty', () {
       testWidgets('when feedData is empty, it should render the empty title', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(

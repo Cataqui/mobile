@@ -69,7 +69,7 @@ melos goldens:update:all     # updates all packages/apps
 This project uses [dart_husky](https://pub.dev/packages/dart_husky) to enforce code quality and commit conventions.
 
 **Hooks run automatically on every commit:**
-- `pre-commit` — runs `melos analyze` (static analysis) and `melos test:no-coverage` (unit tests without coverage). The commit is blocked if either fails.
+- `pre-commit` — runs `melos analyze` (static analysis across all packages) and tests only on packages with staged files (via `preset: melos` with `staged_only: true`). The commit is blocked if either fails.
 - `commit-msg` — validates commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format.
 
 Hooks are automatically installed via `melos setup`. To install manually:

@@ -4,10 +4,12 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 // FakeFeedState exists because _$FeedState (from riverpod_generator) is
@@ -96,6 +98,7 @@ class FeedViewTestHelpers {
       precacheImage(Qui3d.locationPinRestingCracked.provider(), context),
       precacheImage(Qui3d.emptyCitySaoPaulo.provider(), context),
       precacheImage(Qui3d.workItemsMess.provider(), context),
+      precacheImage(Qui3d.wifiExclamation.provider(), context),
     ]);
   }
 
@@ -170,6 +173,17 @@ class FeedViewTestHelpers {
 
   static FeedData feedDataWithPaginationEnd() {
     return feedDataWithJobs(count: 1, hasMore: false);
+  }
+
+  static DioException offlineDioException() {
+    return DioException(
+      requestOptions: RequestOptions(path: '/feed'),
+      error: const OmfOfflineConnectionDioException(message: 'No internet connection'),
+    );
+  }
+
+  static FeedData feedDataWithOfflinePaginationError() {
+    return feedDataWithJobs(count: 1).copyWith(paginationError: offlineDioException());
   }
 
   static Future<void> swipeAwayCurrentJob(WidgetTester tester) async {
