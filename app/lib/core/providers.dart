@@ -22,7 +22,7 @@ AppConfig appConfig(Ref ref) {
 
 @Riverpod(keepAlive: true)
 Dio cataquiDio(Ref ref) {
-  final appConfig = ref.watch(appConfigProvider);
+  final appConfig = ref.read(appConfigProvider);
 
   final dio = Dio(
     BaseOptions(
