@@ -1,5 +1,5 @@
-import 'package:cataqui_core/cataqui_core.dart';
 import 'package:dio/dio.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 /// Thrown when the device has no active internet connection and a network
 /// request cannot be completed.

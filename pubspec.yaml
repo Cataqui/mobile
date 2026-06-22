@@ -5,7 +5,7 @@ environment:
 
 workspace:
   - app
-  - packages/cataqui_core
+  - packages/oh_my_flutter
   - packages/qui
 
 dev_dependencies:
@@ -50,7 +50,7 @@ melos:
       description: Remove all coverage artifacts
       run: |
         rm -rf app/coverage/
-        rm -rf packages/cataqui_core/coverage/
+        rm -rf packages/oh_my_flutter/coverage/
         rm -rf packages/qui/coverage/
 
     coverage:collect:

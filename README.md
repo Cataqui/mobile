@@ -70,7 +70,7 @@ Mobile/
 │   ├── test/
 │   └── pubspec.yaml
 ├── packages/
-│       └── cataqui_core/         # Shared domain logic
+│       └── oh_my_flutter/         # Flutter/Dart superpower utils
 │           ├── lib/
 │           ├── test/
 │           └── pubspec.yaml

@@ -1,6 +1,6 @@
-import 'package:cataqui_core/cataqui_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';

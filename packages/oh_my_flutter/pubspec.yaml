@@ -1,5 +1,5 @@
-name: cataqui_core
-description: Core domain models, types, and constants for the Cataqui platform.
+name: oh_my_flutter
+description: Flutter/Dart superpower utils — extensions, helpers, interceptors, and reusable patterns for everyday Flutter development.
 resolution: workspace
 
 environment:

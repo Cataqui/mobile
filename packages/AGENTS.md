@@ -138,8 +138,8 @@ Every release must be documented in `CHANGELOG.md` following [keepachangelog.com
 Include these fields to make the package discoverable and professional:
 
 ```yaml
-name: cataqui_core
-description: Core domain models, types, and constants for the Cataqui platform.
+name: oh_my_flutter
+description: Flutter/Dart superpower utils — extensions, helpers, and reusable patterns.
 version: 0.1.0
 repository: https://github.com/cataqui/mobile
 issue_tracker: https://github.com/cataqui/mobile/issues
@@ -238,8 +238,8 @@ Declare dependencies using relative `path:` in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  cataqui_core:
-    path: ../cataqui_core
+  oh_my_flutter:
+    path: ../oh_my_flutter
 ```
 
 Before publishing to `pub.dev`, replace `path:` dependencies with proper version constraints.

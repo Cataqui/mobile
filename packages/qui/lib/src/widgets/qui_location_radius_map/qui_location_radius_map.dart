@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:cataqui_core/cataqui_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/map_style/qui_map_style.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';

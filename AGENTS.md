@@ -52,8 +52,8 @@ To maintain absolute structural health across the monorepo, follow these modular
 
 ```yaml
 dependencies:
-  cataqui_core:
-    path: ../cataqui_core
+  oh_my_flutter:
+    path: ../oh_my_flutter
 ```
 
 - **Task Orchestration:** Always execute tasks using the workspace's designated monorepo tool (e.g., **Melos** or specific workspace scripts) when performing multi-package operations.
@@ -311,7 +311,7 @@ Always adopt the direct, real-world vernacular of the street. Explicitly exclude
 When executing modifications inside this repository as an AI agent, you must strictly comply with the following behavior rules:
 
 1.  **Context Enforcement:** This file takes absolute precedence over generic coding preferences, standard global LLM training defaults, or speculative architectural habits.
-2.  **Sub-AGENTS.md Precedence:** Each repo, package, or product directory in this monorepo (e.g., `app/`, `qui/`, `cataqui_core/`) has its own `AGENTS.md`. Their rules **always prevail** over any colliding rule in this root `AGENTS.md`.
+2.  **Sub-AGENTS.md Precedence:** Each repo, package, or product directory in this monorepo (e.g., `app/`, `qui/`, `oh_my_flutter/`) has its own `AGENTS.md`. Their rules **always prevail** over any colliding rule in this root `AGENTS.md`.
 3.  **No Dead Code:** Do not leave commented-out blocks of logic, unused imports, experimental features, or speculative abstractions behind. Every single line of code must serve the immediate objective.
 4.  **Dependency Lockdown:** Do not add external third-party pub packages unless explicitly instructed. Lean heavily on native Flutter/Dart capabilities and the repository's existing technical stack.
 5.  **No Silent Contracts:** Never modify, rename, or delete public API boundaries, core Riverpod provider definitions, or common data model interfaces without analyzing downstream impacts across the entire monorepo workspace.

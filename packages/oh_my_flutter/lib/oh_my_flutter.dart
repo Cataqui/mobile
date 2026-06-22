@@ -1,4 +1,5 @@
-/// Core domain models, types, and constants for the Cataqui platform.
+/// Flutter/Dart superpower utils — extensions, helpers, interceptors, and
+/// reusable patterns for everyday Flutter development.
 library;
 
 export 'src/dio_interceptors/offline_error_dio_interceptor.dart' show OfflineErrorDioInterceptor;

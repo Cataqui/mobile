@@ -9,8 +9,6 @@ environment:
   sdk: ^3.12.0
 
 dependencies:
-  cataqui_core:
-    path: ../packages/cataqui_core
   dio: ^5.9.2
   envied: ^1.3.5
   flutter:
@@ -24,6 +22,8 @@ dependencies:
   go_router: ^14.0.0
   intl: ^0.20.2
   json_annotation: ^4.11.0
+  oh_my_flutter:
+    path: ../packages/oh_my_flutter
   qui:
     path: ../packages/qui
   riverpod_annotation: ^4.0.2
