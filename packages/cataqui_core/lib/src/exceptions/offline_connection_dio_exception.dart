@@ -17,12 +17,12 @@ import 'package:dio/dio.dart';
 ///   }
 /// }
 /// ```
-class OfflineConnectionException implements Exception {
-  /// Creates an [OfflineConnectionException].
+class OfflineConnectionDioException implements Exception {
+  /// Creates an [OfflineConnectionDioException].
   ///
   /// [message] describes the offline condition. [cause] is the original error
   /// that triggered the connectivity check, when available.
-  const OfflineConnectionException({required this.message, this.cause});
+  const OfflineConnectionDioException({required this.message, this.cause});
 
   /// Human-readable description of why the request is considered offline.
   final String message;

@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:meta/meta.dart';
 
-import '../exceptions/offline_connection_exception.dart';
+import '../exceptions/offline_connection_dio_exception.dart';
 
 /// A [Interceptor] that wraps connection-type [DioException]s into a
-/// [DioException] whose [DioException.error] is an [OfflineConnectionException]
+/// [DioException] whose [DioException.error] is an [OfflineConnectionDioException]
 /// whenever a real connectivity check confirms the device is offline.
 ///
 /// ```dart
@@ -88,7 +88,7 @@ class OfflineErrorDioInterceptor extends Interceptor {
       requestOptions: err.requestOptions,
       response: err.response,
       type: err.type,
-      error: OfflineConnectionException(
+      error: OfflineConnectionDioException(
         message: 'No internet connection available to complete the request.',
         cause: err,
       ),
