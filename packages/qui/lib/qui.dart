@@ -23,6 +23,7 @@ export 'src/widgets/qui_buttons_bar.dart' show QuiButtonsBar, QuiButtonsBarFit, 
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
 export 'src/widgets/qui_loading_text.dart' show QuiLoadingText;
 export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap, RadiusStyle;
+export 'src/widgets/qui_offline_error_state.dart' show QuiOfflineErrorState, QuiOfflineErrorStateRetry;
 export 'src/widgets/qui_orbit/qui_orbit.dart' show QuiOrbit, QuiOrbitDirection, QuiOrbitItem;
 export 'src/widgets/qui_primary_button.dart'
     show QuiPrimaryButton, QuiPrimaryButtonFit, QuiPrimaryButtonIconBuilder, QuiPrimaryButtonIconState;

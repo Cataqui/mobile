@@ -96,6 +96,10 @@ class $AssetsThreeDGen {
   AssetGenImage get toolBox =>
       const AssetGenImage('assets/three_d/tool_box.webp');
 
+  /// File path: assets/three_d/wifi_exclamation.webp
+  AssetGenImage get wifiExclamation =>
+      const AssetGenImage('assets/three_d/wifi_exclamation.webp');
+
   /// File path: assets/three_d/work_items_mess.webp
   AssetGenImage get workItemsMess =>
       const AssetGenImage('assets/three_d/work_items_mess.webp');
@@ -114,6 +118,7 @@ class $AssetsThreeDGen {
     shoppingCart,
     smallTruck,
     toolBox,
+    wifiExclamation,
     workItemsMess,
   ];
 }
