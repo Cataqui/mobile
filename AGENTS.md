@@ -84,6 +84,10 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 - Prefer Dart `enum` structures over arbitrary `const` objects or magic strings for state variations, domain constants, and error codes. Use switches over enums to guarantee compile-time exhaustiveness.
 - Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `qui_text_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
 
+### Exhaustive Switch Over Enums
+
+- **Never use a `default` or wildcard (`_`) clause** in a `switch` expression or `switch` statement over a Dart `enum` type. Every variant must be listed explicitly. This guarantees that adding a new enum value produces a compile error at every use site instead of silently falling through a default — which would otherwise mask the new value and introduce logic bugs that only surface at runtime.
+
 ### Types & Callback Aliases
 
 - Reusable typedefs and public callback/function types must live in a dedicated
