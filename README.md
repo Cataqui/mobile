@@ -40,6 +40,9 @@ Regenerate code after changing environment values so [Envied](https://pub.dev/pa
 # Run tests with coverage (interactive package selection)
 melos test
 
+# Run tests without coverage (fast, for pre-commit hook)
+melos test:no-coverage
+
 # Run tests for all packages (no prompt)
 melos coverage
 
@@ -59,6 +62,61 @@ melos gen
 # Update approved visual goldens after intentional UI changes
 melos goldens:update         # asks which package/app
 melos goldens:update:all     # updates all packages/apps
+```
+
+### Git Hooks
+
+This project uses [dart_husky](https://pub.dev/packages/dart_husky) to enforce code quality and commit conventions.
+
+**Hooks run automatically on every commit:**
+- `pre-commit` — runs `melos analyze` (static analysis) and `melos test:no-coverage` (unit tests without coverage). The commit is blocked if either fails.
+- `commit-msg` — validates commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format.
+
+Hooks are automatically installed via `melos setup`. To install manually:
+
+```bash
+fvm dart run dart_husky install
+```
+
+To bypass hooks for an emergency commit (e.g. WIP):
+
+```bash
+git commit --no-verify -m "message"
+```
+
+---
+
+### Commit Conventions
+
+All commits must follow the Conventional Commits format:
+
+```
+<type>(<optional scope>): <subject>
+```
+
+| Type       | When to use                                      |
+| ---------- | ------------------------------------------------ |
+| `feat`     | A new feature                                    |
+| `fix`      | A bug fix                                        |
+| `chore`    | Maintenance, deps, tooling                       |
+| `docs`     | Documentation only                               |
+| `style`    | Formatting, whitespace                           |
+| `refactor` | Code change, no feature or fix                   |
+| `test`     | Adding or fixing tests                           |
+| `build`    | Build system changes                             |
+| `ci`       | CI configuration                                 |
+| `perf`     | Performance improvement                          |
+| `revert`   | Revert a previous commit                         |
+| `agent`    | Agent-related files (`AGENTS.md`, `.agents/`, `.opencode/`, skills) |
+
+**Examples:**
+
+```bash
+git commit -m "feat(feed): add location radius map"
+git commit -m "fix: resolve null pointer in feed"
+git commit -m "agent: add flutter-riverpod-expert skill"
+git commit -m "chore(deps): update riverpod to 3.3.0"
+git commit -m "test: add regression test for feed pagination"
 ```
 
 ## Project Structure

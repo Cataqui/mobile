@@ -1,0 +1,18 @@
+dart_husky:
+  verbose: true
+
+pre-commit:
+  parallel: false
+  commands:
+    analyze:
+      run: melos analyze
+    test:
+      run: melos test:no-coverage
+
+commit-msg:
+  commands:
+    conventional:
+      preset: conventional
+      types:
+        append: [agent]
+      only_small_case: true

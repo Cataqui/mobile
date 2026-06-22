@@ -10,6 +10,7 @@ workspace:
 
 dev_dependencies:
   build_runner: ^2.15.0
+  dart_husky: ^1.4.1
   melos: ^7.8.0
   very_good_analysis: ^7.0.0
 
@@ -41,6 +42,14 @@ melos:
     test:all:
       description: Run tests with coverage for all packages (no prompt) and open each report
       run: melos run test --no-select
+
+    test:no-coverage:
+      description: Run tests without coverage (for pre-commit hook)
+      run: fvm flutter test
+      exec:
+        concurrency: 1
+      packageFilters:
+        dirExists: test
 
     coverage:
       description: Run tests with coverage, generate HTML, and open (all packages, no prompt)
@@ -82,6 +91,7 @@ melos:
       run: |
         fvm flutter pub get && \
         fvm dart pub global activate remove_from_coverage && \
+        fvm dart run dart_husky install && \
         melos run gen:all && \
         melos run goldens:update:all
 
