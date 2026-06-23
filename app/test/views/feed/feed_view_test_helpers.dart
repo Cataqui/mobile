@@ -187,7 +187,7 @@ class FeedViewTestHelpers {
   }
 
   static Future<void> swipeAwayCurrentJob(WidgetTester tester) async {
-    await tester.tap(find.byType(QuiIconButton));
+    await tester.drag(find.text('Descarregar Caminhão'), const Offset(0, -800));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 800));

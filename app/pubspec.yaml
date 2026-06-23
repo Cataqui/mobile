@@ -44,6 +44,7 @@ dev_dependencies:
   mocktail: ^1.0.5
   riverpod_generator: ^4.0.3
   slang_build_runner: ^4.16.0
+  test_api: ^0.7.0
   very_good_analysis: ^7.0.0
 
 flutter_gen:

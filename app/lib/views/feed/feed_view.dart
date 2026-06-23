@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
+part 'feed_view_body.dart';
+
 class FeedView extends ConsumerStatefulWidget {
   const FeedView({super.key});
 
@@ -16,7 +18,7 @@ class FeedView extends ConsumerStatefulWidget {
 }
 
 class _FeedViewState extends ConsumerState<FeedView> {
-  final QuiSwipeDeckController _swipeDeckController = QuiSwipeDeckController();
+  final QuiTikTokFeedController _feedController = QuiTikTokFeedController();
   final cardBorderRadius = BorderRadius.circular(44);
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
 
@@ -25,370 +27,82 @@ class _FeedViewState extends ConsumerState<FeedView> {
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
-    final feedState = ref.watch(feedStateProvider);
+    final designColors = context.qui.colors;
 
     return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            Align(
-              alignment: AlignmentGeometry.centerStart,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 34),
-                child: QuiTextButton(
-                  text: 'São Paulo',
-                  leadingIconBuilder: (state) => QuiIcons.mapPin.svg(
-                    colorFilter: ColorFilter.mode(context.qui.colors.primary, BlendMode.srcIn),
-                    height: 14,
-                    width: 14,
-                  ),
-                  leadingIconSpacing: 10,
-                  trailingIconSpacing: 10,
-                  trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
-                    colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-                    height: 8,
-                  ),
-                  onPressed: () {},
-                ),
-              ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: _FeedBodyContent(
+              controller: _feedController,
+              cardBorderRadius: cardBorderRadius,
+              feedInCurve: _feedInCurve,
+              onOpenJobDetails: _openJobDetails,
             ),
-
-            const SizedBox(height: 30),
-            Expanded(
-              child: QuiWidgetTransition(
-                builder: (context) => feedState.when(
-                  data: (data) =>
-                      KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
-                  error: (error, st) =>
-                      KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
-                  loading: () =>
-                      KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
-                ),
-                outDuration: const Duration(milliseconds: 600),
-                outTransition: (child, animation) => FadeTransition(
-                  opacity: Tween<double>(begin: 1, end: 0).animate(animation),
-                  child: RepaintBoundary(child: child),
-                ),
-                inDuration: const Duration(milliseconds: 600),
-                inTransition: (child, animation) {
-                  final wrapped = RepaintBoundary(child: child);
-
-                  return feedState.maybeWhen(
-                    data: (_) => FadeTransition(
-                      opacity: _feedInCurve.animate(animation),
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.30),
-                          end: Offset.zero,
-                        ).chain(_feedInCurve).animate(animation),
-                        child: wrapped,
+          ),
+          _buildEdgeGradient(isTop: true, background: designColors.background),
+          _buildEdgeGradient(isTop: false, background: designColors.background),
+          Positioned.fill(
+            child: SafeArea(
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                    child: Align(
+                      alignment: AlignmentGeometry.topStart,
+                      child: QuiTextButton(
+                        text: 'São Paulo',
+                        leadingIconBuilder: (state) => QuiIcons.mapPin.svg(
+                          colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
+                          height: 14,
+                          width: 14,
+                        ),
+                        leadingIconSpacing: 10,
+                        trailingIconSpacing: 10,
+                        trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
+                          colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+                          height: 8,
+                        ),
+                        onPressed: () {},
                       ),
                     ),
-                    orElse: () => FadeTransition(opacity: _feedInCurve.animate(animation), child: wrapped),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 30),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeedContent(BuildContext context, FeedData feedData) {
-    if (feedData.isEmpty) return _buildEnd(context);
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: QuiSwipeDeck<FeedJobDto>(
-        controller: _swipeDeckController,
-        itemCount: feedData.jobs.length,
-        itemProvider: (index) => feedData.jobs[index],
-        onAccept: (feedJob, index) {},
-        onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
-        loadingMoreBuilder: _buildLoadingMore,
-        buildLoadMoreError: feedData.paginationError == null ? null : _buildLoadMoreError,
-        endBuilder: _buildEnd,
-        builder: (context, job, index) {
-          final location = job.location;
-          final mapConfig = location.mapConfig;
-
-          return ClipRRect(
-            borderRadius: cardBorderRadius,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                QuiLocationRadiusMap(
-                  tileUrlTemplate: mapConfig.authenticatedTileUrl,
-                  location: (latitude: location.latitude, longitude: location.longitude),
-                  radiusInMeters: location.areaRadius.toDouble(),
-                  fontConfig: (fontStack: mapConfig.fontstack, glyphUrlTemplate: mapConfig.authenticatedGlyphUrl),
-                  tileMinZoom: mapConfig.tileMinZoom.toInt(),
-                  tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
-                  zoom: 12.8,
-                  offset: const Offset(0, 30),
-                  radiusStyle: RadiusStyle(color: Colors.blue.withValues(alpha: 0.2)),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(9),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: FeedJobCard(feedJob: job, onTap: _openJobDetails),
                   ),
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 28),
-                    child: QuiIconButton(
-                      onPressed: _swipeDeckController.dismiss,
-                      buttonSize: 65,
-                      iconSize: 22,
-                      iconBuilder: (state) {
-                        return QuiIcons.cross.svg(
-                          colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-                          height: state.iconSize,
-                          width: state.iconSize,
-                        );
-                      },
+                  Align(
+                    alignment: AlignmentGeometry.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLoadingMore(BuildContext context) {
-    final i18n = ref.watch(translationProvider);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: context.qui.colors.background,
-        borderRadius: cardBorderRadius,
-        border: Border.all(color: context.qui.colors.borderOnBackground),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Spacer(),
-            QuiOrbit(
-              revolutionDuration: const Duration(milliseconds: 5000),
-              radius: 70,
-              items: [
-                QuiOrbitItem(
-                  child: Qui3d.brush.image(color: context.qui.colors.ghost),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.hammer.image(color: context.qui.colors.ghost),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.ladder.image(color: context.qui.colors.ghost),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.motorcycle.image(color: context.qui.colors.ghost),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.shoppingCart.image(color: context.qui.colors.ghost),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.smallTruck.image(color: context.qui.colors.ghost),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.toolBox.image(color: context.qui.colors.ghost),
-                  size: const Size(43, 43),
-                ),
-              ],
+  Widget _buildEdgeGradient({required bool isTop, required Color background}) {
+    return Positioned(
+      top: isTop ? 0 : null,
+      bottom: isTop ? null : 0,
+      left: 0,
+      right: 0,
+      height: 120,
+      child: IgnorePointer(
+        child: RepaintBoundary(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: isTop ? Alignment.topCenter : Alignment.bottomCenter,
+                end: isTop ? Alignment.bottomCenter : Alignment.topCenter,
+                stops: const [0.0, 0.3, 1.0],
+                colors: [background, background, background.withValues(alpha: 0)],
+              ),
             ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 60),
-              child: QuiLoadingText(text: i18n.feed.loadingMore.title),
-            ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildLoadMoreError(BuildContext context, VoidCallback retry) {
-    final paginationError = ref.read(feedStateProvider).value?.paginationError;
-    final i18n = ref.watch(translationProvider);
-
-    if (paginationError.isOmfOfflineConnectionDioException) {
-      return QuiOfflineErrorState(
-        title: i18n.feed.loadingMore.offline.title,
-        description: i18n.feed.loadingMore.offline.description,
-        retry: (label: i18n.feed.loadingMore.offline.retryButtonTitle, onRetry: retry),
-      );
-    }
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Qui3d.workItemsMess.image(height: 150, width: 150),
-          const SizedBox(height: 40),
-          Text(
-            i18n.feed.loadingMore.error.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: MediaQuery.sizeOf(context).width * 0.7,
-            child: Text(
-              i18n.feed.loadingMore.error.description,
-              style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 20),
-          QuiPrimaryButton(
-            label: i18n.feed.loadingMore.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
-              height: 15,
-              width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-            ),
-            leadingIconSpacing: 10,
-            onPressed: () {
-              retry();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEnd(BuildContext context) {
-    final i18n = ref.watch(translationProvider);
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Qui3d.emptyCitySaoPaulo.image(height: 150, colorBlendMode: BlendMode.hue),
-          const SizedBox(height: 20),
-          Text(
-            i18n.feed.empty.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: MediaQuery.sizeOf(context).width * 0.7,
-            child: Text(
-              i18n.feed.empty.description,
-              style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 40),
-          QuiSecondaryButton(
-            label: i18n.feed.empty.adjustAreaButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.wrench.svg(
-              height: 15,
-              width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-            ),
-            leadingIconSpacing: 10,
-            onPressed: () {
-              // TODO(RyanHolanda): Implement once we add the edit area screen
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInitialLoading(BuildContext context) {
-    return Center(
-      child: QuiOrbit(
-        revolutionDuration: const Duration(milliseconds: 3000),
-        radius: 100,
-        items: [
-          QuiOrbitItem(child: Qui3d.brush.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.hammer.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.ladder.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.motorcycle.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.shoppingCart.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.smallTruck.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.toolBox.image(), size: const Size(43, 43)),
-          QuiOrbitItem(child: Qui3d.box.image(), size: const Size(43, 43)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInitialError(BuildContext context, Object error) {
-    final i18n = ref.watch(translationProvider);
-
-    if (error.isOmfOfflineConnectionDioException) {
-      return QuiOfflineErrorState(
-        title: i18n.feed.offline.title,
-        description: i18n.feed.offline.description,
-        retry: (
-          label: i18n.feed.offline.retryButtonTitle,
-          onRetry: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
-        ),
-      );
-    }
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Qui3d.locationPinRestingCracked.image(height: 140),
-          const SizedBox(height: 20),
-          Text(
-            i18n.feed.error.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: MediaQuery.sizeOf(context).width * 0.7,
-            child: Text(
-              i18n.feed.error.description,
-              style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 20),
-          QuiPrimaryButton(
-            label: i18n.feed.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
-              height: 15,
-              width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-            ),
-            leadingIconSpacing: 10,
-            onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
-          ),
-        ],
       ),
     );
   }

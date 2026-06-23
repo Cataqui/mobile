@@ -246,25 +246,25 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when feedData is empty, it should not render QuiSwipeDeck', (tester) async {
+      testWidgets('when feedData is empty, it should not render QuiTikTokFeed', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.byWidgetPredicate((w) => w is QuiSwipeDeck), findsNothing);
+        expect(find.byWidgetPredicate((w) => w is QuiTikTokFeed), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
 
     group('data — with jobs', () {
-      testWidgets('when feedData has jobs, it should render QuiSwipeDeck', (tester) async {
+      testWidgets('when feedData has jobs, it should render QuiTikTokFeed', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
         );
         await tester.pump();
-        expect(find.byWidgetPredicate((w) => w is QuiSwipeDeck), findsOneWidget);
+        expect(find.byWidgetPredicate((w) => w is QuiTikTokFeed), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -275,16 +275,6 @@ void main() {
         );
         await tester.pump();
         expect(find.text('Descarregar Caminhão'), findsOneWidget);
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when feedData has jobs, it should render the dismiss QuiIconButton', (tester) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
-        );
-        await tester.pump();
-        expect(find.byType(QuiIconButton), findsAtLeast(1));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 

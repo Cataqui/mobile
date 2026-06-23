@@ -6,9 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/gen/fonts.gen.dart';
 import 'package:qui/src/theme/qui_theme.dart';
+import 'package:test_api/scaffolding.dart' as test_package;
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  (binding as dynamic).defaultTestTimeout = const test_package.Timeout(Duration(seconds: 10));
 
   final isRunningInCi = Platform.environment['CI'] == 'true';
   await _loadQuiFonts();
