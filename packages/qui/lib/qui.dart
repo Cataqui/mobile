@@ -44,5 +44,11 @@ export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
         QuiSwipeDeckProgressCallback;
 export 'src/widgets/qui_tap_animation.dart' show QuiTapAnimation, QuiTapAnimationType;
 export 'src/widgets/qui_text_button.dart' show QuiTextButton, QuiTextButtonIconBuilder, QuiTextButtonIconState;
+export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
+    show
+        QuiTikTokFeed,
+        QuiTikTokFeedAction,
+        QuiTikTokFeedController,
+        QuiTikTokFeedItemCallback;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
     show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;

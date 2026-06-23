@@ -92,6 +92,10 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 - Reusable typedefs and public callback/function types must live in a dedicated
   `*_types.dart` file for their widget, component, or feature owner.
+- Single-use typedefs are forbidden. If a function/record type is referenced in
+  only one place, declare it inline at the usage site instead of extracting a
+  typedef. Extract a typedef only when the same signature is used in more than
+  one place (mirroring the "Constants Local to Widgets" rule).
 
 ### One Implementation Class Per File
 
