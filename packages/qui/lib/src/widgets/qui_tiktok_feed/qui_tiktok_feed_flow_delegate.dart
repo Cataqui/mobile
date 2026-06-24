@@ -4,6 +4,7 @@ class _QuiTikTokFeedFlowDelegate extends FlowDelegate {
   _QuiTikTokFeedFlowDelegate({
     required this.offsetListenable,
     required this.viewportHeight,
+    required this.spacing,
     required this.currentIndex,
     required this.hasPreviousCard,
     required this.hasNextCard,
@@ -11,6 +12,7 @@ class _QuiTikTokFeedFlowDelegate extends FlowDelegate {
 
   final ValueListenable<double> offsetListenable;
   final double viewportHeight;
+  final double spacing;
   final int currentIndex;
   final bool hasPreviousCard;
   final bool hasNextCard;
@@ -25,11 +27,11 @@ class _QuiTikTokFeedFlowDelegate extends FlowDelegate {
     final offsetY = offsetListenable.value;
 
     if (hasPreviousCard && offsetY > 0) {
-      context.paintChild(2, transform: _translation(offsetY - viewportHeight));
+      context.paintChild(2, transform: _translation(offsetY - viewportHeight - spacing));
     }
 
     if (hasNextCard && offsetY <= 0) {
-      context.paintChild(1, transform: _translation(offsetY + viewportHeight));
+      context.paintChild(1, transform: _translation(offsetY + viewportHeight + spacing));
     }
 
     context.paintChild(0, transform: _translation(offsetY));
@@ -43,6 +45,7 @@ class _QuiTikTokFeedFlowDelegate extends FlowDelegate {
   bool shouldRepaint(covariant _QuiTikTokFeedFlowDelegate oldDelegate) {
     return oldDelegate.offsetListenable != offsetListenable ||
         oldDelegate.viewportHeight != viewportHeight ||
+        oldDelegate.spacing != spacing ||
         oldDelegate.currentIndex != currentIndex ||
         oldDelegate.hasPreviousCard != hasPreviousCard ||
         oldDelegate.hasNextCard != hasNextCard;

@@ -136,6 +136,27 @@ void main() {
       ),
     );
   });
+
+  goldenTest(
+    'when rendering drag states with spacing, it should match the approved goldens',
+    fileName: 'qui_tiktok_feed_spacing_drag_states',
+    whilePerforming: (tester) async {
+      await _holdDrag(tester, 'spacing_up_first', const Offset(0, -200));
+
+      return null;
+    },
+    builder: () => GoldenTestGroup(
+      scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 600),
+      children: [
+        GoldenTestScenario(
+          name: 'spacing up partial drag',
+          child: const _GoldenFrame(
+            child: _GoldenFeed(items: ['spacing_up_first', 'spacing_up_second'], spacing: 40),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 Key _cardKey(String item) => Key('golden_card_$item');
@@ -177,6 +198,7 @@ class _GoldenFeed extends StatelessWidget {
   const _GoldenFeed({
     required this.items,
     this.loadMoreThreshold = 1,
+    this.spacing = 0,
     this.isLoadingFixture = false,
     this.showLoadMoreError = false,
     this.showEndState = false,
@@ -185,6 +207,7 @@ class _GoldenFeed extends StatelessWidget {
 
   final List<String> items;
   final double loadMoreThreshold;
+  final double spacing;
   final bool isLoadingFixture;
   final bool showLoadMoreError;
   final bool showEndState;
@@ -195,6 +218,7 @@ class _GoldenFeed extends StatelessWidget {
     return QuiTikTokFeed<String>(
       items: (count: items.length, provider: (int i) => items[i], keyBuilder: null),
       loadMoreThreshold: loadMoreThreshold,
+      spacing: spacing,
       onLoadMore: isLoadingFixture
           ? () => Completer<void>().future
           : isExhausted

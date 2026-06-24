@@ -731,6 +731,72 @@ void main() {
     });
   });
 
+  group('QuiTikTokFeed spacing', () {
+    testWidgets('when spacing is negative, it should throw an assertion error', (tester) async {
+      expect(
+        () => QuiTikTokFeed<String>(
+          items: (
+            count: 2,
+            provider: (int i) => 'item',
+            keyBuilder: null,
+          ),
+          spacing: -1,
+          builder: _defaultCardBuilder,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    testWidgets('when zero by default, it should create the feed without error', (tester) async {
+      await _pumpFeed(tester, spacing: 0);
+
+      expect(find.byKey(_cardKey('first')), findsOneWidget);
+    });
+
+    testWidgets('when committing next with spacing, it should advance to the next item', (tester) async {
+      await _pumpFeed(tester, spacing: 100);
+
+      await _dragCard(tester, 'first', const Offset(0, -300));
+
+      expect(_currentCardLabel(tester), 'second');
+    });
+
+    testWidgets('when committing previous with spacing, it should go back to the previous item', (tester) async {
+      await _pumpFeed(tester, spacing: 100);
+
+      await _dragCurrentCard(tester, const Offset(0, -300)); // advance to second
+
+      await _dragCard(tester, 'second', const Offset(0, 300));
+
+      expect(_currentCardLabel(tester), 'first');
+    });
+
+    testWidgets('when dragging up with spacing, it should report progress based on card height', (tester) async {
+      final progressLogs = <_ProgressLog>[];
+
+      await _pumpFeed(
+        tester,
+        spacing: 100,
+        onSwipeProgress: ({required action, required percentage}) {
+          progressLogs.add((action: action, percentage: percentage));
+        },
+      );
+
+      await _dragCard(tester, 'first', const Offset(0, -300));
+
+      expect(progressLogs.map((log) => log.percentage), contains(closeTo(0.5, 0.01)));
+    });
+
+    testWidgets('when spacing changes at runtime, it should keep the current index unchanged at rest', (tester) async {
+      await _pumpFeed(tester, spacing: 0);
+      await _dragCurrentCard(tester, const Offset(0, -300)); // advance to second
+
+      await _pumpFeed(tester, spacing: 80);
+
+      expect(_currentCardLabel(tester), 'second');
+    });
+  });
+
   group('QuiTikTokFeed widget lifecycle and updates', () {
     testWidgets('when the parent rebuilds with the same items, it should preserve the current index', (tester) async {
       await tester.pumpWidget(const _MutableFeedHost());
@@ -1275,6 +1341,7 @@ Future<void> _pumpFeed(
   bool disableAnimations = false,
   bool enableHapticFeedback = true,
   double loadMoreThreshold = 1,
+  double spacing = 0,
   QuiTikTokFeedController? controller,
   void Function({required QuiTikTokFeedAction action, required double percentage})? onSwipeProgress,
   QuiTikTokFeedItemCallback<String>? onNext,
@@ -1296,6 +1363,7 @@ Future<void> _pumpFeed(
           keyBuilder: null,
         ),
         loadMoreThreshold: loadMoreThreshold,
+        spacing: spacing,
         enableHapticFeedback: enableHapticFeedback,
         controller: controller,
         onSwipeProgress: onSwipeProgress,

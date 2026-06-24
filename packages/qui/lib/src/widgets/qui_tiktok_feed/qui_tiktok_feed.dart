@@ -44,6 +44,7 @@ class QuiTikTokFeed<T> extends StatefulWidget {
     this.loadingMoreBuilder,
     this.loadMoreErrorBuilder,
     this.endBuilder,
+    this.spacing = 0,
     this.onSwipeProgress,
     this.onNext,
     this.onPrevious,
@@ -56,6 +57,7 @@ class QuiTikTokFeed<T> extends StatefulWidget {
          loadMoreThreshold >= 0 && loadMoreThreshold <= 1,
          'loadMoreThreshold must be greater than or equal to 0 and less than or equal to 1.',
        ),
+       assert(spacing >= 0, 'spacing must be greater than or equal to 0.'),
        assert(items.count >= 0, 'items.count must be greater than or equal to 0.');
 
   /// Items for the feed as a record of `count`, `provider`, and optional
@@ -159,6 +161,23 @@ class QuiTikTokFeed<T> extends StatefulWidget {
   /// Defaults to `true`. Set to `false` to disable the settle haptic.
   final bool enableHapticFeedback;
 
+  /// Vertical gap between the current card and its adjacent cards.
+  ///
+  /// The current card always settles at the same position regardless of this
+  /// value. Changing [spacing] only adjusts the visible gap to the next and
+  /// previous cards during a swipe — the settled card position is preserved.
+  ///
+  /// Defaults to `0` (cards sit edge-to-edge).
+  ///
+  /// ```dart
+  /// QuiTikTokFeed<String>(
+  ///   items: (count: jobs.length, provider: (i) => jobs[i], keyBuilder: null),
+  ///   spacing: 12,
+  ///   builder: (context, job, index) => JobCard(job: job),
+  /// )
+  /// ```
+  final double spacing;
+
   @override
   State<QuiTikTokFeed<T>> createState() => _QuiTikTokFeedState<T>();
 }
@@ -179,6 +198,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   int _currentIndex = 0;
   int? _exhaustedItemCount;
   double _viewportHeight = 1;
+  double get _commitDistance => _viewportHeight + widget.spacing;
   bool _isLoadingMore = false;
   bool _hasFiredStartHaptic = false;
   bool _isLoadMoreScheduled = false;
@@ -315,7 +335,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final item = widget.items.provider(_currentIndex);
     final itemIndex = _currentIndex;
 
-    await _animateTo(-_viewportHeight, duration: _commitDuration, curve: Curves.easeOutCubic);
+    await _animateTo(-_commitDistance, duration: _commitDuration, curve: Curves.easeOutCubic);
 
     if (!mounted) return;
 
@@ -338,7 +358,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final itemIndex = _currentIndex;
     final hadRealItem = _hasCurrentItem;
 
-    await _animateTo(_viewportHeight, duration: _commitDuration, curve: Curves.easeOutCubic);
+    await _animateTo(_commitDistance, duration: _commitDuration, curve: Curves.easeOutCubic);
 
     if (!mounted) return;
 
@@ -534,15 +554,16 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
           onVerticalDragUpdate: isGestureActive ? _onVerticalDragUpdate : null,
           onVerticalDragEnd: isGestureActive ? _onVerticalDragEnd : null,
           onVerticalDragCancel: isGestureActive ? _onVerticalDragCancel : null,
-          child: Flow(
-            clipBehavior: Clip.none,
-            delegate: _QuiTikTokFeedFlowDelegate(
-              offsetListenable: _dragOffsetNotifier,
-              viewportHeight: _viewportHeight,
-              currentIndex: _currentIndex,
-              hasPreviousCard: previousCard != null,
-              hasNextCard: nextCard != null || (_hasCurrentItem && paginationCard != null),
-            ),
+            child: Flow(
+              clipBehavior: Clip.none,
+              delegate: _QuiTikTokFeedFlowDelegate(
+                offsetListenable: _dragOffsetNotifier,
+                viewportHeight: _viewportHeight,
+                spacing: widget.spacing,
+                currentIndex: _currentIndex,
+                hasPreviousCard: previousCard != null,
+                hasNextCard: nextCard != null || (_hasCurrentItem && paginationCard != null),
+              ),
             children: [
               if (currentCard != null) ...[
                 _retainedCard(card: currentCard),
