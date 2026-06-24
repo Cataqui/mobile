@@ -8,6 +8,7 @@ import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 
 part 'qui_orbit_enums.dart';
+part 'qui_orbit_flow_delegate.dart';
 part 'qui_orbit_item.dart';
 part 'qui_orbit_item_data.dart';
 
@@ -131,17 +132,7 @@ class _QuiOrbitState extends State<QuiOrbit> with SingleTickerProviderStateMixin
     }
   }
 
-  List<_QuiOrbitItemData> _computePlacements(BoxConstraints constraints) {
-    double maxHalfDiagonal = 0;
-
-    for (final item in widget.items) {
-      final halfDiag = math.sqrt(item.size.width * item.size.width + item.size.height * item.size.height) / 2;
-
-      if (halfDiag > maxHalfDiagonal) {
-        maxHalfDiagonal = halfDiag;
-      }
-    }
-
+  List<_QuiOrbitItemData> _computePlacements() {
     final count = widget.items.length;
     final placements = <_QuiOrbitItemData>[];
 
@@ -151,11 +142,11 @@ class _QuiOrbitState extends State<QuiOrbit> with SingleTickerProviderStateMixin
 
       placements.add(
         _QuiOrbitItemData(
-          key: ValueKey(i),
           size: item.size,
           cosBase: math.cos(angle),
           sinBase: math.sin(angle),
           cachedChild: RepaintBoundary(
+            key: ValueKey(i),
             child: SizedBox(width: item.size.width, height: item.size.height, child: item.child),
           ),
         ),
@@ -172,24 +163,30 @@ class _QuiOrbitState extends State<QuiOrbit> with SingleTickerProviderStateMixin
     if (disabled) {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final placements = _computePlacements(constraints);
-          final w = constraints.maxWidth.isFinite ? constraints.maxWidth : 300.0;
-          final h = constraints.maxHeight.isFinite ? constraints.maxHeight : 300.0;
-          final cx = w / 2;
-          final cy = h / 2;
+          final placements = _computePlacements();
+          final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 300.0;
+          final height = constraints.maxHeight.isFinite ? constraints.maxHeight : 300.0;
+          final centerX = width / 2;
+          final centerY = height / 2;
 
           return SizedBox(
-            width: w,
-            height: h,
+            width: width,
+            height: height,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                for (final p in placements)
+                for (var index = 0; index < placements.length; index++)
                   Positioned(
-                    key: p.key,
-                    left: cx + _orbitRadius(constraints) * p.cosBase - p.size.width / 2,
-                    top: cy + _orbitRadius(constraints) * p.sinBase - p.size.height / 2,
-                    child: p.cachedChild,
+                    key: ValueKey(index),
+                    left:
+                        centerX +
+                        _orbitRadius(constraints) * placements[index].cosBase -
+                        placements[index].size.width / 2,
+                    top:
+                        centerY +
+                        _orbitRadius(constraints) * placements[index].sinBase -
+                        placements[index].size.height / 2,
+                    child: placements[index].cachedChild,
                   ),
               ],
             ),
@@ -202,41 +199,24 @@ class _QuiOrbitState extends State<QuiOrbit> with SingleTickerProviderStateMixin
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final placements = _computePlacements(constraints);
+        final placements = _computePlacements();
         final w = constraints.maxWidth.isFinite ? constraints.maxWidth : 300.0;
         final h = constraints.maxHeight.isFinite ? constraints.maxHeight : 300.0;
-        final cx = w / 2;
-        final cy = h / 2;
-        final r = _orbitRadius(constraints);
-
-        return AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, _) {
-            final theta = _animationController.value * 2 * math.pi * revSign;
-            final cosTheta = math.cos(theta);
-            final sinTheta = math.sin(theta);
-            final children = <Widget>[];
-
-            for (final p in placements) {
-              final cosTotal = cosTheta * p.cosBase - sinTheta * p.sinBase;
-              final sinTotal = sinTheta * p.cosBase + cosTheta * p.sinBase;
-
-              children.add(
-                Positioned(
-                  key: p.key,
-                  left: cx + r * cosTotal - p.size.width / 2,
-                  top: cy + r * sinTotal - p.size.height / 2,
-                  child: widget.rotateItems ? Transform.rotate(angle: theta, child: p.cachedChild) : p.cachedChild,
-                ),
-              );
-            }
-
-            return SizedBox(
-              width: w,
-              height: h,
-              child: Stack(clipBehavior: Clip.none, children: children),
-            );
-          },
+        return SizedBox(
+          width: w,
+          height: h,
+          child: Flow(
+            clipBehavior: Clip.none,
+            delegate: _QuiOrbitFlowDelegate(
+              animation: _animationController,
+              placements: placements,
+              radius: _orbitRadius(constraints),
+              rotationDirection: revSign,
+              rotateItems: widget.rotateItems,
+              animationsDisabled: disabled,
+            ),
+            children: [for (final placement in placements) placement.cachedChild],
+          ),
         );
       },
     );
