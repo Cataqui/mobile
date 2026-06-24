@@ -252,12 +252,11 @@ packages:
   dart_husky:
     dependency: "direct dev"
     description:
-      path: "."
-      ref: main
-      resolved-ref: "51a6943098941591897b3c812e63f6b456608f29"
-      url: "https://github.com/RyanHolanda/dart_husky.git"
-    source: git
-    version: "1.4.1"
+      name: dart_husky
+      sha256: "75699fccc88d7dfaf118089230eda8a568b94e4575da05a5048ebf312c6a5e03"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.0"
   dart_style:
     dependency: transitive
     description:
