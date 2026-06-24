@@ -34,6 +34,7 @@ class QuiColors {
     required this.searchBarButtonBackground,
     required this.searchBarButtonShadow,
     required this.money,
+    required this.mapBackground,
     required this.ghost,
     required this.shimmerTextBase,
     required this.shimmerTextGlow,
@@ -84,6 +85,9 @@ class QuiColors {
   /// The color used for representing money amounts and payment highlights.
   final Color money;
 
+  /// The solid fill color of the map canvas in its loaded state.
+  final Color mapBackground;
+
   /// The color used for representing ghost elements, such as placeholders,
   /// loading states, something blocked, skeletons etc.
   final Color ghost;
@@ -118,6 +122,7 @@ class QuiColors {
           searchBarButtonBackground == other.searchBarButtonBackground &&
           searchBarButtonShadow == other.searchBarButtonShadow &&
           money == other.money &&
+          mapBackground == other.mapBackground &&
           ghost == other.ghost &&
           shimmerTextBase == other.shimmerTextBase &&
           shimmerTextGlow == other.shimmerTextGlow;
@@ -136,6 +141,7 @@ class QuiColors {
     searchBarButtonBackground,
     searchBarButtonShadow,
     money,
+    mapBackground,
     ghost,
     shimmerTextBase,
     shimmerTextGlow,
@@ -155,6 +161,7 @@ class QuiColors {
     Color? searchBarButtonBackground,
     Color? searchBarButtonShadow,
     Color? money,
+    Color? mapBackground,
     Color? ghost,
     Color? shimmerTextBase,
     Color? shimmerTextGlow,
@@ -172,6 +179,7 @@ class QuiColors {
       searchBarButtonBackground: searchBarButtonBackground ?? this.searchBarButtonBackground,
       searchBarButtonShadow: searchBarButtonShadow ?? this.searchBarButtonShadow,
       money: money ?? this.money,
+      mapBackground: mapBackground ?? this.mapBackground,
       ghost: ghost ?? this.ghost,
       shimmerTextBase: shimmerTextBase ?? this.shimmerTextBase,
       shimmerTextGlow: shimmerTextGlow ?? this.shimmerTextGlow,
@@ -196,6 +204,7 @@ class QuiColors {
       searchBarButtonBackground: Color.lerp(a.searchBarButtonBackground, b.searchBarButtonBackground, t)!,
       searchBarButtonShadow: Color.lerp(a.searchBarButtonShadow, b.searchBarButtonShadow, t)!,
       money: Color.lerp(a.money, b.money, t)!,
+      mapBackground: Color.lerp(a.mapBackground, b.mapBackground, t)!,
       ghost: Color.lerp(a.ghost, b.ghost, t)!,
       shimmerTextBase: Color.lerp(a.shimmerTextBase, b.shimmerTextBase, t)!,
       shimmerTextGlow: Color.lerp(a.shimmerTextGlow, b.shimmerTextGlow, t)!,
@@ -217,6 +226,7 @@ class _LightQuiColors extends QuiColors {
         searchBarButtonBackground: const Color(0xFFFAFAFA),
         searchBarButtonShadow: const Color(0x1A000000),
         money: const Color(0xFF00DD55),
+        mapBackground: const Color(0xFFF4F2EF),
         ghost: const Color(0xFFCDCDCD),
         shimmerTextBase: const Color(0xFFB3B3B3),
         shimmerTextGlow: const Color(0xFFE0E0E0),

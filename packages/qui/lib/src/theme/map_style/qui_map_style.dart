@@ -1,6 +1,7 @@
 library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_background_paint.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_converters.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_fill_paint.dart';
@@ -12,6 +13,7 @@ import 'package:qui/src/theme/map_style/qui_map_style_source.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_symbol_layout.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_symbol_paint.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_value.dart';
+import 'package:qui/src/theme/qui_colors.dart';
 
 part 'qui_map_style.freezed.dart';
 part 'qui_map_style.g.dart';
@@ -138,9 +140,9 @@ QuiMapLibreStyle _buildLightStyle({
 List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
   return [
     // ── Background ──────────────────────────────────────────────────────
-    const QuiMapLibreStyleLayer.background(
+    QuiMapLibreStyleLayer.background(
       id: 'background',
-      paint: QuiMapLibreStyleBackgroundPaint(backgroundColor: '#F4F2EF'),
+      paint: QuiMapLibreStyleBackgroundPaint(backgroundColor: const QuiColors.light().mapBackground.toHex()),
     ),
 
     // ── Fill layers ────────────────────────────────────────────────────

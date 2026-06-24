@@ -424,25 +424,30 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   }
 
   Widget _buildNativeMap({required double zoom, required Object mapKey}) {
-    return MapLibreMap(
-      key: ValueKey<Object>(mapKey),
-      initialCameraPosition: CameraPosition(target: _cameraTargetForOffset(zoom), zoom: zoom),
-      styleString: _styleJson,
-      attributionButtonMargins: const math.Point(-50, -50),
-      attributionButtonPosition: AttributionButtonPosition.topRight,
-      onMapCreated: _onMapCreated,
-      onStyleLoadedCallback: _onStyleLoaded,
-      onMapIdle: _onMapIdle,
-      annotationOrder: const <AnnotationType>[],
-      dragEnabled: false,
-      rotateGesturesEnabled: false,
-      scrollGesturesEnabled: false,
-      zoomGesturesEnabled: false,
-      tiltGesturesEnabled: false,
-      doubleClickZoomEnabled: false,
-      compassEnabled: false,
-      logoEnabled: false,
-      minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
+    return ColoredBox(
+      color: context.qui.colors.mapBackground,
+      child: MapLibreMap(
+        key: ValueKey<Object>(mapKey),
+        foregroundLoadColor: context.qui.colors.mapBackground,
+        translucentTextureSurface: true,
+        initialCameraPosition: CameraPosition(target: _cameraTargetForOffset(zoom), zoom: zoom),
+        styleString: _styleJson,
+        attributionButtonMargins: const math.Point(-50, -50),
+        attributionButtonPosition: AttributionButtonPosition.topRight,
+        onMapCreated: _onMapCreated,
+        onStyleLoadedCallback: _onStyleLoaded,
+        onMapIdle: _onMapIdle,
+        annotationOrder: const <AnnotationType>[],
+        dragEnabled: false,
+        rotateGesturesEnabled: false,
+        scrollGesturesEnabled: false,
+        zoomGesturesEnabled: false,
+        tiltGesturesEnabled: false,
+        doubleClickZoomEnabled: false,
+        compassEnabled: false,
+        logoEnabled: false,
+        minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
+      ),
     );
   }
 

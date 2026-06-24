@@ -104,7 +104,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedBodyContent> {
                   ValueListenableBuilder<int>(
                     valueListenable: _mapMountLimitNotifier,
                     builder: (context, mapMountLimit, _) {
-                      if (index > mapMountLimit) return const SizedBox.shrink();
+                      if (index > mapMountLimit) return ColoredBox(color: context.qui.colors.mapBackground);
 
                       return QuiLocationRadiusMap(
                         maximumMapFps: 30,
