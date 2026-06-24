@@ -1,6 +1,6 @@
 part of 'feed_view.dart';
 
-class _FeedBodyContent extends ConsumerWidget {
+class _FeedBodyContent extends ConsumerStatefulWidget {
   const _FeedBodyContent({
     required this.controller,
     required this.cardBorderRadius,
@@ -14,14 +14,27 @@ class _FeedBodyContent extends ConsumerWidget {
   final Future<void> Function() onOpenJobDetails;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_FeedBodyContent> createState() => _FeedBodyContentState();
+}
+
+class _FeedBodyContentState extends ConsumerState<_FeedBodyContent> {
+  final ValueNotifier<int> _mapMountLimitNotifier = ValueNotifier<int>(0);
+
+  @override
+  void dispose() {
+    _mapMountLimitNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final feedState = ref.watch(feedStateProvider);
 
     return QuiWidgetTransition(
       builder: (context) => feedState.when(
-        data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, ref, data)),
+        data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
         error: (error, st) =>
-            KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, ref, error)),
+            KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
         loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
       ),
       outDuration: const Duration(milliseconds: 600),
@@ -35,23 +48,23 @@ class _FeedBodyContent extends ConsumerWidget {
 
         return feedState.maybeWhen(
           data: (_) => FadeTransition(
-            opacity: feedInCurve.animate(animation),
+            opacity: widget.feedInCurve.animate(animation),
             child: SlideTransition(
               position: Tween<Offset>(
                 begin: const Offset(0, 0.30),
                 end: Offset.zero,
-              ).chain(feedInCurve).animate(animation),
+              ).chain(widget.feedInCurve).animate(animation),
               child: wrapped,
             ),
           ),
-          orElse: () => FadeTransition(opacity: feedInCurve.animate(animation), child: wrapped),
+          orElse: () => FadeTransition(opacity: widget.feedInCurve.animate(animation), child: wrapped),
         );
       },
     );
   }
 
-  Widget _buildFeedContent(BuildContext context, WidgetRef ref, FeedData feedData) {
-    if (feedData.isEmpty) return _buildEnd(context, ref);
+  Widget _buildFeedContent(BuildContext context, FeedData feedData) {
+    if (feedData.isEmpty) return _buildEnd(context);
 
     return SafeArea(
       bottom: false,
@@ -59,45 +72,65 @@ class _FeedBodyContent extends ConsumerWidget {
         padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
         child: QuiTikTokFeed<FeedJobDto>(
           spacing: 10,
-          controller: controller,
+          controller: widget.controller,
           items: (
             count: feedData.jobs.length,
             provider: (i) => feedData.jobs[i],
             keyBuilder: (job, index) => job.jobId,
           ),
-          onNext: (feedJob, index) {},
+          onNext: (feedJob, index) {
+            final newCurrentIndex = index + 1;
+
+            if (_mapMountLimitNotifier.value < newCurrentIndex) _mapMountLimitNotifier.value = newCurrentIndex;
+          },
+          onPrevious: (feedJob, index) {
+            final newCurrentIndex = index - 1;
+
+            if (_mapMountLimitNotifier.value < newCurrentIndex) _mapMountLimitNotifier.value = newCurrentIndex;
+          },
           onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
-          loadingMoreBuilder: (context) => _buildLoadingMore(context, ref),
-          loadMoreErrorBuilder: feedData.paginationError == null
-              ? null
-              : (context, retry) => _buildLoadMoreError(context, ref, retry),
-          endBuilder: (context) => _buildEnd(context, ref),
+          loadingMoreBuilder: _buildLoadingMore,
+          loadMoreErrorBuilder: feedData.paginationError == null ? null : _buildLoadMoreError,
+          endBuilder: _buildEnd,
           builder: (context, job, index) {
             final location = job.location;
             final mapConfig = location.mapConfig;
 
             return ClipRRect(
-              borderRadius: cardBorderRadius,
+              borderRadius: widget.cardBorderRadius,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  QuiLocationRadiusMap(
-                    maximumMapFps: 30,
-                    tileUrlTemplate: mapConfig.authenticatedTileUrl,
-                    location: (latitude: location.latitude, longitude: location.longitude),
-                    radiusInMeters: location.areaRadius.toDouble(),
-                    fontConfig: (fontStack: mapConfig.fontstack, glyphUrlTemplate: mapConfig.authenticatedGlyphUrl),
-                    tileMinZoom: mapConfig.tileMinZoom.toInt(),
-                    tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
-                    zoom: 12.8,
-                    offset: const Offset(0, 15),
-                    radiusStyle: RadiusStyle(color: Colors.blue.withValues(alpha: 0.2)),
+                  ValueListenableBuilder<int>(
+                    valueListenable: _mapMountLimitNotifier,
+                    builder: (context, mapMountLimit, _) {
+                      if (index > mapMountLimit) return const SizedBox.shrink();
+
+                      return QuiLocationRadiusMap(
+                        maximumMapFps: 30,
+                        tileUrlTemplate: mapConfig.authenticatedTileUrl,
+                        location: (latitude: location.latitude, longitude: location.longitude),
+                        radiusInMeters: location.areaRadius.toDouble(),
+                        fontConfig: (fontStack: mapConfig.fontstack, glyphUrlTemplate: mapConfig.authenticatedGlyphUrl),
+                        tileMinZoom: mapConfig.tileMinZoom.toInt(),
+                        tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
+                        zoom: 12.8,
+                        offset: const Offset(0, 15),
+                        radiusStyle: RadiusStyle(color: Colors.blue.withValues(alpha: 0.2)),
+                        onMapLoad: () {
+                          final next = index + 1;
+                          if (_mapMountLimitNotifier.value < next) {
+                            _mapMountLimitNotifier.value = next;
+                          }
+                        },
+                      );
+                    },
                   ),
                   Padding(
                     padding: const EdgeInsets.all(9),
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: FeedJobCard(feedJob: job, onTap: onOpenJobDetails),
+                      child: FeedJobCard(feedJob: job, onTap: widget.onOpenJobDetails),
                     ),
                   ),
                 ],
@@ -109,13 +142,13 @@ class _FeedBodyContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingMore(BuildContext context, WidgetRef ref) {
+  Widget _buildLoadingMore(BuildContext context) {
     final i18n = ref.watch(translationProvider);
 
     return Container(
       decoration: BoxDecoration(
         color: context.qui.colors.background,
-        borderRadius: cardBorderRadius,
+        borderRadius: widget.cardBorderRadius,
         border: Border.all(color: context.qui.colors.borderOnBackground),
       ),
       child: Center(
@@ -168,7 +201,7 @@ class _FeedBodyContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadMoreError(BuildContext context, WidgetRef ref, VoidCallback retry) {
+  Widget _buildLoadMoreError(BuildContext context, VoidCallback retry) {
     final paginationError = ref.read(feedStateProvider).value?.paginationError;
     final i18n = ref.watch(translationProvider);
 
@@ -219,7 +252,7 @@ class _FeedBodyContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildEnd(BuildContext context, WidgetRef ref) {
+  Widget _buildEnd(BuildContext context) {
     final i18n = ref.watch(translationProvider);
 
     return Center(
@@ -280,7 +313,7 @@ class _FeedBodyContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildInitialError(BuildContext context, WidgetRef ref, Object error) {
+  Widget _buildInitialError(BuildContext context, Object error) {
     final i18n = ref.watch(translationProvider);
 
     if (error.isOmfOfflineConnectionDioException) {
