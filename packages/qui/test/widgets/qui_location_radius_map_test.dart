@@ -385,6 +385,32 @@ void main() {
       final stack = tester.widget<Stack>(find.byType(Stack));
       expect(stack.children.first, isA<MapLibreMap>());
     });
+
+    testWidgets('when the map becomes idle for the first time, it should call onMapLoad', (tester) async {
+      var calls = 0;
+      await _pumpMap(tester, onMapLoad: () => calls++);
+
+      final map = tester.widget<MapLibreMap>(find.byType(MapLibreMap));
+      map.onMapIdle?.call();
+      await tester.pump();
+
+      expect(calls, 1);
+    });
+
+    testWidgets('when the map becomes idle multiple times, it should call onMapLoad only once', (tester) async {
+      var calls = 0;
+      await _pumpMap(tester, onMapLoad: () => calls++);
+
+      final map = tester.widget<MapLibreMap>(find.byType(MapLibreMap));
+      map.onMapIdle?.call();
+      await tester.pump();
+      map.onMapIdle?.call();
+      await tester.pump();
+      map.onMapIdle?.call();
+      await tester.pump();
+
+      expect(calls, 1);
+    });
   });
 
   group('QuiLocationRadiusMap offset camera target', () {
@@ -477,7 +503,12 @@ Finder _wobblePaint() {
   );
 }
 
-Future<void> _pumpMap(WidgetTester tester, {double? zoom, Offset offset = Offset.zero}) async {
+Future<void> _pumpMap(
+  WidgetTester tester, {
+  double? zoom,
+  Offset offset = Offset.zero,
+  VoidCallback? onMapLoad,
+}) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
@@ -494,6 +525,7 @@ Future<void> _pumpMap(WidgetTester tester, {double? zoom, Offset offset = Offset
           radiusInMeters: 2000,
           zoom: zoom,
           offset: offset,
+          onMapLoad: onMapLoad,
         ),
       ),
     ),

@@ -62,6 +62,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
     this.zoom,
     this.offset = Offset.zero,
     this.maximumMapFps = 30,
+    this.onMapLoad,
   }) : assert(location.latitude >= -90 && location.latitude <= 90, 'location.latitude must be between -90 and 90'),
        assert(
          location.longitude >= -180 && location.longitude <= 180,
@@ -186,6 +187,10 @@ class QuiLocationRadiusMap extends StatefulWidget {
   ///
   /// Defaults to 30 FPS to reduce GPU work on low-end devices.
   final int maximumMapFps;
+
+  /// Called once when the map has finished loading — style parsed, tiles
+  /// fetched, and first frame composited.
+  final VoidCallback? onMapLoad;
 
   @override
   State<QuiLocationRadiusMap> createState() => _QuiLocationRadiusMapState();
@@ -389,6 +394,7 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
 
     _hasSetUpRadius = true;
     _pendingSettleZoom = widget.zoom ?? _computedZoom;
+    widget.onMapLoad?.call();
   }
 
   _QuiLocationRadiusMapRadiusFrame _radiusFrame() {
