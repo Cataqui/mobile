@@ -58,15 +58,12 @@ void main() {
       final layerIds = style.layers.map((l) => l.toJson()['id'] as String).toSet();
       expect(
         layerIds,
-        containsAll(<String>[
-          'background',
-          'landcover',
-          'landuse',
-          'landuse_recreation',
-          'water',
-          'building',
-        ]),
+        containsAll(<String>['background', 'landcover', 'landuse', 'landuse_recreation', 'water', 'building']),
       );
+    });
+
+    test('when inspecting layers, it should retain all 26 approved layers', () {
+      expect(style.layers, hasLength(26));
     });
 
     test('when inspecting recreation landuse, it should use the approved park green color', () {

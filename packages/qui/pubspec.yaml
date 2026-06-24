@@ -12,7 +12,7 @@ dependencies:
   flutter_svg: ^2.0.17
   freezed_annotation: ^3.1.0
   json_annotation: ^4.11.0
-  maplibre_gl: ^0.26.1
+  maplibre_gl: ^0.26.2
   oh_my_flutter:
     path: ../oh_my_flutter
 

@@ -22,7 +22,8 @@ export 'src/three_d/qui_3d.dart' show Qui3d;
 export 'src/widgets/qui_buttons_bar.dart' show QuiButtonsBar, QuiButtonsBarFit, QuiButtonsBarOrientation;
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
 export 'src/widgets/qui_loading_text.dart' show QuiLoadingText;
-export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap, RadiusStyle;
+export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart'
+    show QuiLocationRadiusMap, RadiusStyle;
 export 'src/widgets/qui_offline_error_state.dart' show QuiOfflineErrorState, QuiOfflineErrorStateRetry;
 export 'src/widgets/qui_orbit/qui_orbit.dart' show QuiOrbit, QuiOrbitDirection, QuiOrbitItem;
 export 'src/widgets/qui_primary_button.dart'
@@ -45,10 +46,6 @@ export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
 export 'src/widgets/qui_tap_animation.dart' show QuiTapAnimation, QuiTapAnimationType;
 export 'src/widgets/qui_text_button.dart' show QuiTextButton, QuiTextButtonIconBuilder, QuiTextButtonIconState;
 export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
-    show
-        QuiTikTokFeed,
-        QuiTikTokFeedAction,
-        QuiTikTokFeedController,
-        QuiTikTokFeedItemCallback;
+    show QuiTikTokFeed, QuiTikTokFeedAction, QuiTikTokFeedController, QuiTikTokFeedItemCallback;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
     show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;

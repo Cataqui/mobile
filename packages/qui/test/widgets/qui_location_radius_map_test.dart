@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/widgets/qui_location_radius_map/qui_location_radius_map.dart';
 
 void main() {
@@ -18,7 +19,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: -91, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
         ),
         throwsAssertionError,
@@ -30,7 +34,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 91, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
         ),
         throwsAssertionError,
@@ -42,7 +49,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: -181),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
         ),
         throwsAssertionError,
@@ -54,7 +64,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 181),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
         ),
         throwsAssertionError,
@@ -66,7 +79,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: -1,
         ),
         throwsAssertionError,
@@ -78,7 +94,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
           tileMinZoom: -1,
         ),
@@ -91,7 +110,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
           tileMaxZoom: 0,
         ),
@@ -104,7 +126,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
           tileMinZoom: 10,
           tileMaxZoom: 5,
@@ -118,7 +143,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
           tileMinZoom: 10,
           tileMaxZoom: 15,
@@ -133,7 +161,10 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
           offset: const Offset(double.nan, 0),
         ),
@@ -146,9 +177,44 @@ void main() {
         () => QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: 0, longitude: 0),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 500,
           offset: const Offset(0, double.infinity),
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('when maximumMapFps is zero, it should assert', () {
+      expect(
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 0),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
+          radiusInMeters: 500,
+          maximumMapFps: 0,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('when maximumMapFps is above 60, it should assert', () {
+      expect(
+        () => QuiLocationRadiusMap(
+          tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
+          location: (latitude: 0, longitude: 0),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
+          radiusInMeters: 500,
+          maximumMapFps: 61,
         ),
         throwsAssertionError,
       );
@@ -165,7 +231,10 @@ void main() {
             child: QuiLocationRadiusMap(
               tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
               location: (latitude: -23.55, longitude: -46.63),
-              fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+              fontConfig: (
+                fontStack: 'Inter Regular',
+                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+              ),
               radiusInMeters: 2000,
             ),
           ),
@@ -186,7 +255,10 @@ void main() {
             child: QuiLocationRadiusMap(
               tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
               location: (latitude: -23.55, longitude: -46.63),
-              fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+              fontConfig: (
+                fontStack: 'Inter Regular',
+                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+              ),
               radiusInMeters: 2000,
             ),
           ),
@@ -222,19 +294,89 @@ void main() {
       expect(openMapTiles['tiles'], ['https://tiles.example.com/{z}/{x}/{y}.mvt']);
     });
 
+    testWidgets('when rendered, it should retain the complete 26-layer map style', (tester) async {
+      await _pumpMap(tester);
+
+      final layers = _mapStyle(tester)['layers'] as List<dynamic>;
+      expect(layers, hasLength(26));
+    });
+
     testWidgets('when rendered, it should include a glyphs template in the MapLibre style', (tester) async {
       await _pumpMap(tester);
 
-      expect(
-        _mapStyle(tester)['glyphs'],
-        'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
-      );
+      expect(_mapStyle(tester)['glyphs'], 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf');
     });
 
     testWidgets('when rendered, it should use the bundled Inter Regular glyph font stack', (tester) async {
       await _pumpMap(tester);
 
       expect(_textFont(_mapStyle(tester), 'place_city_label'), ['Inter Regular']);
+    });
+
+    testWidgets('when rendered, it should disable native annotation managers', (tester) async {
+      await _pumpMap(tester);
+
+      final map = tester.widget<MapLibreMap>(find.byType(MapLibreMap));
+      expect(map.annotationOrder, isEmpty);
+    });
+
+    testWidgets('when the style loads, it should paint the wobble with Flutter', (tester) async {
+      await _pumpMap(tester);
+
+      tester.widget<MapLibreMap>(find.byType(MapLibreMap)).onStyleLoadedCallback?.call();
+      await tester.pump();
+
+      expect(_wobblePaint(), findsOneWidget);
+    });
+
+    testWidgets('when the wobble starts, it should retain the 400 millisecond controller duration', (tester) async {
+      await _pumpMap(tester);
+
+      tester.widget<MapLibreMap>(find.byType(MapLibreMap)).onStyleLoadedCallback?.call();
+      await tester.pump();
+      final painter = tester.widget<CustomPaint>(_wobblePaint()).painter! as QuiLocationRadiusMapDebugPainter;
+      final animation = painter.animation as AnimationController;
+
+      expect(animation.duration, const Duration(milliseconds: 400));
+    });
+
+    testWidgets('when the wobble starts, it should retain the easeOutCubic curve', (tester) async {
+      await _pumpMap(tester);
+
+      tester.widget<MapLibreMap>(find.byType(MapLibreMap)).onStyleLoadedCallback?.call();
+      await tester.pump();
+      final painter = tester.widget<CustomPaint>(_wobblePaint()).painter! as QuiLocationRadiusMapDebugPainter;
+
+      expect(painter.curve, Curves.easeOutCubic);
+    });
+
+    testWidgets('when 600 milliseconds pass, it should generate the next wobble target', (tester) async {
+      await _pumpMap(tester);
+
+      tester.widget<MapLibreMap>(find.byType(MapLibreMap)).onStyleLoadedCallback?.call();
+      await tester.pump();
+      final painter = tester.widget<CustomPaint>(_wobblePaint()).painter! as QuiLocationRadiusMapDebugPainter;
+      final initialTarget = painter.targetLocation;
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(painter.targetLocation, isNot(initialTarget));
+    });
+
+    testWidgets('when the map settles, it should target the requested location', (tester) async {
+      const location = (latitude: -23.55, longitude: -46.63);
+      await _pumpMap(tester);
+
+      final map = tester.widget<MapLibreMap>(find.byType(MapLibreMap));
+      map.onStyleLoadedCallback?.call();
+      map.onMapIdle?.call();
+      await tester.pump(const Duration(milliseconds: 600));
+      final painter = tester.widget<CustomPaint>(_wobblePaint()).painter! as QuiLocationRadiusMapDebugPainter;
+      final target = painter.targetLocation;
+
+      expect(
+        (target.latitude - location.latitude).abs() + (target.longitude - location.longitude).abs(),
+        lessThan(0.000000001),
+      );
     });
   });
 
@@ -274,7 +416,10 @@ void main() {
             child: QuiLocationRadiusMap(
               tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
               location: (latitude: 0, longitude: 0),
-              fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+              fontConfig: (
+                fontStack: 'Inter Regular',
+                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+              ),
               radiusInMeters: 2000,
               zoom: 0,
               offset: const Offset(25.6, 0),
@@ -298,7 +443,10 @@ void main() {
             child: QuiLocationRadiusMap(
               tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
               location: (latitude: 0, longitude: 0),
-              fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+              fontConfig: (
+                fontStack: 'Inter Regular',
+                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+              ),
               radiusInMeters: 2000,
               zoom: 0,
               offset: const Offset(0, 25.6),
@@ -315,16 +463,27 @@ void main() {
   });
 }
 
+Finder _wobblePaint() {
+  return find.byWidgetPredicate(
+    (widget) =>
+        widget is CustomPaint && widget.painter.runtimeType.toString().contains('QuiLocationRadiusMapRadiusPainter'),
+  );
+}
+
 Future<void> _pumpMap(WidgetTester tester, {double? zoom, Offset offset = Offset.zero}) async {
   await tester.pumpWidget(
     MaterialApp(
+      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
       home: SizedBox(
         height: 400,
         width: 300,
         child: QuiLocationRadiusMap(
           tileUrlTemplate: 'https://tiles.example.com/{z}/{x}/{y}.mvt',
           location: (latitude: -23.55, longitude: -46.63),
-          fontConfig: (fontStack: 'Inter Regular', glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf'),
+          fontConfig: (
+            fontStack: 'Inter Regular',
+            glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
+          ),
           radiusInMeters: 2000,
           zoom: zoom,
           offset: offset,

@@ -4,7 +4,8 @@ part of 'qui_location_radius_map.dart';
 ///
 /// Any color left as `null` falls back to the current [QuiTheme] primary color
 /// with the opacity chosen by the map widget. This lets callers customize only
-/// the pieces they need while keeping the default Cataquí radius treatment.
+/// the pieces they need while keeping the default QUI radius treatment.
+@immutable
 class RadiusStyle {
   /// Creates a radius style.
   const RadiusStyle({this.color, this.borderColor, this.borderWidth = 0})
@@ -24,4 +25,14 @@ class RadiusStyle {
 
   /// Width of the radius border in logical pixels.
   final double borderWidth;
+
+  @override
+  bool operator ==(Object other) =>
+      other is RadiusStyle &&
+      other.color == color &&
+      other.borderColor == borderColor &&
+      other.borderWidth == borderWidth;
+
+  @override
+  int get hashCode => Object.hash(color, borderColor, borderWidth);
 }

@@ -1,24 +1,24 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
-import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/map_style/qui_map_style.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
+part 'qui_location_radius_map_radius_painter.dart';
 part 'radius_style.dart';
 
-/// Static vector map that highlights an approximate location radius.
+/// Non-interactive vector map that highlights an approximate location radius.
 ///
 /// `QuiLocationRadiusMap` is designed for location disclosure
 /// experiences where the app should show the general area of a post, host, or
 /// opportunity without exposing an exact pin. The map is intentionally
-/// non-interactive: users cannot pan, zoom, rotate, or pinch it. It behaves like
-/// a live map snapshot rendered from vector tiles.
+/// non-interactive: users cannot pan, zoom, rotate, or pinch it.
 ///
 /// The widget uses the package light map style bundled in `qui` and injects the
 /// provided [tileUrlTemplate] at runtime. The tile source is expected to be
@@ -61,6 +61,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
     this.tileMaxZoom = 14,
     this.zoom,
     this.offset = Offset.zero,
+    this.maximumMapFps = 30,
   }) : assert(location.latitude >= -90 && location.latitude <= 90, 'location.latitude must be between -90 and 90'),
        assert(
          location.longitude >= -180 && location.longitude <= 180,
@@ -71,7 +72,8 @@ class QuiLocationRadiusMap extends StatefulWidget {
        assert(tileMaxZoom > 0, 'tileMaxZoom must be greater than zero'),
        assert(tileMinZoom <= tileMaxZoom, 'tileMinZoom must be less than or equal to tileMaxZoom'),
        assert(zoom == null || zoom >= tileMinZoom, 'zoom must be greater than or equal to tileMinZoom'),
-       assert(offset.isFinite, 'offset must be finite and not NaN');
+       assert(offset.isFinite, 'offset must be finite and not NaN'),
+       assert(maximumMapFps > 0 && maximumMapFps <= 60, 'maximumMapFps must be between 1 and 60.');
 
   static const _minimumFitRadiusInMeters = 50.0;
 
@@ -180,41 +182,88 @@ class QuiLocationRadiusMap extends StatefulWidget {
   /// Font stack and glyphs URL for text labels on the map.
   final ({String fontStack, String glyphUrlTemplate}) fontConfig;
 
+  /// Maximum frame rate used by the native map rendering.
+  ///
+  /// Defaults to 30 FPS to reduce GPU work on low-end devices.
+  final int maximumMapFps;
+
   @override
   State<QuiLocationRadiusMap> createState() => _QuiLocationRadiusMapState();
 }
 
 class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with SingleTickerProviderStateMixin {
-  late final String _styleJson = jsonEncode(
-    QuiMapLibreStyle.light(
-      tileUrlTemplate: widget.tileUrlTemplate,
-      fontConfig: widget.fontConfig,
-      tileMinZoom: widget.tileMinZoom,
-      tileMaxZoom: widget.tileMaxZoom,
-    ),
-  );
-
   late final AnimationController _animController;
-  MapLibreMapController? _mapController;
-  Circle? _radiusCircle;
+  late String _styleJson;
+
   double? _computedZoom;
   double _mapOpacity = 0;
   double _targetPixelRadius = 0;
   bool _hasSetUpRadius = false;
+  bool _hasStartedWobble = false;
+  int _mapGeneration = 0;
   Timer? _wobbleTimer;
   late LatLng _wobbleFromLatLng;
   late LatLng _wobbleToLatLng;
   double _wobbleFromRadius = 1;
   double _wobbleToRadius = 1;
   double? _pendingSettleZoom;
+  Completer<void>? _mapIdleCompleter;
 
   double get _effectiveMaxZoom => math.max(widget.zoom ?? widget.tileMaxZoom.toDouble(), widget.tileMaxZoom.toDouble());
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400))
-      ..addListener(_onAnimationTick);
+    _styleJson = _buildStyleJson();
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+  }
+
+  @override
+  void didUpdateWidget(covariant QuiLocationRadiusMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (_hasMapConfigurationChanged(oldWidget)) {
+      _resetMapConfiguration();
+    }
+  }
+
+  String _buildStyleJson() {
+    return jsonEncode(
+      QuiMapLibreStyle.light(
+        tileUrlTemplate: widget.tileUrlTemplate,
+        fontConfig: widget.fontConfig,
+        tileMinZoom: widget.tileMinZoom,
+        tileMaxZoom: widget.tileMaxZoom,
+      ),
+    );
+  }
+
+  bool _hasMapConfigurationChanged(QuiLocationRadiusMap oldWidget) {
+    return oldWidget.tileUrlTemplate != widget.tileUrlTemplate ||
+        oldWidget.location != widget.location ||
+        oldWidget.radiusInMeters != widget.radiusInMeters ||
+        oldWidget.radiusStyle != widget.radiusStyle ||
+        oldWidget.fontConfig != widget.fontConfig ||
+        oldWidget.tileMinZoom != widget.tileMinZoom ||
+        oldWidget.tileMaxZoom != widget.tileMaxZoom ||
+        oldWidget.zoom != widget.zoom ||
+        oldWidget.offset != widget.offset ||
+        oldWidget.maximumMapFps != widget.maximumMapFps;
+  }
+
+  void _resetMapConfiguration() {
+    _mapGeneration += 1;
+    _styleJson = _buildStyleJson();
+    _computedZoom = null;
+    _mapIdleCompleter?.complete();
+    _mapIdleCompleter = null;
+    _mapOpacity = 0;
+    _hasSetUpRadius = false;
+    _pendingSettleZoom = null;
+    _wobbleTimer?.cancel();
+    _wobbleTimer = null;
+    _hasStartedWobble = false;
+    _animController.stop();
   }
 
   double _computeZoomForRadius(Size viewport) {
@@ -257,34 +306,25 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     );
   }
 
-  // Required callback signature; cannot be a setter.
-  // ignore: use_setters_to_change_properties
   void _onMapCreated(MapLibreMapController controller) {
-    _mapController = controller;
+    unawaited(_limitNativeMapFrameRate(controller));
+  }
+
+  Future<void> _limitNativeMapFrameRate(MapLibreMapController controller) async {
+    try {
+      await controller.setMaximumFps(widget.maximumMapFps);
+    } catch (_) {
+      // FPS control is a best-effort optimization.
+    }
   }
 
   void _onStyleLoaded() {
-    setState(() => _mapOpacity = 1);
-    if (_radiusCircle != null) return;
+    if (mounted) setState(() => _mapOpacity = 1);
     _createAndStartWobble();
   }
 
-  void _onAnimationTick() {
-    final circle = _radiusCircle;
-    final controller = _mapController;
-    if (circle == null || controller == null) return;
-
-    final t = Curves.easeOutCubic.transform(_animController.value);
-    final lat = _wobbleFromLatLng.latitude + (_wobbleToLatLng.latitude - _wobbleFromLatLng.latitude) * t;
-    final lng = _wobbleFromLatLng.longitude + (_wobbleToLatLng.longitude - _wobbleFromLatLng.longitude) * t;
-    final radius = _wobbleFromRadius + (_wobbleToRadius - _wobbleFromRadius) * t;
-
-    controller.updateCircle(circle, CircleOptions(geometry: LatLng(lat, lng), circleRadius: radius < 1 ? 1 : radius));
-  }
-
-  Future<void> _createAndStartWobble() async {
-    final controller = _mapController;
-    if (controller == null) return;
+  void _createAndStartWobble() {
+    if (_hasStartedWobble) return;
 
     final rng = math.Random();
     final latOffset = (rng.nextDouble() - 0.5) * 0.008;
@@ -293,27 +333,11 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     final randomLng = widget.location.longitude + lngOffset;
     final randomRadius = rng.nextDouble() * 40 + 20;
 
-    final primaryColor = context.qui.colors.primary;
-    final style = widget.radiusStyle;
-    final fillColor = style.color ?? primaryColor.withValues(alpha: 0.15);
-    final borderColor = style.borderColor ?? primaryColor.withValues(alpha: 0.4);
-
-    _radiusCircle = await controller.addCircle(
-      CircleOptions(
-        geometry: LatLng(randomLat, randomLng),
-        circleRadius: randomRadius,
-        circleColor: fillColor.toHex(),
-        circleOpacity: fillColor.a,
-        circleStrokeWidth: style.borderWidth,
-        circleStrokeColor: borderColor.toHex(),
-        circleStrokeOpacity: style.borderWidth > 0 ? borderColor.a : 0,
-      ),
-    );
-
     _wobbleFromLatLng = LatLng(randomLat, randomLng);
     _wobbleToLatLng = LatLng(randomLat, randomLng);
     _wobbleFromRadius = randomRadius;
     _wobbleToRadius = randomRadius;
+    _hasStartedWobble = true;
 
     _wobbleTimer = Timer.periodic(const Duration(milliseconds: 600), (_) {
       if (_pendingSettleZoom != null) {
@@ -338,9 +362,6 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   }
 
   void _settleCircleToTarget(double zoom) {
-    final controller = _mapController;
-    if (controller == null) return;
-
     final centerToEdge = widget.radiusInMeters / 2;
     _targetPixelRadius = _metersToPixels(centerToEdge, zoom, widget.location.latitude);
     if (_targetPixelRadius < 1) _targetPixelRadius = 1;
@@ -358,9 +379,75 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     _animController.forward(from: 0);
   }
 
+  void _onMapIdle() {
+    final mapIdleCompleter = _mapIdleCompleter;
+    if (mapIdleCompleter != null && !mapIdleCompleter.isCompleted) {
+      mapIdleCompleter.complete();
+    }
+
+    if (_hasSetUpRadius) return;
+
+    _hasSetUpRadius = true;
+    _pendingSettleZoom = widget.zoom ?? _computedZoom;
+  }
+
+  _QuiLocationRadiusMapRadiusFrame _radiusFrame() {
+    final primaryColor = context.qui.colors.primary;
+    final style = widget.radiusStyle;
+    final effectiveZoom = widget.zoom ?? _computedZoom ?? widget.tileMinZoom.toDouble();
+
+    return _QuiLocationRadiusMapRadiusFrame(
+      isVisible: _hasStartedWobble,
+      animationValue: _animController.value,
+      fromLocation: (
+        latitude: _hasStartedWobble ? _wobbleFromLatLng.latitude : widget.location.latitude,
+        longitude: _hasStartedWobble ? _wobbleFromLatLng.longitude : widget.location.longitude,
+      ),
+      toLocation: (
+        latitude: _hasStartedWobble ? _wobbleToLatLng.latitude : widget.location.latitude,
+        longitude: _hasStartedWobble ? _wobbleToLatLng.longitude : widget.location.longitude,
+      ),
+      fromRadius: _wobbleFromRadius,
+      toRadius: _wobbleToRadius,
+      cameraTarget: _cameraTargetForOffset(effectiveZoom),
+      zoom: effectiveZoom,
+      fillColor: style.color ?? primaryColor.withValues(alpha: 0.15),
+      borderColor: style.borderColor ?? primaryColor.withValues(alpha: 0.4),
+      borderWidth: style.borderWidth,
+    );
+  }
+
+  Widget _buildNativeMap({required double zoom, required Object mapKey}) {
+    return MapLibreMap(
+      key: ValueKey<Object>(mapKey),
+      initialCameraPosition: CameraPosition(target: _cameraTargetForOffset(zoom), zoom: zoom),
+      styleString: _styleJson,
+      attributionButtonMargins: const math.Point(-50, -50),
+      attributionButtonPosition: AttributionButtonPosition.topRight,
+      onMapCreated: _onMapCreated,
+      onStyleLoadedCallback: _onStyleLoaded,
+      onMapIdle: _onMapIdle,
+      annotationOrder: const <AnnotationType>[],
+      dragEnabled: false,
+      rotateGesturesEnabled: false,
+      scrollGesturesEnabled: false,
+      zoomGesturesEnabled: false,
+      tiltGesturesEnabled: false,
+      doubleClickZoomEnabled: false,
+      compassEnabled: false,
+      logoEnabled: false,
+      minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
+    );
+  }
+
   @override
   void dispose() {
+    _mapGeneration += 1;
     _wobbleTimer?.cancel();
+    final mapIdleCompleter = _mapIdleCompleter;
+    if (mapIdleCompleter != null && !mapIdleCompleter.isCompleted) {
+      mapIdleCompleter.complete();
+    }
     _animController.dispose();
     super.dispose();
   }
@@ -369,36 +456,28 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        _computedZoom ??= _computeZoomForRadius(Size(constraints.maxWidth, constraints.maxHeight));
+        final viewport = Size(constraints.maxWidth, constraints.maxHeight);
+        _computedZoom ??= _computeZoomForRadius(viewport);
+        final effectiveZoom = widget.zoom ?? _computedZoom!;
 
         return AnimatedOpacity(
           opacity: _mapOpacity,
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOut,
-          child: MapLibreMap(
-            initialCameraPosition: CameraPosition(
-              target: _cameraTargetForOffset(widget.zoom ?? _computedZoom!),
-              zoom: widget.zoom ?? _computedZoom!,
-            ),
-            styleString: _styleJson,
-            attributionButtonMargins: const math.Point(-50, -50),
-            attributionButtonPosition: AttributionButtonPosition.topRight,
-            onMapCreated: _onMapCreated,
-            onStyleLoadedCallback: _onStyleLoaded,
-            onMapIdle: () {
-              if (_hasSetUpRadius) return;
-              _hasSetUpRadius = true;
-              _pendingSettleZoom = widget.zoom ?? _computedZoom;
-            },
-            dragEnabled: false,
-            rotateGesturesEnabled: false,
-            scrollGesturesEnabled: false,
-            zoomGesturesEnabled: false,
-            tiltGesturesEnabled: false,
-            doubleClickZoomEnabled: false,
-            compassEnabled: false,
-            logoEnabled: false,
-            minMaxZoomPreference: MinMaxZoomPreference(widget.tileMinZoom.toDouble(), _effectiveMaxZoom),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _buildNativeMap(zoom: effectiveZoom, mapKey: 'map_$_mapGeneration'),
+              IgnorePointer(
+                child: CustomPaint(
+                  painter: _QuiLocationRadiusMapRadiusPainter(
+                    animation: _animController,
+                    curve: Curves.easeOutCubic,
+                    frameProvider: _radiusFrame,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
