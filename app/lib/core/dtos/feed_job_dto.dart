@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
+import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'feed_job_dto.freezed.dart';
@@ -17,6 +18,8 @@ abstract class FeedJobDto with _$FeedJobDto {
     required FeedJobLocationDto location,
     @JsonKey(name: 'description_summary') required String descriptionSummary,
   }) = _FeedJobDto;
+
+  const FeedJobDto._();
 
   factory FeedJobDto.fromJson(Map<String, Object?> json) => _$FeedJobDtoFromJson(json);
 
@@ -44,4 +47,22 @@ abstract class FeedJobDto with _$FeedJobDto {
     ),
     descriptionSummary: 'Experiente em atendimento ao cliente, disponibilidade para finais de semana e feriados.',
   );
+
+  String formatCreatedAtAgo(Translations t, {required DateTime now}) {
+    final difference = now.difference(createdAt);
+    if (difference.isNegative || difference.inSeconds < 60) {
+      return t.feedJob.timeAgo.now;
+    }
+    if (difference.inMinutes < 60) {
+      return t.feedJob.timeAgo.minutes(count: difference.inMinutes);
+    }
+    if (difference.inHours < 24) {
+      return t.feedJob.timeAgo.hours(count: difference.inHours);
+    }
+    final days = difference.inDays;
+    if (days < 30) {
+      return t.feedJob.timeAgo.days(count: days);
+    }
+    return t.feedJob.timeAgo.months(count: days ~/ 30);
+  }
 }

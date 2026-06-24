@@ -25,6 +25,9 @@ class $AssetsIconsGen {
   SvgGenImage get chevronDown =>
       const SvgGenImage('assets/icons/chevron_down.svg');
 
+  /// File path: assets/icons/clock.svg
+  SvgGenImage get clock => const SvgGenImage('assets/icons/clock.svg');
+
   /// File path: assets/icons/cross.svg
   SvgGenImage get cross => const SvgGenImage('assets/icons/cross.svg');
 
@@ -42,6 +45,7 @@ class $AssetsIconsGen {
   List<SvgGenImage> get values => [
     arrowRotateClockwise,
     chevronDown,
+    clock,
     cross,
     magnifierGlass,
     mapPin,

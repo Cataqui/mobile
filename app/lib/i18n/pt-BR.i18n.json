@@ -38,6 +38,21 @@
       "adjustAreaButtonTitle": "Ajustar minha área"
     }
   },
+  "feedJob": {
+    "timeAgo": {
+      "now": "agora",
+      "minutes": "{count: int}min atrás",
+      "hours": "{count: int}h atrás",
+      "days(param=count)": {
+        "one": "1 dia atrás",
+        "other": "{count: int} dias atrás"
+      },
+      "months(param=count)": {
+        "one": "1 mês atrás",
+        "other": "{count: int} meses atrás"
+      }
+    }
+  },
   "jobPayment": {
     "paymentFlexible": "A Combinar",
     "paymentFixed": "{value: String}{period: String}",

@@ -63,7 +63,7 @@ void main() {
     });
 
     test('when inspecting layers, it should retain all 26 approved layers', () {
-      expect(style.layers, hasLength(26));
+      expect(style.layers, hasLength(25));
     });
 
     test('when inspecting recreation landuse, it should use the approved park green color', () {

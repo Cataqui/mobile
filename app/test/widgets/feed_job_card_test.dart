@@ -5,6 +5,7 @@ import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/widgets/feed_job_card.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,6 +40,11 @@ FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionS
 
 Widget _wrap(Widget child) {
   return ProviderScope(child: TestApp(child: child));
+}
+
+/// Runs [body] with a fixed clock for deterministic timestamp rendering.
+Future<void> _withFixedClock(Clock fixedClock, Future<void> Function() body) async {
+  await withClock(fixedClock, body);
 }
 
 void main() {
@@ -127,6 +133,30 @@ void main() {
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
         expect(text.style!.color, equals(const Color(0xFFB3B3B3)));
+      });
+    });
+
+    group('timestamp', () {
+      testWidgets('when createdAt is 20h before now, it should display 20h atrás', (tester) async {
+        final createdAt = DateTime(2025, 6, 15, 0);
+        final fixedNow = createdAt.add(const Duration(hours: 20));
+
+        await _withFixedClock(Clock(() => fixedNow), () async {
+          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt), onTap: () async {})));
+
+          expect(find.text(i18n.feedJob.timeAgo.hours(count: 20)), findsOneWidget);
+        });
+      });
+
+      testWidgets('when createdAt is 1 day before now, it should display 1 dia atrás', (tester) async {
+        final createdAt = DateTime(2025, 6, 15);
+        final fixedNow = createdAt.add(const Duration(days: 1));
+
+        await _withFixedClock(Clock(() => fixedNow), () async {
+          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt), onTap: () async {})));
+
+          expect(find.text(i18n.feedJob.timeAgo.days(count: 1)), findsOneWidget);
+        });
       });
     });
 
