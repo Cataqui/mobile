@@ -127,31 +127,31 @@ class _FeedBodyContent extends ConsumerWidget {
               radius: 70,
               items: [
                 QuiOrbitItem(
-                  child: Qui3d.brush.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
+                  child: Qui3d.brush.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.hammer.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
+                  child: Qui3d.hammer.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.ladder.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
+                  child: Qui3d.ladder.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.motorcycle.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
+                  child: Qui3d.motorcycle.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.shoppingCart.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
+                  child: Qui3d.shoppingCart.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.smallTruck.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
+                  child: Qui3d.smallTruck.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.toolBox.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 43),
+                  child: Qui3d.toolBox.downsampledImage(context, color: context.qui.colors.ghost, width: 43),
                   size: const Size(43, 43),
                 ),
               ],
@@ -269,42 +269,41 @@ class _FeedBodyContent extends ConsumerWidget {
   }
 
   Widget _buildInitialLoading(BuildContext context) {
-
     return Center(
       child: QuiOrbit(
         revolutionDuration: const Duration(milliseconds: 3000),
         radius: 100,
         items: [
           QuiOrbitItem(
-            child: Qui3d.brush.downsampledImage(context, logicalWidth: 50),
+            child: Qui3d.brush.downsampledImage(context, width: 50),
             size: const Size(50, 50),
           ),
           QuiOrbitItem(
-            child: Qui3d.hammer.downsampledImage(context, logicalWidth: 50),
+            child: Qui3d.hammer.downsampledImage(context, width: 50),
             size: const Size(50, 50),
           ),
           QuiOrbitItem(
-            child: Qui3d.ladder.downsampledImage(context, logicalWidth: 50),
+            child: Qui3d.ladder.downsampledImage(context, width: 50),
             size: const Size(50, 50),
           ),
           QuiOrbitItem(
-            child: Qui3d.motorcycle.downsampledImage(context, logicalWidth: 50),
+            child: Qui3d.motorcycle.downsampledImage(context, width: 50),
             size: const Size(50, 50),
           ),
           QuiOrbitItem(
-            child: Qui3d.shoppingCart.downsampledImage(context, logicalWidth: 50),
+            child: Qui3d.shoppingCart.downsampledImage(context, width: 50),
             size: const Size(50, 50),
           ),
           QuiOrbitItem(
-            child: Qui3d.smallTruck.downsampledImage(context, logicalWidth: 50),
+            child: Qui3d.smallTruck.downsampledImage(context, width: 50),
             size: const Size(50, 50),
           ),
           QuiOrbitItem(
-            child: Qui3d.toolBox.downsampledImage(context, logicalWidth: 43),
+            child: Qui3d.toolBox.downsampledImage(context, width: 43),
             size: const Size(43, 43),
           ),
           QuiOrbitItem(
-            child: Qui3d.box.downsampledImage(context, logicalWidth: 43),
+            child: Qui3d.box.downsampledImage(context, width: 43),
             size: const Size(43, 43),
           ),
         ],
