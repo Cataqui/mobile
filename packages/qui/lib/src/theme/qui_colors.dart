@@ -209,7 +209,7 @@ class _LightQuiColors extends QuiColors {
         background: const Color(0xFFFFFFFF),
         surface: const Color(0xFFFFFFFF),
         textPrimary: const Color(0xFF1A1A1A),
-        textSecondary: const Color(0xFFB3B3B3),
+        textSecondary: const Color(0xFFB0B0B0),
         borderOnBackground: const Color(0xFFE6E6E6),
         placeholder: const Color(0xFF9E9E9E),
         disabledButtonBackground: const Color(0xFFE1E1E1),

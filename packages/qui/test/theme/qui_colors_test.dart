@@ -63,7 +63,7 @@ void main() {
     });
 
     test('light() sets textSecondary to soft gray', () {
-      expect(_lightColors.textSecondary, equals(const Color(0xFFB3B3B3)));
+      expect(_lightColors.textSecondary, equals(const Color(0xFFB0B0B0)));
     });
 
     test('when light colors are created, it should set borderOnBackground to light gray', () {

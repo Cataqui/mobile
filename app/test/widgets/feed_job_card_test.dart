@@ -9,6 +9,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qui/qui.dart';
 
 import '../utils/test_app.dart';
 
@@ -124,7 +125,7 @@ void main() {
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
-        expect(text.style!.fontSize, equals(15.7));
+        expect(text.style!.fontSize, equals(16));
       });
 
       testWidgets('when created, the description should use secondary text color', (tester) async {
@@ -132,7 +133,7 @@ void main() {
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
-        expect(text.style!.color, equals(const Color(0xFFB3B3B3)));
+        expect(text.style!.color, equals(const QuiColors.light().textSecondary));
       });
     });
 
@@ -142,7 +143,14 @@ void main() {
         final fixedNow = createdAt.add(const Duration(hours: 20));
 
         await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt), onTap: () async {})));
+          await tester.pumpWidget(
+            _wrap(
+              FeedJobCard(
+                feedJob: _fixture().copyWith(createdAt: createdAt),
+                onTap: () async {},
+              ),
+            ),
+          );
 
           expect(find.text(i18n.feedJob.timeAgo.hours(count: 20)), findsOneWidget);
         });
@@ -153,7 +161,14 @@ void main() {
         final fixedNow = createdAt.add(const Duration(days: 1));
 
         await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt), onTap: () async {})));
+          await tester.pumpWidget(
+            _wrap(
+              FeedJobCard(
+                feedJob: _fixture().copyWith(createdAt: createdAt),
+                onTap: () async {},
+              ),
+            ),
+          );
 
           expect(find.text(i18n.feedJob.timeAgo.days(count: 1)), findsOneWidget);
         });

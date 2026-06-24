@@ -51,7 +51,7 @@ class FeedJobCard extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   feedJob.descriptionSummary,
-                  style: TextStyle(fontSize: 15.7, color: colors.textSecondary, fontWeight: FontWeight.normal),
+                  style: TextStyle(fontSize: 16, color: colors.textSecondary, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
