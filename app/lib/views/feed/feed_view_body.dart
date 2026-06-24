@@ -58,6 +58,7 @@ class _FeedBodyContent extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
         child: QuiTikTokFeed<FeedJobDto>(
+          spacing: 10,
           controller: controller,
           items: (
             count: feedData.jobs.length,
@@ -184,11 +185,7 @@ class _FeedBodyContent extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.workItemsMess.downsampledImage(
-            context,
-            height: 150,
-            width: 150,
-          ),
+          Qui3d.workItemsMess.downsampledImage(context, height: 150, width: 150),
           const SizedBox(height: 40),
           Text(
             i18n.feed.loadingMore.error.title,
@@ -230,11 +227,7 @@ class _FeedBodyContent extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.emptyCitySaoPaulo.downsampledImage(
-            context,
-            height: 150,
-            colorBlendMode: BlendMode.hue,
-          ),
+          Qui3d.emptyCitySaoPaulo.downsampledImage(context, height: 150, colorBlendMode: BlendMode.hue),
           const SizedBox(height: 20),
           Text(
             i18n.feed.empty.title,
@@ -274,38 +267,14 @@ class _FeedBodyContent extends ConsumerWidget {
         revolutionDuration: const Duration(milliseconds: 3000),
         radius: 100,
         items: [
-          QuiOrbitItem(
-            child: Qui3d.brush.downsampledImage(context, width: 50),
-            size: const Size(50, 50),
-          ),
-          QuiOrbitItem(
-            child: Qui3d.hammer.downsampledImage(context, width: 50),
-            size: const Size(50, 50),
-          ),
-          QuiOrbitItem(
-            child: Qui3d.ladder.downsampledImage(context, width: 50),
-            size: const Size(50, 50),
-          ),
-          QuiOrbitItem(
-            child: Qui3d.motorcycle.downsampledImage(context, width: 50),
-            size: const Size(50, 50),
-          ),
-          QuiOrbitItem(
-            child: Qui3d.shoppingCart.downsampledImage(context, width: 50),
-            size: const Size(50, 50),
-          ),
-          QuiOrbitItem(
-            child: Qui3d.smallTruck.downsampledImage(context, width: 50),
-            size: const Size(50, 50),
-          ),
-          QuiOrbitItem(
-            child: Qui3d.toolBox.downsampledImage(context, width: 43),
-            size: const Size(43, 43),
-          ),
-          QuiOrbitItem(
-            child: Qui3d.box.downsampledImage(context, width: 43),
-            size: const Size(43, 43),
-          ),
+          QuiOrbitItem(child: Qui3d.brush.downsampledImage(context, width: 50), size: const Size(50, 50)),
+          QuiOrbitItem(child: Qui3d.hammer.downsampledImage(context, width: 50), size: const Size(50, 50)),
+          QuiOrbitItem(child: Qui3d.ladder.downsampledImage(context, width: 50), size: const Size(50, 50)),
+          QuiOrbitItem(child: Qui3d.motorcycle.downsampledImage(context, width: 50), size: const Size(50, 50)),
+          QuiOrbitItem(child: Qui3d.shoppingCart.downsampledImage(context, width: 50), size: const Size(50, 50)),
+          QuiOrbitItem(child: Qui3d.smallTruck.downsampledImage(context, width: 50), size: const Size(50, 50)),
+          QuiOrbitItem(child: Qui3d.toolBox.downsampledImage(context, width: 43), size: const Size(43, 43)),
+          QuiOrbitItem(child: Qui3d.box.downsampledImage(context, width: 43), size: const Size(43, 43)),
         ],
       ),
     );
