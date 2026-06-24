@@ -196,7 +196,7 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   late String _styleJson;
 
   double? _computedZoom;
-  double _mapOpacity = 0;
+  double _overlayOpacity = 0;
   double _targetPixelRadius = 0;
   bool _hasSetUpRadius = false;
   bool _hasStartedWobble = false;
@@ -257,7 +257,7 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     _computedZoom = null;
     _mapIdleCompleter?.complete();
     _mapIdleCompleter = null;
-    _mapOpacity = 0;
+    _overlayOpacity = 0;
     _hasSetUpRadius = false;
     _pendingSettleZoom = null;
     _wobbleTimer?.cancel();
@@ -319,7 +319,7 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   }
 
   void _onStyleLoaded() {
-    if (mounted) setState(() => _mapOpacity = 1);
+    if (mounted) setState(() => _overlayOpacity = 1);
     _createAndStartWobble();
   }
 
@@ -460,15 +460,15 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
         _computedZoom ??= _computeZoomForRadius(viewport);
         final effectiveZoom = widget.zoom ?? _computedZoom!;
 
-        return AnimatedOpacity(
-          opacity: _mapOpacity,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeOut,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _buildNativeMap(zoom: effectiveZoom, mapKey: 'map_$_mapGeneration'),
-              IgnorePointer(
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildNativeMap(zoom: effectiveZoom, mapKey: 'map_$_mapGeneration'),
+            AnimatedOpacity(
+              opacity: _overlayOpacity,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOut,
+              child: IgnorePointer(
                 child: CustomPaint(
                   painter: _QuiLocationRadiusMapRadiusPainter(
                     animation: _animController,
@@ -477,8 +477,8 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );

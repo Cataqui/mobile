@@ -246,7 +246,7 @@ void main() {
   });
 
   group('QuiLocationRadiusMap map configuration', () {
-    testWidgets('when rendered, it should wrap the map in AnimatedOpacity', (tester) async {
+    testWidgets('when rendered, it should wrap the radius overlay in AnimatedOpacity', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: SizedBox(
@@ -294,11 +294,11 @@ void main() {
       expect(openMapTiles['tiles'], ['https://tiles.example.com/{z}/{x}/{y}.mvt']);
     });
 
-    testWidgets('when rendered, it should retain the complete 26-layer map style', (tester) async {
+    testWidgets('when rendered, it should retain the complete 25-layer map style', (tester) async {
       await _pumpMap(tester);
 
       final layers = _mapStyle(tester)['layers'] as List<dynamic>;
-      expect(layers, hasLength(26));
+      expect(layers, hasLength(25));
     });
 
     testWidgets('when rendered, it should include a glyphs template in the MapLibre style', (tester) async {
@@ -377,6 +377,13 @@ void main() {
         (target.latitude - location.latitude).abs() + (target.longitude - location.longitude).abs(),
         lessThan(0.000000001),
       );
+    });
+
+    testWidgets('when rendered, the MapLibreMap should be a direct child of Stack', (tester) async {
+      await _pumpMap(tester);
+
+      final stack = tester.widget<Stack>(find.byType(Stack));
+      expect(stack.children.first, isA<MapLibreMap>());
     });
   });
 
