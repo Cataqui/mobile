@@ -194,9 +194,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     _setDragOffset(_dragOffsetY + details.delta.dy);
 
-    if (!_hasFiredStartHaptic &&
-        widget.enableHapticFeedback &&
-        _dragOffsetY < 0) {
+    if (!_hasFiredStartHaptic && widget.enableHapticFeedback && _dragOffsetY < 0) {
       _hasFiredStartHaptic = true;
       unawaited(HapticFeedback.selectionClick());
     }
@@ -234,7 +232,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final item = widget.items.provider(_currentIndex);
     final itemIndex = _currentIndex;
 
-    await _animateTo(-_viewportHeight, duration: _commitDuration, curve: Curves.easeIn);
+    await _animateTo(-_viewportHeight, duration: _commitDuration, curve: Curves.easeOutCubic);
 
     if (!mounted) return;
 
@@ -257,7 +255,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final itemIndex = _currentIndex;
     final hadRealItem = _hasCurrentItem;
 
-    await _animateTo(_viewportHeight, duration: _commitDuration, curve: Curves.easeIn);
+    await _animateTo(_viewportHeight, duration: _commitDuration, curve: Curves.easeOutCubic);
 
     if (!mounted) return;
 
