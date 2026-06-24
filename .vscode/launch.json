@@ -10,6 +10,14 @@
             "flutterMode": "debug"
         },
         {
+            "name": "App (Profile)",
+            "program": "app/lib/main.dart",
+            "preLaunchTask": "codegen",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
             "name": "App (Release)",
             "program": "app/lib/main.dart",
             "preLaunchTask": "codegen",
