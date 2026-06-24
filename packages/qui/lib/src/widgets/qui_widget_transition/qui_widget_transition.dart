@@ -83,7 +83,6 @@ class QuiWidgetTransition extends StatefulWidget {
 class _QuiWidgetTransitionState extends State<QuiWidgetTransition>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _animationController;
-  final Animation<double> _hiddenAnim = const AlwaysStoppedAnimation<double>(0);
   final Animation<double> _visibleAnim = const AlwaysStoppedAnimation<double>(1);
 
   _QuiWidgetTransitionEntry? _activeEntry;
@@ -180,11 +179,14 @@ class _QuiWidgetTransitionState extends State<QuiWidgetTransition>
       _updateDuringIdle(newChild, newKey);
     }
 
+    final showActive = _phase != _QuiWidgetTransitionPhase.exit;
+
     return RepaintBoundary(
       child: Stack(
         children: [
           if (_exitingEntry != null) Positioned.fill(key: const ValueKey('exiting'), child: _buildExitingEntry()),
-          if (_activeEntry != null) Positioned.fill(key: const ValueKey('active'), child: _buildActiveEntry()),
+          if (_activeEntry != null && showActive)
+            Positioned.fill(key: const ValueKey('active'), child: _buildActiveEntry()),
         ],
       ),
     );
@@ -231,8 +233,7 @@ class _QuiWidgetTransitionState extends State<QuiWidgetTransition>
 
   Animation<double> _resolveActiveAnim() {
     if (_phase == _QuiWidgetTransitionPhase.enter) return _animationController;
-    if (_exitingEntry == null) return _visibleAnim;
-    return _hiddenAnim;
+    return _visibleAnim;
   }
 
   void _startExitTransition() {

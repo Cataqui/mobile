@@ -498,6 +498,50 @@ void main() {
       },
     );
   });
+
+  group('QuiWidgetTransition incoming-mount timing', () {
+    testWidgets(
+      'when transitioning A to B, it should NOT mount the incoming widget during the exit phase',
+      (tester) async {
+        final initCounts = <String, int>{};
+        var trackKey = 'A';
+
+        Widget build() => _HarnessApp(
+              child: QuiWidgetTransition(
+                builder: (_) => _TrackedWidget(
+                  label: trackKey,
+                  initCounts: initCounts,
+                  key: ValueKey(trackKey),
+                ),
+                outDuration: const Duration(milliseconds: 5000),
+                outTransition: (child, animation) => FadeTransition(
+                  opacity: Tween<double>(begin: 1, end: 0).animate(animation),
+                  child: RepaintBoundary(child: child),
+                ),
+                inDuration: const Duration(milliseconds: 200),
+                inTransition: (child, animation) {
+                  final curved = CurveTween(curve: Curves.easeOutCubic);
+                  return FadeTransition(
+                    opacity: Tween<double>(begin: 0, end: 1).animate(curved.animate(animation)),
+                    child: RepaintBoundary(child: child),
+                  );
+                },
+              ),
+            );
+
+        trackKey = 'A';
+        await tester.pumpWidget(build());
+        await tester.pump();
+
+        trackKey = 'B';
+        await tester.pumpWidget(build());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(initCounts['B'], isNull);
+      },
+    );
+  });
 }
 
 _Builder _constBuilder(String label) {
