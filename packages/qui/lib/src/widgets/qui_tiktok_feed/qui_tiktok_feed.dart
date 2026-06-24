@@ -2,14 +2,16 @@ library;
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 
 part 'qui_tiktok_feed_action.dart';
+part 'qui_tiktok_feed_cached_card.dart';
 part 'qui_tiktok_feed_controller.dart';
-part 'qui_tiktok_feed_drag_state.dart';
+part 'qui_tiktok_feed_flow_delegate.dart';
 part 'qui_tiktok_feed_types.dart';
 
 /// A vertical, full-screen TikTok-style paged feed.
@@ -23,7 +25,11 @@ part 'qui_tiktok_feed_types.dart';
 ///
 /// ```dart
 /// QuiTikTokFeed<String>(
-///   items: (count: opportunities.length, provider: (i) => opportunities[i]),
+///   items: (
+///     count: opportunities.length,
+///     provider: (i) => opportunities[i],
+///     keyBuilder: null,
+///   ),
 ///   builder: (context, item, index) => MyCard(opportunity: item),
 ///   onNext: (item, index) => print('Left $item behind'),
 /// )
@@ -42,6 +48,8 @@ class QuiTikTokFeed<T> extends StatefulWidget {
     this.onNext,
     this.onPrevious,
     this.onLoadMore,
+    this.onMotionStart,
+    this.onMotionEnd,
     this.loadMoreThreshold = 1,
     this.enableHapticFeedback = true,
   }) : assert(
@@ -50,10 +58,62 @@ class QuiTikTokFeed<T> extends StatefulWidget {
        ),
        assert(items.count >= 0, 'items.count must be greater than or equal to 0.');
 
-  /// Items for the feed as a record of count and lazy provider.
+  /// Items for the feed as a record of `count`, `provider`, and optional
+  /// `keyBuilder`.
   ///
-  /// The provider is only called for the current and adjacent indexes.
-  final ({int count, T Function(int index) provider}) items;
+  /// ## Fields
+  ///
+  /// * `count` — total number of items in the feed.
+  /// * `provider` — lazy accessor called only for the current and adjacent
+  ///   indexes. Must return a non-null item for every valid index in
+  ///   `0..count - 1`.
+  /// * `keyBuilder` — optional stable identity for an item. See below.
+  ///
+  /// ## When to provide `keyBuilder`
+  ///
+  /// Provide `keyBuilder` when items have a **stable identity** that
+  /// survives feed mutations — typically a database ID, UUID, or natural
+  /// key. Stable keys let the feed preserve each card's underlying
+  /// `Element` and `State` as the user swipes between positions and as
+  /// pagination inserts or reorders items.
+  ///
+  /// Without a stable key, the feed falls back to the item **index**. This
+  /// is safe for static lists that never change after initial load, but
+  /// breaks down when the list mutates: if pagination prepends new items,
+  /// every card's index shifts and the `Element` tree reuses the wrong
+  /// `State` for each item — causing stale content, lost scroll position,
+  /// or visual glitches.
+  ///
+  /// ### Example: stable IDs
+  ///
+  /// ```dart
+  /// QuiTikTokFeed<Job>(
+  ///   items: (
+  ///     count: jobs.length,
+  ///     provider: (i) => jobs[i],
+  ///     keyBuilder: (job, index) => job.id,
+  ///   ),
+  ///   builder: (context, job, index) => JobCard(job: job),
+  /// )
+  /// ```
+  ///
+  /// ## When to omit `keyBuilder`
+  ///
+  /// Omit `keyBuilder` when items lack a stable identity or when the feed's
+  /// item list is immutable after the initial load. The index-based
+  /// fallback is lightweight and correct for fixed-length, append-only, or
+  /// non-paginated feeds.
+  ///
+  /// ## Key uniqueness
+  ///
+  /// Keys returned by `keyBuilder` must be unique across all items in the
+  /// feed. Duplicate keys cause undefined behavior in the internal card
+  /// cache and may result in stale or mismatched cards being displayed.
+  final ({
+    int count,
+    T Function(int index) provider,
+    Object Function(T item, int index)? keyBuilder,
+  }) items;
 
   /// Builds the widget for each feed item.
   final Widget Function(BuildContext context, T item, int index) builder;
@@ -84,6 +144,12 @@ class QuiTikTokFeed<T> extends StatefulWidget {
 
   /// Called when the current index reaches [loadMoreThreshold].
   final Future<void> Function()? onLoadMore;
+
+  /// Called once when a drag or programmatic settle motion begins.
+  final VoidCallback? onMotionStart;
+
+  /// Called once after a drag or programmatic settle motion completes.
+  final VoidCallback? onMotionEnd;
 
   /// Loaded-deck progress required to call [onLoadMore].
   final double loadMoreThreshold;
@@ -117,11 +183,13 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   bool _hasFiredStartHaptic = false;
   bool _isLoadMoreScheduled = false;
   bool _isControllerActionRunning = false;
+  bool _isMotionActive = false;
+  int _motionGeneration = 0;
+  int _activeDragGeneration = 0;
   final _disposeCompleter = Completer<void>();
+  final Map<Object, _QuiTikTokFeedCachedCard<T>> _cardCache = <Object, _QuiTikTokFeedCachedCard<T>>{};
 
-  final ValueNotifier<_QuiTikTokFeedDragState> _dragStateNotifier = ValueNotifier<_QuiTikTokFeedDragState>(
-    const _QuiTikTokFeedDragState(offsetY: 0, action: QuiTikTokFeedAction.next, currentIndex: 0),
-  );
+  final ValueNotifier<double> _dragOffsetNotifier = ValueNotifier<double>(0);
 
   bool get _hasCurrentItem => _currentIndex < widget.items.count;
   bool get _hasLoadMoreError => widget.loadMoreErrorBuilder != null;
@@ -149,7 +217,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     if (_currentIndex > widget.items.count) {
       _currentIndex = widget.items.count;
       _dragOffsetY = 0;
-      _dragStateNotifier.value = _QuiTikTokFeedDragState(offsetY: 0, action: _lastAction, currentIndex: _currentIndex);
+      _dragOffsetNotifier.value = 0;
     }
 
     if (widget.items.count > oldWidget.items.count || widget.items.count > (_exhaustedItemCount ?? -1)) {
@@ -169,7 +237,8 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       ..removeListener(_syncAnimatedOffset)
       ..dispose();
 
-    _dragStateNotifier.dispose();
+    _dragOffsetNotifier.dispose();
+    _cardCache.clear();
     _disposeCompleter.complete();
 
     super.dispose();
@@ -187,6 +256,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     _animationController.stop();
     _hasFiredStartHaptic = false;
+    _activeDragGeneration = _startMotion();
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
@@ -203,27 +273,40 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   Future<void> _onVerticalDragEnd(DragEndDetails details) async {
     if (_isControllerActionRunning) return;
 
-    final velocity = details.velocity.pixelsPerSecond.dy;
-    final progress = (_dragOffsetY.abs() / _viewportHeight).clamp(0, 1);
-    final upIntent = _dragOffsetY < 0 || (_dragOffsetY == 0 && velocity < 0);
-    final metThreshold = progress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
+    final motionGeneration = _activeDragGeneration;
 
-    if (!metThreshold) {
+    try {
+      final velocity = details.velocity.pixelsPerSecond.dy;
+      final progress = (_dragOffsetY.abs() / _viewportHeight).clamp(0, 1);
+      final upIntent = _dragOffsetY < 0 || (_dragOffsetY == 0 && velocity < 0);
+      final metThreshold = progress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
+
+      if (!metThreshold) {
+        await _snapBack();
+        return;
+      }
+
+      if (upIntent && _hasCurrentItem) {
+        await _commitNext();
+        return;
+      }
+
+      if (!upIntent && _currentIndex > 0) {
+        await _commitPrevious();
+        return;
+      }
+
       await _snapBack();
-      return;
+    } finally {
+      _endMotion(motionGeneration);
     }
+  }
 
-    if (upIntent && _hasCurrentItem) {
-      await _commitNext();
-      return;
-    }
+  void _onVerticalDragCancel() {
+    if (_isControllerActionRunning) return;
 
-    if (!upIntent && _currentIndex > 0) {
-      await _commitPrevious();
-      return;
-    }
-
-    await _snapBack();
+    final motionGeneration = _activeDragGeneration;
+    unawaited(_snapBack().whenComplete(() => _endMotion(motionGeneration)));
   }
 
   Future<void> _commitNext() async {
@@ -241,7 +324,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       _dragOffsetY = 0;
     });
 
-    _dragStateNotifier.value = _QuiTikTokFeedDragState(offsetY: 0, action: _lastAction, currentIndex: _currentIndex);
+    _dragOffsetNotifier.value = 0;
 
     widget.onNext?.call(item, itemIndex);
     _scheduleLoadMoreIfNeeded();
@@ -264,7 +347,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       _dragOffsetY = 0;
     });
 
-    _dragStateNotifier.value = _QuiTikTokFeedDragState(offsetY: 0, action: _lastAction, currentIndex: _currentIndex);
+    _dragOffsetNotifier.value = 0;
 
     if (hadRealItem) widget.onPrevious?.call(widget.items.provider(itemIndex), itemIndex);
   }
@@ -303,9 +386,25 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     _lastAction = action;
     _dragOffsetY = value;
-    _dragStateNotifier.value = _QuiTikTokFeedDragState(offsetY: value, action: action, currentIndex: _currentIndex);
+    _dragOffsetNotifier.value = value;
 
     widget.onSwipeProgress?.call(action: action, percentage: (value.abs() / _viewportHeight).clamp(0, 1));
+  }
+
+  int _startMotion() {
+    _motionGeneration += 1;
+    if (_isMotionActive) return _motionGeneration;
+
+    _isMotionActive = true;
+    widget.onMotionStart?.call();
+    return _motionGeneration;
+  }
+
+  void _endMotion(int generation) {
+    if (!_isMotionActive || generation != _motionGeneration) return;
+
+    _isMotionActive = false;
+    widget.onMotionEnd?.call();
   }
 
   void _retryLoadMore() {
@@ -366,10 +465,12 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     _animationController.stop();
     _isControllerActionRunning = true;
+    final motionGeneration = _startMotion();
 
     try {
       await _commitNext();
     } finally {
+      _endMotion(motionGeneration);
       if (mounted) {
         _isControllerActionRunning = false;
       }
@@ -384,10 +485,12 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     _animationController.stop();
     _isControllerActionRunning = true;
+    final motionGeneration = _startMotion();
 
     try {
       await _commitPrevious();
     } finally {
+      _endMotion(motionGeneration);
       if (mounted) {
         _isControllerActionRunning = false;
       }
@@ -419,68 +522,106 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
         final paginationCard = _hasCurrentItem ? _buildPaginationCard(context) : null;
         final terminalCard = _hasCurrentItem ? null : _buildTerminalCard(context);
         final isGestureActive = _hasCurrentItem || _currentIndex > 0;
+        final previousCard = _currentIndex > 0 ? _cardFor(index: _currentIndex - 1) : null;
+        final currentCard = _hasCurrentItem ? _cardFor(index: _currentIndex) : null;
+        final nextCard = hasNextItem ? _cardFor(index: nextIndex) : null;
+
+        _retainCardWindow(previousCard: previousCard, currentCard: currentCard, nextCard: nextCard);
 
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onVerticalDragStart: isGestureActive ? _onVerticalDragStart : null,
           onVerticalDragUpdate: isGestureActive ? _onVerticalDragUpdate : null,
           onVerticalDragEnd: isGestureActive ? _onVerticalDragEnd : null,
-          child: ValueListenableBuilder<_QuiTikTokFeedDragState>(
-            valueListenable: _dragStateNotifier,
-            builder: (context, state, child) {
-              final offsetY = state.offsetY;
+          onVerticalDragCancel: isGestureActive ? _onVerticalDragCancel : null,
+          child: Flow(
+            clipBehavior: Clip.none,
+            delegate: _QuiTikTokFeedFlowDelegate(
+              offsetListenable: _dragOffsetNotifier,
+              viewportHeight: _viewportHeight,
+              currentIndex: _currentIndex,
+              hasPreviousCard: previousCard != null,
+              hasNextCard: nextCard != null || (_hasCurrentItem && paginationCard != null),
+            ),
+            children: [
+              if (currentCard != null) ...[
+                _retainedCard(card: currentCard),
+              ] else ...[
+                _retainedTerminalCard(child: terminalCard!),
+              ],
 
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (offsetY > 0 && _currentIndex > 0)
-                    _positionedCard(index: _currentIndex - 1, translateY: offsetY - _viewportHeight),
-                  if (offsetY <= 0 && _hasCurrentItem) ...[
-                    if (hasNextItem)
-                      _positionedCard(index: nextIndex, translateY: offsetY + _viewportHeight)
-                    else if (paginationCard != null)
-                      _positionedTerminalCard(translateY: offsetY + _viewportHeight, child: paginationCard),
-                  ],
-                  if (_hasCurrentItem)
-                    _positionedCard(index: state.currentIndex, translateY: offsetY)
-                  else
-                    _positionedTerminalCard(translateY: offsetY, child: terminalCard!),
-                ],
-              );
-            },
+              if (nextCard != null) ...[
+                _retainedCard(card: nextCard),
+              ] else if (_hasCurrentItem && paginationCard != null) ...[
+                _retainedTerminalCard(child: paginationCard),
+              ] else ...[
+                const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_next')),
+              ],
+
+              if (previousCard != null) ...[
+                _retainedCard(card: previousCard),
+              ] else ...[
+                const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_previous')),
+              ],
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _positionedCard({required int index, required double translateY}) {
-    return RepaintBoundary(
-      key: ValueKey('qui_tiktok_feed_card_$index'),
-      child: Transform.translate(
-        offset: Offset(0, translateY),
-        child: KeyedSubtree(
-          key: ValueKey('qui_tiktok_feed_content_$index'),
-          child: widget.builder(context, widget.items.provider(index), index),
-        ),
-      ),
+  _QuiTikTokFeedCachedCard<T> _cardFor({required int index}) {
+    final item = widget.items.provider(index);
+    final itemKey = widget.items.keyBuilder?.call(item, index) ?? index;
+    final cachedCard = _cardCache[itemKey];
+
+    if (cachedCard != null && cachedCard.item == item && cachedCard.index == index) {
+      return cachedCard;
+    }
+
+    final card = _QuiTikTokFeedCachedCard<T>(
+      item: item,
+      itemKey: itemKey,
+      index: index,
+      child: KeyedSubtree(key: ValueKey<Object>(itemKey), child: widget.builder(context, item, index)),
     );
+
+    _cardCache[itemKey] = card;
+    return card;
   }
 
-  Widget _positionedTerminalCard({required double translateY, required Widget child}) {
-    return Transform.translate(offset: Offset(0, translateY), child: child);
+  void _retainCardWindow({
+    required _QuiTikTokFeedCachedCard<T>? previousCard,
+    required _QuiTikTokFeedCachedCard<T>? currentCard,
+    required _QuiTikTokFeedCachedCard<T>? nextCard,
+  }) {
+    final retainedKeys = <Object>{
+      if (previousCard != null) previousCard.itemKey,
+      if (currentCard != null) currentCard.itemKey,
+      if (nextCard != null) nextCard.itemKey,
+    };
+
+    _cardCache.removeWhere((key, value) => !retainedKeys.contains(key));
+  }
+
+  Widget _retainedCard({required _QuiTikTokFeedCachedCard<T> card}) {
+    return RepaintBoundary(key: ValueKey('qui_tiktok_feed_card_${card.itemKey}'), child: card.child);
+  }
+
+  Widget _retainedTerminalCard({required Widget child}) {
+    return KeyedSubtree(key: const ValueKey('qui_tiktok_feed_terminal_card'), child: child);
   }
 
   Widget _buildTerminalCard(BuildContext context) {
-    if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
     if (_isLoadingMore) return _buildLoadingCard(context);
+    if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
 
     return widget.endBuilder?.call(context) ?? const SizedBox.shrink();
   }
 
   Widget? _buildPaginationCard(BuildContext context) {
-    if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
     if (_isLoadingMore) return _buildLoadingCard(context);
+    if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
 
     final hasNextItem = _currentIndex + 1 < widget.items.count;
     if (!hasNextItem && _exhaustedItemCount == widget.items.count) {
@@ -508,7 +649,11 @@ Widget quiTikTokFeedPreview() {
       backgroundColor: const Color(0xFFF6F4F1),
       body: SafeArea(
         child: QuiTikTokFeed<_PreviewOpportunity>(
-          items: (count: _previewOpportunities.length, provider: (i) => _previewOpportunities[i]),
+          items: (
+            count: _previewOpportunities.length,
+            provider: (int i) => _previewOpportunities[i],
+            keyBuilder: null,
+          ),
           builder: (context, opportunity, index) {
             return _PreviewOpportunityCard(opportunity: opportunity);
           },

@@ -93,15 +93,11 @@ void main() {
         children: [
           GoldenTestScenario(
             name: 'last card with loading',
-            child: const _GoldenFrame(
-              child: _GoldenFeed(items: ['loading_current'], isLoadingFixture: true),
-            ),
+            child: const _GoldenFrame(child: _GoldenFeed(items: ['loading_current'], isLoadingFixture: true)),
           ),
           GoldenTestScenario(
             name: 'full loading',
-            child: const _GoldenFrame(
-              child: _GoldenFeed(items: ['loading_dismissed'], isLoadingFixture: true),
-            ),
+            child: const _GoldenFrame(child: _GoldenFeed(items: ['loading_dismissed'], isLoadingFixture: true)),
           ),
           GoldenTestScenario(
             name: 'pagination error',
@@ -113,9 +109,7 @@ void main() {
           ),
           GoldenTestScenario(
             name: 'early threshold',
-            child: const _GoldenFrame(
-              child: _GoldenFeed(items: ['first', 'second', 'third'], loadMoreThreshold: 0.5),
-            ),
+            child: const _GoldenFrame(child: _GoldenFeed(items: ['first', 'second', 'third'], loadMoreThreshold: 0.5)),
           ),
         ],
       ),
@@ -136,9 +130,7 @@ void main() {
         children: [
           GoldenTestScenario(
             name: 'exhausted last card dragged up',
-            child: const _GoldenFrame(
-              child: _GoldenFeed(items: ['solo'], showEndState: true, isExhausted: true),
-            ),
+            child: const _GoldenFrame(child: _GoldenFeed(items: ['solo'], showEndState: true, isExhausted: true)),
           ),
         ],
       ),
@@ -201,13 +193,13 @@ class _GoldenFeed extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return QuiTikTokFeed<String>(
-      items: (count: items.length, provider: (i) => items[i]),
+      items: (count: items.length, provider: (int i) => items[i], keyBuilder: null),
       loadMoreThreshold: loadMoreThreshold,
       onLoadMore: isLoadingFixture
           ? () => Completer<void>().future
           : isExhausted
-              ? () async {}
-              : null,
+          ? () async {}
+          : null,
       loadingMoreBuilder: _loadingMoreBuilder,
       loadMoreErrorBuilder: showLoadMoreError ? _loadMoreErrorBuilder : null,
       endBuilder: showEndState ? _endBuilder : null,

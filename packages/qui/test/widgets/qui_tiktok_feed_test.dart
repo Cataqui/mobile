@@ -90,6 +90,88 @@ void main() {
 
       expect(requestedIndexes.toSet(), {0, 1});
     });
+
+    testWidgets('when dragging across multiple frames, it should not rebuild card contents', (tester) async {
+      var buildCount = 0;
+
+      await _pumpTypedFeed<String>(
+        tester,
+        items: const ['first', 'second'],
+        builder: (context, item, index) {
+          buildCount += 1;
+          return _TestCard(label: item);
+        },
+      );
+      final gesture = await tester.startGesture(tester.getCenter(find.byKey(_cardKey('first'))));
+      await gesture.moveBy(const Offset(0, -40));
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, -40));
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, -40));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(buildCount, 2);
+    });
+
+    testWidgets('when a card settles back, it should not rebuild card contents', (tester) async {
+      var buildCount = 0;
+
+      await _pumpTypedFeed<String>(
+        tester,
+        items: const ['first', 'second'],
+        builder: (context, item, index) {
+          buildCount += 1;
+          return _TestCard(label: item);
+        },
+      );
+      await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -60));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      expect(buildCount, 2);
+    });
+
+    testWidgets('when dragging across frames, it should retain the same paint-only Flow widget', (tester) async {
+      await _pumpTypedFeed<String>(
+        tester,
+        items: const ['first', 'second'],
+        builder: (context, item, index) => _TestCard(label: item),
+      );
+      final flowBeforeDrag = tester.widget<Flow>(find.byType(Flow));
+
+      final gesture = await tester.startGesture(tester.getCenter(find.byKey(_cardKey('first'))));
+      await gesture.moveBy(const Offset(0, -40));
+      await tester.pump();
+      final flowDuringDrag = tester.widget<Flow>(find.byType(Flow));
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(identical(flowBeforeDrag, flowDuringDrag), isTrue);
+    });
+
+    testWidgets('when current and adjacent cards mount, it should build the visible current card first', (
+      tester,
+    ) async {
+      final mountedCards = <String>[];
+
+      await _pumpTypedFeed<String>(
+        tester,
+        items: const ['first', 'second'],
+        builder: (context, item, index) {
+          return Builder(
+            builder: (context) {
+              mountedCards.add(item);
+              return _TestCard(label: item);
+            },
+          );
+        },
+      );
+
+      expect(mountedCards.first, 'first');
+    });
   });
 
   group('QuiTikTokFeed next (up swipe)', () {
@@ -157,10 +239,7 @@ void main() {
     testWidgets('when advancing next, it should not call onPrevious', (tester) async {
       final previousLogs = <_ItemLog<String>>[];
 
-      await _pumpFeed(
-        tester,
-        onPrevious: (item, index) => previousLogs.add((item: item, index: index)),
-      );
+      await _pumpFeed(tester, onPrevious: (item, index) => previousLogs.add((item: item, index: index)));
 
       await _dragCard(tester, 'first', const Offset(0, -300));
 
@@ -217,10 +296,7 @@ void main() {
     testWidgets('when going back, it should call onPrevious with the left-behind item', (tester) async {
       final previousLogs = <_ItemLog<String>>[];
 
-      await _pumpFeed(
-        tester,
-        onPrevious: (item, index) => previousLogs.add((item: item, index: index)),
-      );
+      await _pumpFeed(tester, onPrevious: (item, index) => previousLogs.add((item: item, index: index)));
 
       await _dragCurrentCard(tester, const Offset(0, -300)); // advance to second
 
@@ -232,10 +308,7 @@ void main() {
     testWidgets('when going back, it should call onPrevious with the left-behind index', (tester) async {
       final previousLogs = <_ItemLog<String>>[];
 
-      await _pumpFeed(
-        tester,
-        onPrevious: (item, index) => previousLogs.add((item: item, index: index)),
-      );
+      await _pumpFeed(tester, onPrevious: (item, index) => previousLogs.add((item: item, index: index)));
 
       await _dragCurrentCard(tester, const Offset(0, -300)); // advance to second
 
@@ -270,9 +343,7 @@ void main() {
       expect(_currentCardLabel(tester), 'second');
     });
 
-    testWidgets('when flinging down with velocity above threshold from index > 0, it should go back', (
-      tester,
-    ) async {
+    testWidgets('when flinging down with velocity above threshold from index > 0, it should go back', (tester) async {
       await _pumpFeed(tester);
 
       await _dragCurrentCard(tester, const Offset(0, -300)); // advance to second
@@ -412,9 +483,7 @@ void main() {
       expect(_currentCardLabel(tester), 'first');
     });
 
-    testWidgets('when controller.previous is called, it should call onPrevious with the current item', (
-      tester,
-    ) async {
+    testWidgets('when controller.previous is called, it should call onPrevious with the current item', (tester) async {
       final controller = QuiTikTokFeedController();
       final previousLogs = <_ItemLog<String>>[];
 
@@ -469,25 +538,23 @@ void main() {
       expect(nextLogs, hasLength(1)); // only the forward call
     });
 
-    testWidgets('when a controller action is already running, it should return false for a second action',
-      (tester) async {
-        final controller = QuiTikTokFeedController();
-
-        await _pumpFeed(tester, controller: controller);
-        final nextFuture = controller.next();
-        await tester.pump();
-        final result = await controller.next();
-
-        expect(result, isFalse);
-
-        await tester.pumpAndSettle();
-        await nextFuture;
-      },
-    );
-
-    testWidgets('when the widget swaps controllers, it should detach the old one and use the new one', (
+    testWidgets('when a controller action is already running, it should return false for a second action', (
       tester,
     ) async {
+      final controller = QuiTikTokFeedController();
+
+      await _pumpFeed(tester, controller: controller);
+      final nextFuture = controller.next();
+      await tester.pump();
+      final result = await controller.next();
+
+      expect(result, isFalse);
+
+      await tester.pumpAndSettle();
+      await nextFuture;
+    });
+
+    testWidgets('when the widget swaps controllers, it should detach the old one and use the new one', (tester) async {
       final firstController = QuiTikTokFeedController();
       final secondController = QuiTikTokFeedController();
 
@@ -608,13 +675,27 @@ void main() {
     });
   });
 
+  group('QuiTikTokFeed motion lifecycle', () {
+    testWidgets('when a swipe settles, it should notify one motion start and one motion end', (tester) async {
+      var motionStarts = 0;
+      var motionEnds = 0;
+
+      await _pumpFeed(tester, onMotionStart: () => motionStarts += 1, onMotionEnd: () => motionEnds += 1);
+      await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -80));
+      await tester.pumpAndSettle();
+
+      expect((starts: motionStarts, ends: motionEnds), (starts: 1, ends: 1));
+    });
+  });
+
   group('QuiTikTokFeed assertion validation', () {
     testWidgets('when items.count is negative, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiTikTokFeed<String>(
-          items: (count: -1, provider: (i) => 'item'),
-          builder: _defaultCardBuilder,
-        ),
+        () => QuiTikTokFeed<String>(items: (
+          count: -1,
+          provider: (int i) => 'item',
+          keyBuilder: null,
+        ), builder: _defaultCardBuilder),
         throwsAssertionError,
       );
     });
@@ -622,7 +703,11 @@ void main() {
     testWidgets('when loadMoreThreshold is below 0, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (count: 0, provider: (i) => 'item'),
+          items: (
+            count: 0,
+            provider: (int i) => 'item',
+            keyBuilder: null,
+          ),
           loadMoreThreshold: -0.1,
           builder: _defaultCardBuilder,
         ),
@@ -633,7 +718,11 @@ void main() {
     testWidgets('when loadMoreThreshold is above 1, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (count: 0, provider: (i) => 'item'),
+          items: (
+            count: 0,
+            provider: (int i) => 'item',
+            keyBuilder: null,
+          ),
           loadMoreThreshold: 1.1,
           builder: _defaultCardBuilder,
         ),
@@ -733,34 +822,57 @@ void main() {
 
       expect(creations, isNot(contains('second')));
     });
+
+    testWidgets('when indexes shift with stable item keys, it should preserve the existing card widget', (
+      tester,
+    ) async {
+      final creations = <String>[];
+
+      Widget buildFeed(List<String> items) {
+        return _HarnessApp(
+          child: QuiTikTokFeed<String>(
+            items: (
+              count: items.length,
+              provider: (index) => items[index],
+              keyBuilder: (item, index) => item,
+            ),
+            endBuilder: _endBuilder,
+            builder: (context, item, index) => _CreationTrackingCard(label: item, onCreate: creations.add),
+          ),
+        );
+      }
+
+      await tester.pumpWidget(buildFeed(const ['first', 'second']));
+      await tester.pumpWidget(buildFeed(const ['new', 'first', 'second']));
+
+      expect(creations.where((item) => item == 'first'), hasLength(1));
+    });
   });
 
   group('QuiTikTokFeed reduced motion', () {
-    testWidgets(
-      'when MediaQuery.disableAnimations is true and an up swipe completes, it should advance immediately',
-      (tester) async {
-        await _pumpFeed(tester, disableAnimations: true);
+    testWidgets('when MediaQuery.disableAnimations is true and an up swipe completes, it should advance immediately', (
+      tester,
+    ) async {
+      await _pumpFeed(tester, disableAnimations: true);
 
-        await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -300));
-        await tester.pump();
+      await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -300));
+      await tester.pump();
 
-        expect(_currentCardLabel(tester), 'second');
-      },
-    );
+      expect(_currentCardLabel(tester), 'second');
+    });
 
-    testWidgets(
-      'when MediaQuery.disableAnimations is true and a down swipe completes, it should go back immediately',
-      (tester) async {
-        await _pumpFeed(tester, disableAnimations: true);
+    testWidgets('when MediaQuery.disableAnimations is true and a down swipe completes, it should go back immediately', (
+      tester,
+    ) async {
+      await _pumpFeed(tester, disableAnimations: true);
 
-        await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -300));
-        await tester.pump();
-        await tester.drag(find.byKey(_cardKey('second')), const Offset(0, 300));
-        await tester.pump();
+      await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -300));
+      await tester.pump();
+      await tester.drag(find.byKey(_cardKey('second')), const Offset(0, 300));
+      await tester.pump();
 
-        expect(_currentCardLabel(tester), 'first');
-      },
-    );
+      expect(_currentCardLabel(tester), 'first');
+    });
 
     testWidgets('when reduced motion is enabled, callbacks should still fire with the correct item', (tester) async {
       final nextLogs = <_ItemLog<String>>[];
@@ -918,6 +1030,26 @@ void main() {
       expect(find.byKey(_loadingKey), findsOneWidget);
     });
 
+    testWidgets('when pagination loading changes, it should not rebuild existing cards', (tester) async {
+      final loadCompleter = Completer<void>();
+      var buildCount = 0;
+
+      await _pumpTypedFeed<String>(
+        tester,
+        items: const ['first'],
+        onLoadMore: () => loadCompleter.future,
+        builder: (context, item, index) {
+          buildCount += 1;
+          return _TestCard(label: item);
+        },
+      );
+      await tester.pump();
+      loadCompleter.complete();
+      await tester.pumpAndSettle();
+
+      expect(buildCount, 1);
+    });
+
     testWidgets('when all loaded cards are dismissed and no new items arrived, it should render endBuilder', (
       tester,
     ) async {
@@ -931,12 +1063,7 @@ void main() {
     testWidgets(
       'when swiping the last card after pagination is exhausted, it should show the end card behind the outgoing card during the dismiss animation',
       (tester) async {
-        await _pumpFeed(
-          tester,
-          items: const ['first'],
-          onLoadMore: () async {},
-          endBuilder: _endBuilder,
-        );
+        await _pumpFeed(tester, items: const ['first'], onLoadMore: () async {}, endBuilder: _endBuilder);
         await tester.pump();
         await tester.pump();
 
@@ -972,7 +1099,11 @@ void main() {
     testWidgets('when loadMoreThreshold is below 0, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (count: 0, provider: (i) => 'item'),
+          items: (
+            count: 0,
+            provider: (int i) => 'item',
+            keyBuilder: null,
+          ),
           loadMoreThreshold: -0.1,
           builder: _defaultCardBuilder,
         ),
@@ -983,7 +1114,11 @@ void main() {
     testWidgets('when loadMoreThreshold is above 1, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (count: 0, provider: (i) => 'item'),
+          items: (
+            count: 0,
+            provider: (int i) => 'item',
+            keyBuilder: null,
+          ),
           loadMoreThreshold: 1.1,
           builder: _defaultCardBuilder,
         ),
@@ -1145,6 +1280,8 @@ Future<void> _pumpFeed(
   QuiTikTokFeedItemCallback<String>? onNext,
   QuiTikTokFeedItemCallback<String>? onPrevious,
   Future<void> Function()? onLoadMore,
+  VoidCallback? onMotionStart,
+  VoidCallback? onMotionEnd,
   WidgetBuilder? loadingMoreBuilder,
   Widget Function(BuildContext, VoidCallback)? loadMoreErrorBuilder,
   WidgetBuilder? endBuilder,
@@ -1153,7 +1290,11 @@ Future<void> _pumpFeed(
     _HarnessApp(
       disableAnimations: disableAnimations,
       child: QuiTikTokFeed<String>(
-        items: (count: items.length, provider: (i) => items[i]),
+        items: (
+          count: items.length,
+          provider: (int i) => items[i],
+          keyBuilder: null,
+        ),
         loadMoreThreshold: loadMoreThreshold,
         enableHapticFeedback: enableHapticFeedback,
         controller: controller,
@@ -1161,6 +1302,8 @@ Future<void> _pumpFeed(
         onNext: onNext,
         onPrevious: onPrevious,
         onLoadMore: onLoadMore,
+        onMotionStart: onMotionStart,
+        onMotionEnd: onMotionEnd,
         loadingMoreBuilder: loadingMoreBuilder,
         loadMoreErrorBuilder: loadMoreErrorBuilder,
         endBuilder: includeEndBuilder ? endBuilder ?? _endBuilder : null,
@@ -1177,6 +1320,7 @@ Future<void> _pumpTypedFeed<T>(
   int? itemCount,
   T Function(int index)? itemProvider,
   Future<void> Function()? onLoadMore,
+  Object Function(T item, int index)? keyBuilder,
 }) {
   final providedItems = items;
 
@@ -1186,6 +1330,7 @@ Future<void> _pumpTypedFeed<T>(
         items: (
           count: itemCount ?? providedItems!.length,
           provider: itemProvider ?? (index) => providedItems![index],
+          keyBuilder: keyBuilder,
         ),
         onLoadMore: onLoadMore,
         endBuilder: _endBuilder,
@@ -1199,7 +1344,11 @@ Future<void> _pumpStatefulFeed(WidgetTester tester) {
   return tester.pumpWidget(
     _HarnessApp(
       child: QuiTikTokFeed<String>(
-        items: (count: 2, provider: (i) => const ['first', 'second'][i]),
+        items: (
+          count: 2,
+          provider: (int i) => const ['first', 'second'][i],
+          keyBuilder: null,
+        ),
         endBuilder: _endBuilder,
         builder: (context, item, index) => _StatefulCard(label: item),
       ),
@@ -1223,11 +1372,9 @@ String _currentCardLabel(WidgetTester tester) {
     of: find.byType(QuiTikTokFeed<String>),
     matching: find.byType(GestureDetector),
   );
-  final texts = tester.widgetList<Text>(
-    find.descendant(of: activeGestureDetector, matching: find.byType(Text)),
-  );
+  final texts = tester.widgetList<Text>(find.descendant(of: activeGestureDetector, matching: find.byType(Text)));
 
-  return texts.last.data ?? '';
+  return texts.first.data ?? '';
 }
 
 Widget _defaultCardBuilder(BuildContext context, String item, int index) {
@@ -1311,7 +1458,11 @@ class _ControllerSwapHostState extends State<_ControllerSwapHost> {
           Expanded(
             child: QuiTikTokFeed<String>(
               controller: _useSecondController ? widget.secondController : widget.firstController,
-              items: (count: 2, provider: (i) => const ['first', 'second'][i]),
+              items: (
+                count: 2,
+                provider: (int i) => const ['first', 'second'][i],
+                keyBuilder: null,
+              ),
               endBuilder: _endBuilder,
               builder: _defaultCardBuilder,
             ),
@@ -1366,7 +1517,11 @@ class _MutableFeedHostState extends State<_MutableFeedHost> {
           Expanded(
             child: _isVisible
                 ? QuiTikTokFeed<String>(
-                    items: (count: _items.length, provider: (i) => _items[i]),
+                    items: (
+                      count: _items.length,
+                      provider: (int i) => _items[i],
+                      keyBuilder: null,
+                    ),
                     endBuilder: _endBuilder,
                     builder: _defaultCardBuilder,
                   )
@@ -1400,7 +1555,11 @@ class _PaginatedFeedHostState extends State<_PaginatedFeedHost> {
           ),
           Expanded(
             child: QuiTikTokFeed<String>(
-              items: (count: _items.length, provider: (i) => _items[i]),
+              items: (
+                count: _items.length,
+                provider: (int i) => _items[i],
+                keyBuilder: null,
+              ),
               onLoadMore: () async {},
               endBuilder: _endBuilder,
               builder: _defaultCardBuilder,

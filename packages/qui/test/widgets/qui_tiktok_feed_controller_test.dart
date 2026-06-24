@@ -677,7 +677,11 @@ Future<void> _pumpFeed(
     _HarnessApp(
       disableAnimations: disableAnimations,
       child: QuiTikTokFeed<String>(
-        items: (count: items.length, provider: (i) => items[i]),
+        items: (
+          count: items.length,
+          provider: (int i) => items[i],
+          keyBuilder: null,
+        ),
         loadMoreThreshold: loadMoreThreshold,
         enableHapticFeedback: enableHapticFeedback,
         controller: controller,
@@ -702,7 +706,7 @@ String _currentCardLabel(WidgetTester tester) {
   final texts = tester.widgetList<Text>(
     find.descendant(of: gestureDetector, matching: find.byType(Text)),
   );
-  return texts.last.data ?? '';
+  return texts.first.data ?? '';
 }
 
 Widget _defaultCardBuilder(BuildContext context, String item, int index) {
@@ -776,7 +780,11 @@ class _ControllerSwapHost extends StatelessWidget {
     return _HarnessApp(
       child: QuiTikTokFeed<String>(
         controller: useSecond ? secondController : firstController,
-        items: (count: 2, provider: (i) => const ['a', 'b'][i]),
+        items: (
+          count: 2,
+          provider: (int i) => const ['a', 'b'][i],
+          keyBuilder: null,
+        ),
         endBuilder: _endBuilder,
         builder: _defaultCardBuilder,
       ),
