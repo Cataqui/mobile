@@ -15,5 +15,5 @@ commit-msg:
     conventional:
       preset: conventional
       types:
-        append: [agent]
+        append: [agent, ui]
       only_small_case: true

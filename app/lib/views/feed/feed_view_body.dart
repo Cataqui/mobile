@@ -19,12 +19,10 @@ class _FeedBodyContent extends ConsumerWidget {
 
     return QuiWidgetTransition(
       builder: (context) => feedState.when(
-        data: (data) =>
-            KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, ref, data)),
+        data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, ref, data)),
         error: (error, st) =>
             KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, ref, error)),
-        loading: () =>
-            KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
+        loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
       ),
       outDuration: const Duration(milliseconds: 600),
       outTransition: (child, animation) => FadeTransition(
@@ -61,12 +59,17 @@ class _FeedBodyContent extends ConsumerWidget {
         padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
         child: QuiTikTokFeed<FeedJobDto>(
           controller: controller,
-          items: (count: feedData.jobs.length, provider: (i) => feedData.jobs[i]),
+          items: (
+            count: feedData.jobs.length,
+            provider: (i) => feedData.jobs[i],
+            keyBuilder: (job, index) => job.jobId,
+          ),
           onNext: (feedJob, index) {},
           onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
           loadingMoreBuilder: (context) => _buildLoadingMore(context, ref),
-          loadMoreErrorBuilder:
-              feedData.paginationError == null ? null : (context, retry) => _buildLoadMoreError(context, ref, retry),
+          loadMoreErrorBuilder: feedData.paginationError == null
+              ? null
+              : (context, retry) => _buildLoadMoreError(context, ref, retry),
           endBuilder: (context) => _buildEnd(context, ref),
           builder: (context, job, index) {
             final location = job.location;
@@ -78,11 +81,11 @@ class _FeedBodyContent extends ConsumerWidget {
                 fit: StackFit.expand,
                 children: [
                   QuiLocationRadiusMap(
+                    maximumMapFps: 30,
                     tileUrlTemplate: mapConfig.authenticatedTileUrl,
                     location: (latitude: location.latitude, longitude: location.longitude),
                     radiusInMeters: location.areaRadius.toDouble(),
-                    fontConfig:
-                        (fontStack: mapConfig.fontstack, glyphUrlTemplate: mapConfig.authenticatedGlyphUrl),
+                    fontConfig: (fontStack: mapConfig.fontstack, glyphUrlTemplate: mapConfig.authenticatedGlyphUrl),
                     tileMinZoom: mapConfig.tileMinZoom.toInt(),
                     tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
                     zoom: 12.8,
@@ -124,31 +127,31 @@ class _FeedBodyContent extends ConsumerWidget {
               radius: 70,
               items: [
                 QuiOrbitItem(
-                  child: Qui3d.brush.image(color: context.qui.colors.ghost),
+                  child: Qui3d.brush.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.hammer.image(color: context.qui.colors.ghost),
+                  child: Qui3d.hammer.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.ladder.image(color: context.qui.colors.ghost),
+                  child: Qui3d.ladder.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.motorcycle.image(color: context.qui.colors.ghost),
+                  child: Qui3d.motorcycle.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.shoppingCart.image(color: context.qui.colors.ghost),
+                  child: Qui3d.shoppingCart.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.smallTruck.image(color: context.qui.colors.ghost),
+                  child: Qui3d.smallTruck.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 50),
                   size: const Size(50, 50),
                 ),
                 QuiOrbitItem(
-                  child: Qui3d.toolBox.image(color: context.qui.colors.ghost),
+                  child: Qui3d.toolBox.downsampledImage(context, color: context.qui.colors.ghost, logicalWidth: 43),
                   size: const Size(43, 43),
                 ),
               ],
@@ -181,7 +184,11 @@ class _FeedBodyContent extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.workItemsMess.image(height: 150, width: 150),
+          Qui3d.workItemsMess.downsampledImage(
+            context,
+            height: 150,
+            width: 150,
+          ),
           const SizedBox(height: 40),
           Text(
             i18n.feed.loadingMore.error.title,
@@ -223,7 +230,11 @@ class _FeedBodyContent extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.emptyCitySaoPaulo.image(height: 150, colorBlendMode: BlendMode.hue),
+          Qui3d.emptyCitySaoPaulo.downsampledImage(
+            context,
+            height: 150,
+            colorBlendMode: BlendMode.hue,
+          ),
           const SizedBox(height: 20),
           Text(
             i18n.feed.empty.title,
@@ -258,19 +269,44 @@ class _FeedBodyContent extends ConsumerWidget {
   }
 
   Widget _buildInitialLoading(BuildContext context) {
+
     return Center(
       child: QuiOrbit(
         revolutionDuration: const Duration(milliseconds: 3000),
         radius: 100,
         items: [
-          QuiOrbitItem(child: Qui3d.brush.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.hammer.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.ladder.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.motorcycle.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.shoppingCart.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.smallTruck.image(), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.toolBox.image(), size: const Size(43, 43)),
-          QuiOrbitItem(child: Qui3d.box.image(), size: const Size(43, 43)),
+          QuiOrbitItem(
+            child: Qui3d.brush.downsampledImage(context, logicalWidth: 50),
+            size: const Size(50, 50),
+          ),
+          QuiOrbitItem(
+            child: Qui3d.hammer.downsampledImage(context, logicalWidth: 50),
+            size: const Size(50, 50),
+          ),
+          QuiOrbitItem(
+            child: Qui3d.ladder.downsampledImage(context, logicalWidth: 50),
+            size: const Size(50, 50),
+          ),
+          QuiOrbitItem(
+            child: Qui3d.motorcycle.downsampledImage(context, logicalWidth: 50),
+            size: const Size(50, 50),
+          ),
+          QuiOrbitItem(
+            child: Qui3d.shoppingCart.downsampledImage(context, logicalWidth: 50),
+            size: const Size(50, 50),
+          ),
+          QuiOrbitItem(
+            child: Qui3d.smallTruck.downsampledImage(context, logicalWidth: 50),
+            size: const Size(50, 50),
+          ),
+          QuiOrbitItem(
+            child: Qui3d.toolBox.downsampledImage(context, logicalWidth: 43),
+            size: const Size(43, 43),
+          ),
+          QuiOrbitItem(
+            child: Qui3d.box.downsampledImage(context, logicalWidth: 43),
+            size: const Size(43, 43),
+          ),
         ],
       ),
     );
@@ -295,7 +331,7 @@ class _FeedBodyContent extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.locationPinRestingCracked.image(height: 140),
+          Qui3d.locationPinRestingCracked.downsampledImage(context, height: 140),
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,

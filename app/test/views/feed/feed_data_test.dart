@@ -42,23 +42,32 @@ void main() {
       const originalNextCursor = 'cursor-abc';
       final originalError = StateError('test error');
 
-      FeedData base() => FeedData(
-        jobs: [dummyJob()],
-        hasMore: true,
-        nextCursor: originalNextCursor,
-        isFetchingNextPage: true,
-        paginationError: originalError,
-      );
+      FeedData base() =>
+          FeedData(jobs: [dummyJob()], hasMore: true, nextCursor: originalNextCursor, paginationError: originalError);
 
-      test('when no arguments are passed, copyWith should preserve all original values', () {
+      test('when no arguments are passed, copyWith should preserve the jobs', () {
         final original = base();
 
         final copy = original.copyWith();
 
         expect(copy.jobs, same(original.jobs));
+      });
+
+      test('when no arguments are passed, copyWith should preserve hasMore', () {
+        final copy = base().copyWith();
+
         expect(copy.hasMore, isTrue);
+      });
+
+      test('when no arguments are passed, copyWith should preserve the next cursor', () {
+        final copy = base().copyWith();
+
         expect(copy.nextCursor, originalNextCursor);
-        expect(copy.isFetchingNextPage, isTrue);
+      });
+
+      test('when no arguments are passed, copyWith should preserve the pagination error', () {
+        final copy = base().copyWith();
+
         expect(copy.paginationError, same(originalError));
       });
 
@@ -78,12 +87,6 @@ void main() {
         final copy = base().copyWith(nextCursor: null);
 
         expect(copy.nextCursor, isNull);
-      });
-
-      test('when isFetchingNextPage is overridden, copyWith should use the new value', () {
-        final copy = base().copyWith(isFetchingNextPage: false);
-
-        expect(copy.isFetchingNextPage, isFalse);
       });
 
       test('when paginationError is explicitly set to null, copyWith should set it to null', () {

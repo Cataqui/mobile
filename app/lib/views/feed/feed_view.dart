@@ -19,7 +19,7 @@ class FeedView extends ConsumerStatefulWidget {
 
 class _FeedViewState extends ConsumerState<FeedView> {
   final QuiTikTokFeedController _feedController = QuiTikTokFeedController();
-  final cardBorderRadius = BorderRadius.circular(44);
+  final _cardBorderRadius = BorderRadius.circular(44);
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
 
   Future<void> _openJobDetails() async {}
@@ -33,48 +33,52 @@ class _FeedViewState extends ConsumerState<FeedView> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: _FeedBodyContent(
-              controller: _feedController,
-              cardBorderRadius: cardBorderRadius,
-              feedInCurve: _feedInCurve,
-              onOpenJobDetails: _openJobDetails,
+            child: RepaintBoundary(
+              child: _FeedBodyContent(
+                controller: _feedController,
+                cardBorderRadius: _cardBorderRadius,
+                feedInCurve: _feedInCurve,
+                onOpenJobDetails: _openJobDetails,
+              ),
             ),
           ),
           _buildEdgeGradient(isTop: true, background: designColors.background),
           _buildEdgeGradient(isTop: false, background: designColors.background),
           Positioned.fill(
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-                    child: Align(
-                      alignment: AlignmentGeometry.topStart,
-                      child: QuiTextButton(
-                        text: 'São Paulo',
-                        leadingIconBuilder: (state) => QuiIcons.mapPin.svg(
-                          colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
-                          height: 14,
-                          width: 14,
+            child: RepaintBoundary(
+              child: SafeArea(
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                      child: Align(
+                        alignment: AlignmentGeometry.topStart,
+                        child: QuiTextButton(
+                          text: 'São Paulo',
+                          leadingIconBuilder: (state) => QuiIcons.mapPin.svg(
+                            colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
+                            height: 14,
+                            width: 14,
+                          ),
+                          leadingIconSpacing: 10,
+                          trailingIconSpacing: 10,
+                          trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
+                            colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+                            height: 8,
+                          ),
+                          onPressed: () {},
                         ),
-                        leadingIconSpacing: 10,
-                        trailingIconSpacing: 10,
-                        trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
-                          colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-                          height: 8,
-                        ),
-                        onPressed: () {},
                       ),
                     ),
-                  ),
-                  Align(
-                    alignment: AlignmentGeometry.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28),
-                      child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
+                    Align(
+                      alignment: AlignmentGeometry.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

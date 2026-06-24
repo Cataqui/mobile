@@ -7,6 +7,8 @@ part 'feed_state.g.dart';
 
 @riverpod
 class FeedState extends _$FeedState {
+  bool _isFetchingNextPage = false;
+
   @override
   Future<FeedData> build() {
     return _getFirstFeedJobs();
@@ -37,11 +39,11 @@ class FeedState extends _$FeedState {
   Future<void> _getNextFeedJobs() async {
     final currentState = state.value;
 
-    if (currentState == null || currentState.isFetchingNextPage || !currentState.hasMore) {
+    if (currentState == null || _isFetchingNextPage || !currentState.hasMore) {
       return;
     }
 
-    state = AsyncData<FeedData>(currentState.copyWith(isFetchingNextPage: true, paginationError: null));
+    _isFetchingNextPage = true;
 
     try {
       final feedRepository = ref.read(feedRepositoryProvider);
@@ -53,12 +55,13 @@ class FeedState extends _$FeedState {
           jobs: <FeedJobDto>[...currentState.jobs, ...feedJobsEnvelope.data],
           hasMore: pagination?.hasMore ?? false,
           nextCursor: pagination?.nextCursor,
-          isFetchingNextPage: false,
           paginationError: null,
         ),
       );
     } catch (error) {
-      state = AsyncData<FeedData>(currentState.copyWith(isFetchingNextPage: false, paginationError: error));
+      state = AsyncData<FeedData>(currentState.copyWith(paginationError: error));
+    } finally {
+      _isFetchingNextPage = false;
     }
   }
 }

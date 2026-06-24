@@ -40,6 +40,12 @@ class FakeFeedState extends FeedState {
   Future<void> getFeedJobs({bool fetchNextPage = false}) async {
     await getFeedJobsResult?.call(fetchNextPage: fetchNextPage);
   }
+
+  set emittedValue(AsyncValue<FeedData> value) {
+    state = value;
+  }
+
+  AsyncValue<FeedData> get emittedValue => state;
 }
 
 class FeedViewTestHelpers {

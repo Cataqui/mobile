@@ -80,6 +80,23 @@ void main() {
       verify(() => repository.getFeedJobs(cursor: 'next-feed-cursor')).called(1);
     });
 
+    test('when fetching the next page, it should publish only the completed pagination result', () async {
+      final repository = MockFeedRepository();
+      _stubFeedJobs(
+        repository: repository,
+        secondEnvelope: _feedEnvelope(jobs: <FeedJobDto>[_feedJob(jobId: 'second-job')], hasMore: false),
+      );
+      final container = _createContainer(repository: repository);
+      await container.read(feedStateProvider.future);
+      var providerEmissions = 0;
+      final subscription = container.listen(feedStateProvider, (previous, next) => providerEmissions += 1);
+
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
+      subscription.close();
+
+      expect(providerEmissions, 1);
+    });
+
     test('when next-page fetch returns no jobs, it should expose pagination empty state', () async {
       final repository = MockFeedRepository();
       _stubFeedJobs(
