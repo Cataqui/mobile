@@ -4,6 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 import '../test_app.dart';
 
+final _tapAnimationFinder = find.byType(QuiTapAnimation);
+
+Finder _scaleWithinTapAnimation() => find.descendant(
+  of: _tapAnimationFinder,
+  matching: find.byType(ScaleTransition),
+);
+
+Finder _fadeWithinTapAnimation() => find.descendant(
+  of: _tapAnimationFinder,
+  matching: find.byType(FadeTransition),
+);
+
 void main() {
   group('QuiTapAnimation', () {
     testWidgets('when tapped, it should call onPressed', (tester) async {
@@ -29,11 +41,12 @@ void main() {
       );
 
       final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
-      await tester.pump(const Duration(milliseconds: 45));
 
-      final opacity = tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      await tester.pumpAndSettle();
 
-      expect(opacity.opacity, equals(0.2));
+      final fade = tester.widget<FadeTransition>(_fadeWithinTapAnimation());
+
+      expect(fade.opacity.value, closeTo(0.4, 0.001));
 
       await gesture.up();
       await tester.pump(const Duration(milliseconds: 800));
@@ -47,11 +60,12 @@ void main() {
       );
 
       final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
-      await tester.pump(const Duration(milliseconds: 45));
 
-      final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale));
+      await tester.pumpAndSettle();
 
-      expect(scale.scale, equals(0.94));
+      final scale = tester.widget<ScaleTransition>(_scaleWithinTapAnimation());
+
+      expect(scale.scale.value, closeTo(0.96, 0.001));
 
       await gesture.up();
       await tester.pump(const Duration(milliseconds: 800));
@@ -70,9 +84,9 @@ void main() {
       final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
       await tester.pump(const Duration(milliseconds: 45));
 
-      final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale));
+      final scale = tester.widget<ScaleTransition>(_scaleWithinTapAnimation());
 
-      expect(scale.scale, equals(1.0));
+      expect(scale.scale.value, equals(1.0));
 
       await gesture.up();
       await tester.pump(const Duration(milliseconds: 800));
@@ -134,7 +148,7 @@ void main() {
       addTearDown(gesture.up);
     });
 
-    testWidgets('when scale animation type is used, it should render AnimatedScale without AnimatedOpacity', (tester) async {
+    testWidgets('when scale animation type is used, it should render ScaleTransition without FadeTransition', (tester) async {
       await tester.pumpWidget(
         TestApp(
           child: QuiTapAnimation(
@@ -145,8 +159,8 @@ void main() {
         ),
       );
 
-      expect(find.byType(AnimatedScale), findsOneWidget);
-      expect(find.byType(AnimatedOpacity), findsNothing);
+      expect(_scaleWithinTapAnimation(), findsOneWidget);
+      expect(_fadeWithinTapAnimation(), findsNothing);
     });
 
     testWidgets('when scale animation type is used and pressed, it should apply pressed scale', (tester) async {
@@ -161,11 +175,12 @@ void main() {
       );
 
       final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
-      await tester.pump(const Duration(milliseconds: 45));
 
-      final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale));
+      await tester.pumpAndSettle();
 
-      expect(scale.scale, equals(0.94));
+      final scale = tester.widget<ScaleTransition>(_scaleWithinTapAnimation());
+
+      expect(scale.scale.value, closeTo(0.96, 0.001));
 
       await gesture.up();
       await tester.pump(const Duration(milliseconds: 800));
@@ -190,9 +205,32 @@ void main() {
 
       expect(animationCompleted, isFalse);
 
-      await tester.pump(const Duration(milliseconds: 800));
+      await tester.pumpAndSettle();
 
       expect(animationCompleted, isTrue);
+    });
+
+    testWidgets('when tapped very fast, it should still reach the full pressed scale before releasing', (tester) async {
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiTapAnimation(onPressed: (animation) async {}, child: const Text('Tap')),
+        ),
+      );
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
+      await tester.pump(const Duration(milliseconds: 16));
+      await gesture.up();
+
+      // Pump in small increments — press-in will complete at ~150ms, check right before
+      for (var i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      final scale = tester.widget<ScaleTransition>(_scaleWithinTapAnimation());
+      expect(scale.scale.value, closeTo(0.96, 0.001));
+
+      await tester.pumpAndSettle();
+      expect(scale.scale.value, closeTo(1.0, 0.001));
     });
   });
 }

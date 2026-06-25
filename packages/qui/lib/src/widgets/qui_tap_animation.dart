@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,51 +34,109 @@ class QuiTapAnimation extends StatefulWidget {
   State<QuiTapAnimation> createState() => _QuiTapAnimationState();
 }
 
-class _QuiTapAnimationState extends State<QuiTapAnimation> {
-  static const _pressedOpacity = 0.2;
-  static const _pressedScale = 0.94;
-  static const _pressInDuration = Duration(milliseconds: 400);
-  static const _releaseDuration = Duration(milliseconds: 800);
+class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderStateMixin {
+  final _pressedOpacity = 0.4;
+  final _pressedScale = 0.96;
+  final _pressInDuration = const Duration(milliseconds: 150);
+  final _releaseDuration = const Duration(milliseconds: 150);
 
-  bool _isPressed = false;
+  late final AnimationController _controller;
+  late final CurvedAnimation _scaleCurve;
+  late final CurvedAnimation _opacityCurve;
+  late final Animation<double> _scaleAnimation;
+  late final Animation<double> _opacityAnimation;
+
+  bool _releaseRequested = false;
+  Completer<void>? _releaseCompleter;
   bool get _isEnabled => widget.onPressed != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(duration: _pressInDuration, reverseDuration: _releaseDuration, vsync: this);
+    _controller.addStatusListener(_onStatusChanged);
+
+    _scaleCurve = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic, reverseCurve: Curves.linear);
+    _scaleAnimation = Tween<double>(begin: 1, end: _pressedScale).animate(_scaleCurve);
+
+    _opacityCurve = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic, reverseCurve: Curves.easeOutCubic);
+    _opacityAnimation = Tween<double>(begin: 1, end: _pressedOpacity).animate(_opacityCurve);
+  }
+
+  @override
+  void dispose() {
+    _releaseCompleter?.complete();
+    _opacityCurve.dispose();
+    _scaleCurve.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(covariant QuiTapAnimation oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (!_isEnabled && _isPressed) _isPressed = false;
+    if (!_isEnabled && _controller.value > 0) {
+      _releaseCompleter?.complete();
+      _releaseCompleter = null;
+      _releaseRequested = false;
+      _controller.reset();
+    }
+  }
+
+  void _onStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed && _releaseRequested) {
+      _releaseRequested = false;
+      _controller.reverse();
+    } else if (status == AnimationStatus.dismissed) {
+      _releaseCompleter?.complete();
+      _releaseCompleter = null;
+    }
   }
 
   void _handleTapDown(TapDownDetails details) {
     if (!_isEnabled) return;
     HapticFeedback.lightImpact();
-    _setPressed(true);
+
+    _releaseRequested = false;
+    _releaseCompleter?.complete();
+    _releaseCompleter = null;
+
+    if (!MediaQuery.disableAnimationsOf(context)) {
+      _controller.forward();
+    }
   }
 
   void _handleTapUp(TapUpDetails details) {
     if (!_isEnabled) return;
 
-    _setPressed(false);
-    widget.onPressed?.call(Future.delayed(_releaseDuration));
+    if (MediaQuery.disableAnimationsOf(context)) {
+      widget.onPressed?.call(Future<void>.value());
+      return;
+    }
+
+    _releaseCompleter = Completer<void>();
+    widget.onPressed?.call(_releaseCompleter!.future);
+    _requestRelease();
   }
 
   void _handleTapCancel() {
     if (!_isEnabled) return;
-    _setPressed(false);
+    _requestRelease();
   }
 
-  void _setPressed(bool isPressed) {
-    if (_isPressed == isPressed) return;
-    setState(() => _isPressed = isPressed);
+  void _requestRelease() {
+    if (_controller.status == AnimationStatus.dismissed) return;
+    if (_controller.status == AnimationStatus.completed) {
+      _controller.reverse();
+    } else {
+      _releaseRequested = true;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final disableAnimations = MediaQuery.disableAnimationsOf(context);
-    final shouldShowPressedState = _isEnabled && _isPressed && !disableAnimations;
-    final animationDuration = shouldShowPressedState ? _pressInDuration : _releaseDuration;
-
     return MouseRegion(
       cursor: _isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
@@ -85,23 +145,11 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> {
         onTapCancel: _isEnabled ? _handleTapCancel : null,
         behavior: HitTestBehavior.opaque,
         child: switch (widget.animation) {
-          QuiTapAnimationType.scaleFade => AnimatedScale(
-            duration: disableAnimations ? Duration.zero : animationDuration,
-            curve: shouldShowPressedState ? Curves.easeOutCubic : Curves.easeOutBack,
-            scale: shouldShowPressedState ? _pressedScale : 1,
-            child: AnimatedOpacity(
-              duration: disableAnimations ? Duration.zero : animationDuration,
-              curve: Curves.easeOutCubic,
-              opacity: shouldShowPressedState ? _pressedOpacity : 1,
-              child: widget.child,
-            ),
+          QuiTapAnimationType.scaleFade => ScaleTransition(
+            scale: _scaleAnimation,
+            child: FadeTransition(opacity: _opacityAnimation, child: widget.child),
           ),
-          QuiTapAnimationType.scale => AnimatedScale(
-            duration: disableAnimations ? Duration.zero : animationDuration,
-            curve: shouldShowPressedState ? Curves.easeOutCubic : Curves.easeOutBack,
-            scale: shouldShowPressedState ? _pressedScale : 1,
-            child: widget.child,
-          ),
+          QuiTapAnimationType.scale => ScaleTransition(scale: _scaleAnimation, child: widget.child),
         },
       ),
     );

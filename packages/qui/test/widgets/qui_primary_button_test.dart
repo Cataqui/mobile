@@ -20,22 +20,19 @@ void main() {
       expect(tapCount, equals(1));
     });
 
-    testWidgets('when pressed, it should show stronger opacity feedback', (tester) async {
+    testWidgets('when enabled, it should wrap in QuiTapAnimation with scaleFade animation', (tester) async {
       await tester.pumpWidget(
         TestApp(
           child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
         ),
       );
 
-      final gesture = await tester.startGesture(tester.getCenter(find.text('Ver oportunidades')));
-      await tester.pump(const Duration(milliseconds: 45));
+      final animation = tester.widget<QuiTapAnimation>(
+        find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(QuiTapAnimation)),
+      );
 
-      final opacity = tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity));
-
-      expect(opacity.opacity, equals(0.2));
-
-      await gesture.up();
-      await tester.pump(const Duration(milliseconds: 800));
+      expect(animation.onPressed, isNotNull);
+      expect(animation.animation, equals(QuiTapAnimationType.scaleFade));
     });
 
     testWidgets('when disabled, it should expose disabled semantics', (tester) async {
