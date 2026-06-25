@@ -686,16 +686,36 @@ void main() {
 
       expect((starts: motionStarts, ends: motionEnds), (starts: 1, ends: 1));
     });
+
+    testWidgets('when swiping rapidly through committed cards, it should keep advancing without waiting for settle', (
+      tester,
+    ) async {
+      await _pumpFeed(tester, items: const ['first', 'second', 'third', 'fourth', 'fifth', 'sixth']);
+
+      Finder currentCardFinder() => find.byKey(_cardKey(_currentCardLabel(tester)));
+
+      await tester.drag(currentCardFinder(), const Offset(0, -300));
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.drag(currentCardFinder(), const Offset(0, -300));
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.drag(currentCardFinder(), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      await tester.drag(currentCardFinder(), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      await tester.drag(currentCardFinder(), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      expect(_currentCardLabel(tester), 'sixth');
+    });
   });
 
   group('QuiTikTokFeed assertion validation', () {
     testWidgets('when items.count is negative, it should throw an assertion error', (tester) async {
       expect(
-        () => QuiTikTokFeed<String>(items: (
-          count: -1,
-          provider: (int i) => 'item',
-          keyBuilder: null,
-        ), builder: _defaultCardBuilder),
+        () => QuiTikTokFeed<String>(
+          items: (count: -1, provider: (int i) => 'item', keyBuilder: null),
+          builder: _defaultCardBuilder,
+        ),
         throwsAssertionError,
       );
     });
@@ -703,11 +723,7 @@ void main() {
     testWidgets('when loadMoreThreshold is below 0, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (
-            count: 0,
-            provider: (int i) => 'item',
-            keyBuilder: null,
-          ),
+          items: (count: 0, provider: (int i) => 'item', keyBuilder: null),
           loadMoreThreshold: -0.1,
           builder: _defaultCardBuilder,
         ),
@@ -718,11 +734,7 @@ void main() {
     testWidgets('when loadMoreThreshold is above 1, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (
-            count: 0,
-            provider: (int i) => 'item',
-            keyBuilder: null,
-          ),
+          items: (count: 0, provider: (int i) => 'item', keyBuilder: null),
           loadMoreThreshold: 1.1,
           builder: _defaultCardBuilder,
         ),
@@ -735,11 +747,7 @@ void main() {
     testWidgets('when spacing is negative, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (
-            count: 2,
-            provider: (int i) => 'item',
-            keyBuilder: null,
-          ),
+          items: (count: 2, provider: (int i) => 'item', keyBuilder: null),
           spacing: -1,
           builder: _defaultCardBuilder,
         ),
@@ -897,11 +905,7 @@ void main() {
       Widget buildFeed(List<String> items) {
         return _HarnessApp(
           child: QuiTikTokFeed<String>(
-            items: (
-              count: items.length,
-              provider: (index) => items[index],
-              keyBuilder: (item, index) => item,
-            ),
+            items: (count: items.length, provider: (index) => items[index], keyBuilder: (item, index) => item),
             endBuilder: _endBuilder,
             builder: (context, item, index) => _CreationTrackingCard(label: item, onCreate: creations.add),
           ),
@@ -1165,11 +1169,7 @@ void main() {
     testWidgets('when loadMoreThreshold is below 0, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (
-            count: 0,
-            provider: (int i) => 'item',
-            keyBuilder: null,
-          ),
+          items: (count: 0, provider: (int i) => 'item', keyBuilder: null),
           loadMoreThreshold: -0.1,
           builder: _defaultCardBuilder,
         ),
@@ -1180,11 +1180,7 @@ void main() {
     testWidgets('when loadMoreThreshold is above 1, it should throw an assertion error', (tester) async {
       expect(
         () => QuiTikTokFeed<String>(
-          items: (
-            count: 0,
-            provider: (int i) => 'item',
-            keyBuilder: null,
-          ),
+          items: (count: 0, provider: (int i) => 'item', keyBuilder: null),
           loadMoreThreshold: 1.1,
           builder: _defaultCardBuilder,
         ),
@@ -1357,11 +1353,7 @@ Future<void> _pumpFeed(
     _HarnessApp(
       disableAnimations: disableAnimations,
       child: QuiTikTokFeed<String>(
-        items: (
-          count: items.length,
-          provider: (int i) => items[i],
-          keyBuilder: null,
-        ),
+        items: (count: items.length, provider: (int i) => items[i], keyBuilder: null),
         loadMoreThreshold: loadMoreThreshold,
         spacing: spacing,
         enableHapticFeedback: enableHapticFeedback,
@@ -1412,11 +1404,7 @@ Future<void> _pumpStatefulFeed(WidgetTester tester) {
   return tester.pumpWidget(
     _HarnessApp(
       child: QuiTikTokFeed<String>(
-        items: (
-          count: 2,
-          provider: (int i) => const ['first', 'second'][i],
-          keyBuilder: null,
-        ),
+        items: (count: 2, provider: (int i) => const ['first', 'second'][i], keyBuilder: null),
         endBuilder: _endBuilder,
         builder: (context, item, index) => _StatefulCard(label: item),
       ),
@@ -1526,11 +1514,7 @@ class _ControllerSwapHostState extends State<_ControllerSwapHost> {
           Expanded(
             child: QuiTikTokFeed<String>(
               controller: _useSecondController ? widget.secondController : widget.firstController,
-              items: (
-                count: 2,
-                provider: (int i) => const ['first', 'second'][i],
-                keyBuilder: null,
-              ),
+              items: (count: 2, provider: (int i) => const ['first', 'second'][i], keyBuilder: null),
               endBuilder: _endBuilder,
               builder: _defaultCardBuilder,
             ),
@@ -1585,11 +1569,7 @@ class _MutableFeedHostState extends State<_MutableFeedHost> {
           Expanded(
             child: _isVisible
                 ? QuiTikTokFeed<String>(
-                    items: (
-                      count: _items.length,
-                      provider: (int i) => _items[i],
-                      keyBuilder: null,
-                    ),
+                    items: (count: _items.length, provider: (int i) => _items[i], keyBuilder: null),
                     endBuilder: _endBuilder,
                     builder: _defaultCardBuilder,
                   )
@@ -1623,11 +1603,7 @@ class _PaginatedFeedHostState extends State<_PaginatedFeedHost> {
           ),
           Expanded(
             child: QuiTikTokFeed<String>(
-              items: (
-                count: _items.length,
-                provider: (int i) => _items[i],
-                keyBuilder: null,
-              ),
+              items: (count: _items.length, provider: (int i) => _items[i], keyBuilder: null),
               onLoadMore: () async {},
               endBuilder: _endBuilder,
               builder: _defaultCardBuilder,

@@ -111,11 +111,7 @@ class QuiTikTokFeed<T> extends StatefulWidget {
   /// Keys returned by `keyBuilder` must be unique across all items in the
   /// feed. Duplicate keys cause undefined behavior in the internal card
   /// cache and may result in stale or mismatched cards being displayed.
-  final ({
-    int count,
-    T Function(int index) provider,
-    Object Function(T item, int index)? keyBuilder,
-  }) items;
+  final ({int count, T Function(int index) provider, Object Function(T item, int index)? keyBuilder}) items;
 
   /// Builds the widget for each feed item.
   final Widget Function(BuildContext context, T item, int index) builder;
@@ -274,7 +270,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   void _onVerticalDragStart(DragStartDetails details) {
     if (_isControllerActionRunning) return;
 
-    _animationController.stop();
+    _animationController.stop(canceled: false);
     _hasFiredStartHaptic = false;
     _activeDragGeneration = _startMotion();
   }
@@ -483,7 +479,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   Future<bool> nextFromController() async {
     if (_isControllerActionRunning || !_hasCurrentItem) return false;
 
-    _animationController.stop();
+    _animationController.stop(canceled: false);
     _isControllerActionRunning = true;
     final motionGeneration = _startMotion();
 
@@ -503,7 +499,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   Future<bool> previousFromController() async {
     if (_isControllerActionRunning || _currentIndex == 0) return false;
 
-    _animationController.stop();
+    _animationController.stop(canceled: false);
     _isControllerActionRunning = true;
     final motionGeneration = _startMotion();
 
@@ -554,16 +550,16 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
           onVerticalDragUpdate: isGestureActive ? _onVerticalDragUpdate : null,
           onVerticalDragEnd: isGestureActive ? _onVerticalDragEnd : null,
           onVerticalDragCancel: isGestureActive ? _onVerticalDragCancel : null,
-            child: Flow(
-              clipBehavior: Clip.none,
-              delegate: _QuiTikTokFeedFlowDelegate(
-                offsetListenable: _dragOffsetNotifier,
-                viewportHeight: _viewportHeight,
-                spacing: widget.spacing,
-                currentIndex: _currentIndex,
-                hasPreviousCard: previousCard != null,
-                hasNextCard: nextCard != null || (_hasCurrentItem && paginationCard != null),
-              ),
+          child: Flow(
+            clipBehavior: Clip.none,
+            delegate: _QuiTikTokFeedFlowDelegate(
+              offsetListenable: _dragOffsetNotifier,
+              viewportHeight: _viewportHeight,
+              spacing: widget.spacing,
+              currentIndex: _currentIndex,
+              hasPreviousCard: previousCard != null,
+              hasNextCard: nextCard != null || (_hasCurrentItem && paginationCard != null),
+            ),
             children: [
               if (currentCard != null) ...[
                 _retainedCard(card: currentCard),
@@ -670,11 +666,7 @@ Widget quiTikTokFeedPreview() {
       backgroundColor: const Color(0xFFF6F4F1),
       body: SafeArea(
         child: QuiTikTokFeed<_PreviewOpportunity>(
-          items: (
-            count: _previewOpportunities.length,
-            provider: (int i) => _previewOpportunities[i],
-            keyBuilder: null,
-          ),
+          items: (count: _previewOpportunities.length, provider: (int i) => _previewOpportunities[i], keyBuilder: null),
           builder: (context, opportunity, index) {
             return _PreviewOpportunityCard(opportunity: opportunity);
           },
