@@ -1,7 +1,7 @@
 part of 'feed_view.dart';
 
-class _FeedBodyContent extends ConsumerStatefulWidget {
-  const _FeedBodyContent({
+class _FeedViewBody extends ConsumerStatefulWidget {
+  const _FeedViewBody({
     required this.controller,
     required this.cardBorderRadius,
     required this.feedInCurve,
@@ -14,10 +14,10 @@ class _FeedBodyContent extends ConsumerStatefulWidget {
   final Future<void> Function() onOpenJobDetails;
 
   @override
-  ConsumerState<_FeedBodyContent> createState() => _FeedBodyContentState();
+  ConsumerState<_FeedViewBody> createState() => _FeedBodyContentState();
 }
 
-class _FeedBodyContentState extends ConsumerState<_FeedBodyContent> {
+class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   final ValueNotifier<int> _mapMountLimitNotifier = ValueNotifier<int>(0);
 
   @override
@@ -73,6 +73,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedBodyContent> {
         child: QuiTikTokFeed<FeedJobDto>(
           spacing: 10,
           controller: widget.controller,
+          loadMoreThreshold: 0.7,
           items: (
             count: feedData.jobs.length,
             provider: (i) => feedData.jobs[i],

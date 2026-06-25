@@ -34,7 +34,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
         children: [
           Positioned.fill(
             child: RepaintBoundary(
-              child: _FeedBodyContent(
+              child: _FeedViewBody(
                 controller: _feedController,
                 cardBorderRadius: _cardBorderRadius,
                 feedInCurve: _feedInCurve,

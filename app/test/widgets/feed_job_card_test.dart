@@ -185,7 +185,7 @@ void main() {
         await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: onTap)));
 
         await tester.tap(find.text('Garçom para Fim de Semana'));
-        await tester.pump(const Duration(milliseconds: 800));
+        await tester.pumpAndSettle();
 
         expect(tapCount, equals(1));
       });
