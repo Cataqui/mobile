@@ -107,6 +107,14 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                     builder: (context, mapMountLimit, _) {
                       if (index > mapMountLimit) return ColoredBox(color: context.qui.colors.mapBackground);
 
+                      const mapRadiusOffsetMultiplier = 1000;
+                      const mapRadiusReferenceHeight = 100;
+                      final mapRadiusOffset = Offset(
+                        0,
+                        mapRadiusOffsetMultiplier /
+                            (math.pow(MediaQuery.sizeOf(context).height / mapRadiusReferenceHeight, 2)),
+                      );
+
                       return QuiLocationRadiusMap(
                         maximumMapFps: 30,
                         tileUrlTemplate: mapConfig.authenticatedTileUrl,
@@ -116,7 +124,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                         tileMinZoom: mapConfig.tileMinZoom.toInt(),
                         tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
                         zoom: 12.8,
-                        offset: const Offset(0, 15),
+                        offset: mapRadiusOffset,
                         radiusStyle: RadiusStyle(color: Colors.blue.withValues(alpha: 0.2)),
                         onMapLoad: () {
                           final next = index + 1;
