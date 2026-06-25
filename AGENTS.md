@@ -101,6 +101,21 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. The only exception is Flutter `StatefulWidget` / `ConsumerStatefulWidget` pairs: the main widget class and its private `_*State` class must always stay in the same file. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established `qui_location_radius_map` folder structure.
 
+### No Top-Level Functions
+
+Free-standing top-level functions are not permitted. Every function must be a
+method on a class:
+
+- **`static`** when the function has no dependency-injection needs (no `Ref`,
+  no widget state, no provider access). Static methods keep the call site
+  explicit (`MyClass.myMethod()`) and prevent scope pollution.
+- **Instance** when the function may need dependency injection (e.g., access to
+  Riverpod `Ref`, widget `State`, or other injected dependencies).
+
+Pure utility functions (formatting, measurement, computation) must live as
+`static` methods on the class that owns the domain they serve — typically the
+widget or model that produces or consumes the data.
+
 ### Constants Local to Widgets
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
