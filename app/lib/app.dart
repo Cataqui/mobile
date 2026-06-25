@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,14 +23,26 @@ class CataquiApp extends ConsumerWidget {
     final router = ref.watch(_routerProvider);
     final i18n = ref.watch(translationProvider);
 
-    return MaterialApp.router(
-      title: i18n.app.name,
-      routerConfig: router,
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      locale: i18n.$meta.locale.flutterLocale,
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      debugShowCheckedModeBanner: false,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarContrastEnforced: false,
+        systemStatusBarContrastEnforced: false,
+      ),
+      child: MaterialApp.router(
+        title: i18n.app.name,
+        routerConfig: router,
+        theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+        locale: i18n.$meta.locale.flutterLocale,
+        supportedLocales: AppLocaleUtils.supportedLocales,
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

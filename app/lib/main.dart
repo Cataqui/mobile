@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:cataqui_app/app.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   unawaited(preWarm());
   try {
     await setOfflineMaxConcurrentRequests(maxRequestsPerHost: 8);

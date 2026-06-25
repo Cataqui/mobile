@@ -75,7 +75,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
                     Align(
                       alignment: AlignmentGeometry.bottomCenter,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
                         child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
                       ),
                     ),
