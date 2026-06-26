@@ -163,40 +163,43 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     }
 
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Qui3d.workItemsMess.downsampledImage(context, height: 150, width: 150),
-          const SizedBox(height: 40),
-          Text(
-            i18n.feed.loadingMore.error.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          FractionallySizedBox(
-            widthFactor: 0.7,
-            child: Text(
-              i18n.feed.loadingMore.error.description,
-              style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: QuiSearchBarButton.searchBarHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Qui3d.workItemsMess.downsampledImage(context, height: 150, width: 150),
+            const SizedBox(height: 40),
+            Text(
+              i18n.feed.loadingMore.error.title,
+              style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 20),
-          QuiPrimaryButton(
-            label: i18n.feed.loadingMore.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
-              height: 15,
-              width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+            const SizedBox(height: 4),
+            FractionallySizedBox(
+              widthFactor: 0.7,
+              child: Text(
+                i18n.feed.loadingMore.error.description,
+                style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
             ),
-            leadingIconSpacing: 10,
-            onPressed: () {
-              retry();
-            },
-          ),
-        ],
+            const SizedBox(height: 20),
+            QuiPrimaryButton(
+              label: i18n.feed.loadingMore.error.retryButtonTitle,
+              leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
+                height: 15,
+                width: 15,
+                colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+              ),
+              leadingIconSpacing: 10,
+              onPressed: () {
+                retry();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -205,40 +208,43 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     final i18n = ref.watch(translationProvider);
 
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Qui3d.emptyCitySaoPaulo.downsampledImage(context, height: 150, colorBlendMode: BlendMode.hue),
-          const SizedBox(height: 20),
-          Text(
-            i18n.feed.empty.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          FractionallySizedBox(
-            widthFactor: 0.7,
-            child: Text(
-              i18n.feed.empty.description,
-              style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: QuiSearchBarButton.searchBarHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Qui3d.emptyCitySaoPaulo.downsampledImage(context, height: 150, colorBlendMode: BlendMode.hue),
+            const SizedBox(height: 20),
+            Text(
+              i18n.feed.empty.title,
+              style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 40),
-          QuiSecondaryButton(
-            label: i18n.feed.empty.adjustAreaButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.wrench.svg(
-              height: 15,
-              width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+            const SizedBox(height: 4),
+            FractionallySizedBox(
+              widthFactor: 0.7,
+              child: Text(
+                i18n.feed.empty.description,
+                style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
             ),
-            leadingIconSpacing: 10,
-            onPressed: () {
-              // TODO(RyanHolanda): Implement once we add the edit area screen
-            },
-          ),
-        ],
+            const SizedBox(height: 40),
+            QuiSecondaryButton(
+              label: i18n.feed.empty.adjustAreaButtonTitle,
+              leadingIconBuilder: (state) => QuiIcons.wrench.svg(
+                height: 15,
+                width: 15,
+                colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+              ),
+              leadingIconSpacing: 10,
+              onPressed: () {
+                // TODO(RyanHolanda): Implement once we add the edit area screen
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
