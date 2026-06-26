@@ -1,9 +1,11 @@
+import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 class FeedJobCard extends ConsumerWidget {
@@ -21,8 +23,14 @@ class FeedJobCard extends ConsumerWidget {
     return QuiTapAnimation(
       animation: QuiTapAnimationType.scale,
       onPressed: (animation) async {
+        final jobRepo = ref.read(jobRepositoryProvider);
+        final locale = ref.read(appStateProvider).currentLocale;
+        final job = await jobRepo.getJob(jobId: feedJob.jobId, locale: locale);
+
         await animation;
-        await onTap();
+
+        final whatsapp = OmfWhatsapp();
+        await whatsapp.launchChat(number: job.data.contact.phoneNumber, message: 'Olá, encontrei você no Cataquí!');
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,

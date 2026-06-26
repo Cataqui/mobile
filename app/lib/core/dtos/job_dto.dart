@@ -30,14 +30,11 @@ abstract class JobDto with _$JobDto {
   factory JobDto.fixture() => JobDto(
     jobId: 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
     title: 'Mock: ajudante para descarregar caminhão',
-    description: 'Mock job for staging QA. Need one person to help unload '
+    description:
+        'Mock job for staging QA. Need one person to help unload '
         'boxes from a small truck for about two hours near Centro. This is test '
         'data and should not be treated as a real opportunity.',
-    contact: const JobContactDto(
-      name: 'Cataqui Teste',
-      phoneNumber: '+5511999999999',
-      contactMethod: JobContactMethod.whatsapp,
-    ),
+    contact: const JobContactDto(phoneNumber: '+5511999999999', contactMethod: JobContactMethod.whatsapp),
     location: JobLocationDto(
       neighborhood: 'Centro',
       city: 'São Paulo',
@@ -49,11 +46,7 @@ abstract class JobDto with _$JobDto {
       mapConfig: MapConfigDto.fixture(),
       street: 'Rua das Flores, 123',
     ),
-    category: const JobCategoryDto(
-      categoryId: 'afdfd9b2-203d-4528-8a1c-82b6b139039b',
-      name: 'Outro',
-      slug: 'other',
-    ),
+    category: const JobCategoryDto(categoryId: 'afdfd9b2-203d-4528-8a1c-82b6b139039b', name: 'Outro', slug: 'other'),
     payment: const JobPaymentDto(
       type: JobPaymentType.fixed,
       minAmount: 120,

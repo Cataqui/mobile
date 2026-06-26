@@ -46,39 +46,39 @@ class _FeedViewState extends ConsumerState<FeedView> {
           ),
           _buildEdgeGradient(isTop: true, background: designColors.background),
           _buildEdgeGradient(isTop: false, background: designColors.background),
-          Positioned.fill(
+          const Positioned.fill(
             child: RepaintBoundary(
               child: SafeArea(
                 child: Stack(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-                      child: Align(
-                        alignment: AlignmentGeometry.topStart,
-                        child: QuiTextButton(
-                          text: 'São Paulo',
-                          leadingIconBuilder: (state) => QuiIcons.mapPin.svg(
-                            colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
-                            height: 14,
-                            width: 14,
-                          ),
-                          leadingIconSpacing: 10,
-                          trailingIconSpacing: 10,
-                          trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
-                            colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-                            height: 8,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ),
-                    Align(
-                      alignment: AlignmentGeometry.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
-                        child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
-                      ),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                    //   child: Align(
+                    //     alignment: AlignmentGeometry.topStart,
+                    //     child: QuiTextButton(
+                    //       text: 'São Paulo',
+                    //       leadingIconBuilder: (state) => QuiIcons.mapPin.svg(
+                    //         colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
+                    //         height: 14,
+                    //         width: 14,
+                    //       ),
+                    //       leadingIconSpacing: 10,
+                    //       trailingIconSpacing: 10,
+                    //       trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
+                    //         colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+                    //         height: 8,
+                    //       ),
+                    //       onPressed: () {},
+                    //     ),
+                    //   ),
+                    // ),
+                    // Align(
+                    //   alignment: AlignmentGeometry.bottomCenter,
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
+                    //     child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
