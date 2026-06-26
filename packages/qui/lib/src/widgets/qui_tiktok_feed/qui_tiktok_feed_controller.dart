@@ -18,10 +18,9 @@ class QuiTikTokFeedController {
   }
 
   void _attach(_QuiTikTokFeedControllerClient client) {
-    assert(
-      _client == null || identical(_client, client),
-      'A QuiTikTokFeedController can only be attached to one QuiTikTokFeed at a time.',
-    );
+    if (_client != null && !identical(_client, client)) {
+      throw FlutterError('A QuiTikTokFeedController can only be attached to one QuiTikTokFeed at a time.');
+    }
 
     _client = client;
   }

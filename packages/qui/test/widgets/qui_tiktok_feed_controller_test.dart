@@ -37,21 +37,17 @@ void main() {
       final oldController = QuiTikTokFeedController();
       final newController = QuiTikTokFeedController();
 
-      await tester.pumpWidget(_ControllerSwapHost(
-        firstController: oldController,
-        secondController: newController,
-        useSecond: false,
-      ));
+      await tester.pumpWidget(
+        _ControllerSwapHost(firstController: oldController, secondController: newController, useSecond: false),
+      );
       await tester.pumpAndSettle();
 
       expect(oldController.hasClients, isTrue);
       expect(newController.hasClients, isFalse);
 
-      await tester.pumpWidget(_ControllerSwapHost(
-        firstController: oldController,
-        secondController: newController,
-        useSecond: true,
-      ));
+      await tester.pumpWidget(
+        _ControllerSwapHost(firstController: oldController, secondController: newController, useSecond: true),
+      );
       await tester.pumpAndSettle();
 
       expect(oldController.hasClients, isFalse);
@@ -83,6 +79,39 @@ void main() {
       await nextFuture;
 
       expect(_currentCardLabel(tester), 'b');
+    });
+
+    testWidgets('when one controller is attached to two feeds at the same time, it should throw FlutterError', (
+      tester,
+    ) async {
+      final controller = QuiTikTokFeedController();
+
+      await tester.pumpWidget(
+        _HarnessApp(
+          child: Column(
+            children: [
+              Expanded(
+                child: QuiTikTokFeed<String>(
+                  controller: controller,
+                  items: (count: 1, provider: (int i) => const ['a'][i], keyBuilder: null),
+                  endBuilder: _endBuilder,
+                  builder: _defaultCardBuilder,
+                ),
+              ),
+              Expanded(
+                child: QuiTikTokFeed<String>(
+                  controller: controller,
+                  items: (count: 1, provider: (int i) => const ['b'][i], keyBuilder: null),
+                  endBuilder: _endBuilder,
+                  builder: _defaultCardBuilder,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isA<FlutterError>());
     });
   });
 
@@ -193,9 +222,13 @@ void main() {
       final controller = QuiTikTokFeedController();
       final logs = <_ProgressLog>[];
 
-      await _pumpFeed(tester, controller: controller, onSwipeProgress: ({required action, required percentage}) {
-        logs.add((action: action, percentage: percentage));
-      });
+      await _pumpFeed(
+        tester,
+        controller: controller,
+        onSwipeProgress: ({required action, required percentage}) {
+          logs.add((action: action, percentage: percentage));
+        },
+      );
       final future = controller.next();
       await tester.pump(const Duration(milliseconds: 16));
       await tester.pump(const Duration(milliseconds: 120));
@@ -586,18 +619,11 @@ void main() {
   });
 
   group('QuiTikTokFeedController with pagination', () {
-    testWidgets('when next is called on the last card with onLoadMore set, it should enter await mode', (
-      tester,
-    ) async {
+    testWidgets('when next is called on the last card with onLoadMore set, it should enter await mode', (tester) async {
       final controller = QuiTikTokFeedController();
       final loadCompleter = Completer<void>();
 
-      await _pumpFeed(
-        tester,
-        controller: controller,
-        items: const ['solo'],
-        onLoadMore: () => loadCompleter.future,
-      );
+      await _pumpFeed(tester, controller: controller, items: const ['solo'], onLoadMore: () => loadCompleter.future);
       await tester.pump();
       await tester.pump();
 
@@ -609,35 +635,31 @@ void main() {
       expect(find.byKey(_cardKey('solo')), findsOneWidget);
     });
 
-    testWidgets('when next is called on the last card with onLoadMore set and load completes, it should auto-navigate', (
-      tester,
-    ) async {
-      final controller = QuiTikTokFeedController();
-      final loadCompleter = Completer<void>();
+    testWidgets(
+      'when next is called on the last card with onLoadMore set and load completes, it should auto-navigate',
+      (tester) async {
+        final controller = QuiTikTokFeedController();
+        final loadCompleter = Completer<void>();
 
-      await _pumpFeed(
-        tester,
-        controller: controller,
-        items: const ['solo'],
-        onLoadMore: () => loadCompleter.future,
-      );
-      await tester.pump();
-      await tester.pump();
+        await _pumpFeed(tester, controller: controller, items: const ['solo'], onLoadMore: () => loadCompleter.future);
+        await tester.pump();
+        await tester.pump();
 
-      await controller.next();
-      for (var i = 0; i < 20; i++) {
-        await tester.pump(const Duration(milliseconds: 16));
-      }
+        await controller.next();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
 
-      loadCompleter.complete();
-      await tester.pump();
+        loadCompleter.complete();
+        await tester.pump();
 
-      for (var i = 0; i < 30; i++) {
-        await tester.pump(const Duration(milliseconds: 16));
-      }
+        for (var i = 0; i < 30; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
 
-      expect(find.byKey(_endKey), findsOneWidget);
-    });
+        expect(find.byKey(_endKey), findsOneWidget);
+      },
+    );
 
     testWidgets('when next is called on the last exhausted card, it should show the end state', (tester) async {
       final controller = QuiTikTokFeedController();
@@ -705,11 +727,7 @@ Future<void> _pumpFeed(
     _HarnessApp(
       disableAnimations: disableAnimations,
       child: QuiTikTokFeed<String>(
-        items: (
-          count: items.length,
-          provider: (int i) => items[i],
-          keyBuilder: null,
-        ),
+        items: (count: items.length, provider: (int i) => items[i], keyBuilder: null),
         loadMoreThreshold: loadMoreThreshold,
         enableHapticFeedback: enableHapticFeedback,
         controller: controller,
@@ -730,9 +748,7 @@ String _currentCardLabel(WidgetTester tester) {
     of: find.byType(QuiTikTokFeed<String>),
     matching: find.byType(GestureDetector),
   );
-  final texts = tester.widgetList<Text>(
-    find.descendant(of: gestureDetector, matching: find.byType(Text)),
-  );
+  final texts = tester.widgetList<Text>(find.descendant(of: gestureDetector, matching: find.byType(Text)));
   return texts.first.data ?? '';
 }
 
@@ -788,11 +804,7 @@ class _TestCard extends StatelessWidget {
 }
 
 class _ControllerSwapHost extends StatelessWidget {
-  const _ControllerSwapHost({
-    required this.firstController,
-    required this.secondController,
-    required this.useSecond,
-  });
+  const _ControllerSwapHost({required this.firstController, required this.secondController, required this.useSecond});
 
   final QuiTikTokFeedController firstController;
   final QuiTikTokFeedController secondController;
@@ -803,11 +815,7 @@ class _ControllerSwapHost extends StatelessWidget {
     return _HarnessApp(
       child: QuiTikTokFeed<String>(
         controller: useSecond ? secondController : firstController,
-        items: (
-          count: 2,
-          provider: (int i) => const ['a', 'b'][i],
-          keyBuilder: null,
-        ),
+        items: (count: 2, provider: (int i) => const ['a', 'b'][i], keyBuilder: null),
         endBuilder: _endBuilder,
         builder: _defaultCardBuilder,
       ),

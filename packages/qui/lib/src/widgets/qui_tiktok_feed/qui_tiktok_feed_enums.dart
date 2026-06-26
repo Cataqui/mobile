@@ -8,3 +8,5 @@ enum QuiTikTokFeedAction {
   /// Up swipe that advances to the next item.
   next,
 }
+
+enum _QuiTikTokFeedAwaitPhase { inactive, deciding, dragging, waiting }

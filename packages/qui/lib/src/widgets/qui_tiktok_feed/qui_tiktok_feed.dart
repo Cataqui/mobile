@@ -6,15 +6,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
-import 'package:qui/gen/assets.gen.dart';
-import 'package:qui/qui.dart';
+import 'package:qui/src/lottie/qui_lottie.dart';
+import 'package:qui/src/theme/qui_theme.dart';
+import 'package:qui/src/theme/qui_theme_context.dart';
 
-part 'qui_tiktok_feed_action.dart';
 part 'qui_tiktok_feed_cached_card.dart';
 part 'qui_tiktok_feed_controller.dart';
+part 'qui_tiktok_feed_enums.dart';
 part 'qui_tiktok_feed_flow_delegate.dart';
 part 'qui_tiktok_feed_loading_indicator.dart';
+part 'qui_tiktok_feed_preview.dart';
 part 'qui_tiktok_feed_types.dart';
+part 'qui_tiktok_feed_window.dart';
 
 /// A vertical, full-screen TikTok-style paged feed.
 ///
@@ -114,25 +117,25 @@ class QuiTikTokFeed<T> extends StatefulWidget {
   /// Keys returned by `keyBuilder` must be unique across all items in the
   /// feed. Duplicate keys cause undefined behavior in the internal card
   /// cache and may result in stale or mismatched cards being displayed.
-  final ({int count, T Function(int index) provider, Object Function(T item, int index)? keyBuilder}) items;
+  final QuiTikTokFeedItems<T> items;
 
   /// Builds the widget for each feed item.
-  final Widget Function(BuildContext context, T item, int index) builder;
+  final QuiTikTokFeedItemBuilder<T> builder;
 
   /// Controls this feed from parent code.
   final QuiTikTokFeedController? controller;
 
   /// Builds the load-more error card shown at the end of the deck.
   ///
-  /// When null, loading more is treated as error-free.
-  /// If provided, it treats as having a load-more error immediately.
-  final Widget Function(BuildContext context, VoidCallback retry)? loadMoreErrorBuilder;
+  /// When this builder is non-null, the feed treats pagination as errored and
+  /// shows the returned card instead of automatically requesting more items.
+  final QuiTikTokFeedLoadMoreErrorBuilder? loadMoreErrorBuilder;
 
   /// Builds content when pagination ends after all loaded cards are dismissed.
   final WidgetBuilder? endBuilder;
 
   /// Called whenever the swipe position changes.
-  final void Function({required QuiTikTokFeedAction action, required double percentage})? onSwipeProgress;
+  final QuiTikTokFeedProgressCallback? onSwipeProgress;
 
   /// Called when the feed advances to the next item.
   final QuiTikTokFeedItemCallback<T>? onNext;
@@ -141,7 +144,7 @@ class QuiTikTokFeed<T> extends StatefulWidget {
   final QuiTikTokFeedItemCallback<T>? onPrevious;
 
   /// Called when the current index reaches [loadMoreThreshold].
-  final Future<void> Function()? onLoadMore;
+  final QuiTikTokFeedLoadMoreCallback? onLoadMore;
 
   /// Called once when a drag or programmatic settle motion begins.
   final VoidCallback? onMotionStart;
@@ -218,24 +221,30 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   bool _isMotionActive = false;
   int _motionGeneration = 0;
   int _activeDragGeneration = 0;
-  bool _isAwaitMode = false;
-  bool _isAwaitingLoad = false;
-  bool _isAwaitDeciding = false;
+  _QuiTikTokFeedAwaitPhase _awaitPhase = _QuiTikTokFeedAwaitPhase.inactive;
   double _awaitDragProgress = 0;
-  Animation<double>? _scaleAnimation;
+  Animation<double>? _loadingLiftAnimation;
   final _disposeCompleter = Completer<void>();
   final Map<Object, _QuiTikTokFeedCachedCard<T>> _cardCache = <Object, _QuiTikTokFeedCachedCard<T>>{};
 
   final ValueNotifier<double> _dragOffsetNotifier = ValueNotifier<double>(0);
-  final ValueNotifier<double> _scaleNotifier = ValueNotifier<double>(1);
+  final ValueNotifier<double> _loadingLiftNotifier = ValueNotifier<double>(0);
 
   bool get _hasCurrentItem => _currentIndex < widget.items.count;
-  bool get _hasLoadMoreError => widget.loadMoreErrorBuilder != null;
+  bool get _shouldShowLoadMoreErrorCard => widget.loadMoreErrorBuilder != null;
 
-  bool get _isAwaitEligible => _hasCurrentItem && _currentIndex + 1 >= widget.items.count && _isLoadingMore;
+  bool get _canEnterAwaitMode => _hasCurrentItem && _currentIndex + 1 >= widget.items.count && _isLoadingMore;
+
+  bool get _isAwaitDeciding => _awaitPhase == _QuiTikTokFeedAwaitPhase.deciding;
+
+  bool get _isAwaitDragging => _awaitPhase == _QuiTikTokFeedAwaitPhase.dragging;
+
+  bool get _isAwaitWaiting => _awaitPhase == _QuiTikTokFeedAwaitPhase.waiting;
+
+  bool get _isAwaitActive => _isAwaitDragging || _isAwaitWaiting;
 
   bool get _paginationMayBringMore =>
-      widget.onLoadMore != null && !_hasLoadMoreError && _exhaustedItemCount != widget.items.count;
+      widget.onLoadMore != null && !_shouldShowLoadMoreErrorCard && _exhaustedItemCount != widget.items.count;
 
   @override
   void initState() {
@@ -281,7 +290,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       ..dispose();
 
     _dragOffsetNotifier.dispose();
-    _scaleNotifier.dispose();
+    _loadingLiftNotifier.dispose();
     _cardCache.clear();
     _disposeCompleter.complete();
 
@@ -294,9 +303,9 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       _setDragOffset(offsetAnimation.value);
     }
 
-    final scaleAnimation = _scaleAnimation;
-    if (scaleAnimation != null) {
-      _scaleNotifier.value = scaleAnimation.value;
+    final loadingLiftAnimation = _loadingLiftAnimation;
+    if (loadingLiftAnimation != null) {
+      _loadingLiftNotifier.value = loadingLiftAnimation.value;
     }
   }
 
@@ -307,60 +316,23 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     _hasFiredStartHaptic = false;
     _activeDragGeneration = _startMotion();
 
-    if (_isAwaitEligible) {
-      if (_isAwaitingLoad) {
-        setState(() {
-          _isAwaitMode = true;
-          _awaitDragProgress = 1.0;
-          _scaleNotifier.value = -widget.loadingMoreOffset;
-        });
-      } else {
-        _isAwaitDeciding = true;
-      }
-    }
+    _handleAwaitDragStart();
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     if (_isControllerActionRunning) return;
 
     if (_isAwaitDeciding) {
-      final delta = details.delta.dy;
-
-      if (delta == 0) return;
-
-      _isAwaitDeciding = false;
-
-      if (delta < 0 && _isAwaitEligible) {
-        setState(() {
-          _isAwaitMode = true;
-          _scaleNotifier.value = delta.clamp(-widget.loadingMoreOffset, 0.0);
-          _awaitDragProgress = (-_scaleNotifier.value / widget.loadingMoreOffset).clamp(0.0, 1.0);
-        });
-      } else {
-        _setDragOffset(_dragOffsetY + delta);
-      }
+      _handleAwaitDecisionUpdate(details.delta.dy);
       return;
     }
 
-    if (_isAwaitMode) {
-      _scaleNotifier.value = (_scaleNotifier.value + details.delta.dy).clamp(-widget.loadingMoreOffset, 0.0);
-      _awaitDragProgress = (-_scaleNotifier.value / widget.loadingMoreOffset).clamp(0.0, 1.0);
-
-      if (!_hasFiredStartHaptic && widget.enableHapticFeedback && _awaitDragProgress > 0) {
-        _hasFiredStartHaptic = true;
-        unawaited(HapticFeedback.selectionClick());
-      }
-
-      widget.onSwipeProgress?.call(action: QuiTikTokFeedAction.next, percentage: _awaitDragProgress);
+    if (_isAwaitActive) {
+      _handleAwaitDragUpdate(details.delta.dy);
       return;
     }
 
-    _setDragOffset(_dragOffsetY + details.delta.dy);
-
-    if (!_hasFiredStartHaptic && widget.enableHapticFeedback && _dragOffsetY < 0) {
-      _hasFiredStartHaptic = true;
-      unawaited(HapticFeedback.selectionClick());
-    }
+    _handleRegularDragUpdate(details.delta.dy);
   }
 
   Future<void> _onVerticalDragEnd(DragEndDetails details) async {
@@ -370,61 +342,16 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     try {
       if (_isAwaitDeciding) {
-        _isAwaitDeciding = false;
+        _resetAwaitPhase();
         return;
       }
 
-      if (_isAwaitMode) {
-        final velocity = details.velocity.pixelsPerSecond.dy;
-        final progress = _awaitDragProgress;
-        final metThreshold = progress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
-
-        if (_isAwaitingLoad) {
-          if (velocity > 0 || progress < 0.95) {
-            await _animateScale(_scaleNotifier.value, 0, duration: _settleDuration);
-            if (!mounted) return;
-            setState(_resetAwaitState);
-          } else {
-            await _animateScale(_scaleNotifier.value, -widget.loadingMoreOffset, duration: _settleDuration);
-            if (!mounted) return;
-            setState(() => _scaleNotifier.value = -widget.loadingMoreOffset);
-          }
-        } else if (metThreshold && (progress > 0 || velocity < 0)) {
-          setState(() {
-            _isAwaitingLoad = true;
-          });
-          await _animateScale(_scaleNotifier.value, -widget.loadingMoreOffset, duration: _settleDuration);
-          if (!mounted) return;
-          setState(() => _scaleNotifier.value = -widget.loadingMoreOffset);
-        } else {
-          await _animateScale(_scaleNotifier.value, 0, duration: _settleDuration);
-          if (!mounted) return;
-          setState(_resetAwaitState);
-        }
+      if (_isAwaitActive) {
+        await _finishAwaitDrag(details);
         return;
       }
 
-      final velocity = details.velocity.pixelsPerSecond.dy;
-      final progress = (_dragOffsetY.abs() / _viewportHeight).clamp(0, 1);
-      final upIntent = _dragOffsetY < 0 || (_dragOffsetY == 0 && velocity < 0);
-      final metThreshold = progress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
-
-      if (!metThreshold) {
-        await _snapBack();
-        return;
-      }
-
-      if (upIntent && _hasCurrentItem) {
-        await _commitNext();
-        return;
-      }
-
-      if (!upIntent && _currentIndex > 0) {
-        await _commitPrevious();
-        return;
-      }
-
-      await _snapBack();
+      await _finishRegularDrag(details);
     } finally {
       _endMotion(motionGeneration);
     }
@@ -436,23 +363,174 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final motionGeneration = _activeDragGeneration;
 
     if (_isAwaitDeciding) {
-      _isAwaitDeciding = false;
+      _resetAwaitPhase();
       _endMotion(motionGeneration);
       return;
     }
 
-    if (_isAwaitMode) {
-      unawaited(
-        _animateScale(_scaleNotifier.value, 1, duration: _settleDuration).whenComplete(() {
-          if (!mounted) return;
-          setState(_resetAwaitState);
-          _endMotion(motionGeneration);
-        }),
-      );
+    if (_isAwaitActive) {
+      _completeCanceledMotion(_exitAwaitDrag(), motionGeneration: motionGeneration);
       return;
     }
 
-    unawaited(_snapBack().whenComplete(() => _endMotion(motionGeneration)));
+    _completeCanceledMotion(_snapBack(), motionGeneration: motionGeneration);
+  }
+
+  void _completeCanceledMotion(Future<void> motion, {required int motionGeneration}) {
+    unawaited(
+      motion.whenComplete(() {
+        if (!mounted) return;
+        _endMotion(motionGeneration);
+      }),
+    );
+  }
+
+  void _handleAwaitDragStart() {
+    if (!_canEnterAwaitMode) return;
+
+    if (_isAwaitWaiting) {
+      setState(() {
+        _awaitDragProgress = 1.0;
+        _loadingLiftNotifier.value = -widget.loadingMoreOffset;
+      });
+      return;
+    }
+
+    _awaitPhase = _QuiTikTokFeedAwaitPhase.deciding;
+  }
+
+  void _handleAwaitDecisionUpdate(double dragDeltaY) {
+    if (dragDeltaY == 0) return;
+
+    _awaitPhase = _QuiTikTokFeedAwaitPhase.inactive;
+
+    if (dragDeltaY < 0 && _canEnterAwaitMode) {
+      setState(() {
+        _awaitPhase = _QuiTikTokFeedAwaitPhase.dragging;
+        _loadingLiftNotifier.value = dragDeltaY.clamp(-widget.loadingMoreOffset, 0.0);
+        _awaitDragProgress = _progressForLoadingLift(_loadingLiftNotifier.value);
+      });
+      return;
+    }
+
+    _setDragOffset(_dragOffsetY + dragDeltaY);
+  }
+
+  void _handleAwaitDragUpdate(double dragDeltaY) {
+    _loadingLiftNotifier.value = (_loadingLiftNotifier.value + dragDeltaY).clamp(-widget.loadingMoreOffset, 0.0);
+    _awaitDragProgress = _progressForLoadingLift(_loadingLiftNotifier.value);
+
+    _emitStartHapticIfNeeded(shouldEmit: _awaitDragProgress > 0);
+    widget.onSwipeProgress?.call(action: QuiTikTokFeedAction.next, percentage: _awaitDragProgress);
+  }
+
+  void _handleRegularDragUpdate(double dragDeltaY) {
+    _setDragOffset(_dragOffsetY + dragDeltaY);
+
+    _emitStartHapticIfNeeded(shouldEmit: _dragOffsetY < 0);
+  }
+
+  void _emitStartHapticIfNeeded({required bool shouldEmit}) {
+    if (_hasFiredStartHaptic || !widget.enableHapticFeedback || !shouldEmit) return;
+
+    _hasFiredStartHaptic = true;
+    unawaited(HapticFeedback.selectionClick());
+  }
+
+  Future<void> _finishAwaitDrag(DragEndDetails details) async {
+    final velocity = details.velocity.pixelsPerSecond.dy;
+
+    if (_isAwaitWaiting) {
+      await _finishWaitingAwaitDrag(velocity: velocity);
+      return;
+    }
+
+    if (_shouldCommitAwait(velocity: velocity)) {
+      await _commitAwaitDrag();
+      return;
+    }
+
+    await _exitAwaitDrag();
+  }
+
+  Future<void> _finishWaitingAwaitDrag({required double velocity}) async {
+    if (_shouldExitWaiting(velocity: velocity)) {
+      await _exitAwaitDrag();
+      return;
+    }
+
+    await _settleBackToAwait();
+  }
+
+  Future<void> _finishRegularDrag(DragEndDetails details) async {
+    final velocity = details.velocity.pixelsPerSecond.dy;
+
+    if (!_shouldCommitSwipe(velocity: velocity)) {
+      await _snapBack();
+      return;
+    }
+
+    final isNextSwipe = _isNextSwipe(velocity: velocity);
+
+    if (isNextSwipe && _hasCurrentItem) {
+      await _commitNext();
+      return;
+    }
+
+    if (!isNextSwipe && _currentIndex > 0) {
+      await _commitPrevious();
+      return;
+    }
+
+    await _snapBack();
+  }
+
+  bool _shouldCommitSwipe({required double velocity}) {
+    final progress = (_dragOffsetY.abs() / _viewportHeight).clamp(0, 1);
+
+    return progress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
+  }
+
+  bool _isNextSwipe({required double velocity}) {
+    return _dragOffsetY < 0 || (_dragOffsetY == 0 && velocity < 0);
+  }
+
+  bool _shouldCommitAwait({required double velocity}) {
+    final metThreshold = _awaitDragProgress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
+
+    return metThreshold && (_awaitDragProgress > 0 || velocity < 0);
+  }
+
+  bool _shouldExitWaiting({required double velocity}) {
+    return velocity > 0 || _awaitDragProgress < 0.95;
+  }
+
+  Future<void> _commitAwaitDrag() async {
+    setState(() => _awaitPhase = _QuiTikTokFeedAwaitPhase.waiting);
+    await _animateLoadingLift(to: -widget.loadingMoreOffset, duration: _settleDuration);
+
+    if (!mounted) return;
+
+    setState(() => _loadingLiftNotifier.value = -widget.loadingMoreOffset);
+  }
+
+  Future<void> _exitAwaitDrag() async {
+    await _animateLoadingLift(to: 0, duration: _settleDuration);
+
+    if (!mounted) return;
+
+    setState(_resetAwaitPhase);
+  }
+
+  Future<void> _settleBackToAwait() async {
+    await _animateLoadingLift(to: -widget.loadingMoreOffset, duration: _settleDuration);
+
+    if (!mounted) return;
+
+    setState(() {
+      _awaitPhase = _QuiTikTokFeedAwaitPhase.waiting;
+      _loadingLiftNotifier.value = -widget.loadingMoreOffset;
+    });
   }
 
   Future<void> _commitNext() async {
@@ -487,8 +565,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
   Future<void> _enterAwaitModeFromCommit() async {
     setState(() {
-      _isAwaitMode = true;
-      _isAwaitingLoad = true;
+      _awaitPhase = _QuiTikTokFeedAwaitPhase.waiting;
       _awaitDragProgress = 1.0;
     });
 
@@ -498,7 +575,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     setState(() {
       _dragOffsetY = 0;
-      _scaleNotifier.value = -widget.loadingMoreOffset;
+      _loadingLiftNotifier.value = -widget.loadingMoreOffset;
     });
 
     _dragOffsetNotifier.value = 0;
@@ -507,35 +584,11 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   }
 
   Future<void> _animateIntoAwait() async {
-    final beginOffset = _dragOffsetY;
-    const targetOffset = 0.0;
-    final beginTranslate = _scaleNotifier.value;
-    final targetTranslate = -widget.loadingMoreOffset;
-    final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-    if (disableAnimations) {
-      _setDragOffset(targetOffset);
-      _scaleNotifier.value = targetTranslate;
-      return;
-    }
-
-    if (beginOffset == targetOffset && beginTranslate == targetTranslate) return;
-
-    _offsetAnimation = Tween<double>(
-      begin: beginOffset,
-      end: targetOffset,
-    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
-
-    _scaleAnimation = Tween<double>(
-      begin: beginTranslate,
-      end: targetTranslate,
-    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
-
-    _animationController
-      ..duration = _settleDuration
-      ..reset();
-
-    await Future.any([_animationController.forward(), _disposeCompleter.future]);
+    await _animateFeedPosition(
+      offsetTarget: 0,
+      loadingLiftTarget: -widget.loadingMoreOffset,
+      duration: _settleDuration,
+    );
   }
 
   Future<void> _commitPrevious() async {
@@ -561,81 +614,99 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   }
 
   Future<void> _animateTo(double target, {required Duration duration, Curve curve = Curves.easeOutCubic}) {
-    final begin = _dragOffsetY;
-    final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-    if (disableAnimations || begin == target) {
-      _setDragOffset(target);
-      return Future<void>.value();
-    }
-
-    _scaleAnimation = null;
-    _offsetAnimation = Tween<double>(
-      begin: begin,
-      end: target,
-    ).chain(CurveTween(curve: curve)).animate(_animationController);
-
-    _animationController
-      ..duration = duration
-      ..reset();
-
-    return Future.any([_animationController.forward(), _disposeCompleter.future]);
+    return _animateFeedPosition(offsetTarget: target, duration: duration, curve: curve);
   }
 
-  Future<void> _animateScale(double from, double to, {required Duration duration, Curve curve = Curves.easeOutCubic}) {
-    final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-    if (disableAnimations || from == to) {
-      _scaleNotifier.value = to;
-      return Future<void>.value();
-    }
-
-    _offsetAnimation = null;
-    _scaleAnimation = Tween<double>(begin: from, end: to).chain(CurveTween(curve: curve)).animate(_animationController);
-
-    _animationController
-      ..duration = duration
-      ..reset();
-
-    return Future.any([_animationController.forward(), _disposeCompleter.future]);
+  Future<void> _animateLoadingLift({
+    required double to,
+    required Duration duration,
+    Curve curve = Curves.easeOutCubic,
+  }) {
+    return _animateFeedPosition(loadingLiftTarget: to, duration: duration, curve: curve);
   }
 
   Future<void> _animateCommitFromAwait() async {
-    final beginOffset = _dragOffsetY;
-    final targetOffset = -_commitDistance;
-    final beginTranslate = _scaleNotifier.value;
-    const targetTranslate = 0.0;
+    await _animateFeedPosition(offsetTarget: -_commitDistance, loadingLiftTarget: 0, duration: _commitDuration);
+  }
+
+  Future<void> _animateFeedPosition({
+    required Duration duration,
+    double? offsetTarget,
+    double? loadingLiftTarget,
+    Curve curve = Curves.easeOutCubic,
+  }) {
     final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     if (disableAnimations) {
-      _setDragOffset(targetOffset);
-      _scaleNotifier.value = targetTranslate;
-      return;
+      _applyAnimationTargets(offsetTarget: offsetTarget, loadingLiftTarget: loadingLiftTarget);
+      return Future<void>.value();
     }
 
-    _offsetAnimation = Tween<double>(
-      begin: beginOffset,
-      end: targetOffset,
-    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
+    final shouldAnimateOffset = offsetTarget != null && _dragOffsetY != offsetTarget;
+    final shouldAnimateLoadingLift = loadingLiftTarget != null && _loadingLiftNotifier.value != loadingLiftTarget;
 
-    _scaleAnimation = Tween<double>(
-      begin: beginTranslate,
-      end: targetTranslate,
-    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
+    if (!shouldAnimateOffset && !shouldAnimateLoadingLift) {
+      _applyAnimationTargets(offsetTarget: offsetTarget, loadingLiftTarget: loadingLiftTarget);
+      return Future<void>.value();
+    }
+
+    _offsetAnimation = _offsetAnimationForTarget(
+      shouldAnimate: shouldAnimateOffset,
+      target: offsetTarget,
+      curve: curve,
+    );
+    _loadingLiftAnimation = _loadingLiftAnimationForTarget(
+      shouldAnimate: shouldAnimateLoadingLift,
+      target: loadingLiftTarget,
+      curve: curve,
+    );
 
     _animationController
-      ..duration = _commitDuration
+      ..duration = duration
       ..reset();
 
-    await Future.any([_animationController.forward(), _disposeCompleter.future]);
+    return Future.any([_animationController.forward(), _disposeCompleter.future]);
   }
 
-  void _resetAwaitState() {
-    _isAwaitMode = false;
-    _isAwaitingLoad = false;
-    _isAwaitDeciding = false;
+  Animation<double> _doubleAnimation({required double from, required double to, required Curve curve}) {
+    return Tween<double>(begin: from, end: to).chain(CurveTween(curve: curve)).animate(_animationController);
+  }
+
+  Animation<double>? _offsetAnimationForTarget({
+    required bool shouldAnimate,
+    required double? target,
+    required Curve curve,
+  }) {
+    if (!shouldAnimate || target == null) return null;
+
+    return _doubleAnimation(from: _dragOffsetY, to: target, curve: curve);
+  }
+
+  Animation<double>? _loadingLiftAnimationForTarget({
+    required bool shouldAnimate,
+    required double? target,
+    required Curve curve,
+  }) {
+    if (!shouldAnimate || target == null) return null;
+
+    return _doubleAnimation(from: _loadingLiftNotifier.value, to: target, curve: curve);
+  }
+
+  void _applyAnimationTargets({required double? offsetTarget, required double? loadingLiftTarget}) {
+    if (offsetTarget != null) _setDragOffset(offsetTarget);
+    if (loadingLiftTarget != null) _loadingLiftNotifier.value = loadingLiftTarget;
+  }
+
+  void _resetAwaitPhase() {
+    _awaitPhase = _QuiTikTokFeedAwaitPhase.inactive;
     _awaitDragProgress = 0;
-    _scaleNotifier.value = 0;
+    _loadingLiftNotifier.value = 0;
+  }
+
+  double _progressForLoadingLift(double loadingLiftOffset) {
+    if (widget.loadingMoreOffset == 0) return 0;
+
+    return (-loadingLiftOffset / widget.loadingMoreOffset).clamp(0.0, 1.0);
   }
 
   void _setDragOffset(double value) {
@@ -690,7 +761,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     if (onLoadMore == null ||
         widget.items.count == 0 ||
-        _hasLoadMoreError ||
+        _shouldShowLoadMoreErrorCard ||
         _isLoadingMore ||
         _exhaustedItemCount == widget.items.count) {
       return false;
@@ -708,7 +779,27 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     setState(() => _isLoadingMore = true);
 
-    await onLoadMore();
+    try {
+      await onLoadMore();
+    } catch (error, stackTrace) {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+          _exhaustedItemCount = itemCountBeforeLoad;
+          _resetAwaitPhase();
+        });
+      }
+
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'qui',
+          context: ErrorDescription('while loading more QuiTikTokFeed items'),
+        ),
+      );
+      return;
+    }
 
     if (!mounted) return;
 
@@ -721,12 +812,12 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       }
     });
 
-    if (_isAwaitingLoad && mounted) {
-      unawaited(_navigateFromAwait(hadNewItems: hadItemsGrowth));
+    if (_isAwaitWaiting && mounted) {
+      unawaited(_navigateFromAwait());
     }
   }
 
-  Future<void> _navigateFromAwait({required bool hadNewItems}) async {
+  Future<void> _navigateFromAwait() async {
     if (!mounted) return;
 
     _isControllerActionRunning = true;
@@ -734,33 +825,44 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final item = widget.items.provider(_currentIndex);
     final itemIndex = _currentIndex;
 
-    setState(() {
-      _isAwaitMode = false;
-      _isAwaitingLoad = false;
-      _awaitDragProgress = 0;
-    });
+    try {
+      setState(() {
+        _awaitPhase = _QuiTikTokFeedAwaitPhase.inactive;
+        _awaitDragProgress = 0;
+      });
 
-    await _animateCommitFromAwait();
+      await _animateCommitFromAwait();
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _currentIndex += 1;
-      _dragOffsetY = 0;
-    });
+      setState(() {
+        _currentIndex += 1;
+        _dragOffsetY = 0;
+      });
 
-    _dragOffsetNotifier.value = 0;
-    _scaleNotifier.value = 0;
+      _dragOffsetNotifier.value = 0;
+      _loadingLiftNotifier.value = 0;
 
-    widget.onNext?.call(item, itemIndex);
-    _scheduleLoadMoreIfNeeded();
+      widget.onNext?.call(item, itemIndex);
+      _scheduleLoadMoreIfNeeded();
 
-    if (widget.enableHapticFeedback) {
-      unawaited(HapticFeedback.selectionClick());
+      if (widget.enableHapticFeedback) {
+        unawaited(HapticFeedback.selectionClick());
+      }
+    } finally {
+      if (mounted) {
+        _endMotion(motionGeneration);
+        _isControllerActionRunning = false;
+      }
     }
+  }
 
-    _endMotion(motionGeneration);
-    if (mounted) _isControllerActionRunning = false;
+  void _enterAwaitModeFromController() {
+    setState(() {
+      _awaitPhase = _QuiTikTokFeedAwaitPhase.waiting;
+      _awaitDragProgress = 1.0;
+      _loadingLiftNotifier.value = -widget.loadingMoreOffset;
+    });
   }
 
   @override
@@ -772,16 +874,12 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final motionGeneration = _startMotion();
 
     try {
-      if (_isAwaitEligible) {
-        setState(() {
-          _isAwaitMode = true;
-          _isAwaitingLoad = true;
-          _awaitDragProgress = 1.0;
-          _scaleNotifier.value = -widget.loadingMoreOffset;
-        });
-      } else {
-        await _commitNext();
+      if (_canEnterAwaitMode) {
+        _enterAwaitModeFromController();
+        return mounted;
       }
+
+      await _commitNext();
     } finally {
       _endMotion(motionGeneration);
       if (mounted) {
@@ -810,85 +908,6 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     }
 
     return mounted;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (!constraints.hasBoundedHeight) {
-          throw FlutterError(
-            'Vertical viewport was given unbounded height.\n'
-            'QuiTikTokFeed requires its parent widget to have a bounded '
-            'height.\n'
-            'When the parent widget does not have a bounded height, the feed '
-            'cannot determine how large to make its pages. Consider wrapping '
-            'the QuiTikTokFeed with an Expanded, a SizedBox, or ensuring the '
-            'parent provides bounded constraints.',
-          );
-        }
-
-        _viewportHeight = constraints.maxHeight;
-        _viewportWidth = constraints.maxWidth;
-
-        final nextIndex = _currentIndex + 1;
-        final hasNextItem = nextIndex < widget.items.count;
-        final paginationCard = _hasCurrentItem ? _buildPaginationCard(context) : null;
-        final terminalCard = _hasCurrentItem ? null : _buildTerminalCard(context);
-        final isGestureActive = _hasCurrentItem || _currentIndex > 0;
-        final previousCard = _currentIndex > 0 ? _cardFor(index: _currentIndex - 1) : null;
-        final currentCard = _hasCurrentItem ? _cardFor(index: _currentIndex) : null;
-        final nextCard = hasNextItem ? _cardFor(index: nextIndex) : null;
-
-        _retainCardWindow(previousCard: previousCard, currentCard: currentCard, nextCard: nextCard);
-
-        return GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onVerticalDragStart: isGestureActive ? _onVerticalDragStart : null,
-          onVerticalDragUpdate: isGestureActive ? _onVerticalDragUpdate : null,
-          onVerticalDragEnd: isGestureActive ? _onVerticalDragEnd : null,
-          onVerticalDragCancel: isGestureActive ? _onVerticalDragCancel : null,
-          child: Flow(
-            clipBehavior: Clip.none,
-            delegate: _QuiTikTokFeedFlowDelegate(
-              offsetListenable: _dragOffsetNotifier,
-              scaleListenable: _scaleNotifier,
-              viewportHeight: _viewportHeight,
-              viewportWidth: _viewportWidth,
-              spacing: widget.spacing,
-              currentIndex: _currentIndex,
-              hasPreviousCard: previousCard != null,
-              hasNextCard: nextCard != null || (_hasCurrentItem && paginationCard != null),
-              isAwaitMode: _isAwaitMode,
-              loadingMoreOffset: widget.loadingMoreOffset,
-            ),
-            children: [
-              if (currentCard != null) ...[
-                _retainedCard(card: currentCard),
-              ] else ...[
-                _retainedTerminalCard(child: terminalCard!),
-              ],
-
-              if (nextCard != null) ...[
-                _retainedCard(card: nextCard),
-              ] else if (_hasCurrentItem && paginationCard != null) ...[
-                _retainedTerminalCard(child: paginationCard),
-              ] else ...[
-                const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_next')),
-              ],
-
-              if (previousCard != null) ...[
-                _retainedCard(card: previousCard),
-              ] else ...[
-                const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_previous')),
-              ],
-
-              _QuiTikTokFeedLoadingIndicator(visible: _isAwaitMode || _isAwaitingLoad),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   _QuiTikTokFeedCachedCard<T> _cardFor({required int index}) {
@@ -925,6 +944,122 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     _cardCache.removeWhere((key, value) => !retainedKeys.contains(key));
   }
 
+  void _ensureBoundedHeight(BoxConstraints constraints) {
+    if (constraints.hasBoundedHeight) return;
+
+    throw FlutterError(
+      'Vertical viewport was given unbounded height.\n'
+      'QuiTikTokFeed requires its parent widget to have a bounded '
+      'height.\n'
+      'When the parent widget does not have a bounded height, the feed '
+      'cannot determine how large to make its pages. Consider wrapping '
+      'the QuiTikTokFeed with an Expanded, a SizedBox, or ensuring the '
+      'parent provides bounded constraints.',
+    );
+  }
+
+  void _syncViewportSize(BoxConstraints constraints) {
+    _viewportHeight = constraints.maxHeight;
+    _viewportWidth = constraints.maxWidth;
+  }
+
+  _QuiTikTokFeedWindow<T> _feedWindowFor(BuildContext context) {
+    final nextIndex = _currentIndex + 1;
+    final hasNextItem = nextIndex < widget.items.count;
+    final previousCard = _currentIndex > 0 ? _cardFor(index: _currentIndex - 1) : null;
+    final currentCard = _hasCurrentItem ? _cardFor(index: _currentIndex) : null;
+    final nextCard = hasNextItem ? _cardFor(index: nextIndex) : null;
+
+    _retainCardWindow(previousCard: previousCard, currentCard: currentCard, nextCard: nextCard);
+
+    return _QuiTikTokFeedWindow<T>(
+      previousCard: previousCard,
+      currentCard: currentCard,
+      nextCard: nextCard,
+      paginationCard: _hasCurrentItem ? _buildPaginationCard(context) : null,
+      terminalCard: _hasCurrentItem ? null : _buildTerminalCard(context),
+    );
+  }
+
+  bool _hasGestureTarget(_QuiTikTokFeedWindow<T> feedWindow) {
+    return feedWindow.currentCard != null || feedWindow.previousCard != null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _ensureBoundedHeight(constraints);
+        _syncViewportSize(constraints);
+
+        return _buildGestureLayer(_feedWindowFor(context));
+      },
+    );
+  }
+
+  Widget _buildGestureLayer(_QuiTikTokFeedWindow<T> feedWindow) {
+    final isGestureActive = _hasGestureTarget(feedWindow);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onVerticalDragStart: isGestureActive ? _onVerticalDragStart : null,
+      onVerticalDragUpdate: isGestureActive ? _onVerticalDragUpdate : null,
+      onVerticalDragEnd: isGestureActive ? _onVerticalDragEnd : null,
+      onVerticalDragCancel: isGestureActive ? _onVerticalDragCancel : null,
+      child: _buildFlow(feedWindow),
+    );
+  }
+
+  Widget _buildFlow(_QuiTikTokFeedWindow<T> feedWindow) {
+    return Flow(
+      clipBehavior: Clip.none,
+      delegate: _QuiTikTokFeedFlowDelegate(
+        offsetListenable: _dragOffsetNotifier,
+        loadingLiftListenable: _loadingLiftNotifier,
+        viewportHeight: _viewportHeight,
+        viewportWidth: _viewportWidth,
+        spacing: widget.spacing,
+        hasPreviousCard: feedWindow.previousCard != null,
+        hasNextCard: feedWindow.nextCard != null || feedWindow.paginationCard != null,
+        isAwaitMode: _isAwaitActive,
+        loadingMoreOffset: widget.loadingMoreOffset,
+      ),
+      children: [
+        _buildCurrentFlowChild(feedWindow),
+        _buildNextFlowChild(feedWindow),
+        _buildPreviousFlowChild(feedWindow),
+        _QuiTikTokFeedLoadingIndicator(visible: _isAwaitActive),
+      ],
+    );
+  }
+
+  Widget _buildCurrentFlowChild(_QuiTikTokFeedWindow<T> feedWindow) {
+    final currentCard = feedWindow.currentCard;
+    if (currentCard != null) return _retainedCard(card: currentCard);
+
+    final terminalCard = feedWindow.terminalCard;
+    if (terminalCard != null) return _retainedTerminalCard(child: terminalCard);
+
+    return const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_current'));
+  }
+
+  Widget _buildNextFlowChild(_QuiTikTokFeedWindow<T> feedWindow) {
+    final nextCard = feedWindow.nextCard;
+    if (nextCard != null) return _retainedCard(card: nextCard);
+
+    final paginationCard = feedWindow.paginationCard;
+    if (paginationCard != null) return _retainedTerminalCard(child: paginationCard);
+
+    return const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_next'));
+  }
+
+  Widget _buildPreviousFlowChild(_QuiTikTokFeedWindow<T> feedWindow) {
+    final previousCard = feedWindow.previousCard;
+    if (previousCard != null) return _retainedCard(card: previousCard);
+
+    return const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_previous'));
+  }
+
   Widget _retainedCard({required _QuiTikTokFeedCachedCard<T> card}) {
     return RepaintBoundary(key: ValueKey('qui_tiktok_feed_card_${card.itemKey}'), child: card.child);
   }
@@ -934,7 +1069,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   }
 
   Widget _buildTerminalCard(BuildContext context) {
-    if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
+    if (_shouldShowLoadMoreErrorCard) return _loadMoreErrorBuilderCard(context);
 
     return widget.endBuilder?.call(context) ?? const SizedBox.shrink();
   }
@@ -942,7 +1077,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   Widget? _buildPaginationCard(BuildContext context) {
     if (_isLoadingMore) return null;
 
-    if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
+    if (_shouldShowLoadMoreErrorCard) return _loadMoreErrorBuilderCard(context);
 
     final hasNextItem = _currentIndex + 1 < widget.items.count;
     if (!hasNextItem && _exhaustedItemCount == widget.items.count) {
@@ -953,12 +1088,39 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   }
 
   Widget _loadMoreErrorBuilderCard(BuildContext context) {
-    return widget.loadMoreErrorBuilder!(context, _retryLoadMore);
+    final loadMoreErrorBuilder = widget.loadMoreErrorBuilder;
+    if (loadMoreErrorBuilder == null) return const SizedBox.shrink();
+
+    return loadMoreErrorBuilder(context, _retryLoadMore);
   }
 }
 
 @Preview(name: 'QuiTikTokFeed', group: 'Decks')
 Widget quiTikTokFeedPreview() {
+  const previewOpportunities = [
+    _PreviewOpportunity(
+      title: 'Garcom para hoje',
+      place: 'Pinheiros',
+      pay: r'R$ 180',
+      time: '18h - 23h',
+      color: Color(0xFFFF4A4B),
+    ),
+    _PreviewOpportunity(
+      title: 'Ajuda em evento',
+      place: 'Vila Madalena',
+      pay: r'R$ 240',
+      time: 'Sabado',
+      color: Color(0xFF00A896),
+    ),
+    _PreviewOpportunity(
+      title: 'Entrega rapida',
+      place: 'Bela Vista',
+      pay: r'R$ 65',
+      time: 'Agora',
+      color: Color(0xFF3D5A80),
+    ),
+  ];
+
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
@@ -966,7 +1128,7 @@ Widget quiTikTokFeedPreview() {
       backgroundColor: const Color(0xFFF6F4F1),
       body: SafeArea(
         child: QuiTikTokFeed<_PreviewOpportunity>(
-          items: (count: _previewOpportunities.length, provider: (int i) => _previewOpportunities[i], keyBuilder: null),
+          items: (count: previewOpportunities.length, provider: (int i) => previewOpportunities[i], keyBuilder: null),
           builder: (context, opportunity, index) {
             return _PreviewOpportunityCard(opportunity: opportunity);
           },
@@ -977,99 +1139,4 @@ Widget quiTikTokFeedPreview() {
       ),
     ),
   );
-}
-
-const _previewOpportunities = [
-  _PreviewOpportunity(
-    title: 'Garcom para hoje',
-    place: 'Pinheiros',
-    pay: r'R$ 180',
-    time: '18h - 23h',
-    color: Color(0xFFFF4A4B),
-  ),
-  _PreviewOpportunity(
-    title: 'Ajuda em evento',
-    place: 'Vila Madalena',
-    pay: r'R$ 240',
-    time: 'Sabado',
-    color: Color(0xFF00A896),
-  ),
-  _PreviewOpportunity(
-    title: 'Entrega rapida',
-    place: 'Bela Vista',
-    pay: r'R$ 65',
-    time: 'Agora',
-    color: Color(0xFF3D5A80),
-  ),
-];
-
-class _PreviewOpportunity {
-  const _PreviewOpportunity({
-    required this.title,
-    required this.place,
-    required this.pay,
-    required this.time,
-    required this.color,
-  });
-
-  final String title;
-  final String place;
-  final String pay;
-  final String time;
-  final Color color;
-}
-
-class _PreviewOpportunityCard extends StatelessWidget {
-  const _PreviewOpportunityCard({required this.opportunity});
-
-  final _PreviewOpportunity opportunity;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [BoxShadow(color: Color(0x1F000000), blurRadius: 30, offset: Offset(0, 16))],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(color: opportunity.color, borderRadius: BorderRadius.circular(18)),
-              child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 30),
-            ),
-            const Spacer(),
-            Text(
-              opportunity.pay,
-              style: Theme.of(
-                context,
-              ).textTheme.displaySmall?.copyWith(color: opportunity.color, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              opportunity.title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(Icons.place_rounded, size: 18),
-                const SizedBox(width: 6),
-                Text(opportunity.place),
-                const SizedBox(width: 16),
-                const Icon(Icons.schedule_rounded, size: 18),
-                const SizedBox(width: 6),
-                Text(opportunity.time),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
