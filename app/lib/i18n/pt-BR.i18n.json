@@ -62,7 +62,7 @@
     "paymentPeriodWeekly": "/semana",
     "paymentPeriodMonthly": "/mês",
     "paymentPeriodYearly": "/ano",
-    "paymentOther": "Alternativo",
+    "paymentOther": "Outro pagamento",
     "paymentUnknown": "Desconhecido"
   }
 }
