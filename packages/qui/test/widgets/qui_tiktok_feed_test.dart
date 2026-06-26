@@ -1410,6 +1410,48 @@ void main() {
 
       expect(requestedIndexes.toSet(), {0, 1});
     });
+
+    testWidgets(
+      'when quickly swiping up past the last card while more items are loading, it should show the loading spinner',
+      (tester) async {
+        await _pumpFeed(tester, items: const ['first', 'second'], onLoadMore: () => Completer<void>().future);
+        await tester.pump();
+
+        await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -300));
+        await tester.pump(const Duration(milliseconds: 16));
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, -300));
+        await tester.pump();
+        await gesture.up();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(find.byType(Lottie), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'when quickly swiping up past the last card while more items are loading, it should not show the end state',
+      (tester) async {
+        await _pumpFeed(tester, items: const ['first', 'second'], onLoadMore: () => Completer<void>().future);
+        await tester.pump();
+
+        await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -300));
+        await tester.pump(const Duration(milliseconds: 16));
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, -300));
+        await tester.pump();
+        await gesture.up();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(find.byKey(_endKey), findsNothing);
+      },
+    );
   });
 
   group('QuiTikTokFeed haptic feedback', () {

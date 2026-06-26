@@ -234,6 +234,9 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
   bool get _isAwaitEligible => _hasCurrentItem && _currentIndex + 1 >= widget.items.count && _isLoadingMore;
 
+  bool get _paginationMayBringMore =>
+      widget.onLoadMore != null && !_hasLoadMoreError && _exhaustedItemCount != widget.items.count;
+
   @override
   void initState() {
     super.initState();
@@ -327,7 +330,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
       _isAwaitDeciding = false;
 
-      if (delta < 0) {
+      if (delta < 0 && _isAwaitEligible) {
         setState(() {
           _isAwaitMode = true;
           _scaleNotifier.value = delta.clamp(-widget.loadingMoreOffset, 0.0);
@@ -455,6 +458,11 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   Future<void> _commitNext() async {
     if (!_hasCurrentItem) return;
 
+    if (_currentIndex + 1 >= widget.items.count && _paginationMayBringMore) {
+      await _enterAwaitModeFromCommit();
+      return;
+    }
+
     final item = widget.items.provider(_currentIndex);
     final itemIndex = _currentIndex;
 
@@ -475,6 +483,59 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     if (widget.enableHapticFeedback) {
       unawaited(HapticFeedback.selectionClick());
     }
+  }
+
+  Future<void> _enterAwaitModeFromCommit() async {
+    setState(() {
+      _isAwaitMode = true;
+      _isAwaitingLoad = true;
+      _awaitDragProgress = 1.0;
+    });
+
+    await _animateIntoAwait();
+
+    if (!mounted) return;
+
+    setState(() {
+      _dragOffsetY = 0;
+      _scaleNotifier.value = -widget.loadingMoreOffset;
+    });
+
+    _dragOffsetNotifier.value = 0;
+
+    _scheduleLoadMoreIfNeeded();
+  }
+
+  Future<void> _animateIntoAwait() async {
+    final beginOffset = _dragOffsetY;
+    const targetOffset = 0.0;
+    final beginTranslate = _scaleNotifier.value;
+    final targetTranslate = -widget.loadingMoreOffset;
+    final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+    if (disableAnimations) {
+      _setDragOffset(targetOffset);
+      _scaleNotifier.value = targetTranslate;
+      return;
+    }
+
+    if (beginOffset == targetOffset && beginTranslate == targetTranslate) return;
+
+    _offsetAnimation = Tween<double>(
+      begin: beginOffset,
+      end: targetOffset,
+    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
+
+    _scaleAnimation = Tween<double>(
+      begin: beginTranslate,
+      end: targetTranslate,
+    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
+
+    _animationController
+      ..duration = _settleDuration
+      ..reset();
+
+    await Future.any([_animationController.forward(), _disposeCompleter.future]);
   }
 
   Future<void> _commitPrevious() async {
