@@ -120,6 +120,12 @@ widget or model that produces or consumes the data.
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
 
+### Shared Constants Across Files
+
+- **Never** duplicate the same logical value as independent variables in separate files. When a value (size, duration, threshold, etc.) is shared across files, define it once as a **static const** on the class that owns the domain (e.g. `_QuiTikTokFeedLoadingIndicator.indicatorSize`), and reference it everywhere the value is needed.
+- Never use top-level constants (`const double myConstant = ...`) for shared values — they pollute the library namespace and bypass the owning class. Always put the constant as a `static const` member on the relevant class.
+- When you encounter a value that already exists in two or more places, extract it into a single shared `static const` and create a test that verifies all consumers reference the same shared constant. This prevents silent desync when the value is updated in only one location.
+
 ### Component Architecture (UI Layer)
 
 - **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility `ConsumerWidget` or `HookConsumerWidget` components.
@@ -295,6 +301,28 @@ clear.
 - **Example:** `when tapping the cross icon, it should go into rest mode`
 - Avoid vague descriptions like `renders correctly` or `test login`.
 
+### Test Descriptions as Documentation
+
+Test descriptions must be **self-documenting**: a maintainer reading only the
+descriptions should understand how the app behaves without reading the test body.
+
+- Descriptions must spell out **which user action** is performed and **what the
+  app does** in response, in plain user-facing language.
+- Avoid jargon that refers to internal implementation details (e.g.,
+  `isLoadingMore`, `_isAwaitEligible`, `_dragOffsetY`).
+- When describing a multi-step interaction, include the full sequence of user
+  actions and the resulting state so a failing test name is immediately
+  actionable.
+- **Good:** `when on the last card while loading more, after swiping up to enter
+  the waiting scale then swiping back down to exit, swiping down again navigates
+  to the previous card`
+- **Bad:** `when exiting await and swiping down again, it should navigate to the
+  previous item instead of re-entering await` (uses internal state terms like
+  "await" and "re-entering")
+- **Bad:** `when rendering state after exiting from await, it should match the
+  approved goldens` (does not describe what the user sees)
+- This applies to **all** test types: unit, widget, golden, integration.
+
 ---
 
 ## 5. Security, Trust, & Safety Safeguards
@@ -337,3 +365,4 @@ When executing modifications inside this repository as an AI agent, you must str
 6.  **Fail Safely:** If a structural change cannot be safely implemented within these parameters, immediately halt execution, document the exact technical roadblock, and explicitly state the architectural trade-offs required to move forward.
 7.  **README Sync:** The `README.md` at the project root is the authoritative source of project requirements (prerequisites, setup, scripts). Whenever you modify tooling, dependencies, setup steps, or any requirement that affects onboarding, you **must** update both `README.md` and `AGENTS.md` to stay in sync.
 8.  **Low-End Device Gate:** Before implementing any request from the human, analyze whether the proposed solution will work performantly on low-end devices (2-4GB RAM, older SoCs, 60Hz displays common in Latin America). If the approach would only work well on high-end flagship devices, **stop** and warn the human explicitly, explaining why it fails on low-end hardware and suggesting alternatives. Every feature must work well on low-end devices first — top-end device support is a baseline, not a ceiling.
+9.  **Revert on Failed Fix:** If a bug-fix attempt changes production code and the fix does not resolve the issue (tests still fail, behavior unchanged, or new failures introduced), revert all changes from that attempt immediately before trying a different approach. Never leave speculative, non-working, or partially-applied changes in the codebase — they are dead code that can introduce new bugs or confuse future readers.
