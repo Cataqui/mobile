@@ -42,7 +42,12 @@ class FeedJobCard extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 6),
-                Text(feedJob.title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 22, height: 1.15)),
+                Text(
+                  feedJob.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 22, height: 1.15),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   feedJob.payment.formatPayment(i18n),
@@ -51,6 +56,8 @@ class FeedJobCard extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   feedJob.descriptionSummary,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 16, color: colors.textSecondary, fontWeight: FontWeight.w500),
                 ),
               ],

@@ -135,6 +135,38 @@ void main() {
 
         expect(text.style!.color, equals(const QuiColors.light().textSecondary));
       });
+
+      testWidgets('when created, the title should be limited to 2 lines', (tester) async {
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+
+        final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
+
+        expect(text.maxLines, equals(2));
+      });
+
+      testWidgets('when created, the title should use ellipsis overflow', (tester) async {
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+
+        final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
+
+        expect(text.overflow, equals(TextOverflow.ellipsis));
+      });
+
+      testWidgets('when created, the description should be limited to 3 lines', (tester) async {
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+
+        final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
+
+        expect(text.maxLines, equals(3));
+      });
+
+      testWidgets('when created, the description should use ellipsis overflow', (tester) async {
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+
+        final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
+
+        expect(text.overflow, equals(TextOverflow.ellipsis));
+      });
     });
 
     group('timestamp', () {
