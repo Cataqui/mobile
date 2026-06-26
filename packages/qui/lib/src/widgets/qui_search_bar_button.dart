@@ -18,11 +18,10 @@ import 'package:qui/src/theme/qui_theme_context.dart';
 /// ```
 class QuiSearchBarButton extends StatelessWidget {
   /// Creates a QUI search bar button.
-  const QuiSearchBarButton({
-    super.key,
-    this.placeholder = 'Start your search',
-    this.onTap,
-  });
+  const QuiSearchBarButton({super.key, this.placeholder = 'Start your search', this.onTap});
+
+  /// The default height of the search bar button.
+  static const double searchBarHeight = 60;
 
   /// Text displayed in the center of the search bar button.
   final String placeholder;
@@ -40,9 +39,7 @@ class QuiSearchBarButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: borderRadius,
-          boxShadow: [
-            BoxShadow(color: context.qui.colors.searchBarButtonShadow, blurRadius: 24),
-          ],
+          boxShadow: [BoxShadow(color: context.qui.colors.searchBarButtonShadow, blurRadius: 24)],
         ),
         child: Material(
           color: context.qui.colors.searchBarButtonBackground,
@@ -55,7 +52,7 @@ class QuiSearchBarButton extends StatelessWidget {
             onTap: onTap,
             borderRadius: borderRadius,
             child: SizedBox(
-              height: 60,
+              height: searchBarHeight,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
