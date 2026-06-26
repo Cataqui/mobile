@@ -83,8 +83,8 @@ void main() {
       fileName: 'qui_tiktok_feed_pagination_states',
       whilePerforming: (tester) async {
         await tester.pump();
-        await tester.drag(find.byKey(_cardKey('loading_dismissed')), const Offset(0, -300));
-        await tester.pumpAndSettle();
+        await tester.pump();
+        await _holdDrag(tester, 'loading_await', const Offset(0, -200));
 
         return null;
       },
@@ -92,12 +92,8 @@ void main() {
         scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 600),
         children: [
           GoldenTestScenario(
-            name: 'last card with loading',
-            child: const _GoldenFrame(child: _GoldenFeed(items: ['loading_current'], isLoadingFixture: true)),
-          ),
-          GoldenTestScenario(
-            name: 'full loading',
-            child: const _GoldenFrame(child: _GoldenFeed(items: ['loading_dismissed'], isLoadingFixture: true)),
+            name: 'await drag with spinner',
+            child: const _GoldenFrame(child: _GoldenFeed(items: ['loading_await'], isLoadingFixture: true)),
           ),
           GoldenTestScenario(
             name: 'pagination error',
@@ -135,7 +131,106 @@ void main() {
         ],
       ),
     );
+
+    goldenTest(
+      'when on the last card while loading more, it should translate the current card up by 200px and show a spinner below',
+      fileName: 'qui_tiktok_feed_committed_await',
+      whilePerforming: (tester) async {
+        await tester.pump();
+        await tester.pump();
+
+        await tester.drag(find.byKey(_cardKey('ca_first')), const Offset(0, -300));
+        await tester.pumpAndSettle();
+
+        await _holdDrag(tester, 'ca_second', const Offset(0, -200));
+
+        return null;
+      },
+      builder: () => GoldenTestGroup(
+        scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 600),
+        children: [
+          GoldenTestScenario(
+            name: 'committed await',
+            child: const _GoldenFrame(child: _GoldenFeed(items: ['ca_first', 'ca_second'], isLoadingFixture: true)),
+          ),
+        ],
+      ),
+    );
+
+    goldenTest(
+      'when swiping down from the translated waiting state, it should restore the card to its original position and hide the spinner',
+      fileName: 'qui_tiktok_feed_after_exit_await',
+      whilePerforming: (tester) async {
+        await tester.pump();
+        await tester.pump();
+
+        await tester.drag(find.byKey(_cardKey('exit_first')), const Offset(0, -300));
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        var gesture = await tester.startGesture(tester.getCenter(find.byKey(_cardKey('exit_second'))));
+        await gesture.moveBy(const Offset(0, -200));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        gesture = await tester.startGesture(tester.getCenter(find.byKey(_cardKey('exit_second'))));
+        await gesture.moveBy(const Offset(0, 400));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        return null;
+      },
+      builder: () => GoldenTestGroup(
+        scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 600),
+        children: [
+          GoldenTestScenario(
+            name: 'after exit from await',
+            child: const _GoldenFrame(child: _GoldenFeed(items: ['exit_first', 'exit_second'], isLoadingFixture: true)),
+          ),
+        ],
+      ),
+    );
   });
+
+  goldenTest(
+    'when on the last card while loading more with custom loadingMoreOffset, it should translate the card up by the custom amount',
+    fileName: 'qui_tiktok_feed_custom_offset_await',
+    whilePerforming: (tester) async {
+      await tester.pump();
+      await tester.pump();
+
+      await tester.drag(find.byKey(_cardKey('custom_first')), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      await _holdDrag(tester, 'custom_second', const Offset(0, -200));
+
+      return null;
+    },
+    builder: () => GoldenTestGroup(
+      scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 600),
+      children: [
+        GoldenTestScenario(
+          name: 'custom offset await',
+          child: const _GoldenFrame(
+            child: _GoldenFeed(
+              items: ['custom_first', 'custom_second'],
+              isLoadingFixture: true,
+              loadingMoreOffset: 1000,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 
   goldenTest(
     'when rendering drag states with spacing, it should match the approved goldens',
@@ -150,9 +245,7 @@ void main() {
       children: [
         GoldenTestScenario(
           name: 'spacing up partial drag',
-          child: const _GoldenFrame(
-            child: _GoldenFeed(items: ['spacing_up_first', 'spacing_up_second'], spacing: 40),
-          ),
+          child: const _GoldenFrame(child: _GoldenFeed(items: ['spacing_up_first', 'spacing_up_second'], spacing: 40)),
         ),
       ],
     ),
@@ -176,14 +269,13 @@ Widget _goldenCardBuilder(BuildContext context, String item, int index) {
       pay: r'R$ 65',
       color: Color(0xFF3D5A80),
     ),
-    final String value when value.contains('second') || value == 'loading_current' || value == 'loading_dismissed' =>
-      _GoldenCard(
-        key: _cardKey(value),
-        title: 'Ajuda em evento',
-        neighborhood: 'Vila Madalena',
-        pay: r'R$ 240',
-        color: const Color(0xFF00A896),
-      ),
+    final String value when value.contains('second') => _GoldenCard(
+      key: _cardKey(value),
+      title: 'Ajuda em evento',
+      neighborhood: 'Vila Madalena',
+      pay: r'R$ 240',
+      color: const Color(0xFF00A896),
+    ),
     _ => _GoldenCard(
       key: _cardKey(item),
       title: 'Garcom para hoje',
@@ -198,6 +290,7 @@ class _GoldenFeed extends StatelessWidget {
   const _GoldenFeed({
     required this.items,
     this.loadMoreThreshold = 1,
+    this.loadingMoreOffset = 200,
     this.spacing = 0,
     this.isLoadingFixture = false,
     this.showLoadMoreError = false,
@@ -207,6 +300,7 @@ class _GoldenFeed extends StatelessWidget {
 
   final List<String> items;
   final double loadMoreThreshold;
+  final double loadingMoreOffset;
   final double spacing;
   final bool isLoadingFixture;
   final bool showLoadMoreError;
@@ -218,27 +312,18 @@ class _GoldenFeed extends StatelessWidget {
     return QuiTikTokFeed<String>(
       items: (count: items.length, provider: (int i) => items[i], keyBuilder: null),
       loadMoreThreshold: loadMoreThreshold,
+      loadingMoreOffset: loadingMoreOffset,
       spacing: spacing,
       onLoadMore: isLoadingFixture
           ? () => Completer<void>().future
           : isExhausted
           ? () async {}
           : null,
-      loadingMoreBuilder: _loadingMoreBuilder,
       loadMoreErrorBuilder: showLoadMoreError ? _loadMoreErrorBuilder : null,
       endBuilder: showEndState ? _endBuilder : null,
       builder: _goldenCardBuilder,
     );
   }
-}
-
-Widget _loadingMoreBuilder(BuildContext context) {
-  return const _PaginationStateCard(
-    title: 'Buscando mais',
-    subtitle: 'Carregando novas oportunidades...',
-    icon: Icons.sync_rounded,
-    color: Color(0xFF3D5A80),
-  );
 }
 
 Widget _loadMoreErrorBuilder(BuildContext context, VoidCallback retry) {

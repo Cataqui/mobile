@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lottie/lottie.dart';
 import 'package:qui/qui.dart';
 
 typedef _ItemLog<T> = ({T item, int index});
@@ -1011,7 +1012,6 @@ void main() {
       await _pumpFeed(
         tester,
         loadMoreThreshold: 0.8,
-        loadingMoreBuilder: _loadingMoreBuilder,
         onLoadMore: () {
           loadMoreCount += 1;
 
@@ -1086,19 +1086,244 @@ void main() {
       expect(loadMoreCount, 1);
     });
 
-    testWidgets('when no next real card exists while loading, it should render loadingMoreBuilder', (tester) async {
+    testWidgets('when sitting on the last item while loading, it should render no extra card', (tester) async {
       final loadCompleter = Completer<void>();
 
-      await _pumpFeed(
-        tester,
-        items: const ['first'],
-        onLoadMore: () => loadCompleter.future,
-        loadingMoreBuilder: _loadingMoreBuilder,
-      );
+      await _pumpFeed(tester, items: const ['first'], onLoadMore: () => loadCompleter.future);
       await tester.pump();
 
-      expect(find.byKey(_loadingKey), findsOneWidget);
+      expect(find.byKey(_cardKey('first')), findsOneWidget);
+      expect(find.byKey(_endKey), findsNothing);
     });
+
+    testWidgets(
+      'when swiping up on last item while loading and load completes, it should auto-navigate to the end card',
+      (tester) async {
+        final loadCompleter = Completer<void>();
+
+        await _pumpFeed(tester, items: const ['first'], onLoadMore: () => loadCompleter.future);
+
+        await tester.pump();
+
+        await tester.drag(find.byKey(_cardKey('first')), const Offset(0, -300));
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(find.byKey(_endKey), findsNothing);
+
+        loadCompleter.complete();
+        await tester.pump();
+
+        for (var i = 0; i < 30; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(find.byKey(_endKey), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'when on the last card while loading more, after swiping up to enter the waiting state then swiping back down to exit, swiping down again navigates to the previous card',
+      (tester) async {
+        await _pumpFeed(tester, items: const ['first', 'second'], onLoadMore: () => Completer<void>().future);
+        await tester.pump();
+
+        await _dragCard(tester, 'first', const Offset(0, -300));
+
+        expect(_currentCardLabel(tester), 'second');
+
+        var gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, -200));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, 400));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        await tester.drag(find.byType(GestureDetector), const Offset(0, 200));
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(_currentCardLabel(tester), 'first');
+      },
+    );
+
+    testWidgets(
+      'when swiping down a small amount from committed await, it should exit await mode immediately',
+      (tester) async {
+        await _pumpFeed(
+          tester,
+          items: const ['first', 'second'],
+          onLoadMore: () => Completer<void>().future,
+        );
+        await tester.pump();
+
+        await _dragCard(tester, 'first', const Offset(0, -300));
+        expect(_currentCardLabel(tester), 'second');
+
+        var gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, -200));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, 50));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(find.byType(Lottie), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'when on the last card while loading more, dragging up should translate the card and show the spinner, following the finger until commit',
+      (tester) async {
+        await _pumpFeed(tester, items: const ['first'], onLoadMore: () => Completer<void>().future);
+        await tester.pump();
+
+        var gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, -200));
+        await tester.pump();
+
+        expect(find.byType(Lottie), findsOneWidget);
+
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(find.byType(Lottie), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'when dragging the last loading item up to 300px in increments, the translation should match the finger 1:1 up to 200px then stay capped',
+      (tester) async {
+        final progressValues = <double>[];
+        await _pumpFeed(
+          tester,
+          items: const ['first'],
+          onLoadMore: () => Completer<void>().future,
+          onSwipeProgress: ({required action, required percentage}) => progressValues.add(percentage),
+        );
+        await tester.pump();
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+
+        await gesture.moveBy(const Offset(0, -50));
+        await tester.pump();
+
+        await gesture.moveBy(const Offset(0, -50));
+        await tester.pump();
+        expect(progressValues.last, closeTo(0.5, 0.001));
+
+        await gesture.moveBy(const Offset(0, -100));
+        await tester.pump();
+        expect(progressValues.last, closeTo(1.0, 0.001));
+
+        await gesture.moveBy(const Offset(0, -100));
+        await tester.pump();
+        expect(progressValues.last, closeTo(1.0, 0.001));
+
+        await gesture.up();
+        await tester.pump();
+      },
+    );
+
+    testWidgets('the loading indicator SizedBox width should match the shared size constant', (
+      tester,
+    ) async {
+      await _pumpFeed(tester, items: const ['first'], onLoadMore: () => Completer<void>().future);
+      await tester.pump();
+
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+      await gesture.moveBy(const Offset(0, -200));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      final sizedBox =
+          tester.widget<SizedBox>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
+
+      expect(sizedBox.width, 80);
+    });
+
+    testWidgets('the loading indicator SizedBox height should match the shared size constant', (
+      tester,
+    ) async {
+      await _pumpFeed(tester, items: const ['first'], onLoadMore: () => Completer<void>().future);
+      await tester.pump();
+
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+      await gesture.moveBy(const Offset(0, -200));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      final sizedBox =
+          tester.widget<SizedBox>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
+
+      expect(sizedBox.height, 80);
+    });
+
+    testWidgets(
+      'when swiping up again immediately after entering await, it should stay in await mode',
+      (tester) async {
+        await _pumpFeed(
+          tester,
+          items: const ['first', 'second'],
+          onLoadMore: () => Completer<void>().future,
+        );
+        await tester.pump();
+
+        await _dragCard(tester, 'first', const Offset(0, -300));
+        expect(_currentCardLabel(tester), 'second');
+
+        var gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, -200));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+
+        gesture = await tester.startGesture(tester.getCenter(find.byType(GestureDetector)));
+        await gesture.moveBy(const Offset(0, -100));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+
+        expect(find.byType(Lottie), findsOneWidget);
+      },
+    );
 
     testWidgets('when pagination loading changes, it should not rebuild existing cards', (tester) async {
       final loadCompleter = Completer<void>();
@@ -1141,28 +1366,6 @@ void main() {
         await tester.pump(const Duration(milliseconds: 50));
 
         expect(find.byKey(_endKey), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'when the last card is dismissed while loading more, it should preserve the loading card state across the transition',
-      (tester) async {
-        var initStateCallCount = 0;
-
-        await _pumpFeed(
-          tester,
-          items: const ['first'],
-          onLoadMore: () => Completer<void>().future,
-          loadingMoreBuilder: (context) => _InitTrackingWidget(onInit: () => initStateCallCount += 1),
-        );
-        await tester.pump();
-        await tester.pump();
-
-        expect(initStateCallCount, 1);
-
-        await _dragCard(tester, 'first', const Offset(0, -300));
-
-        expect(initStateCallCount, 1);
       },
     );
 
@@ -1321,7 +1524,6 @@ const _replaceButtonKey = Key('replace_button');
 const _hideButtonKey = Key('hide_button');
 const _appendButtonKey = Key('append_button');
 const _swapControllerButtonKey = Key('swap_controller_button');
-const _loadingKey = Key('qui_tiktok_feed_loading');
 const _loadMoreErrorKey = Key('qui_tiktok_feed_load_more_error');
 const _loadMoreRetryKey = Key('qui_tiktok_feed_load_more_retry');
 const _endKey = Key('qui_tiktok_feed_end');
@@ -1345,7 +1547,6 @@ Future<void> _pumpFeed(
   Future<void> Function()? onLoadMore,
   VoidCallback? onMotionStart,
   VoidCallback? onMotionEnd,
-  WidgetBuilder? loadingMoreBuilder,
   Widget Function(BuildContext, VoidCallback)? loadMoreErrorBuilder,
   WidgetBuilder? endBuilder,
 }) {
@@ -1364,7 +1565,6 @@ Future<void> _pumpFeed(
         onLoadMore: onLoadMore,
         onMotionStart: onMotionStart,
         onMotionEnd: onMotionEnd,
-        loadingMoreBuilder: loadingMoreBuilder,
         loadMoreErrorBuilder: loadMoreErrorBuilder,
         endBuilder: includeEndBuilder ? endBuilder ?? _endBuilder : null,
         builder: _defaultCardBuilder,
@@ -1435,10 +1635,6 @@ String _currentCardLabel(WidgetTester tester) {
 
 Widget _defaultCardBuilder(BuildContext context, String item, int index) {
   return _TestCard(label: item);
-}
-
-Widget _loadingMoreBuilder(BuildContext context) {
-  return const Center(child: Text('Loading more', key: _loadingKey));
 }
 
 Widget _loadMoreErrorBuilder(BuildContext context, VoidCallback retry) {
@@ -1667,27 +1863,5 @@ class _CreationTrackingCardState extends State<_CreationTrackingCard> {
       color: Colors.white,
       child: Text(widget.label),
     );
-  }
-}
-
-class _InitTrackingWidget extends StatefulWidget {
-  const _InitTrackingWidget({required this.onInit});
-
-  final VoidCallback onInit;
-
-  @override
-  State<_InitTrackingWidget> createState() => _InitTrackingWidgetState();
-}
-
-class _InitTrackingWidgetState extends State<_InitTrackingWidget> {
-  @override
-  void initState() {
-    super.initState();
-    widget.onInit();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Loading'));
   }
 }

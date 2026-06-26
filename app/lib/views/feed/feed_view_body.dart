@@ -90,7 +90,6 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             if (_mapMountLimitNotifier.value < newCurrentIndex) _mapMountLimitNotifier.value = newCurrentIndex;
           },
           onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
-          loadingMoreBuilder: _buildLoadingMore,
           loadMoreErrorBuilder: feedData.paginationError == null ? null : _buildLoadMoreError,
           endBuilder: _buildEnd,
           builder: (context, job, index) {
@@ -146,65 +145,6 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingMore(BuildContext context) {
-    final i18n = ref.watch(translationProvider);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: context.qui.colors.background,
-        borderRadius: widget.cardBorderRadius,
-        border: Border.all(color: context.qui.colors.borderOnBackground),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Spacer(),
-            QuiOrbit(
-              revolutionDuration: const Duration(milliseconds: 5000),
-              radius: 70,
-              items: [
-                QuiOrbitItem(
-                  child: Qui3d.brush.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.hammer.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.ladder.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.motorcycle.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.shoppingCart.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.smallTruck.downsampledImage(context, color: context.qui.colors.ghost, width: 50),
-                  size: const Size(50, 50),
-                ),
-                QuiOrbitItem(
-                  child: Qui3d.toolBox.downsampledImage(context, color: context.qui.colors.ghost, width: 43),
-                  size: const Size(43, 43),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 60),
-              child: QuiLoadingText(text: i18n.feed.loadingMore.title),
-            ),
-          ],
         ),
       ),
     );

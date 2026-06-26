@@ -6,12 +6,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
-import 'package:qui/src/theme/qui_theme.dart';
+import 'package:qui/gen/assets.gen.dart';
+import 'package:qui/qui.dart';
 
 part 'qui_tiktok_feed_action.dart';
 part 'qui_tiktok_feed_cached_card.dart';
 part 'qui_tiktok_feed_controller.dart';
 part 'qui_tiktok_feed_flow_delegate.dart';
+part 'qui_tiktok_feed_loading_indicator.dart';
 part 'qui_tiktok_feed_types.dart';
 
 /// A vertical, full-screen TikTok-style paged feed.
@@ -41,7 +43,6 @@ class QuiTikTokFeed<T> extends StatefulWidget {
     required this.builder,
     super.key,
     this.controller,
-    this.loadingMoreBuilder,
     this.loadMoreErrorBuilder,
     this.endBuilder,
     this.spacing = 0,
@@ -52,11 +53,13 @@ class QuiTikTokFeed<T> extends StatefulWidget {
     this.onMotionStart,
     this.onMotionEnd,
     this.loadMoreThreshold = 1,
+    this.loadingMoreOffset = 200,
     this.enableHapticFeedback = true,
   }) : assert(
          loadMoreThreshold >= 0 && loadMoreThreshold <= 1,
          'loadMoreThreshold must be greater than or equal to 0 and less than or equal to 1.',
        ),
+       assert(loadingMoreOffset >= 0, 'loadingMoreOffset must be greater than or equal to 0.'),
        assert(spacing >= 0, 'spacing must be greater than or equal to 0.'),
        assert(items.count >= 0, 'items.count must be greater than or equal to 0.');
 
@@ -119,9 +122,6 @@ class QuiTikTokFeed<T> extends StatefulWidget {
   /// Controls this feed from parent code.
   final QuiTikTokFeedController? controller;
 
-  /// Builds the loading card shown while more items are loading.
-  final WidgetBuilder? loadingMoreBuilder;
-
   /// Builds the load-more error card shown at the end of the deck.
   ///
   /// When null, loading more is treated as error-free.
@@ -151,6 +151,21 @@ class QuiTikTokFeed<T> extends StatefulWidget {
 
   /// Loaded-deck progress required to call [onLoadMore].
   final double loadMoreThreshold;
+
+  /// How many pixels the current card lifts up while loading more items.
+  ///
+  /// When the user is on the last card and [onLoadMore] is in flight, swiping
+  /// up reveals the loading indicator below the card. This property controls
+  /// how far the card translates upward to make room for the indicator.
+  ///
+  /// * A value of `0` disables the lift entirely (the card stays in place).
+  /// * Larger values push the card higher, creating more visible space for
+  ///   the loading animation.
+  ///
+  /// The dragging feel is always 1:1 with the finger, clamped to this value.
+  ///
+  /// Defaults to `200` (pixels).
+  final double loadingMoreOffset;
 
   /// Whether the feed emits a soft haptic tick when the next item settles.
   ///
@@ -194,6 +209,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   int _currentIndex = 0;
   int? _exhaustedItemCount;
   double _viewportHeight = 1;
+  double _viewportWidth = 1;
   double get _commitDistance => _viewportHeight + widget.spacing;
   bool _isLoadingMore = false;
   bool _hasFiredStartHaptic = false;
@@ -202,13 +218,21 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   bool _isMotionActive = false;
   int _motionGeneration = 0;
   int _activeDragGeneration = 0;
+  bool _isAwaitMode = false;
+  bool _isAwaitingLoad = false;
+  bool _isAwaitDeciding = false;
+  double _awaitDragProgress = 0;
+  Animation<double>? _scaleAnimation;
   final _disposeCompleter = Completer<void>();
   final Map<Object, _QuiTikTokFeedCachedCard<T>> _cardCache = <Object, _QuiTikTokFeedCachedCard<T>>{};
 
   final ValueNotifier<double> _dragOffsetNotifier = ValueNotifier<double>(0);
+  final ValueNotifier<double> _scaleNotifier = ValueNotifier<double>(1);
 
   bool get _hasCurrentItem => _currentIndex < widget.items.count;
   bool get _hasLoadMoreError => widget.loadMoreErrorBuilder != null;
+
+  bool get _isAwaitEligible => _hasCurrentItem && _currentIndex + 1 >= widget.items.count && _isLoadingMore;
 
   @override
   void initState() {
@@ -254,6 +278,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       ..dispose();
 
     _dragOffsetNotifier.dispose();
+    _scaleNotifier.dispose();
     _cardCache.clear();
     _disposeCompleter.complete();
 
@@ -262,9 +287,14 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
   void _syncAnimatedOffset() {
     final offsetAnimation = _offsetAnimation;
-    if (offsetAnimation == null) return;
+    if (offsetAnimation != null) {
+      _setDragOffset(offsetAnimation.value);
+    }
 
-    _setDragOffset(offsetAnimation.value);
+    final scaleAnimation = _scaleAnimation;
+    if (scaleAnimation != null) {
+      _scaleNotifier.value = scaleAnimation.value;
+    }
   }
 
   void _onVerticalDragStart(DragStartDetails details) {
@@ -273,10 +303,54 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     _animationController.stop(canceled: false);
     _hasFiredStartHaptic = false;
     _activeDragGeneration = _startMotion();
+
+    if (_isAwaitEligible) {
+      if (_isAwaitingLoad) {
+        setState(() {
+          _isAwaitMode = true;
+          _awaitDragProgress = 1.0;
+          _scaleNotifier.value = -widget.loadingMoreOffset;
+        });
+      } else {
+        _isAwaitDeciding = true;
+      }
+    }
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     if (_isControllerActionRunning) return;
+
+    if (_isAwaitDeciding) {
+      final delta = details.delta.dy;
+
+      if (delta == 0) return;
+
+      _isAwaitDeciding = false;
+
+      if (delta < 0) {
+        setState(() {
+          _isAwaitMode = true;
+          _scaleNotifier.value = delta.clamp(-widget.loadingMoreOffset, 0.0);
+          _awaitDragProgress = (-_scaleNotifier.value / widget.loadingMoreOffset).clamp(0.0, 1.0);
+        });
+      } else {
+        _setDragOffset(_dragOffsetY + delta);
+      }
+      return;
+    }
+
+    if (_isAwaitMode) {
+      _scaleNotifier.value = (_scaleNotifier.value + details.delta.dy).clamp(-widget.loadingMoreOffset, 0.0);
+      _awaitDragProgress = (-_scaleNotifier.value / widget.loadingMoreOffset).clamp(0.0, 1.0);
+
+      if (!_hasFiredStartHaptic && widget.enableHapticFeedback && _awaitDragProgress > 0) {
+        _hasFiredStartHaptic = true;
+        unawaited(HapticFeedback.selectionClick());
+      }
+
+      widget.onSwipeProgress?.call(action: QuiTikTokFeedAction.next, percentage: _awaitDragProgress);
+      return;
+    }
 
     _setDragOffset(_dragOffsetY + details.delta.dy);
 
@@ -292,6 +366,41 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final motionGeneration = _activeDragGeneration;
 
     try {
+      if (_isAwaitDeciding) {
+        _isAwaitDeciding = false;
+        return;
+      }
+
+      if (_isAwaitMode) {
+        final velocity = details.velocity.pixelsPerSecond.dy;
+        final progress = _awaitDragProgress;
+        final metThreshold = progress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
+
+        if (_isAwaitingLoad) {
+          if (velocity > 0 || progress < 0.95) {
+            await _animateScale(_scaleNotifier.value, 0, duration: _settleDuration);
+            if (!mounted) return;
+            setState(_resetAwaitState);
+          } else {
+            await _animateScale(_scaleNotifier.value, -widget.loadingMoreOffset, duration: _settleDuration);
+            if (!mounted) return;
+            setState(() => _scaleNotifier.value = -widget.loadingMoreOffset);
+          }
+        } else if (metThreshold && (progress > 0 || velocity < 0)) {
+          setState(() {
+            _isAwaitingLoad = true;
+          });
+          await _animateScale(_scaleNotifier.value, -widget.loadingMoreOffset, duration: _settleDuration);
+          if (!mounted) return;
+          setState(() => _scaleNotifier.value = -widget.loadingMoreOffset);
+        } else {
+          await _animateScale(_scaleNotifier.value, 0, duration: _settleDuration);
+          if (!mounted) return;
+          setState(_resetAwaitState);
+        }
+        return;
+      }
+
       final velocity = details.velocity.pixelsPerSecond.dy;
       final progress = (_dragOffsetY.abs() / _viewportHeight).clamp(0, 1);
       final upIntent = _dragOffsetY < 0 || (_dragOffsetY == 0 && velocity < 0);
@@ -322,6 +431,24 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     if (_isControllerActionRunning) return;
 
     final motionGeneration = _activeDragGeneration;
+
+    if (_isAwaitDeciding) {
+      _isAwaitDeciding = false;
+      _endMotion(motionGeneration);
+      return;
+    }
+
+    if (_isAwaitMode) {
+      unawaited(
+        _animateScale(_scaleNotifier.value, 1, duration: _settleDuration).whenComplete(() {
+          if (!mounted) return;
+          setState(_resetAwaitState);
+          _endMotion(motionGeneration);
+        }),
+      );
+      return;
+    }
+
     unawaited(_snapBack().whenComplete(() => _endMotion(motionGeneration)));
   }
 
@@ -381,6 +508,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       return Future<void>.value();
     }
 
+    _scaleAnimation = null;
     _offsetAnimation = Tween<double>(
       begin: begin,
       end: target,
@@ -391,6 +519,62 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       ..reset();
 
     return Future.any([_animationController.forward(), _disposeCompleter.future]);
+  }
+
+  Future<void> _animateScale(double from, double to, {required Duration duration, Curve curve = Curves.easeOutCubic}) {
+    final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+    if (disableAnimations || from == to) {
+      _scaleNotifier.value = to;
+      return Future<void>.value();
+    }
+
+    _offsetAnimation = null;
+    _scaleAnimation = Tween<double>(begin: from, end: to).chain(CurveTween(curve: curve)).animate(_animationController);
+
+    _animationController
+      ..duration = duration
+      ..reset();
+
+    return Future.any([_animationController.forward(), _disposeCompleter.future]);
+  }
+
+  Future<void> _animateCommitFromAwait() async {
+    final beginOffset = _dragOffsetY;
+    final targetOffset = -_commitDistance;
+    final beginTranslate = _scaleNotifier.value;
+    const targetTranslate = 0.0;
+    final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+    if (disableAnimations) {
+      _setDragOffset(targetOffset);
+      _scaleNotifier.value = targetTranslate;
+      return;
+    }
+
+    _offsetAnimation = Tween<double>(
+      begin: beginOffset,
+      end: targetOffset,
+    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
+
+    _scaleAnimation = Tween<double>(
+      begin: beginTranslate,
+      end: targetTranslate,
+    ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_animationController);
+
+    _animationController
+      ..duration = _commitDuration
+      ..reset();
+
+    await Future.any([_animationController.forward(), _disposeCompleter.future]);
+  }
+
+  void _resetAwaitState() {
+    _isAwaitMode = false;
+    _isAwaitingLoad = false;
+    _isAwaitDeciding = false;
+    _awaitDragProgress = 0;
+    _scaleNotifier.value = 0;
   }
 
   void _setDragOffset(double value) {
@@ -467,12 +651,55 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     if (!mounted) return;
 
+    final hadItemsGrowth = widget.items.count > itemCountBeforeLoad;
+
     setState(() {
       _isLoadingMore = false;
-      if (widget.items.count <= itemCountBeforeLoad) {
+      if (!hadItemsGrowth) {
         _exhaustedItemCount = itemCountBeforeLoad;
       }
     });
+
+    if (_isAwaitingLoad && mounted) {
+      unawaited(_navigateFromAwait(hadNewItems: hadItemsGrowth));
+    }
+  }
+
+  Future<void> _navigateFromAwait({required bool hadNewItems}) async {
+    if (!mounted) return;
+
+    _isControllerActionRunning = true;
+    final motionGeneration = _startMotion();
+    final item = widget.items.provider(_currentIndex);
+    final itemIndex = _currentIndex;
+
+    setState(() {
+      _isAwaitMode = false;
+      _isAwaitingLoad = false;
+      _awaitDragProgress = 0;
+    });
+
+    await _animateCommitFromAwait();
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentIndex += 1;
+      _dragOffsetY = 0;
+    });
+
+    _dragOffsetNotifier.value = 0;
+    _scaleNotifier.value = 0;
+
+    widget.onNext?.call(item, itemIndex);
+    _scheduleLoadMoreIfNeeded();
+
+    if (widget.enableHapticFeedback) {
+      unawaited(HapticFeedback.selectionClick());
+    }
+
+    _endMotion(motionGeneration);
+    if (mounted) _isControllerActionRunning = false;
   }
 
   @override
@@ -484,7 +711,16 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final motionGeneration = _startMotion();
 
     try {
-      await _commitNext();
+      if (_isAwaitEligible) {
+        setState(() {
+          _isAwaitMode = true;
+          _isAwaitingLoad = true;
+          _awaitDragProgress = 1.0;
+          _scaleNotifier.value = -widget.loadingMoreOffset;
+        });
+      } else {
+        await _commitNext();
+      }
     } finally {
       _endMotion(motionGeneration);
       if (mounted) {
@@ -532,6 +768,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
         }
 
         _viewportHeight = constraints.maxHeight;
+        _viewportWidth = constraints.maxWidth;
 
         final nextIndex = _currentIndex + 1;
         final hasNextItem = nextIndex < widget.items.count;
@@ -554,11 +791,15 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
             clipBehavior: Clip.none,
             delegate: _QuiTikTokFeedFlowDelegate(
               offsetListenable: _dragOffsetNotifier,
+              scaleListenable: _scaleNotifier,
               viewportHeight: _viewportHeight,
+              viewportWidth: _viewportWidth,
               spacing: widget.spacing,
               currentIndex: _currentIndex,
               hasPreviousCard: previousCard != null,
               hasNextCard: nextCard != null || (_hasCurrentItem && paginationCard != null),
+              isAwaitMode: _isAwaitMode,
+              loadingMoreOffset: widget.loadingMoreOffset,
             ),
             children: [
               if (currentCard != null) ...[
@@ -580,6 +821,8 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
               ] else ...[
                 const SizedBox.shrink(key: ValueKey('qui_tiktok_feed_empty_previous')),
               ],
+
+              _QuiTikTokFeedLoadingIndicator(visible: _isAwaitMode || _isAwaitingLoad),
             ],
           ),
         );
@@ -630,14 +873,14 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   }
 
   Widget _buildTerminalCard(BuildContext context) {
-    if (_isLoadingMore) return _buildLoadingCard(context);
     if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
 
     return widget.endBuilder?.call(context) ?? const SizedBox.shrink();
   }
 
   Widget? _buildPaginationCard(BuildContext context) {
-    if (_isLoadingMore) return _buildLoadingCard(context);
+    if (_isLoadingMore) return null;
+
     if (_hasLoadMoreError) return _loadMoreErrorBuilderCard(context);
 
     final hasNextItem = _currentIndex + 1 < widget.items.count;
@@ -646,10 +889,6 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     }
 
     return null;
-  }
-
-  Widget _buildLoadingCard(BuildContext context) {
-    return widget.loadingMoreBuilder?.call(context) ?? const Center(child: CircularProgressIndicator());
   }
 
   Widget _loadMoreErrorBuilderCard(BuildContext context) {

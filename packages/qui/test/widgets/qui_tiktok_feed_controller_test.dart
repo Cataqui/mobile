@@ -586,7 +586,7 @@ void main() {
   });
 
   group('QuiTikTokFeedController with pagination', () {
-    testWidgets('when next is called on the last card with onLoadMore set, it should show loading card behind', (
+    testWidgets('when next is called on the last card with onLoadMore set, it should enter await mode', (
       tester,
     ) async {
       final controller = QuiTikTokFeedController();
@@ -597,16 +597,46 @@ void main() {
         controller: controller,
         items: const ['solo'],
         onLoadMore: () => loadCompleter.future,
-        loadingMoreBuilder: _loadingMoreBuilder,
       );
       await tester.pump();
       await tester.pump();
 
-      final future = controller.next();
-      await tester.pumpAndSettle();
-      await future;
+      await controller.next();
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
 
-      expect(find.byKey(_loadingKey), findsOneWidget);
+      expect(find.byKey(_cardKey('solo')), findsOneWidget);
+    });
+
+    testWidgets('when next is called on the last card with onLoadMore set and load completes, it should auto-navigate', (
+      tester,
+    ) async {
+      final controller = QuiTikTokFeedController();
+      final loadCompleter = Completer<void>();
+
+      await _pumpFeed(
+        tester,
+        controller: controller,
+        items: const ['solo'],
+        onLoadMore: () => loadCompleter.future,
+      );
+      await tester.pump();
+      await tester.pump();
+
+      await controller.next();
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      loadCompleter.complete();
+      await tester.pump();
+
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      expect(find.byKey(_endKey), findsOneWidget);
     });
 
     testWidgets('when next is called on the last exhausted card, it should show the end state', (tester) async {
@@ -651,7 +681,6 @@ void main() {
 }
 
 const _feedSize = Size(400, 600);
-const _loadingKey = Key('qui_tiktok_feed_controller_loading');
 const _loadMoreErrorKey = Key('qui_tiktok_feed_controller_load_more_error');
 const _loadMoreRetryKey = Key('qui_tiktok_feed_controller_retry');
 const _endKey = Key('qui_tiktok_feed_controller_end');
@@ -669,7 +698,6 @@ Future<void> _pumpFeed(
   QuiTikTokFeedItemCallback<String>? onNext,
   QuiTikTokFeedItemCallback<String>? onPrevious,
   Future<void> Function()? onLoadMore,
-  WidgetBuilder? loadingMoreBuilder,
   Widget Function(BuildContext, VoidCallback)? loadMoreErrorBuilder,
   WidgetBuilder? endBuilder,
 }) {
@@ -689,7 +717,6 @@ Future<void> _pumpFeed(
         onNext: onNext,
         onPrevious: onPrevious,
         onLoadMore: onLoadMore,
-        loadingMoreBuilder: loadingMoreBuilder,
         loadMoreErrorBuilder: loadMoreErrorBuilder,
         endBuilder: endBuilder ?? _endBuilder,
         builder: _defaultCardBuilder,
@@ -711,10 +738,6 @@ String _currentCardLabel(WidgetTester tester) {
 
 Widget _defaultCardBuilder(BuildContext context, String item, int index) {
   return _TestCard(label: item);
-}
-
-Widget _loadingMoreBuilder(BuildContext context) {
-  return const Center(child: Text('loading', key: _loadingKey));
 }
 
 Widget _loadMoreErrorBuilder(BuildContext context, VoidCallback retry) {
