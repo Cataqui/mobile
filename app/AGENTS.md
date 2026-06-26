@@ -110,3 +110,17 @@ The app uses **flutter_gen** for type-safe asset access.
   ```
 - **Facades:** The app does **not** use branded facades like `qui`'s
   `QuiIcons`/`Qui3d` — access the `Assets` entry point directly.
+
+## Repositories
+
+Repository classes follow a strict separation between reactive constructor
+parameters and per-call function parameters:
+
+- **Constructor params** — reserved for infrastructure the repository depends
+  on for its entire lifetime, such as `Dio`. If the param changes, rebuilding
+  the repository is the correct behavior.
+- **Function params** — used for request-specific data that may change between
+  calls without invalidating the repository instance. For example, `locale`
+  should be passed directly to the method that needs it rather than injected
+  at construction time, so locale changes don't force unnecessary widget
+  rebuilds via Riverpod.

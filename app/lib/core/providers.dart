@@ -2,6 +2,7 @@ import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/config/env.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
+import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -51,4 +52,9 @@ Dio cataquiDio(Ref ref) {
 @Riverpod(keepAlive: true)
 FeedRepository feedRepository(Ref ref) {
   return FeedRepository(dio: ref.watch(cataquiDioProvider));
+}
+
+@Riverpod(keepAlive: true)
+JobRepository jobRepository(Ref ref) {
+  return JobRepository(dio: ref.watch(cataquiDioProvider));
 }
