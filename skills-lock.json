@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "app-store-review": {
+      "source": "dpearson2699/swift-ios-skills",
+      "sourceType": "github",
+      "skillPath": "skills/app-store-review/SKILL.md",
+      "computedHash": "f153d3d2851501cf5b13e2c398723ccf42b0799b1936a895aa06baed3bffbfc3"
+    },
     "clean-code": {
       "source": "sickn33/antigravity-awesome-skills",
       "sourceType": "github",
