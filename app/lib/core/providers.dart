@@ -1,4 +1,5 @@
 import 'package:cataqui_app/app_state.dart';
+import 'package:cataqui_app/core/app_router.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/config/env.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
@@ -52,6 +53,11 @@ Dio cataquiDio(Ref ref) {
 @Riverpod(keepAlive: true)
 FeedRepository feedRepository(Ref ref) {
   return FeedRepository(dio: ref.watch(cataquiDioProvider));
+}
+
+@Riverpod(keepAlive: true)
+AppRouter appRouter(Ref ref) {
+  return AppRouter();
 }
 
 @Riverpod(keepAlive: true)
