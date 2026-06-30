@@ -18,6 +18,9 @@ import 'package:vector_graphics/vector_graphics.dart' as _vg;
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
+  /// File path: assets/icons/arrow_left.svg
+  SvgGenImage get arrowLeft => const SvgGenImage('assets/icons/arrow_left.svg');
+
   /// File path: assets/icons/arrow_rotate_clockwise.svg
   SvgGenImage get arrowRotateClockwise =>
       const SvgGenImage('assets/icons/arrow_rotate_clockwise.svg');
@@ -44,6 +47,7 @@ class $AssetsIconsGen {
 
   /// List of all assets
   List<SvgGenImage> get values => [
+    arrowLeft,
     arrowRotateClockwise,
     chevronDown,
     clock,

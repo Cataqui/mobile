@@ -59,5 +59,6 @@ export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
         QuiTikTokFeedLoadMoreCallback,
         QuiTikTokFeedLoadMoreErrorBuilder,
         QuiTikTokFeedProgressCallback;
+export 'src/widgets/qui_view_back_button.dart' show QuiViewBackButton;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
     show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;

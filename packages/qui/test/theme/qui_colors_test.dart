@@ -16,6 +16,8 @@ const _lerpA = QuiColors(
   disabledButtonForeground: Color(0xFF8E8E8E),
   searchBarButtonBackground: Color(0xFFFAFAFA),
   searchBarButtonShadow: Color(0x1A000000),
+  viewBackButtonBackground: Color(0xFFFAFAFA),
+  viewBackButtonShadow: Color(0x1A000000),
   money: Color(0xFF00DD55),
   mapBackground: Color(0xFFF4F2EF),
   ghost: Color(0xFFCDCDCD),
@@ -35,6 +37,8 @@ const _lerpB = QuiColors(
   disabledButtonForeground: Color(0xFF000000),
   searchBarButtonBackground: Color(0xFF000000),
   searchBarButtonShadow: Color(0xFF000000),
+  viewBackButtonBackground: Color(0xFF000000),
+  viewBackButtonShadow: Color(0xFF000000),
   money: Color(0xFF000000),
   mapBackground: Color(0xFF000000),
   ghost: Color(0xFF000000),
@@ -92,6 +96,14 @@ void main() {
       expect(_lightColors.searchBarButtonShadow, equals(const Color(0x1A000000)));
     });
 
+    test('when light colors are created, it should set backButtonBackground to off-white', () {
+      expect(_lightColors.viewBackButtonBackground, equals(const Color(0xFFFAFAFA)));
+    });
+
+    test('when light colors are created, it should set backButtonShadow to black with baked alpha', () {
+      expect(_lightColors.viewBackButtonShadow, equals(const Color(0x1A000000)));
+    });
+
     test('light() sets shimmerTextBase to soft gray', () {
       expect(_lightColors.shimmerTextBase, equals(const Color(0xFFB3B3B3)));
     });
@@ -124,6 +136,8 @@ void main() {
         disabledButtonForeground: Color(0xFF8E8E8E),
         searchBarButtonBackground: Color(0xFFFAFAFA),
         searchBarButtonShadow: Color(0x1A000000),
+        viewBackButtonBackground: Color(0xFFFAFAFA),
+        viewBackButtonShadow: Color(0x1A000000),
         money: Color(0xFF00DD55),
         mapBackground: Color(0xFFF4F2EF),
         ghost: Color(0xFFCDCDCD),
@@ -219,6 +233,20 @@ void main() {
       final result = _lightColors.copyWith(searchBarButtonShadow: custom);
 
       expect(result.searchBarButtonShadow, equals(custom));
+    });
+
+    test('when copyWith receives backButtonBackground, it should replace backButtonBackground', () {
+      const custom = Color(0xFFF0F0F0);
+      final result = _lightColors.copyWith(backButtonBackground: custom);
+
+      expect(result.viewBackButtonBackground, equals(custom));
+    });
+
+    test('when copyWith receives backButtonShadow, it should replace backButtonShadow', () {
+      const custom = Color(0xFF000000);
+      final result = _lightColors.copyWith(backButtonShadow: custom);
+
+      expect(result.viewBackButtonShadow, equals(custom));
     });
 
     test('copyWith replaces money when provided', () {
@@ -319,6 +347,24 @@ void main() {
       expect(
         result.searchBarButtonShadow,
         equals(Color.lerp(_lerpA.searchBarButtonShadow, _lerpB.searchBarButtonShadow, 0.5)),
+      );
+    });
+
+    test('when lerping at t=0.5, it should interpolate backButtonBackground', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(
+        result.viewBackButtonBackground,
+        equals(Color.lerp(_lerpA.viewBackButtonBackground, _lerpB.viewBackButtonBackground, 0.5)),
+      );
+    });
+
+    test('when lerping at t=0.5, it should interpolate backButtonShadow', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(
+        result.viewBackButtonShadow,
+        equals(Color.lerp(_lerpA.viewBackButtonShadow, _lerpB.viewBackButtonShadow, 0.5)),
       );
     });
 

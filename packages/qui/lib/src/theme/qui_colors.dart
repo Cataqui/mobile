@@ -33,6 +33,8 @@ class QuiColors {
     required this.disabledButtonForeground,
     required this.searchBarButtonBackground,
     required this.searchBarButtonShadow,
+    required this.viewBackButtonBackground,
+    required this.viewBackButtonShadow,
     required this.money,
     required this.mapBackground,
     required this.ghost,
@@ -82,6 +84,13 @@ class QuiColors {
   /// the hex literal so no `.withValues()` call is needed at the usage site.
   final Color searchBarButtonShadow;
 
+  /// The background color of the back button in its resting state.
+  final Color viewBackButtonBackground;
+
+  /// Shadow color cast by the back button at rest; alpha baked into
+  /// the hex literal so no `.withValues()` call is needed at the usage site.
+  final Color viewBackButtonShadow;
+
   /// The color used for representing money amounts and payment highlights.
   final Color money;
 
@@ -121,6 +130,8 @@ class QuiColors {
           disabledButtonForeground == other.disabledButtonForeground &&
           searchBarButtonBackground == other.searchBarButtonBackground &&
           searchBarButtonShadow == other.searchBarButtonShadow &&
+          viewBackButtonBackground == other.viewBackButtonBackground &&
+          viewBackButtonShadow == other.viewBackButtonShadow &&
           money == other.money &&
           mapBackground == other.mapBackground &&
           ghost == other.ghost &&
@@ -140,6 +151,8 @@ class QuiColors {
     disabledButtonForeground,
     searchBarButtonBackground,
     searchBarButtonShadow,
+    viewBackButtonBackground,
+    viewBackButtonShadow,
     money,
     mapBackground,
     ghost,
@@ -160,6 +173,8 @@ class QuiColors {
     Color? disabledButtonForeground,
     Color? searchBarButtonBackground,
     Color? searchBarButtonShadow,
+    Color? backButtonBackground,
+    Color? backButtonShadow,
     Color? money,
     Color? mapBackground,
     Color? ghost,
@@ -178,6 +193,8 @@ class QuiColors {
       disabledButtonForeground: disabledButtonForeground ?? this.disabledButtonForeground,
       searchBarButtonBackground: searchBarButtonBackground ?? this.searchBarButtonBackground,
       searchBarButtonShadow: searchBarButtonShadow ?? this.searchBarButtonShadow,
+      viewBackButtonBackground: backButtonBackground ?? viewBackButtonBackground,
+      viewBackButtonShadow: backButtonShadow ?? viewBackButtonShadow,
       money: money ?? this.money,
       mapBackground: mapBackground ?? this.mapBackground,
       ghost: ghost ?? this.ghost,
@@ -203,6 +220,8 @@ class QuiColors {
       disabledButtonForeground: Color.lerp(a.disabledButtonForeground, b.disabledButtonForeground, t)!,
       searchBarButtonBackground: Color.lerp(a.searchBarButtonBackground, b.searchBarButtonBackground, t)!,
       searchBarButtonShadow: Color.lerp(a.searchBarButtonShadow, b.searchBarButtonShadow, t)!,
+      viewBackButtonBackground: Color.lerp(a.viewBackButtonBackground, b.viewBackButtonBackground, t)!,
+      viewBackButtonShadow: Color.lerp(a.viewBackButtonShadow, b.viewBackButtonShadow, t)!,
       money: Color.lerp(a.money, b.money, t)!,
       mapBackground: Color.lerp(a.mapBackground, b.mapBackground, t)!,
       ghost: Color.lerp(a.ghost, b.ghost, t)!,
@@ -225,6 +244,8 @@ class _LightQuiColors extends QuiColors {
         disabledButtonForeground: const Color(0xFF8E8E8E),
         searchBarButtonBackground: const Color(0xFFFAFAFA),
         searchBarButtonShadow: const Color(0x1A000000),
+        viewBackButtonBackground: const Color(0xFFFAFAFA),
+        viewBackButtonShadow: const Color(0x1A000000),
         money: const Color(0xFF00DD55),
         mapBackground: const Color(0xFFF4F2EF),
         ghost: const Color(0xFFCDCDCD),
