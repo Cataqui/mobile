@@ -23,11 +23,7 @@ dependencies:
   go_router: ^14.0.0
   intl: ^0.20.2
   json_annotation: ^4.11.0
-  maplibre_gl:
-    git:
-      url: https://github.com/RyanHolanda/flutter-maplibre-gl.git
-      ref: feat/prewarm-maplibre-sdk
-      path: maplibre_gl
+  maplibre_gl: ^0.26.2
   oh_my_flutter:
     path: ../packages/oh_my_flutter
   qui:
