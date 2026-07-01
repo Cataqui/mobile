@@ -1,34 +1,66 @@
 import 'package:flutter/widgets.dart';
 
+import '../qui_hero.dart';
+import '../qui_hero_extension/qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
 import 'qui_hero_page_route.dart';
 
-/// A [Page] subclass that creates a [QuiHeroPageRoute] for seamless hero
-/// transitions between screens.
+/// A [Page] subclass that creates a [QuiHeroPageRoute] for hero transitions
+/// between screens.
 ///
-/// Automatically respects [MediaQuery.disableAnimationsOf] — when reduced
-/// motion is enabled, [transitionDuration] and [reverseTransitionDuration]
-/// are overridden to [Duration.zero], disabling all hero animations.
+/// ## What it provides
 ///
-/// Use [QuiHeroPage] in your `pageBuilder` to enable:
-///   * Transparent route compositing so the source route
-///     stays visible beneath the hero flight during the transition.
-///   * [HeroMode] gating for reduced-motion accessibility.
-///   * Interactive drag-to-close via QuiHeroDragToCloseExtension.
+/// Using [QuiHeroPage] as the destination page in a navigation operation
+/// enables:
+///
+///  * **Transparent route compositing** — the source route stays visible
+///    beneath the hero flight overlay, so the shared element can be seen
+///    moving across the original background.
+///  * **Reduced-motion support** — when [MediaQuery.disableAnimationsOf]
+///    reports `true`, both [transitionDuration] and
+///    [reverseTransitionDuration] are overridden to [Duration.zero],
+///    disabling all hero animations and showing the destination immediately.
+///  * **Drag-to-close** — when paired with
+///    [QuiHeroDragToCloseExtension]`({...})`, the route exposes an
+///    interactive-pop API that the extension drives.
+///
+/// ## Usage
+///
+/// Use [QuiHeroPage] in your `pageBuilder` callback:
 ///
 /// ```dart
-/// QuiHeroPage(
-///   builder: (_) => MyHeroDestination(feedJob: feedJob),
-/// )
+/// Navigator.of(context).push(
+///   PageRouteBuilder(
+///     pageBuilder: (context, animation, secondaryAnimation) =>
+///         QuiHeroPage(
+///           builder: (_) => const JobDetailScreen(feedJob: feedJob),
+///         ),
+///   ),
+/// );
+/// ```
+///
+/// Or with [showGeneralDialog] / [Navigator.push]:
+///
+/// ```dart
+/// Navigator.of(context).push(
+///   QuiHeroPageRoute(
+///     builder: (_) => const JobDetailScreen(feedJob: feedJob),
+///     transitionDuration: const Duration(milliseconds: 560),
+///     reverseTransitionDuration: const Duration(milliseconds: 430),
+///   ),
+/// );
 /// ```
 ///
 /// See also:
-///   * [QuiHeroPageRoute], the route that manages the hero animation.
-///   * QuiHeroDragToCloseExtension, the extension that wires drag gestures
-///     to the route's interactive-pop API.
+///  * [QuiHeroPageRoute], the route created by this page that manages hero
+///    animations and the interactive-pop API.
+///  * [QuiHero], the hero widget that flies between the source route and
+///    this page.
+///  * [QuiHeroDragToCloseExtension], the extension that wires drag gestures
+///    to the route's interactive-pop API.
 class QuiHeroPage extends Page<void> {
   /// Creates a [QuiHeroPage].
   ///
-  /// The [builder] is called from [QuiHeroPageRoute.buildPage] to produce the
+  /// The [builder] is called by [QuiHeroPageRoute.buildPage] to produce the
   /// destination content.
   const QuiHeroPage({
     required this.builder,
@@ -37,25 +69,40 @@ class QuiHeroPage extends Page<void> {
     super.key,
   });
 
-  /// Default transition duration for the hero flight (560 ms).
+  /// How long the forward hero transition lasts.
+  ///
+  /// Defaults to 560 ms — a duration long enough to feel smooth and
+  /// deliberate but short enough to feel responsive on mid-range devices.
+  ///
+  /// Automatically overridden to [Duration.zero] when
+  /// [MediaQuery.disableAnimationsOf] returns `true`.
   static const defaultTransitionDuration = Duration(milliseconds: 560);
 
-  /// Default reverse transition duration (430 ms).
+  /// How long the reverse hero transition (pop) lasts.
+  ///
+  /// Defaults to 430 ms — shorter than the forward transition to feel snappy
+  /// on dismissal.
+  ///
+  /// Automatically overridden to [Duration.zero] when
+  /// [MediaQuery.disableAnimationsOf] returns `true`.
   static const defaultReverseTransitionDuration = Duration(milliseconds: 430);
 
   /// Called by [QuiHeroPageRoute] to build the page content.
+  ///
+  /// The [BuildContext] is the route's context and has access to [Navigator],
+  /// [MediaQuery], and [QuiHeroPageRoute.maybeOf].
   final WidgetBuilder builder;
 
-  /// Duration of the forward hero transition.
+  /// The duration of the forward hero transition.
   ///
   /// Automatically overridden to [Duration.zero] when
-  /// [MediaQuery.disableAnimationsOf] is true.
+  /// [MediaQuery.disableAnimationsOf] returns `true`.
   final Duration transitionDuration;
 
-  /// Duration of the reverse hero transition (pop).
+  /// The duration of the reverse hero transition (pop).
   ///
   /// Automatically overridden to [Duration.zero] when
-  /// [MediaQuery.disableAnimationsOf] is true.
+  /// [MediaQuery.disableAnimationsOf] returns `true`.
   final Duration reverseTransitionDuration;
 
   @override

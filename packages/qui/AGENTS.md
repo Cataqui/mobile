@@ -4,11 +4,175 @@
 
 `qui` (Cataquí UI) is the reusable design system package for the Cataquí platform. It contains foundational UI components, tokens, and patterns used across all Cataquí apps (mobile, web, and beyond).
 
-## Dart Documentation Naming
+## Dart Documentation
+
+### Naming
 
 In Dart doc comments for this package, always refer to the design system as
 `QUI`, not `Cataquí`. The package name means "Q" + "UI", standing for
 `Cataquí UI`, so public API documentation should use the package-oriented name.
+
+### Every Public Member Must Have Dartdoc
+
+Every public class, constructor, method, property, enum, enum value, typedef,
+and top-level function **must** have a `///` doc comment. There are no
+exceptions for "obvious" members — `dart doc` surfaces all public declarations
+and a missing doc comment is a visible gap. Private (`_`-prefixed) members must
+**not** have dartdoc.
+
+### First Sentence Rule
+
+The first sentence of every doc comment must be a complete, self-contained
+statement ending with a period. It appears as the short summary in `dart doc`
+lists and search results. Separate it from the rest of the comment with a blank
+`///` line.
+
+| Declaration type    | First sentence starts with                                       |
+| ------------------- | ---------------------------------------------------------------- |
+| Class               | Noun phrase describing what an instance **is**                   |
+| Constructor         | "Creates a …"                                                    |
+| Method (side-effect)| Third-person verb describing what it **does**                    |
+| Method (returns)    | Noun phrase describing the **result**                            |
+| Non-bool property   | Noun phrase describing what it **is**                            |
+| Bool property       | "Whether …" followed by the condition                            |
+| Enum type           | Noun phrase describing the category                              |
+| Enum value          | Descriptive phrase                                               |
+| Typedef             | Noun phrase describing the signature                             |
+
+```
+/// Creates a text hero that animates [TextStyle], content, and wrapping
+/// behavior between source and destination.
+///
+/// The [TextStyle] is interpolated via [TextStyle.lerp] across the full
+/// flight. Text content and layout constraints ([maxLines], [overflow])
+/// switch from the source configuration to the destination configuration
+/// at the exact midpoint (50 %) of the flight animation.
+factory QuiHero.text({ … })
+```
+
+### Class Documentation Structure
+
+A well-documented class follows this order:
+
+1. First sentence (what it **is**)
+2. Blank `///` line
+3. Detailed prose — 2‑4 paragraphs explaining behavior, invariants, and edge cases
+4. Structured subsections with `##` headings (e.g. `## How it works`, `## Choosing a variant`, `## Performance`)
+5. Code samples — prefer fenced ` ```dart ` blocks
+6. `See also:` bulleted list
+
+### Code Samples
+
+Prefer fenced ` ```dart ` code blocks over indented ones. Every code sample
+must be complete enough to copy‑paste and understand without surrounding
+prose. Use `{@tool snippet}` blocks for inline examples and `{@tool dartpad}`
+for interactive samples (though the latter requires a separate fixture file).
+
+```dart
+/// ```dart
+/// QuiHero.box(
+///   tag: 'card-1',
+///   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+/// )
+/// ```
+```
+
+### Parameter and Return Value Documentation
+
+Document each constructor parameter, method parameter, and return value within
+the enclosing doc comment using `[parameterName]` references — never
+`@param` or `@return` tags (these are Java/JSDoc conventions, not Dart).
+
+```
+/// Wraps [child] with the behavior owned by this extension.
+///
+/// The [context] is the [BuildContext] at the point where the hero renders.
+/// Use it to access the [QuiHeroPageRoute] via [QuiHeroPageRoute.maybeOf].
+///
+/// The returned widget replaces [child] in the hero's render tree.
+Widget wrap({required BuildContext context, required Widget child});
+```
+
+### Cross-Reference Linking
+
+Wrap type names, member names, and constructor names in square brackets `[]`
+to create links in generated documentation:
+
+| To link to                | Syntax                           |
+| ------------------------- | -------------------------------- |
+| Class                     | `[ClassName]`                    |
+| Named constructor         | `[ClassName.named]`              |
+| Unnamed constructor       | `[ClassName.new]`                |
+| Method                    | `[ClassName.method()]`           |
+| Property / field          | `[ClassName.property]`           |
+| Enum value                | `[EnumName.value]`               |
+| Top-level function        | `[functionName()]`               |
+| Member on `this` class    | `[method()]` or `[property]`     |
+
+Use backticks `` ` ` `` for parameter names, code values, and expressions in
+prose that do not need a link: `` `width` `` → `width`. Use `[width]` only
+when `width` is a documented property you want to link to.
+
+### Boolean Property Documentation
+
+Every boolean property must start with "Whether" and describe the condition:
+
+```
+/// Whether an interactive pop gesture is currently in progress.
+///
+/// Returns `true` after a successful call to [startInteractivePop] and
+/// `false` after [cancelInteractivePop] or [commitInteractivePop] completes.
+bool get isInteractivePopActive => _isInteractivePopActive;
+```
+
+### "See Also" Sections
+
+Place `See also:` at the end of class‑level and significant member‑level docs.
+Each entry is a bullet (`*`) containing a `[Link]` followed by a comma and a
+brief description of why the reader should care:
+
+```
+/// See also:
+///  * [QuiHeroPageRoute], the route created by this page that manages hero
+///    animations and the interactive-pop API.
+///  * [QuiHero], the hero widget that flies between the source route and
+///    this page.
+///  * [QuiHeroDragToCloseExtension], the extension that wires drag gestures
+///    to the route's interactive-pop API.
+```
+
+### Templates and Macros (`{@template}` / `{@macro}`)
+
+Use `{@template}` and `{@macro}` when the same prose block is referenced
+in **more than one** doc comment. Do **not** create templates for single-use
+text.
+
+- Define with: `/// {@template qui_component_descriptive_name}` … `/// {@endtemplate}`
+- Reference with: `/// {@macro qui_component_descriptive_name}`
+- Naming convention: `qui_<component>_<descriptive_snake_case>`
+
+Templates can be placed on any declaration (typedef, method, property) — they
+do not need a dedicated location. Place each template on the declaration
+where the concept is first introduced.
+
+### Anti‑Patterns
+
+| Avoid                                 | Use instead                                          |
+| ------------------------------------- | ---------------------------------------------------- |
+| `//` for public docs                  | `///` (only `//` is invisible to `dart doc`)         |
+| `/** … */` JavaDoc style              | `///` on every line                                  |
+| `@param name Description`             | `[name]` inline in prose                             |
+| `@return Description`                 | Describe the result in the method's first sentence   |
+| No blank line after first sentence    | Always add blank `///` line before detailed prose    |
+| `/// Constructor.`                    | `/// Creates a [ClassName] that …`                   |
+| `/// Sets the tooltip.`               | Omit — it adds no information beyond the signature   |
+| `/// The name.` / `/// The title.`    | Omit — the name is inferred unless there's a non‑obvious detail |
+| Indented code blocks (4 spaces)       | Fenced ` ```dart ` blocks                            |
+| HTML tags in doc comments             | Markdown only                                        |
+| Abbreviations (i.e., e.g.)            | Spell it out: "for example", "that is"               |
+| Documenting both getter and setter    | Document only the getter — `dart doc` ignores setter docs |
+| `[hero]` when meaning `[QuiHero]`    | Use the full type name — short links are ambiguous   |
+| Redundant code in prose               | If already in a code block, don't repeat it verbatim |
 
 ## Public Package Portability
 

@@ -1,27 +1,63 @@
 import 'package:flutter/material.dart';
 
-/// A transparent [PageRoute] used by QuiHeroPage for hero transitions.
+import '../qui_hero.dart';
+import '../qui_hero_extension/qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
+import 'qui_hero_page.dart';
+
+/// A transparent [PageRoute] that manages hero flights for [QuiHeroPage].
 ///
-/// [QuiHeroPageRoute] provides:
-///   * `opaque: false` — keeps the source route composited underneath so the
-///     hero flight is visible against the previous screen.
-///   * [HeroMode] gating — when [transitionDuration] is [Duration.zero],
-///     heroes are disabled (reduced-motion).
-///   * Interactive pop API — [startInteractivePop], [updateInteractivePop],
-///     [cancelInteractivePop], and [commitInteractivePop] for drag-to-close.
+/// ## What it provides
 ///
-/// Use [maybeOf] from a descendant widget to access the route and drive
-/// interactive closing:
+/// [QuiHeroPageRoute] is created by [QuiHeroPage.createRoute] and offers:
+///
+///  * **Transparent compositing** — `opaque: false` keeps the source route
+///    rendered underneath so hero elements fly against the original background
+///    instead of a blank canvas.
+///  * **Reduced-motion gating** — when [transitionDuration] is [Duration.zero]
+///    (set automatically by [QuiHeroPage] when reduced motion is enabled),
+///    [HeroMode] is disabled so no heroes animate.
+///  * **Interactive pop API** — [startInteractivePop], [updateInteractivePop],
+///    [cancelInteractivePop], and [commitInteractivePop] expose a
+///    programmatic drag-to-close surface for extensions like
+///    [QuiHeroDragToCloseExtension].
+///
+/// ## Accessing the route from descendants
+///
+/// Use [maybeOf] from any widget inside the route to obtain a reference:
 ///
 /// ```dart
 /// final route = QuiHeroPageRoute.maybeOf(context);
-/// route?.startInteractivePop();
+/// if (route != null && route.isInteractivePopActive) {
+///   // Hide dismiss affordances during the gesture.
+/// }
 /// ```
+///
+/// ## Interactive pop lifecycle
+///
+/// The interactive pop API follows a three-phase lifecycle:
+///
+///  1. **Start** — call [startInteractivePop] to begin. This stops the
+///     route's [AnimationController] and notifies the [Navigator] that a
+///     user gesture is in progress. Returns `true` on success.
+///  2. **Update** — call [updateInteractivePop] repeatedly as the gesture
+///     progresses, passing a `closingProgress` from `0.0` (fully open) to
+///     `1.0` (fully closed). The route's [transitionValue] reflects the
+///     inverse: `1.0 - closingProgress`.
+///  3. **Cancel or commit** — call [cancelInteractivePop] to animate back
+///     open, or [commitInteractivePop] to dismiss the route.
+///
+/// See also:
+///  * [QuiHeroPage], the [Page] that creates this route.
+///  * [QuiHeroDragToCloseExtension], a built-in extension that drives the
+///    interactive pop API from drag gestures.
+///  * [QuiHero], the hero widget that flies during the transition.
 class QuiHeroPageRoute extends PageRoute<void> {
   /// Creates a [QuiHeroPageRoute].
   ///
-  /// The [_builder] produces the page content. [transitionDuration] and
-  /// [reverseTransitionDuration] control the hero animation timing.
+  /// Prefer using [QuiHeroPage] directly — it creates the route automatically
+  /// and handles reduced-motion detection. Create a [QuiHeroPageRoute]
+  /// manually only when you need to control the route independently of a
+  /// [Page] subclass.
   QuiHeroPageRoute({
     required this._builder,
     required this.transitionDuration,
@@ -34,14 +70,35 @@ class QuiHeroPageRoute extends PageRoute<void> {
   bool _isInteractivePopActive = false;
   bool _hasNavigatorUserGesture = false;
 
-  /// The current transition progress (1.0 = fully open, 0.0 = fully closed).
+  /// The current transition progress, from `0.0` (fully closed) to `1.0`
+  /// (fully open).
+  ///
+  /// When an interactive pop is active, this value is driven by the
+  /// [updateInteractivePop] method rather than the default route
+  /// animation.
   double get transitionValue => controller?.value ?? 1;
 
   /// Whether an interactive pop gesture is currently in progress.
+  ///
+  /// Returns `true` after a successful call to [startInteractivePop] and
+  /// `false` after [cancelInteractivePop] or [commitInteractivePop]
+  /// completes.
   bool get isInteractivePopActive => _isInteractivePopActive;
 
-  /// Returns the [QuiHeroPageRoute] from the nearest [ModalRoute] ancestor, or
+  /// Returns the nearest [QuiHeroPageRoute] ancestor from [context], or
   /// `null` if the current route is not a [QuiHeroPageRoute].
+  ///
+  /// This is the entry point for extensions that need to drive the
+  /// interactive pop API. Call it from any descendant widget to access
+  /// [startInteractivePop], [updateInteractivePop], [cancelInteractivePop],
+  /// and [commitInteractivePop].
+  ///
+  /// ```dart
+  /// final route = QuiHeroPageRoute.maybeOf(context);
+  /// if (route != null) {
+  ///   route.startInteractivePop();
+  /// }
+  /// ```
   static QuiHeroPageRoute? maybeOf(BuildContext context) {
     final route = ModalRoute.of(context);
 
@@ -51,9 +108,18 @@ class QuiHeroPageRoute extends PageRoute<void> {
 
   /// Begins an interactive pop gesture.
   ///
-  /// Stops the route's [AnimationController] and notifies the navigator that
-  /// a user gesture has started. Returns `true` if the gesture was
-  /// successfully initiated.
+  /// Stops the route's [AnimationController] and notifies the [Navigator]
+  /// that a user gesture has started. After calling this method,
+  /// [isInteractivePopActive] returns `true`.
+  ///
+  /// Returns `true` if the gesture was successfully initiated. Returns
+  /// `false` if:
+  ///
+  ///  * This route is not the current route.
+  ///  * The route's [AnimationController] is `null`.
+  ///  * An interactive pop is already active.
+  ///  * The route's animation is not in the [AnimationStatus.completed]
+  ///    state.
   bool startInteractivePop() {
     final routeController = controller;
     if (!isCurrent || routeController == null || _isInteractivePopActive) return false;
@@ -66,10 +132,13 @@ class QuiHeroPageRoute extends PageRoute<void> {
     return true;
   }
 
-  /// Updates the interactive pop progress.
+  /// Updates the translation progress of an active interactive pop.
   ///
   /// [closingProgress] ranges from `0.0` (fully open) to `1.0` (fully
-  /// closed). This directly sets the route's [AnimationController.value].
+  /// closed). The route's [transitionValue] is set to
+  /// `1.0 - closingProgress`, clamped between `0` and `1`.
+  ///
+  /// This is a no-op if no interactive pop is active.
   void updateInteractivePop({required double closingProgress}) {
     final routeController = controller;
     if (!_isInteractivePopActive || routeController == null) return;
@@ -79,6 +148,11 @@ class QuiHeroPageRoute extends PageRoute<void> {
 
   /// Cancels the interactive pop and animates the route back to the fully
   /// open position.
+  ///
+  /// The animation uses [reverseTransitionDuration] and
+  /// [Curves.easeOutCubic]. After the animation completes,
+  /// [isInteractivePopActive] returns `false` and the navigator is notified
+  /// that the user gesture has ended.
   Future<void> cancelInteractivePop() async {
     final routeController = controller;
     if (!_isInteractivePopActive || routeController == null) return;
@@ -88,7 +162,11 @@ class QuiHeroPageRoute extends PageRoute<void> {
     await animation;
   }
 
-  /// Commits the interactive pop and navigates back.
+  /// Commits the interactive pop and pops the route.
+  ///
+  /// Calls [Navigator.pop] to dismiss the route. If the route's
+  /// [AnimationController] is still animating, the user gesture cleanup is
+  /// deferred until the animation completes.
   void commitInteractivePop() {
     final routeController = controller;
     if (!_isInteractivePopActive || routeController == null) return;
