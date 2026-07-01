@@ -7,6 +7,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     required this.textAlign,
     required this.overflow,
     required this.maxLines,
+    this.padding,
   });
 
   final String text;
@@ -14,10 +15,11 @@ class _QuiHeroTextFlight extends StatelessWidget {
   final TextAlign textAlign;
   final TextOverflow? overflow;
   final int? maxLines;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    Widget result = SizedBox(
       width: double.infinity,
       child: Material(
         type: MaterialType.transparency,
@@ -27,5 +29,9 @@ class _QuiHeroTextFlight extends StatelessWidget {
         ),
       ),
     );
+
+    if (padding != null) result = Padding(padding: padding!, child: result);
+
+    return result;
   }
 }

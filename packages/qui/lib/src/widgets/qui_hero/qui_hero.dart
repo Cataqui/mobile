@@ -10,6 +10,12 @@ import 'qui_hero_page/qui_hero_page.dart';
 
 part 'qui_hero_box/_qui_hero_box.dart';
 part 'qui_hero_box/qui_hero_box_flight/_qui_hero_box_flight.dart';
+part 'qui_hero_enums.dart';
+part 'qui_hero_group/_qui_hero_group.dart';
+part 'qui_hero_group/_qui_hero_group_content.dart';
+part 'qui_hero_group/_qui_hero_group_layout.dart';
+part 'qui_hero_group/_qui_hero_group_scope.dart';
+part 'qui_hero_group/qui_hero_group_enums.dart';
 part 'qui_hero_text/_qui_hero_text.dart';
 part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 
@@ -27,29 +33,32 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 ///
 /// ## Choosing a variant
 ///
-/// [QuiHero] exposes two typed factory constructors:
+/// [QuiHero] exposes typed factory constructors:
 ///
 ///  * [QuiHero.text] — animates a text block. The [TextStyle] is smoothly
-///    interpolated via [TextStyle.lerp] throughout the flight. Text content
-///    and wrapping (`maxLines`, `overflow`) switch from source to destination
-///    at the 50 % mark of the animation.
+///    interpolated via [TextStyle.lerp] throughout the flight. Text content,
+///    wrapping (`maxLines`, `overflow`) and text alignment switch from source
+///    to destination at the 50 % mark of the animation.
 ///  * [QuiHero.box] — animates a [BoxDecoration]. Color, border radius,
 ///    shadows, gradients, and border are interpolated via
-///    [Decoration.lerp]. The [child] renders natively on each screen but is
+///    [Decoration.lerp]. The `child` renders natively on each screen but is
 ///    **not** carried into the flight overlay — only the decoration morphs.
-///    Nest other [QuiHero] variants inside [child] to animate inner elements
+///    Nest other [QuiHero] variants inside `child` to animate inner elements
 ///    independently alongside the box.
 ///
-/// Both variants use a [tag] to pair source and destination. The [tag] must
-/// be unique among all heroes in scope but identical on both sides of the
-/// same shared element.
+/// Variants can use a [tag] to pair source and destination explicitly. When
+/// [tag] is omitted, QUI uses a private default tag for that variant. This
+/// keeps simple routes lightweight: one tagless [QuiHero.text], one tagless
+/// [QuiHero.box], etc. can coexist and animate to
+/// the matching variant on the destination route. If a route has multiple
+/// active heroes of the same tagless variant, Flutter asserts at navigation
+/// time; pass explicit tags for those cases.
 ///
 /// ## Performance on low-end devices
 ///
 /// Flight shuttles are wrapped in [RepaintBoundary] to isolate repaint work.
 /// Decoration and text interpolation use [Curves.easeOutCubic] — a
-/// cost-effective easing curve that performs well on low-end GPUs common in
-/// Latin America.
+/// cost-effective easing curve that performs well on low-end GPUs
 ///
 /// ```dart
 /// // Source — a rounded box with title
@@ -86,19 +95,19 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 ///  * [QuiHeroDragToCloseExtension], a built-in extension that adds
 ///    drag-to-close gestures to hero destinations.
 ///  * Flutter's [Hero], the underlying widget that [QuiHero] wraps.
-class QuiHero extends StatelessWidget {
+sealed class QuiHero extends StatelessWidget {
   /// Creates a text hero that animates [TextStyle], content, and wrapping
   /// behavior between source and destination.
   ///
   /// The [TextStyle] is interpolated via [TextStyle.lerp] across the full
   /// flight. Text content and layout constraints ([maxLines], [overflow])
   /// switch from the source configuration to the destination configuration
-  /// at the exact midpoint (50 %) of the flight animation.
+  /// at the exact midpoint (50 %) of the flight animation. The optional
+  /// [padding] is applied around the text and is interpolated during flight.
   ///
-  /// [textAlign] is **not** interpolated — the destination [textAlign] is
-  /// used from the start. If the source and destination text alignments
-  /// differ, the text jumps to the destination alignment immediately when
-  /// the flight begins.
+  /// [textAlign] switches from the source to the destination at the 50 %
+  /// mark of the flight animation, alongside text content and wrapping
+  /// constraints ([maxLines], [overflow]).
   ///
   /// ```dart
   /// // Source
@@ -119,12 +128,13 @@ class QuiHero extends StatelessWidget {
   /// )
   /// ```
   factory QuiHero.text({
-    required Object tag,
     required String text,
+    Object? tag,
     TextStyle? style,
     TextAlign textAlign = TextAlign.left,
     TextOverflow? overflow,
     int? maxLines,
+    EdgeInsetsGeometry? padding,
     Key? key,
   }) => _QuiHeroText(
     tag: tag,
@@ -133,6 +143,7 @@ class QuiHero extends StatelessWidget {
     textAlign: textAlign,
     overflow: overflow,
     maxLines: maxLines,
+    padding: padding,
     key: key,
   );
 
@@ -178,7 +189,7 @@ class QuiHero extends StatelessWidget {
   /// )
   /// ```
   factory QuiHero.box({
-    required Object tag,
+    Object? tag,
     BoxDecoration? decoration,
     double? width,
     double? height,
@@ -197,52 +208,47 @@ class QuiHero extends StatelessWidget {
     userChild: child,
   );
 
-  const QuiHero._({
-    required this.tag,
-    required this.child,
-    required this.createRectTween,
-    required this.flightShuttleBuilder,
-    super.key,
-  });
+  /// Creates a grouped hero that moves several [heroes] as one shared element.
+  ///
+  /// The optional [tag] identifies the whole group. When omitted, the group
+  /// pairs with the single tagless group on the destination route. The inner
+  /// [heroes] must be tagless [QuiHero] variants such as [QuiHero.text] or
+  /// [QuiHero.box]. The group captures the closest supported parent layout
+  /// ([Column], [Row], [Flex], or [Stack]) and reuses that layout during the
+  /// shared-element flight.
+  factory QuiHero.group({required List<QuiHero> heroes, Object? tag, Key? key}) =>
+      _QuiHeroGroup(tag: tag, heroes: heroes, key: key);
 
-  /// The unique identifier that pairs source and destination heroes.
+  const QuiHero._({required this.tag, required this._defaultTag, required this._flightShuttleBuilder, super.key});
+
+  /// The optional identifier that pairs source and destination heroes.
   ///
   /// This [tag] must be identical on both the source and destination
   /// instances of the same shared element. It must be unique among all
   /// heroes in the same scope.
   ///
-  /// The [tag] is passed directly to Flutter's [Hero.tag].
-  final Object tag;
+  /// When [tag] is omitted, QUI uses a private default tag for this hero
+  /// variant. This is intended for the unambiguous case where a route has only
+  /// one active hero of that variant. If there are multiple heroes of the same
+  /// tagless variant in the same route, pass explicit tags.
+  final Object? tag;
 
-  /// The widget rendered on each screen (not in the flight overlay).
-  ///
-  /// During the transition the source [child] and destination [child] are
-  /// **not** visible — the [flightShuttleBuilder] produces the widget that
-  /// appears in the overlay.
-  final Widget child;
+  final Object _defaultTag;
 
-  /// The tween that animates the hero's bounding rectangle from the source
-  /// position to the destination position.
-  ///
-  /// Each variant provides its own [CreateRectTween] implementation. The
-  /// default uses a simple [RectTween] for linear position interpolation.
-  final CreateRectTween createRectTween;
+  final HeroFlightShuttleBuilder _flightShuttleBuilder;
 
-  /// Builds the widget that flies in the overlay during the transition.
-  ///
-  /// Each variant provides its own [HeroFlightShuttleBuilder] that handles
-  /// decoration or text interpolation based on the current animation
-  /// progress.
-  final HeroFlightShuttleBuilder flightShuttleBuilder;
+  Widget _buildFlightChild(BuildContext context);
+
+  QuiHero _buildForGroupFlight(QuiHero end, double value);
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: tag,
-      createRectTween: createRectTween,
-      flightShuttleBuilder: flightShuttleBuilder,
+      tag: tag ?? _defaultTag,
+      createRectTween: (begin, end) => RectTween(begin: begin, end: end),
+      flightShuttleBuilder: _flightShuttleBuilder,
       transitionOnUserGestures: true,
-      child: child,
+      child: _buildFlightChild(context),
     );
   }
 }

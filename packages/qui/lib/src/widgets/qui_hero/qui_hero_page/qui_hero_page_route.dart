@@ -192,6 +192,7 @@ class QuiHeroPageRoute extends PageRoute<void> {
       routeController.removeStatusListener(listener);
       _stopInteractivePop();
     }
+
     routeController.addStatusListener(listener);
   }
 

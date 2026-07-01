@@ -132,6 +132,26 @@ widget or model that produces or consumes the data.
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
 - **Widget Method Ordering:** In Flutter widget classes, place helper methods that do not return widgets above `build`. Helper methods that return widgets must stay below `build`.
 
+### Subdirectory Per File Group
+
+Whenever a set of files is related to a single primary subject (e.g., a widget split into `QuiHeroBox` and `_QuiHeroBoxContent`, or a class with separate `_types`, `_enums`, or `_providers` files), **all related files must be placed under a dedicated subdirectory** named after the primary subject — even if a broader parent folder already exists.
+
+For example, instead of:
+```
+qui_hero/
+  qui_hero_box.dart
+  qui_hero_box_content.dart
+```
+
+place files under:
+```
+qui_hero/qui_hero_box/
+  qui_hero_box.dart
+  qui_hero_box_content.dart
+```
+
+This rule applies to any group of companion files: main implementation, private sub-widgets, enums, types, providers, tests, and golden test scenarios. Use a flat file layout only when a folder contains exactly one self-contained subject file with no companion files.
+
 ### Early Returns Over if/else
 
 - Prefer early returns over if/else branches. They reduce nesting and make the non-viable paths immediately visible.

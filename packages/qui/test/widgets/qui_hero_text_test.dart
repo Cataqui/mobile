@@ -59,5 +59,6 @@ void main() {
 
       expect(find.text('Test Text'), findsOneWidget);
     });
+
   });
 }

@@ -1,20 +1,16 @@
 part of '../qui_hero.dart';
 
-class _QuiHeroBox extends QuiHero {
+final class _QuiHeroBox extends QuiHero {
   const _QuiHeroBox({
     required super.tag,
     required this.extensions,
+    super.key,
     this.decoration,
     this.width,
     this.height,
     this.padding,
     this.userChild,
-    super.key,
-  }) : super._(
-         child: const SizedBox.shrink(),
-         createRectTween: _createRectTween,
-         flightShuttleBuilder: _buildFlightShuttle,
-       );
+  }) : super._(defaultTag: _QuiHeroDefaultTag.box, flightShuttleBuilder: _buildFlightShuttle);
 
   final BoxDecoration? decoration;
   final double? width;
@@ -23,8 +19,12 @@ class _QuiHeroBox extends QuiHero {
   final List<QuiHeroExtension> extensions;
   final Widget? userChild;
 
-  static RectTween _createRectTween(Rect? begin, Rect? end) {
-    return RectTween(begin: begin, end: end);
+  static _QuiHeroBoxFlight _lerpBoxFlight({
+    required _QuiHeroBoxFlight from,
+    required _QuiHeroBoxFlight to,
+    required double value,
+  }) {
+    return _QuiHeroBoxFlight(decoration: BoxDecoration.lerp(from.decoration, to.decoration, value));
   }
 
   static Widget _buildFlightShuttle(
@@ -40,18 +40,16 @@ class _QuiHeroBox extends QuiHero {
     final end = flightDirection == HeroFlightDirection.push ? toBox : fromBox;
 
     if (begin.decoration == end.decoration) {
-      return RepaintBoundary(child: _QuiHeroBoxFlight(decoration: begin.decoration));
+      return RepaintBoundary(child: begin);
     }
 
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) {
-          final curvedValue = Curves.easeOutCubic.transform(animation.value);
-          final lerpedDecoration =
-              BoxDecoration.lerp(begin.decoration, end.decoration, curvedValue) ?? const BoxDecoration();
-
-          return _QuiHeroBoxFlight(decoration: lerpedDecoration);
+          return RepaintBoundary(
+            child: _lerpBoxFlight(from: begin, to: end, value: Curves.easeOutCubic.transform(animation.value)),
+          );
         },
       ),
     );
@@ -63,37 +61,64 @@ class _QuiHeroBox extends QuiHero {
   }
 
   @override
+  Widget _buildFlightChild(BuildContext context) {
+    return _QuiHeroBoxFlight(decoration: decoration);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final heroWidget = Hero(
-      tag: tag,
-      createRectTween: createRectTween,
-      flightShuttleBuilder: flightShuttleBuilder,
-      transitionOnUserGestures: true,
-      child: _QuiHeroBoxFlight(decoration: decoration),
+    if (_QuiHeroGroupScope.maybeOf(context) != null) return _buildSizedContent(flightChild: _buildFlightChild(context));
+
+    return _wrapWithExtensions(
+      context: context,
+      child: _buildSizedContent(flightChild: super.build(context)),
     );
+  }
 
-    if (userChild == null) {
-      final result = (width != null || height != null)
-          ? SizedBox(width: width, height: height, child: heroWidget)
-          : heroWidget;
+  Widget _buildSizedContent({required Widget flightChild}) {
+    final child = userChild;
+    var result = flightChild;
 
-      return _wrapWithExtensions(context: context, child: result);
+    if (child != null) {
+      var content = child;
+      if (padding != null) content = Padding(padding: padding!, child: content);
+      result = Stack(
+        children: [
+          Positioned.fill(child: result),
+          content,
+        ],
+      );
     }
-
-    var content = userChild!;
-
-    if (padding != null) content = Padding(padding: padding!, child: content);
-
-    Widget result = Stack(
-      children: [
-        Positioned.fill(child: heroWidget),
-        content,
-      ],
-    );
 
     if (width != null || height != null) result = SizedBox(width: width, height: height, child: result);
 
-    return _wrapWithExtensions(context: context, child: result);
+    return result;
+  }
+
+  @override
+  _QuiHeroBox _buildForGroupFlight(QuiHero end, double value) {
+    final endBox = end as _QuiHeroBox;
+
+    final lerpedBox = _lerpBoxFlight(
+      from: _QuiHeroBoxFlight(decoration: decoration),
+      to: _QuiHeroBoxFlight(decoration: endBox.decoration),
+      value: value,
+    );
+
+    return _QuiHeroBox(
+      tag: null,
+      decoration: lerpedBox.decoration,
+      width: _tryLerpDouble(width, endBox.width, value),
+      height: _tryLerpDouble(height, endBox.height, value),
+      padding: EdgeInsetsGeometry.lerp(padding, endBox.padding, value),
+      extensions: const [],
+      userChild: value < 0.5 ? userChild : endBox.userChild,
+    );
+  }
+
+  static double? _tryLerpDouble(double? begin, double? end, double value) {
+    if (begin == null && end == null) return null;
+    return Tween<double>(begin: begin ?? 0, end: end ?? 0).transform(value);
   }
 
   Widget _wrapWithExtensions({required BuildContext context, required Widget child}) {
