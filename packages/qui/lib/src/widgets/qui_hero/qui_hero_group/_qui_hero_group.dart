@@ -20,7 +20,8 @@ final class _QuiHeroGroup extends QuiHero {
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) {
-          final value = Curves.easeOutCubic.transform(animation.value);
+          final animationValue = flightDirection == HeroFlightDirection.push ? animation.value : 1 - animation.value;
+          final value = Curves.easeOutCubic.transform(animationValue);
 
           return _QuiHeroGroupContent(
             layout: toGroup.layout,
@@ -28,7 +29,7 @@ final class _QuiHeroGroup extends QuiHero {
               begin: fromGroup.heroes,
               end: toGroup.heroes,
               value: value,
-              flightDirection: flightDirection,
+              flightDirection: HeroFlightDirection.push,
             ),
             allowsFlightOverflow: true,
           );
@@ -48,22 +49,10 @@ final class _QuiHeroGroup extends QuiHero {
     required double value,
     required HeroFlightDirection flightDirection,
   }) {
-    assert(begin.length == end.length, 'QuiHero.group source and destination must have the same number of heroes.');
-
-    if (begin.length != end.length) return value < 0.5 ? begin : end;
-
-    return List<QuiHero>.generate(begin.length, (index) {
+    final count = math.min(begin.length, end.length);
+    return List<QuiHero>.generate(count, (index) {
       final beginHero = begin[index];
       final endHero = end[index];
-
-      assert(
-        beginHero.runtimeType == endHero.runtimeType,
-        'QuiHero.group hero at index $index must have the same variant on source and destination.',
-      );
-
-      if (beginHero.runtimeType != endHero.runtimeType) {
-        return value < 0.5 ? beginHero : endHero;
-      }
 
       return beginHero._buildForGroupFlight(end: endHero, value: value, flightDirection: flightDirection);
     });

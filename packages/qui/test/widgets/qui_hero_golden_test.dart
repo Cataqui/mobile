@@ -97,33 +97,31 @@ void main() {
       'when rendering the group variant at rest, it should match the approved golden',
       fileName: 'qui_hero_group_resting',
       builder: () => GoldenTestGroup(
+        columnWidthBuilder: (_) => const FixedColumnWidth(300),
         children: [
           GoldenTestScenario(
             name: 'group_resting',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                QuiHero.group(
-                  tag: 'test-group',
-                  heroes: [
-                    QuiHero.text(
-                      text: '1 dia atrás',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF999999)),
-                      padding: const EdgeInsets.only(bottom: 6),
-                    ),
-                    QuiHero.text(
-                      text: 'Separador de Mercadorias',
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-                      padding: const EdgeInsets.only(bottom: 4),
-                    ),
-                    QuiHero.text(
-                      text: r'R$2.200/mês',
-                      style: const TextStyle(fontSize: 25, color: Color(0xFF00DD55), fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ],
+            child: SizedBox(
+              width: 300,
+              child: QuiHero.group(
+                tag: 'test-group',
+                heroes: [
+                  QuiHero.text(
+                    text: '1 dia atrás',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF999999)),
+                    padding: const EdgeInsets.only(bottom: 6),
+                  ),
+                  QuiHero.text(
+                    text: 'Separador de Mercadorias',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                    padding: const EdgeInsets.only(bottom: 4),
+                  ),
+                  QuiHero.text(
+                    text: r'R$2.200/mês',
+                    style: const TextStyle(fontSize: 25, color: Color(0xFF00DD55), fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

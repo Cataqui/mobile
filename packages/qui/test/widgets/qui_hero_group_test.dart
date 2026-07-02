@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
@@ -119,13 +121,27 @@ void main() {
       expect(tester.getSize(find.byType(Hero)).width, equals(300));
     });
 
-    testWidgets('when source and destination hero counts do not match, it should assert during flight', (tester) async {
-      await tester.pumpWidget(const _MismatchedGroupTestApp());
-      await tester.tap(find.text('Hello'));
+    testWidgets(
+      'when source and destination hero counts do not match, it should match by min length without throwing',
+      (tester) async {
+        await tester.pumpWidget(const _MismatchedGroupTestApp());
+        await tester.tap(find.text('Hello'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 120));
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets('when source and destination hero types differ at an index, it should not throw an assertion error', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _TypeMismatchGroupTestApp());
+      await tester.tap(find.byKey(_TypeMismatchGroupTestApp.sourceKey));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 120));
 
-      expect(tester.takeException(), isAssertionError);
+      expect(tester.takeException(), isNot(isAssertionError));
     });
 
     testWidgets(
@@ -153,6 +169,30 @@ void main() {
 
       expect(_GroupedTitlePopWidthTestApp.hasTwoLineFlightTitle(tester), isFalse);
     });
+
+    testWidgets(
+      'when a grouped full description pops back to a card summary, it should progressively reduce visible lines',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedDescriptionPopLineClampTestApp());
+        await tester.tap(find.text(_GroupedDescriptionPopLineClampTestApp.summary));
+        await tester.pump();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(_GroupedDescriptionPopLineClampTestApp.description));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 16));
+
+        final firstFrameMaxLines = _GroupedDescriptionPopLineClampTestApp.flightDescriptionMaxLines(tester);
+
+        await tester.pump(const Duration(milliseconds: 32));
+
+        final secondFrameMaxLines = _GroupedDescriptionPopLineClampTestApp.flightDescriptionMaxLines(tester);
+        expect(
+          secondFrameMaxLines < firstFrameMaxLines,
+          isTrue,
+          reason: 'firstFrameMaxLines=$firstFrameMaxLines secondFrameMaxLines=$secondFrameMaxLines',
+        );
+      },
+    );
   });
 
   group('QuiHero optional tags', () {
@@ -436,6 +476,97 @@ class _GroupedTitlePopWidthTestAppHeader extends StatelessWidget {
   }
 }
 
+class _GroupedDescriptionPopLineClampTestApp extends StatelessWidget {
+  const _GroupedDescriptionPopLineClampTestApp();
+
+  static const summary =
+      'Empresa esta contratando Instrumentista para atuar no Jaragua, em Sao Paulo. Jornada de segunda a sexta.';
+  static const description =
+      'Empresa esta contratando Instrumentista para atuar no Jaragua, em Sao Paulo. A jornada ocorre de segunda a sexta, '
+      'das 07h30 as 17h18, com 1 hora de intervalo. A oportunidade e destinada ao publico masculino. O profissional '
+      'sera responsavel por realizar testes de recepcao para identificar possiveis falhas nos instrumentos, identificar '
+      'instrumentos e pecas conforme codigo interno, executar desmontagem, inspecao e avaliacao dos componentes, '
+      'efetuar ajustes, substituicao de reparos, montagem e testes funcionais, alem de realizar instalacao, calibracao '
+      'e regulagem dos instrumentos conforme especificacoes tecnicas dos equipamentos.';
+
+  static int flightDescriptionMaxLines(WidgetTester tester) {
+    return tester
+        .widgetList<Text>(find.text(description, skipOffstage: false))
+        .map((text) => text.maxLines ?? 999)
+        .reduce(math.min);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(
+                    builder: _GroupedDescriptionPopLineClampTestApp.buildDestination,
+                  ).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 300, child: _GroupedDescriptionHeader(description: summary, maxLines: 3)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const SizedBox(width: 300, child: _GroupedDescriptionHeader(description: description)),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedDescriptionHeader extends StatelessWidget {
+  const _GroupedDescriptionHeader({required this.description, this.maxLines});
+
+  final String description;
+  final int? maxLines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'description-group',
+          heroes: [
+            QuiHero.text(text: '17h atras', style: const TextStyle(fontSize: 14)),
+            QuiHero.text(
+              text: 'Instrumentista',
+              style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w700),
+            ),
+            QuiHero.text(text: r'R$4.000/mes', style: const TextStyle(fontSize: 30)),
+            QuiHero.text(
+              text: description,
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              switchThreshold: 0.8,
+              style: const TextStyle(fontSize: 18, height: 1.38, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class _SingleUntaggedTextHeroTestApp extends StatelessWidget {
   const _SingleUntaggedTextHeroTestApp();
 
@@ -670,6 +801,57 @@ class _MultipleUntaggedGroupHeroesTestApp extends StatelessWidget {
       body: Column(
         children: [
           QuiHero.group(heroes: [QuiHero.text(text: 'Hello')]),
+        ],
+      ),
+    );
+  }
+}
+
+class _TypeMismatchGroupTestApp extends StatelessWidget {
+  const _TypeMismatchGroupTestApp();
+
+  static const Key sourceKey = ValueKey<String>('type-mismatch-source');
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Column(
+            children: [
+              GestureDetector(
+                key: sourceKey,
+                onTap: () {
+                  Navigator.of(
+                    context,
+                  ).push<void>(MaterialPageRoute<void>(builder: _TypeMismatchGroupTestApp.buildDestination));
+                },
+                child: QuiHero.group(
+                  tag: 'group',
+                  heroes: [
+                    QuiHero.text(text: 'Hello'),
+                    QuiHero.text(text: 'World'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          QuiHero.group(
+            tag: 'group',
+            heroes: [
+              QuiHero.text(text: 'Hello'),
+              QuiHero.box(decoration: const BoxDecoration(color: Colors.red), width: 100, height: 100),
+            ],
+          ),
         ],
       ),
     );

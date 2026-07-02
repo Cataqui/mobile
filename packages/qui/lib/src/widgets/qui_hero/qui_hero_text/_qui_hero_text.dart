@@ -12,6 +12,7 @@ final class _QuiHeroText extends QuiHero {
     this.padding,
     this.switchThreshold = 0.5,
   }) : assert(switchThreshold >= 0.0 && switchThreshold <= 1.0, 'switchThreshold must be between 0.0 and 1.0.'),
+       flight = null,
        super._(defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
 
   _QuiHeroText.fromFlight(_QuiHeroTextFlight flight)
@@ -22,6 +23,7 @@ final class _QuiHeroText extends QuiHero {
       maxLines = flight.maxLines,
       padding = flight.padding,
       switchThreshold = flight.switchThreshold,
+      flight = flight,
       super._(tag: null, defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
 
   final String text;
@@ -31,6 +33,7 @@ final class _QuiHeroText extends QuiHero {
   final int? maxLines;
   final EdgeInsetsGeometry? padding;
   final double switchThreshold;
+  final _QuiHeroTextFlight? flight;
 
   static _QuiHeroTextFlight _lerpTextFlight({
     required _QuiHeroTextFlight from,
@@ -40,6 +43,7 @@ final class _QuiHeroText extends QuiHero {
   }) {
     final lerpValue = flightDirection == HeroFlightDirection.push ? value : (1 - value);
     final showBegin = lerpValue < from.switchThreshold;
+    final progressiveClampMaxLines = _progressiveClampMaxLines(from: from, to: to, showBegin: showBegin);
     return _QuiHeroTextFlight(
       text: showBegin ? from.text : to.text,
       style: TextStyle.lerp(from.style, to.style, lerpValue)!,
@@ -49,7 +53,36 @@ final class _QuiHeroText extends QuiHero {
       padding: EdgeInsetsGeometry.lerp(from.padding, to.padding, lerpValue),
       switchThreshold: from.switchThreshold,
       shortenToBounds: true,
+      progressiveClampMaxLines: progressiveClampMaxLines,
+      progressiveClampProgress: _progressiveClampProgress(
+        lerpValue: lerpValue,
+        switchThreshold: from.switchThreshold,
+        progressiveClampMaxLines: progressiveClampMaxLines,
+      ),
     );
+  }
+
+  static int? _progressiveClampMaxLines({
+    required _QuiHeroTextFlight from,
+    required _QuiHeroTextFlight to,
+    required bool showBegin,
+  }) {
+    if (!showBegin) return null;
+    if (to.maxLines == null) return null;
+    if (from.maxLines != null && from.maxLines! <= to.maxLines!) return null;
+
+    return to.maxLines;
+  }
+
+  static double _progressiveClampProgress({
+    required double lerpValue,
+    required double switchThreshold,
+    required int? progressiveClampMaxLines,
+  }) {
+    if (progressiveClampMaxLines == null) return 0;
+    if (switchThreshold <= 0) return 1;
+
+    return (lerpValue / switchThreshold).clamp(0.0, 1.0);
   }
 
   static Widget _buildFlightShuttle(
@@ -148,6 +181,8 @@ final class _QuiHeroText extends QuiHero {
   @override
   Widget build(BuildContext context) {
     if (_QuiHeroGroupScope.maybeOf(context) != null) {
+      if (flight != null) return flight!;
+
       Widget result = Text(text, style: style, textAlign: textAlign, maxLines: maxLines, overflow: overflow);
       if (padding != null) result = Padding(padding: padding!, child: result);
       return result;
