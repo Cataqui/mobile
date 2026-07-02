@@ -11,11 +11,8 @@ final class _QuiHeroText extends QuiHero {
     this.maxLines,
     this.padding,
     this.switchThreshold = 0.5,
-  })  : assert(
-          switchThreshold >= 0.0 && switchThreshold <= 1.0,
-          'switchThreshold must be between 0.0 and 1.0.',
-        ),
-        super._(defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
+  }) : assert(switchThreshold >= 0.0 && switchThreshold <= 1.0, 'switchThreshold must be between 0.0 and 1.0.'),
+       super._(defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
 
   _QuiHeroText.fromFlight(_QuiHeroTextFlight flight)
     : text = flight.text,
@@ -51,6 +48,7 @@ final class _QuiHeroText extends QuiHero {
       textAlign: showBegin ? from.textAlign : to.textAlign,
       padding: EdgeInsetsGeometry.lerp(from.padding, to.padding, lerpValue),
       switchThreshold: from.switchThreshold,
+      shortenToBounds: true,
     );
   }
 
@@ -65,7 +63,7 @@ final class _QuiHeroText extends QuiHero {
     final toText = _textFromHeroContext(toHeroContext);
 
     if (_hasSamePresentation(begin: fromText, end: toText)) {
-      return RepaintBoundary(child: fromText);
+      return RepaintBoundary(child: fromText._copyWith(shortenToBounds: true));
     }
 
     return RepaintBoundary(
@@ -126,6 +124,7 @@ final class _QuiHeroText extends QuiHero {
           maxLines: maxLines,
           padding: padding,
           switchThreshold: switchThreshold,
+          shortenToBounds: true,
         ),
         to: _QuiHeroTextFlight(
           text: endText.text,
