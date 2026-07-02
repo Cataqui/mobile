@@ -111,7 +111,11 @@ final class _QuiHeroText extends QuiHero {
   }
 
   @override
-  _QuiHeroText _buildForGroupFlight(QuiHero end, double value) {
+  _QuiHeroText _buildForGroupFlight({
+    required QuiHero end,
+    required double value,
+    required HeroFlightDirection flightDirection,
+  }) {
     final endText = end as _QuiHeroText;
 
     return _QuiHeroText.fromFlight(
@@ -136,7 +140,7 @@ final class _QuiHeroText extends QuiHero {
           switchThreshold: endText.switchThreshold,
         ),
         value: value,
-        flightDirection: HeroFlightDirection.push,
+        flightDirection: flightDirection,
       ),
     );
   }

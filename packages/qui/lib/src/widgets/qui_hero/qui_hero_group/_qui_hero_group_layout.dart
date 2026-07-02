@@ -93,6 +93,15 @@ class _QuiHeroGroupLayout {
   final StackFit? stackFit;
   final Clip clipBehavior;
 
+  bool get shouldReserveBoundedWidth {
+    switch (type) {
+      case _QuiHeroGroupLayoutType.flex:
+        return direction == Axis.vertical;
+      case _QuiHeroGroupLayoutType.stack:
+        return true;
+    }
+  }
+
   Widget build({required List<Widget> children}) {
     switch (type) {
       case _QuiHeroGroupLayoutType.flex:

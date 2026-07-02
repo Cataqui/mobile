@@ -92,6 +92,33 @@ void main() {
       expect(find.byType(Hero), findsOneWidget);
     });
 
+    testWidgets('when built under a bounded column, it should reserve the full column width for the flight', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: Column(
+                children: [
+                  QuiHero.group(
+                    tag: 'group',
+                    heroes: [
+                      QuiHero.text(text: 'Hello'),
+                      QuiHero.text(text: 'Hola'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(Hero)).width, equals(300));
+    });
+
     testWidgets('when source and destination hero counts do not match, it should assert during flight', (tester) async {
       await tester.pumpWidget(const _MismatchedGroupTestApp());
       await tester.tap(find.text('Hello'));
@@ -101,6 +128,31 @@ void main() {
       expect(tester.takeException(), isAssertionError);
     });
 
+    testWidgets(
+      'when a grouped title flies from a narrow card to a wide card, it should wrap inside the flight width',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedTitleFlightWidthTestApp());
+        await tester.tap(find.text(_GroupedTitleFlightWidthTestApp.title));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 16));
+
+        expect(_GroupedTitleFlightWidthTestApp.hasTitleOverflow(tester), isFalse);
+      },
+    );
+
+    testWidgets('when a grouped title pops from a wide card, it should stay on one line while the flight is wide', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _GroupedTitlePopWidthTestApp());
+      await tester.tap(find.text(_GroupedTitlePopWidthTestApp.title));
+      await tester.pump();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(_GroupedTitlePopWidthTestApp.title));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+
+      expect(_GroupedTitlePopWidthTestApp.hasTwoLineFlightTitle(tester), isFalse);
+    });
   });
 
   group('QuiHero optional tags', () {
@@ -215,6 +267,171 @@ class _MismatchedGroupTestApp extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _GroupedTitleFlightWidthTestApp extends StatelessWidget {
+  const _GroupedTitleFlightWidthTestApp();
+
+  static const title = 'Oficial Mecanico de Refrigeracao Veicular';
+
+  static bool hasTitleOverflow(WidgetTester tester) {
+    final titleRects = find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((element) => element.renderObject)
+        .whereType<RenderBox>()
+        .where((renderBox) => renderBox.hasSize)
+        .map((renderBox) => renderBox.localToGlobal(Offset.zero) & renderBox.size);
+
+    return titleRects.any((rect) => rect.left < -1 || rect.right > 181);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(builder: _GroupedTitleFlightWidthTestApp.buildDestination).createRoute(context),
+                );
+              },
+              child: const SizedBox(
+                width: 180,
+                child: _GroupedTitleFlightWidthTestAppHeader(title: _GroupedTitleFlightWidthTestApp.title),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return const Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(width: 360, child: _GroupedTitleFlightWidthTestAppHeader(title: 'Detalhes da oportunidade')),
+      ),
+    );
+  }
+}
+
+class _GroupedTitleFlightWidthTestAppHeader extends StatelessWidget {
+  const _GroupedTitleFlightWidthTestAppHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'group',
+          heroes: [
+            QuiHero.text(text: '2 dias atras', style: const TextStyle(fontSize: 14)),
+            QuiHero.text(
+              text: title,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+            ),
+            QuiHero.text(text: r'R$3.800/mes', style: const TextStyle(fontSize: 25)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupedTitlePopWidthTestApp extends StatelessWidget {
+  const _GroupedTitlePopWidthTestApp();
+
+  static const title = 'Instrumentista';
+
+  static bool hasTwoLineFlightTitle(WidgetTester tester) {
+    final titleRects = find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((element) => element.renderObject)
+        .whereType<RenderBox>()
+        .where((renderBox) => renderBox.hasSize)
+        .map((renderBox) => renderBox.localToGlobal(Offset.zero) & renderBox.size)
+        .toList();
+
+    return titleRects.any((rect) => rect.width > 260 && rect.height > 30);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(builder: _GroupedTitlePopWidthTestApp.buildDestination).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 180, child: _GroupedTitlePopWidthTestAppHeader(width: 180, fontSize: 20)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const SizedBox(width: 360, child: _GroupedTitlePopWidthTestAppHeader(width: 360, fontSize: 20)),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedTitlePopWidthTestAppHeader extends StatelessWidget {
+  const _GroupedTitlePopWidthTestAppHeader({required this.width, required this.fontSize});
+
+  final double width;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: width,
+          child: QuiHero.group(
+            tag: 'pop-group',
+            heroes: [
+              QuiHero.text(text: '2 dias atras', style: const TextStyle(fontSize: 14)),
+              QuiHero.text(
+                text: _GroupedTitlePopWidthTestApp.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
+              ),
+              QuiHero.text(text: r'R$2.100/mes', style: const TextStyle(fontSize: 25)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

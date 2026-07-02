@@ -246,7 +246,11 @@ sealed class QuiHero extends StatelessWidget {
 
   Widget _buildFlightChild(BuildContext context);
 
-  QuiHero _buildForGroupFlight(QuiHero end, double value);
+  QuiHero _buildForGroupFlight({
+    required QuiHero end,
+    required double value,
+    required HeroFlightDirection flightDirection,
+  });
 
   @override
   Widget build(BuildContext context) {

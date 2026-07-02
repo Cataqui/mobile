@@ -96,23 +96,28 @@ final class _QuiHeroBox extends QuiHero {
   }
 
   @override
-  _QuiHeroBox _buildForGroupFlight(QuiHero end, double value) {
+  _QuiHeroBox _buildForGroupFlight({
+    required QuiHero end,
+    required double value,
+    required HeroFlightDirection flightDirection,
+  }) {
     final endBox = end as _QuiHeroBox;
+    final lerpValue = flightDirection == HeroFlightDirection.push ? value : (1 - value);
 
     final lerpedBox = _lerpBoxFlight(
       from: _QuiHeroBoxFlight(decoration: decoration),
       to: _QuiHeroBoxFlight(decoration: endBox.decoration),
-      value: value,
+      value: lerpValue,
     );
 
     return _QuiHeroBox(
       tag: null,
       decoration: lerpedBox.decoration,
-      width: _tryLerpDouble(width, endBox.width, value),
-      height: _tryLerpDouble(height, endBox.height, value),
-      padding: EdgeInsetsGeometry.lerp(padding, endBox.padding, value),
+      width: _tryLerpDouble(width, endBox.width, lerpValue),
+      height: _tryLerpDouble(height, endBox.height, lerpValue),
+      padding: EdgeInsetsGeometry.lerp(padding, endBox.padding, lerpValue),
       extensions: const [],
-      userChild: value < 0.5 ? userChild : endBox.userChild,
+      userChild: lerpValue < 0.5 ? userChild : endBox.userChild,
     );
   }
 

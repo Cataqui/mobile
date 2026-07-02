@@ -1,21 +1,15 @@
 part of '../qui_hero.dart';
 
 class _QuiHeroGroupContent extends StatelessWidget {
-  const _QuiHeroGroupContent({
-    required this.layout,
-    required this.heroes,
-    this.allowsFlightOverflow = false,
-    this.flightWidth,
-  });
+  const _QuiHeroGroupContent({required this.layout, required this.heroes, this.allowsFlightOverflow = false});
 
   final _QuiHeroGroupLayout layout;
   final List<QuiHero> heroes;
   final bool allowsFlightOverflow;
-  final double? flightWidth;
 
   @override
   Widget build(BuildContext context) {
-    final content = _QuiHeroGroupScope(child: layout.build(children: heroes));
+    final content = _buildWidthAwareContent();
 
     if (!allowsFlightOverflow) {
       return Material(type: MaterialType.transparency, child: content);
@@ -27,21 +21,29 @@ class _QuiHeroGroupContent extends StatelessWidget {
         builder: (context, constraints) {
           if (!constraints.hasBoundedHeight || !constraints.hasBoundedWidth) return content;
 
-          final maxFlightWidth = flightWidth;
-          final width = maxFlightWidth == null || maxFlightWidth < constraints.maxWidth
-              ? constraints.maxWidth
-              : maxFlightWidth;
-
           return OverflowBox(
             alignment: Alignment.topLeft,
-            minWidth: width,
-            maxWidth: width,
+            minWidth: constraints.maxWidth,
+            maxWidth: constraints.maxWidth,
             minHeight: 0,
             maxHeight: double.infinity,
             child: content,
           );
         },
       ),
+    );
+  }
+
+  Widget _buildWidthAwareContent() {
+    final content = _QuiHeroGroupScope(child: layout.build(children: heroes));
+
+    if (!layout.shouldReserveBoundedWidth) return content;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedWidth) return content;
+        return SizedBox(width: constraints.maxWidth, child: content);
+      },
     );
   }
 }

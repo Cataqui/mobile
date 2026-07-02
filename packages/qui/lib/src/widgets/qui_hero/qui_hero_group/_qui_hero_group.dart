@@ -15,9 +15,6 @@ final class _QuiHeroGroup extends QuiHero {
   ) {
     final fromGroup = _groupFromHeroContext(fromHeroContext);
     final toGroup = _groupFromHeroContext(toHeroContext);
-    final begin = flightDirection == HeroFlightDirection.push ? fromGroup : toGroup;
-    final end = flightDirection == HeroFlightDirection.push ? toGroup : fromGroup;
-    final flightWidth = _maxHeroWidth(fromHeroContext: fromHeroContext, toHeroContext: toHeroContext);
 
     return RepaintBoundary(
       child: AnimatedBuilder(
@@ -26,10 +23,14 @@ final class _QuiHeroGroup extends QuiHero {
           final value = Curves.easeOutCubic.transform(animation.value);
 
           return _QuiHeroGroupContent(
-            layout: end.layout,
-            heroes: _lerpHeroes(begin: begin.heroes, end: end.heroes, value: value),
+            layout: toGroup.layout,
+            heroes: _lerpHeroes(
+              begin: fromGroup.heroes,
+              end: toGroup.heroes,
+              value: value,
+              flightDirection: flightDirection,
+            ),
             allowsFlightOverflow: true,
-            flightWidth: flightWidth,
           );
         },
       ),
@@ -41,25 +42,12 @@ final class _QuiHeroGroup extends QuiHero {
     return hero.child as _QuiHeroGroupContent;
   }
 
-  static double? _maxHeroWidth({required BuildContext fromHeroContext, required BuildContext toHeroContext}) {
-    final fromWidth = _heroWidth(fromHeroContext);
-    final toWidth = _heroWidth(toHeroContext);
-
-    if (fromWidth == null) return toWidth;
-    if (toWidth == null) return fromWidth;
-    return fromWidth > toWidth ? fromWidth : toWidth;
-  }
-
-  static double? _heroWidth(BuildContext context) {
-    final renderObject = context.findRenderObject();
-    if (renderObject is! RenderBox || !renderObject.hasSize) return null;
-
-    final size = renderObject.size;
-    if (!size.width.isFinite || size.width <= 0) return null;
-    return size.width;
-  }
-
-  static List<QuiHero> _lerpHeroes({required List<QuiHero> begin, required List<QuiHero> end, required double value}) {
+  static List<QuiHero> _lerpHeroes({
+    required List<QuiHero> begin,
+    required List<QuiHero> end,
+    required double value,
+    required HeroFlightDirection flightDirection,
+  }) {
     assert(begin.length == end.length, 'QuiHero.group source and destination must have the same number of heroes.');
 
     if (begin.length != end.length) return value < 0.5 ? begin : end;
@@ -77,12 +65,16 @@ final class _QuiHeroGroup extends QuiHero {
         return value < 0.5 ? beginHero : endHero;
       }
 
-      return beginHero._buildForGroupFlight(endHero, value);
+      return beginHero._buildForGroupFlight(end: endHero, value: value, flightDirection: flightDirection);
     });
   }
 
   @override
-  QuiHero _buildForGroupFlight(QuiHero end, double value) {
+  QuiHero _buildForGroupFlight({
+    required QuiHero end,
+    required double value,
+    required HeroFlightDirection flightDirection,
+  }) {
     assert(false, 'Nested QuiHero.group is not supported.');
     return value < 0.5 ? this : end;
   }
