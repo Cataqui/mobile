@@ -38,7 +38,7 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 ///  * [QuiHero.text] — animates a text block. The [TextStyle] is smoothly
 ///    interpolated via [TextStyle.lerp] throughout the flight. Text content,
 ///    wrapping (`maxLines`, `overflow`) and text alignment switch from source
-///    to destination at the 50 % mark of the animation.
+///    to destination at the point defined by [QuiHero.text.switchThreshold]
 ///  * [QuiHero.box] — animates a [BoxDecoration]. Color, border radius,
 ///    shadows, gradients, and border are interpolated via
 ///    [Decoration.lerp]. The `child` renders natively on each screen but is
@@ -105,9 +105,12 @@ sealed class QuiHero extends StatelessWidget {
   /// at the exact midpoint (50 %) of the flight animation. The optional
   /// [padding] is applied around the text and is interpolated during flight.
   ///
-  /// [textAlign] switches from the source to the destination at the 50 %
-  /// mark of the flight animation, alongside text content and wrapping
-  /// constraints ([maxLines], [overflow]).
+  /// [switchThreshold] controls when text content, wrapping constraints, and
+  /// alignment switch from the source to the destination during the flight.
+  /// The origin's [switchThreshold] governs the push direction; the
+  /// destination's [switchThreshold] governs the pop direction. A higher
+  /// value delays the switch; a lower value triggers it earlier. Must be
+  /// between `0.0` and `1.0`
   ///
   /// ```dart
   /// // Source
@@ -135,6 +138,7 @@ sealed class QuiHero extends StatelessWidget {
     TextOverflow? overflow,
     int? maxLines,
     EdgeInsetsGeometry? padding,
+    double switchThreshold = 0.5,
     Key? key,
   }) => _QuiHeroText(
     tag: tag,
@@ -144,6 +148,7 @@ sealed class QuiHero extends StatelessWidget {
     overflow: overflow,
     maxLines: maxLines,
     padding: padding,
+    switchThreshold: switchThreshold,
     key: key,
   );
 

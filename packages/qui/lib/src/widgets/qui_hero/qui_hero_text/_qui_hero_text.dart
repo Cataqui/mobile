@@ -10,7 +10,12 @@ final class _QuiHeroText extends QuiHero {
     this.overflow,
     this.maxLines,
     this.padding,
-  }) : super._(defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
+    this.switchThreshold = 0.5,
+  })  : assert(
+          switchThreshold >= 0.0 && switchThreshold <= 1.0,
+          'switchThreshold must be between 0.0 and 1.0.',
+        ),
+        super._(defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
 
   _QuiHeroText.fromFlight(_QuiHeroTextFlight flight)
     : text = flight.text,
@@ -19,6 +24,7 @@ final class _QuiHeroText extends QuiHero {
       overflow = flight.overflow,
       maxLines = flight.maxLines,
       padding = flight.padding,
+      switchThreshold = flight.switchThreshold,
       super._(tag: null, defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
 
   final String text;
@@ -27,20 +33,24 @@ final class _QuiHeroText extends QuiHero {
   final TextOverflow? overflow;
   final int? maxLines;
   final EdgeInsetsGeometry? padding;
+  final double switchThreshold;
 
   static _QuiHeroTextFlight _lerpTextFlight({
     required _QuiHeroTextFlight from,
     required _QuiHeroTextFlight to,
     required double value,
+    required HeroFlightDirection flightDirection,
   }) {
-    final showBegin = value < 0.5;
+    final lerpValue = flightDirection == HeroFlightDirection.push ? value : (1 - value);
+    final showBegin = lerpValue < from.switchThreshold;
     return _QuiHeroTextFlight(
       text: showBegin ? from.text : to.text,
-      style: TextStyle.lerp(from.style, to.style, value)!,
+      style: TextStyle.lerp(from.style, to.style, lerpValue)!,
       maxLines: showBegin ? from.maxLines : to.maxLines,
       overflow: showBegin ? from.overflow : to.overflow,
       textAlign: showBegin ? from.textAlign : to.textAlign,
-      padding: EdgeInsetsGeometry.lerp(from.padding, to.padding, value),
+      padding: EdgeInsetsGeometry.lerp(from.padding, to.padding, lerpValue),
+      switchThreshold: from.switchThreshold,
     );
   }
 
@@ -53,11 +63,9 @@ final class _QuiHeroText extends QuiHero {
   ) {
     final fromText = _textFromHeroContext(fromHeroContext);
     final toText = _textFromHeroContext(toHeroContext);
-    final begin = flightDirection == HeroFlightDirection.push ? fromText : toText;
-    final end = flightDirection == HeroFlightDirection.push ? toText : fromText;
 
-    if (_hasSamePresentation(begin: begin, end: end)) {
-      return RepaintBoundary(child: begin);
+    if (_hasSamePresentation(begin: fromText, end: toText)) {
+      return RepaintBoundary(child: fromText);
     }
 
     return RepaintBoundary(
@@ -65,7 +73,12 @@ final class _QuiHeroText extends QuiHero {
         animation: animation,
         builder: (context, child) {
           return RepaintBoundary(
-            child: _lerpTextFlight(from: begin, to: end, value: Curves.easeOutCubic.transform(animation.value)),
+            child: _lerpTextFlight(
+              from: fromText,
+              to: toText,
+              value: Curves.easeOutCubic.transform(animation.value),
+              flightDirection: flightDirection,
+            ),
           );
         },
       ),
@@ -95,6 +108,7 @@ final class _QuiHeroText extends QuiHero {
       overflow: overflow,
       maxLines: maxLines,
       padding: padding,
+      switchThreshold: switchThreshold,
     );
   }
 
@@ -111,6 +125,7 @@ final class _QuiHeroText extends QuiHero {
           overflow: overflow,
           maxLines: maxLines,
           padding: padding,
+          switchThreshold: switchThreshold,
         ),
         to: _QuiHeroTextFlight(
           text: endText.text,
@@ -119,8 +134,10 @@ final class _QuiHeroText extends QuiHero {
           overflow: endText.overflow,
           maxLines: endText.maxLines,
           padding: endText.padding,
+          switchThreshold: endText.switchThreshold,
         ),
         value: value,
+        flightDirection: HeroFlightDirection.push,
       ),
     );
   }

@@ -61,4 +61,72 @@ void main() {
     });
 
   });
+
+  group('QuiHero.text switchThreshold', () {
+    test('when creating with switchThreshold 0.5, it should not throw', () {
+      expect(
+        () => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0.5),
+        returnsNormally,
+      );
+    });
+
+    test('when creating with switchThreshold 0.8, it should not throw', () {
+      expect(
+        () => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0.8),
+        returnsNormally,
+      );
+    });
+
+    test('when creating with switchThreshold 0.2, it should not throw', () {
+      expect(
+        () => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0.2),
+        returnsNormally,
+      );
+    });
+
+    test('when creating with switchThreshold 0.0, it should not throw', () {
+      expect(
+        () => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0.0),
+        returnsNormally,
+      );
+    });
+
+    test('when creating with switchThreshold 1.0, it should not throw', () {
+      expect(
+        () => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 1.0),
+        returnsNormally,
+      );
+    });
+
+    test('when creating with switchThreshold -0.1, it should throw an assertion error', () {
+      expect(
+        () => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: -0.1),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
+    test('when creating with switchThreshold 1.5, it should throw an assertion error', () {
+      expect(
+        () => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 1.5),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
+    testWidgets('when building with switchThreshold 0.8, it should display the text', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: QuiHero.text(
+              tag: 'test',
+              text: 'Custom Threshold',
+              switchThreshold: 0.8,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Custom Threshold'), findsOneWidget);
+    });
+  });
 }

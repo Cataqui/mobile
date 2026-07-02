@@ -7,6 +7,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     required this.textAlign,
     required this.overflow,
     required this.maxLines,
+    required this.switchThreshold,
     this.padding,
   });
 
@@ -16,6 +17,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
   final TextOverflow? overflow;
   final int? maxLines;
   final EdgeInsetsGeometry? padding;
+  final double switchThreshold;
 
   @override
   Widget build(BuildContext context) {
