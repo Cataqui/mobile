@@ -106,7 +106,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
               final offset = Offset.lerp(begin.offset, end.offset, progress)!;
               final size = Size.lerp(begin.size, end.size, progress)!;
               final width = constraints.hasBoundedWidth ? constraints.maxWidth - offset.dx : size.width;
-              final childHeight = _positionedChildHeight(
+              final positionedChild = _positionedChild(
                 context: context,
                 hero: heroes[index],
                 width: width,
@@ -115,6 +115,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
                 beginLayoutWidth: begin.layoutWidth,
                 endLayoutWidth: end.layoutWidth,
               );
+              final childHeight = positionedChild.estimatedHeight ?? size.height;
               final top = _positionedChildTop(
                 index: index,
                 offset: offset,
@@ -122,18 +123,10 @@ class _QuiHeroGroupContent extends StatelessWidget {
                 beginMetrics: beginMetrics,
                 endMetrics: endMetrics,
               );
-              final child = _buildPositionedChild(
-                context: context,
-                hero: heroes[index],
-                beginSize: begin.size,
-                endSize: end.size,
-                beginLayoutWidth: begin.layoutWidth,
-                endLayoutWidth: end.layoutWidth,
-              );
 
               previousBottom = top + childHeight;
 
-              return Positioned(left: offset.dx, top: top, width: math.max(0, width), child: child);
+              return Positioned(left: offset.dx, top: top, width: math.max(0, width), child: positionedChild.child);
             }),
           ),
         );
@@ -141,7 +134,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
     );
   }
 
-  double _positionedChildHeight({
+  ({Widget child, double? estimatedHeight}) _positionedChild({
     required BuildContext context,
     required QuiHero hero,
     required double width,
@@ -151,7 +144,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
     required double endLayoutWidth,
   }) {
     if (hero is _QuiHeroText) {
-      final estimatedHeight = hero._estimatedFlightHeight(
+      final textFlight = hero._buildWithEndpointMetricsAndEstimatedHeight(
         context: context,
         width: width,
         beginSize: beginSize,
@@ -159,10 +152,10 @@ class _QuiHeroGroupContent extends StatelessWidget {
         beginLayoutWidth: beginLayoutWidth,
         endLayoutWidth: endLayoutWidth,
       );
-      if (estimatedHeight != null) return estimatedHeight;
+      return (child: textFlight.hero, estimatedHeight: textFlight.estimatedHeight);
     }
 
-    return Size.lerp(beginSize, endSize, flightValue)!.height;
+    return (child: hero, estimatedHeight: null);
   }
 
   double _positionedChildTop({
@@ -180,26 +173,5 @@ class _QuiHeroGroupContent extends StatelessWidget {
     final gap = beginGap + (endGap - beginGap) * flightValue;
 
     return math.max(offset.dy, previousBottom + gap);
-  }
-
-  Widget _buildPositionedChild({
-    required BuildContext context,
-    required QuiHero hero,
-    required Size beginSize,
-    required Size endSize,
-    required double beginLayoutWidth,
-    required double endLayoutWidth,
-  }) {
-    if (hero is _QuiHeroText) {
-      return hero._buildWithEndpointMetrics(
-        context: context,
-        beginSize: beginSize,
-        endSize: endSize,
-        beginLayoutWidth: beginLayoutWidth,
-        endLayoutWidth: endLayoutWidth,
-      );
-    }
-
-    return hero;
   }
 }

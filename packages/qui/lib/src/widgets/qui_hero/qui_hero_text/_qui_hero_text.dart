@@ -150,30 +150,7 @@ final class _QuiHeroText extends QuiHero {
     );
   }
 
-  _QuiHeroText _buildWithEndpointMetrics({
-    required BuildContext context,
-    required Size beginSize,
-    required Size endSize,
-    required double beginLayoutWidth,
-    required double endLayoutWidth,
-  }) {
-    final flight = this.flight;
-    if (flight == null) return this;
-
-    final endpointMaxLines = flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize);
-
-    return _QuiHeroText.fromFlight(
-      flight._copyWith(
-        endpointMaxLines: endpointMaxLines,
-        endpointReservedLayoutWidth: flight._endpointReservedLayoutWidthFor(
-          beginLayoutWidth: beginLayoutWidth,
-          endLayoutWidth: endLayoutWidth,
-        ),
-      ),
-    );
-  }
-
-  double? _estimatedFlightHeight({
+  ({_QuiHeroText hero, double? estimatedHeight}) _buildWithEndpointMetricsAndEstimatedHeight({
     required BuildContext context,
     required double width,
     required Size beginSize,
@@ -182,7 +159,7 @@ final class _QuiHeroText extends QuiHero {
     required double endLayoutWidth,
   }) {
     final flight = this.flight;
-    if (flight == null) return null;
+    if (flight == null) return (hero: this, estimatedHeight: null);
 
     final endpointMaxLines = flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize);
     final measuredFlight = flight._copyWith(
@@ -193,7 +170,10 @@ final class _QuiHeroText extends QuiHero {
       ),
     );
 
-    return measuredFlight._estimatedHeightForWidth(context: context, width: width);
+    return (
+      hero: _QuiHeroText.fromFlight(measuredFlight),
+      estimatedHeight: measuredFlight._estimatedHeightForWidth(context: context, width: width),
+    );
   }
 
   @override
