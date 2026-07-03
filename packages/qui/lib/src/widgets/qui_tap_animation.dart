@@ -13,6 +13,7 @@ class QuiTapAnimation extends StatefulWidget {
     super.key,
     this.onPressed,
     this.animation = QuiTapAnimationType.scaleFade,
+    this.fireHapticFeedback = true,
   });
 
   /// Widget that receives the tap feedback.
@@ -26,6 +27,12 @@ class QuiTapAnimation extends StatefulWidget {
   ///
   /// When null, the child renders without pointer feedback and ignores taps.
   final Future<void> Function(Future<void> animation)? onPressed;
+
+  /// Whether haptic feedback fires when the widget is pressed.
+  ///
+  /// When `false`, [HapticFeedback.lightImpact] is not called. Defaults to
+  /// `true`.
+  final bool fireHapticFeedback;
 
   /// The tap feedback style.
   final QuiTapAnimationType animation;
@@ -97,7 +104,9 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderSt
 
   void _handleTapDown(TapDownDetails details) {
     if (!_isEnabled) return;
-    HapticFeedback.lightImpact();
+    if (widget.fireHapticFeedback) {
+      HapticFeedback.lightImpact();
+    }
 
     _releaseRequested = false;
     _releaseCompleter?.complete();

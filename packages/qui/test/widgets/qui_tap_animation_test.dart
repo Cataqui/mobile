@@ -148,6 +148,64 @@ void main() {
       addTearDown(gesture.up);
     });
 
+    testWidgets('when fireHapticFeedback is true, it should fire haptic feedback', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) {
+          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiTapAnimation(
+            fireHapticFeedback: true,
+            onPressed: (animation) async {},
+            child: const Text('Tap'),
+          ),
+        ),
+      );
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
+      await tester.pump();
+
+      expect(hapticCalls, hasLength(1));
+      expect(hapticCalls[0].method, equals('HapticFeedback.vibrate'));
+
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 800));
+    });
+
+    testWidgets('when fireHapticFeedback is false, it should not fire haptic feedback', (tester) async {
+      final hapticCalls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) {
+          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiTapAnimation(
+            fireHapticFeedback: false,
+            onPressed: (animation) async {},
+            child: const Text('Tap'),
+          ),
+        ),
+      );
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Tap')));
+      await tester.pump();
+
+      expect(hapticCalls, isEmpty);
+
+      addTearDown(gesture.up);
+    });
+
     testWidgets('when scale animation type is used, it should render ScaleTransition without FadeTransition', (tester) async {
       await tester.pumpWidget(
         TestApp(
