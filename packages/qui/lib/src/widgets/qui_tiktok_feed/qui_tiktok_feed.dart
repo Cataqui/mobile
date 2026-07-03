@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/lottie/qui_lottie.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
@@ -202,7 +203,6 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   static const _settleDuration = Duration(milliseconds: 260);
   static const _commitDuration = Duration(milliseconds: 220);
   static const _swipeThreshold = 0.25;
-  static const _flingVelocityThreshold = 700.0;
 
   late final AnimationController _animationController;
 
@@ -444,7 +444,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   }
 
   Future<void> _finishAwaitDrag(DragEndDetails details) async {
-    final velocity = details.velocity.pixelsPerSecond.dy;
+    final velocity = details.velocity;
 
     if (_isAwaitWaiting) {
       await _finishWaitingAwaitDrag(velocity: velocity);
@@ -459,7 +459,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     await _exitAwaitDrag();
   }
 
-  Future<void> _finishWaitingAwaitDrag({required double velocity}) async {
+  Future<void> _finishWaitingAwaitDrag({required Velocity velocity}) async {
     if (_shouldExitWaiting(velocity: velocity)) {
       await _exitAwaitDrag();
       return;
@@ -469,7 +469,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   }
 
   Future<void> _finishRegularDrag(DragEndDetails details) async {
-    final velocity = details.velocity.pixelsPerSecond.dy;
+    final velocity = details.velocity;
     final shouldCommit = _shouldCommitSwipe(velocity: velocity);
 
     if (!shouldCommit) {
@@ -492,24 +492,29 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     await _snapBack();
   }
 
-  bool _shouldCommitSwipe({required double velocity}) {
+  bool _shouldCommitSwipe({required Velocity velocity}) {
     final progress = (_dragOffsetY.abs() / _viewportHeight).clamp(0, 1);
 
-    return progress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
+    return progress >= _swipeThreshold ||
+        velocity.isSwipeUp(requireVerticalDominance: false) ||
+        velocity.isSwipeDown(requireVerticalDominance: false);
   }
 
-  bool _isNextSwipe({required double velocity}) {
-    return _dragOffsetY < 0 || (_dragOffsetY == 0 && velocity < 0);
+  bool _isNextSwipe({required Velocity velocity}) {
+    return _dragOffsetY < 0 || (_dragOffsetY == 0 && velocity.isSwipeUp(requireVerticalDominance: false));
   }
 
-  bool _shouldCommitAwait({required double velocity}) {
-    final metThreshold = _awaitDragProgress >= _swipeThreshold || velocity.abs() >= _flingVelocityThreshold;
+  bool _shouldCommitAwait({required Velocity velocity}) {
+    final metThreshold =
+        _awaitDragProgress >= _swipeThreshold ||
+        velocity.isSwipeUp(requireVerticalDominance: false) ||
+        velocity.isSwipeDown(requireVerticalDominance: false);
 
-    return metThreshold && (_awaitDragProgress > 0 || velocity < 0);
+    return metThreshold && (_awaitDragProgress > 0 || velocity.isSwipeUp(requireVerticalDominance: false));
   }
 
-  bool _shouldExitWaiting({required double velocity}) {
-    return velocity > 0 || _awaitDragProgress < 0.95;
+  bool _shouldExitWaiting({required Velocity velocity}) {
+    return velocity.pixelsPerSecond.dy > 0 || _awaitDragProgress < 0.95;
   }
 
   Future<void> _commitAwaitDrag() async {
