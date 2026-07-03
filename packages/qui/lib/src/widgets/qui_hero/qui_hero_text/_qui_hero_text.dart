@@ -40,6 +40,7 @@ final class _QuiHeroText extends QuiHero {
     required _QuiHeroTextFlight to,
     required double value,
     required HeroFlightDirection flightDirection,
+    _QuiHeroTextFlightMetrics? flightMetrics,
   }) {
     final lerpValue = flightDirection == HeroFlightDirection.push ? value : (1 - value);
     final showBegin = lerpValue < from.switchThreshold;
@@ -63,6 +64,7 @@ final class _QuiHeroText extends QuiHero {
         switchThreshold: from.switchThreshold,
         progressiveClampMaxLines: progressiveClampMaxLines,
       ),
+      flightMetrics: flightMetrics,
     );
   }
 
@@ -103,6 +105,12 @@ final class _QuiHeroText extends QuiHero {
       return RepaintBoundary(child: fromText._copyWith(shortenToBounds: true));
     }
 
+    final flightMetrics = _QuiHeroTextFlightMetrics.precompute(
+      context: flightContext,
+      from: fromText,
+      to: toText,
+    );
+
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: animation,
@@ -112,6 +120,7 @@ final class _QuiHeroText extends QuiHero {
             to: toText,
             value: Curves.easeOutCubic.transform(animation.value),
             flightDirection: flightDirection,
+            flightMetrics: flightMetrics,
           );
         },
       ),
@@ -161,6 +170,20 @@ final class _QuiHeroText extends QuiHero {
     final flight = this.flight;
     if (flight == null) return (hero: this, estimatedHeight: null);
 
+    if (flight.flightMetrics != null) {
+      final measuredFlight = flight._copyWith(
+        endpointMaxLines: flight.flightMetrics!.endpointMaxLines,
+        endpointReservedLayoutWidth: flight._endpointReservedLayoutWidthFor(
+          beginLayoutWidth: beginLayoutWidth,
+          endLayoutWidth: endLayoutWidth,
+        ),
+      );
+      return (
+        hero: _QuiHeroText.fromFlight(measuredFlight),
+        estimatedHeight: measuredFlight._estimatedHeightForWidth(context: context, width: width),
+      );
+    }
+
     final endpointMaxLines = flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize);
     final measuredFlight = flight._copyWith(
       endpointMaxLines: endpointMaxLines,
@@ -194,6 +217,7 @@ final class _QuiHeroText extends QuiHero {
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
+    _QuiHeroTextFlightMetrics? flightMetrics,
   }) {
     final endText = end as _QuiHeroText;
 
@@ -220,6 +244,7 @@ final class _QuiHeroText extends QuiHero {
         ),
         value: value,
         flightDirection: flightDirection,
+        flightMetrics: flightMetrics,
       ),
     );
   }

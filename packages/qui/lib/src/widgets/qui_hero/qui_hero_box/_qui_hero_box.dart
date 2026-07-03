@@ -98,6 +98,7 @@ final class _QuiHeroBox extends QuiHero {
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
+    _QuiHeroTextFlightMetrics? flightMetrics,
   }) {
     final endBox = end as _QuiHeroBox;
     final lerpValue = flightDirection == HeroFlightDirection.push ? value : (1 - value);

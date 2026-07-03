@@ -145,47 +145,48 @@ void main() {
     });
 
     testWidgets(
-      'when a grouped title flies from a narrow card to a wide card, it should wrap inside the flight width',
+      'when the source width is narrower than the destination width, it should wrap text within the available flight width',
       (tester) async {
-        await tester.pumpWidget(const _GroupedTitleFlightWidthTestApp());
-        await tester.tap(find.text(_GroupedTitleFlightWidthTestApp.title));
+        await tester.pumpWidget(const _GroupedWidthWrapFlightTestApp());
+        await tester.tap(find.text(_GroupedWidthWrapFlightTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 16));
 
-        expect(_GroupedTitleFlightWidthTestApp.hasTitleOverflow(tester), isFalse);
+        expect(_GroupedWidthWrapFlightTestApp.hasTitleOverflow(tester), isFalse);
       },
     );
 
-    testWidgets('when a grouped title pops from a wide card, it should stay on one line while the flight is wide', (
-      tester,
-    ) async {
-      await tester.pumpWidget(const _GroupedTitlePopWidthTestApp());
-      await tester.tap(find.text(_GroupedTitlePopWidthTestApp.title));
-      await tester.pump();
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(_GroupedTitlePopWidthTestApp.title));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 16));
-
-      expect(_GroupedTitlePopWidthTestApp.hasTwoLineFlightTitle(tester), isFalse);
-    });
-
     testWidgets(
-      'when a grouped full description pops back to a card summary, it should progressively reduce visible lines',
+      'when popping to a narrower source width, it should keep the title on a single line while the flight width matches the destination width',
       (tester) async {
-        await tester.pumpWidget(const _GroupedDescriptionPopLineClampTestApp());
-        await tester.tap(find.text(_GroupedDescriptionPopLineClampTestApp.summary));
+        await tester.pumpWidget(const _GroupedWidthUnwrapPopTestApp());
+        await tester.tap(find.text(_GroupedWidthUnwrapPopTestApp.title));
         await tester.pump();
         await tester.pumpAndSettle();
-        await tester.tap(find.text(_GroupedDescriptionPopLineClampTestApp.description));
+        await tester.tap(find.text(_GroupedWidthUnwrapPopTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 16));
 
-        final firstFrameMaxLines = _GroupedDescriptionPopLineClampTestApp.flightDescriptionMaxLines(tester);
+        expect(_GroupedWidthUnwrapPopTestApp.hasTwoLineFlightTitle(tester), isFalse);
+      },
+    );
+
+    testWidgets(
+      'when popping from a multi-line destination to a clamped source, it should progressively reduce visible lines during the reverse flight',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedLineClampPopTestApp());
+        await tester.tap(find.text(_GroupedLineClampPopTestApp.summary));
+        await tester.pump();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(_GroupedLineClampPopTestApp.description));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 16));
+
+        final firstFrameMaxLines = _GroupedLineClampPopTestApp.flightDescriptionMaxLines(tester);
 
         await tester.pump(const Duration(milliseconds: 32));
 
-        final secondFrameMaxLines = _GroupedDescriptionPopLineClampTestApp.flightDescriptionMaxLines(tester);
+        final secondFrameMaxLines = _GroupedLineClampPopTestApp.flightDescriptionMaxLines(tester);
         expect(
           secondFrameMaxLines < firstFrameMaxLines,
           isTrue,
@@ -195,41 +196,41 @@ void main() {
     );
 
     testWidgets(
-      'when a grouped header opens to lower detail text, it should move the title and payment down toward the detail screen',
+      "when the destination positions children lower than the source, each child's vertical offset should transition monotonically toward the destination position during the forward flight",
       (tester) async {
-        await tester.pumpWidget(const _GroupedHeaderVerticalOffsetTestApp());
+        await tester.pumpWidget(const _GroupedVerticalTransitionTestApp());
 
-        final sourceTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final sourceTitleTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.title,
+          _GroupedVerticalTransitionTestApp.title,
         );
-        final sourcePaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final sourcePaymentTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.payment,
+          _GroupedVerticalTransitionTestApp.payment,
         );
 
-        await tester.tap(find.text(_GroupedHeaderVerticalOffsetTestApp.title));
+        await tester.tap(find.text(_GroupedVerticalTransitionTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 80));
 
-        final flightTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final flightTitleTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.title,
+          _GroupedVerticalTransitionTestApp.title,
         );
-        final flightPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final flightPaymentTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.payment,
+          _GroupedVerticalTransitionTestApp.payment,
         );
 
         await tester.pumpAndSettle();
 
-        final destinationTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final destinationTitleTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.title,
+          _GroupedVerticalTransitionTestApp.title,
         );
-        final destinationPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final destinationPaymentTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.payment,
+          _GroupedVerticalTransitionTestApp.payment,
         );
 
         expect((
@@ -242,43 +243,43 @@ void main() {
     );
 
     testWidgets(
-      'when a grouped header closes to higher card text, it should move the title and payment up toward the card',
+      "when popping to a source with higher child positions, each child's vertical offset should transition monotonically toward the source position",
       (tester) async {
-        await tester.pumpWidget(const _GroupedHeaderVerticalOffsetTestApp());
+        await tester.pumpWidget(const _GroupedVerticalTransitionTestApp());
 
-        final sourceTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final sourceTitleTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.title,
+          _GroupedVerticalTransitionTestApp.title,
         );
-        final sourcePaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final sourcePaymentTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.payment,
+          _GroupedVerticalTransitionTestApp.payment,
         );
 
-        await tester.tap(find.text(_GroupedHeaderVerticalOffsetTestApp.title));
+        await tester.tap(find.text(_GroupedVerticalTransitionTestApp.title));
         await tester.pump();
         await tester.pumpAndSettle();
 
-        final destinationTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final destinationTitleTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.title,
+          _GroupedVerticalTransitionTestApp.title,
         );
-        final destinationPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final destinationPaymentTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.payment,
+          _GroupedVerticalTransitionTestApp.payment,
         );
 
-        await tester.tap(find.text(_GroupedHeaderVerticalOffsetTestApp.title));
+        await tester.tap(find.text(_GroupedVerticalTransitionTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 80));
 
-        final flightTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final flightTitleTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.title,
+          _GroupedVerticalTransitionTestApp.title,
         );
-        final flightPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+        final flightPaymentTop = _GroupedVerticalTransitionTestApp.textTop(
           tester,
-          _GroupedHeaderVerticalOffsetTestApp.payment,
+          _GroupedVerticalTransitionTestApp.payment,
         );
 
         expect((
@@ -291,29 +292,29 @@ void main() {
     );
 
     testWidgets(
-      'when a grouped header title closes with enough card width, it should rewrap from two lines to one line during the flight',
+      'when popping to a source with greater width, it should rewrap the title from multiple lines to fewer lines during the reverse flight',
       (tester) async {
-        await tester.pumpWidget(const _GroupedHeaderDynamicWrapTestApp());
-        await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
+        await tester.pumpWidget(const _GroupedWidthWrapTransitionTestApp());
+        await tester.tap(find.text(_GroupedWidthWrapTransitionTestApp.title));
         await tester.pump();
         await tester.pumpAndSettle();
-        await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
+        await tester.tap(find.text(_GroupedWidthWrapTransitionTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 360));
 
-        expect(_GroupedHeaderDynamicWrapTestApp.flightTitleLineCount(tester), equals(1));
+        expect(_GroupedWidthWrapTransitionTestApp.flightTitleLineCount(tester), equals(1));
       },
     );
 
     testWidgets(
-      'when a grouped title opens into multiple lines, it should move the payment below the title during the flight',
+      "when a hero's line count increases during flight, it should reposition subsequent siblings downward proportionally to maintain vertical gap",
       (tester) async {
-        await tester.pumpWidget(const _GroupedHeaderSiblingWrapTestApp());
-        await tester.tap(find.text(_GroupedHeaderSiblingWrapTestApp.title));
+        await tester.pumpWidget(const _GroupedSiblingDisplacementTestApp());
+        await tester.tap(find.text(_GroupedSiblingDisplacementTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
 
-        final sample = _GroupedHeaderSiblingWrapTestApp.flightSample(tester);
+        final sample = _GroupedSiblingDisplacementTestApp.flightSample(tester);
 
         expect(
           (sample.titleLineCount >= 2, sample.paymentTop >= sample.titleBottom - 6),
@@ -324,19 +325,19 @@ void main() {
     );
 
     testWidgets(
-      'when a grouped title needs two card lines and three detail lines, it should not add a fourth line or ellipsis during the flight',
+      "when the source and destination have different line counts, it should never exceed the maximum of both endpoints' line counts nor inject ellipsis during the flight",
       (tester) async {
-        await tester.pumpWidget(const _GroupedHeaderEndpointLineCeilingTestApp());
-        await tester.tap(find.text(_GroupedHeaderEndpointLineCeilingTestApp.title));
+        await tester.pumpWidget(const _GroupedLineCeilingTestApp());
+        await tester.tap(find.text(_GroupedLineCeilingTestApp.title));
         await tester.pump();
 
         final samples = <({bool hasEllipsis, int lineCount})>[];
         var elapsed = Duration.zero;
 
-        for (final sample in _GroupedHeaderEndpointLineCeilingTestApp.samples) {
+        for (final sample in _GroupedLineCeilingTestApp.samples) {
           await tester.pump(sample - elapsed);
           elapsed = sample;
-          samples.add(_GroupedHeaderEndpointLineCeilingTestApp.titleFlightSample(tester));
+          samples.add(_GroupedLineCeilingTestApp.titleFlightSample(tester));
         }
 
         expect(
@@ -348,92 +349,94 @@ void main() {
     );
 
     testWidgets(
-      'when a grouped title would paint past the hero edge, it should wrap without ellipsis during the flight',
+      'when text would overflow the flight width, it should wrap without ellipsis to avoid cropping mid-flight',
       (tester) async {
-        await tester.pumpWidget(const _GroupedHeaderBorderWrapTestApp());
-        await tester.tap(find.text(_GroupedHeaderBorderWrapTestApp.title));
+        await tester.pumpWidget(const _GroupedOverflowWrapTestApp());
+        await tester.tap(find.text(_GroupedOverflowWrapTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
 
-        final sample = _GroupedHeaderBorderWrapTestApp.titleFlightSample(tester);
+        final sample = _GroupedOverflowWrapTestApp.titleFlightSample(tester);
 
         expect((sample.lineCount >= 2, sample.hasEllipsis), equals((true, false)), reason: 'sample=$sample');
       },
     );
 
     testWidgets(
-      'when a grouped title is closing before one-line space is available, it should stay wrapped without ellipsis',
+      'when popping and the flight width is still narrower than single-line space, it should keep wrapping without ellipsis',
       (tester) async {
-        await tester.pumpWidget(const _GroupedHeaderBorderWrapTestApp());
-        await tester.tap(find.text(_GroupedHeaderBorderWrapTestApp.title));
+        await tester.pumpWidget(const _GroupedOverflowWrapTestApp());
+        await tester.tap(find.text(_GroupedOverflowWrapTestApp.title));
         await tester.pump();
         await tester.pumpAndSettle();
-        await tester.tap(find.text(_GroupedHeaderBorderWrapTestApp.title));
+        await tester.tap(find.text(_GroupedOverflowWrapTestApp.title));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 120));
 
-        final sample = _GroupedHeaderBorderWrapTestApp.titleFlightSample(tester);
+        final sample = _GroupedOverflowWrapTestApp.titleFlightSample(tester);
 
         expect((sample.lineCount >= 2, sample.hasEllipsis), equals((true, false)), reason: 'sample=$sample');
       },
     );
 
-    testWidgets('when a grouped header title finishes closing, it should keep the same height when the card settles', (
-      tester,
-    ) async {
-      await tester.pumpWidget(const _GroupedHeaderDynamicWrapTestApp());
-      await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
-      await tester.pump();
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
-      await tester.pump();
-      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration - const Duration(milliseconds: 1));
+    testWidgets(
+      'when the reverse animation completes, the flight title height should match the settled source title height within tolerance',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedWidthWrapTransitionTestApp());
+        await tester.tap(find.text(_GroupedWidthWrapTransitionTestApp.title));
+        await tester.pump();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(_GroupedWidthWrapTransitionTestApp.title));
+        await tester.pump();
+        await tester.pump(QuiHeroPage.defaultReverseTransitionDuration - const Duration(milliseconds: 1));
 
-      final flightHeight = _GroupedHeaderDynamicWrapTestApp.titleHeight(tester);
+        final flightHeight = _GroupedWidthWrapTransitionTestApp.titleHeight(tester);
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      final settledHeight = _GroupedHeaderDynamicWrapTestApp.titleHeight(tester);
+        final settledHeight = _GroupedWidthWrapTransitionTestApp.titleHeight(tester);
 
-      expect((flightHeight - settledHeight).abs() < 2, isTrue);
-    });
+        expect((flightHeight - settledHeight).abs() < 2, isTrue);
+      },
+    );
 
-    testWidgets('when a grouped title changes font size while closing, it should avoid sudden painted baseline jumps', (
-      tester,
-    ) async {
-      await tester.pumpWidget(const _GroupedHeaderBaselineTestApp());
+    testWidgets(
+      'when font size interpolates during the reverse flight, the painted baseline should move smoothly toward the source without sudden jumps',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedBaselineSmoothnessTestApp());
 
-      await tester.tap(find.text(_GroupedHeaderBaselineTestApp.title));
-      await tester.pump();
-      await tester.pumpAndSettle();
+        await tester.tap(find.text(_GroupedBaselineSmoothnessTestApp.title));
+        await tester.pump();
+        await tester.pumpAndSettle();
 
-      final baselines = <double>[];
-      var elapsed = Duration.zero;
+        final baselines = <double>[];
+        var elapsed = Duration.zero;
 
-      await tester.tap(find.text(_GroupedHeaderBaselineTestApp.title));
-      await tester.pump();
+        await tester.tap(find.text(_GroupedBaselineSmoothnessTestApp.title));
+        await tester.pump();
 
-      for (final sample in _GroupedHeaderBaselineTestApp.samples) {
-        await tester.pump(sample - elapsed);
-        elapsed = sample;
-        baselines.add(_GroupedHeaderBaselineTestApp.titleBaseline(tester));
-      }
+        for (final sample in _GroupedBaselineSmoothnessTestApp.samples) {
+          await tester.pump(sample - elapsed);
+          elapsed = sample;
+          baselines.add(_GroupedBaselineSmoothnessTestApp.titleBaseline(tester));
+        }
 
-      final deltas = [
-        for (var index = 1; index < baselines.length; index += 1) baselines[index] - baselines[index - 1],
-      ];
-      final magnitudes = deltas.map((delta) => delta.abs()).toList();
-      final isAlwaysMovingTowardCard = deltas.every((delta) => delta < 0);
-      final hasNoMidFlightSpike = [
-        for (var index = 2; index < magnitudes.length; index += 1) magnitudes[index] <= magnitudes[index - 1] + 0.5,
-      ].every((isSmooth) => isSmooth);
+        final deltas = [
+          for (var index = 1; index < baselines.length; index += 1) baselines[index] - baselines[index - 1],
+        ];
+        final magnitudes = deltas.map((delta) => delta.abs()).toList();
+        final isAlwaysMovingTowardCard = deltas.every((delta) => delta < 0);
+        final hasNoMidFlightSpike = [
+          for (var index = 2; index < magnitudes.length; index += 1) magnitudes[index] <= magnitudes[index - 1] + 0.5,
+        ].every((isSmooth) => isSmooth);
 
-      expect(
-        (isAlwaysMovingTowardCard, hasNoMidFlightSpike),
-        equals((true, true)),
-        reason: 'baselines=$baselines deltas=$deltas',
-      );
-    });
+        expect(
+          (isAlwaysMovingTowardCard, hasNoMidFlightSpike),
+          equals((true, true)),
+          reason: 'baselines=$baselines deltas=$deltas',
+        );
+      },
+    );
   });
 
   group('QuiHero optional tags', () {
@@ -504,6 +507,36 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets(
+      "when popping, the payment text's top offset should move monotonically upward during the reverse flight without jumping",
+      (tester) async {
+        await tester.pumpWidget(const _GroupedTextEstimatedHeightRegressionTestApp());
+        await tester.tap(find.text(_GroupedTextEstimatedHeightRegressionTestApp.title));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(_GroupedTextEstimatedHeightRegressionTestApp.title));
+        await tester.pump();
+
+        final samples = <({double paymentTop, double titleBottom})>[];
+        var elapsed = Duration.zero;
+
+        for (final sampleTime in _GroupedTextEstimatedHeightRegressionTestApp.samples) {
+          await tester.pump(sampleTime - elapsed);
+          elapsed = sampleTime;
+          samples.add(_GroupedTextEstimatedHeightRegressionTestApp.flightSample(tester));
+        }
+
+        for (var i = 1; i < samples.length; i++) {
+          expect(
+            samples[i].paymentTop,
+            lessThan(samples[i - 1].paymentTop),
+            reason: 'Frame $i: payment jumped instead of moving up smoothly. samples=$samples',
+          );
+        }
+      },
+    );
   });
 }
 
@@ -552,8 +585,8 @@ class _MismatchedGroupTestApp extends StatelessWidget {
   }
 }
 
-class _GroupedTitleFlightWidthTestApp extends StatelessWidget {
-  const _GroupedTitleFlightWidthTestApp();
+class _GroupedWidthWrapFlightTestApp extends StatelessWidget {
+  const _GroupedWidthWrapFlightTestApp();
 
   static const title = 'Oficial Mecanico de Refrigeracao Veicular';
 
@@ -579,12 +612,12 @@ class _GroupedTitleFlightWidthTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(builder: _GroupedTitleFlightWidthTestApp.buildDestination).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedWidthWrapFlightTestApp.buildDestination).createRoute(context),
                 );
               },
               child: const SizedBox(
                 width: 180,
-                child: _GroupedTitleFlightWidthTestAppHeader(title: _GroupedTitleFlightWidthTestApp.title),
+                child: _GroupedWidthWrapFlightLayout(title: _GroupedWidthWrapFlightTestApp.title),
               ),
             ),
           ),
@@ -597,14 +630,14 @@ class _GroupedTitleFlightWidthTestApp extends StatelessWidget {
     return const Scaffold(
       body: Align(
         alignment: Alignment.topLeft,
-        child: SizedBox(width: 360, child: _GroupedTitleFlightWidthTestAppHeader(title: 'Detalhes da oportunidade')),
+        child: SizedBox(width: 360, child: _GroupedWidthWrapFlightLayout(title: 'Detalhes da oportunidade')),
       ),
     );
   }
 }
 
-class _GroupedTitleFlightWidthTestAppHeader extends StatelessWidget {
-  const _GroupedTitleFlightWidthTestAppHeader({required this.title});
+class _GroupedWidthWrapFlightLayout extends StatelessWidget {
+  const _GroupedWidthWrapFlightLayout({required this.title});
 
   final String title;
 
@@ -632,8 +665,8 @@ class _GroupedTitleFlightWidthTestAppHeader extends StatelessWidget {
   }
 }
 
-class _GroupedTitlePopWidthTestApp extends StatelessWidget {
-  const _GroupedTitlePopWidthTestApp();
+class _GroupedWidthUnwrapPopTestApp extends StatelessWidget {
+  const _GroupedWidthUnwrapPopTestApp();
 
   static const title = 'Instrumentista';
 
@@ -660,10 +693,10 @@ class _GroupedTitlePopWidthTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(builder: _GroupedTitlePopWidthTestApp.buildDestination).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedWidthUnwrapPopTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 180, child: _GroupedTitlePopWidthTestAppHeader(width: 180, fontSize: 20)),
+              child: const SizedBox(width: 180, child: _GroupedWidthUnwrapPopLayout(width: 180, fontSize: 20)),
             ),
           ),
         ),
@@ -677,15 +710,15 @@ class _GroupedTitlePopWidthTestApp extends StatelessWidget {
         alignment: Alignment.topLeft,
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: const SizedBox(width: 360, child: _GroupedTitlePopWidthTestAppHeader(width: 360, fontSize: 20)),
+          child: const SizedBox(width: 360, child: _GroupedWidthUnwrapPopLayout(width: 360, fontSize: 20)),
         ),
       ),
     );
   }
 }
 
-class _GroupedTitlePopWidthTestAppHeader extends StatelessWidget {
-  const _GroupedTitlePopWidthTestAppHeader({required this.width, required this.fontSize});
+class _GroupedWidthUnwrapPopLayout extends StatelessWidget {
+  const _GroupedWidthUnwrapPopLayout({required this.width, required this.fontSize});
 
   final double width;
   final double fontSize;
@@ -703,7 +736,7 @@ class _GroupedTitlePopWidthTestAppHeader extends StatelessWidget {
             heroes: [
               QuiHero.text(text: '2 dias atras', style: const TextStyle(fontSize: 14)),
               QuiHero.text(
-                text: _GroupedTitlePopWidthTestApp.title,
+                text: _GroupedWidthUnwrapPopTestApp.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
@@ -717,8 +750,8 @@ class _GroupedTitlePopWidthTestAppHeader extends StatelessWidget {
   }
 }
 
-class _GroupedDescriptionPopLineClampTestApp extends StatelessWidget {
-  const _GroupedDescriptionPopLineClampTestApp();
+class _GroupedLineClampPopTestApp extends StatelessWidget {
+  const _GroupedLineClampPopTestApp();
 
   static const summary =
       'Empresa esta contratando Instrumentista para atuar no Jaragua, em Sao Paulo. Jornada de segunda a sexta.';
@@ -747,12 +780,10 @@ class _GroupedDescriptionPopLineClampTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(
-                    builder: _GroupedDescriptionPopLineClampTestApp.buildDestination,
-                  ).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedLineClampPopTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 300, child: _GroupedDescriptionHeader(description: summary, maxLines: 3)),
+              child: const SizedBox(width: 300, child: _GroupedLineClampPopLayout(description: summary, maxLines: 3)),
             ),
           ),
         ),
@@ -766,15 +797,15 @@ class _GroupedDescriptionPopLineClampTestApp extends StatelessWidget {
         alignment: Alignment.topLeft,
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: const SizedBox(width: 300, child: _GroupedDescriptionHeader(description: description)),
+          child: const SizedBox(width: 300, child: _GroupedLineClampPopLayout(description: description)),
         ),
       ),
     );
   }
 }
 
-class _GroupedDescriptionHeader extends StatelessWidget {
-  const _GroupedDescriptionHeader({required this.description, this.maxLines});
+class _GroupedLineClampPopLayout extends StatelessWidget {
+  const _GroupedLineClampPopLayout({required this.description, this.maxLines});
 
   final String description;
   final int? maxLines;
@@ -808,8 +839,8 @@ class _GroupedDescriptionHeader extends StatelessWidget {
   }
 }
 
-class _GroupedHeaderVerticalOffsetTestApp extends StatelessWidget {
-  const _GroupedHeaderVerticalOffsetTestApp();
+class _GroupedVerticalTransitionTestApp extends StatelessWidget {
+  const _GroupedVerticalTransitionTestApp();
 
   static const title = 'Vendedora de Loja';
   static const payment = r'R$150/dia';
@@ -828,10 +859,10 @@ class _GroupedHeaderVerticalOffsetTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(builder: _GroupedHeaderVerticalOffsetTestApp.buildDestination).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedVerticalTransitionTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 300, child: _GroupedHeaderVerticalOffsetHeader(isDetail: false)),
+              child: const SizedBox(width: 300, child: _GroupedVerticalTransitionLayout(isDetail: false)),
             ),
           ),
         ),
@@ -845,15 +876,15 @@ class _GroupedHeaderVerticalOffsetTestApp extends StatelessWidget {
         alignment: Alignment.topLeft,
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: const SizedBox(width: 300, child: _GroupedHeaderVerticalOffsetHeader(isDetail: true)),
+          child: const SizedBox(width: 300, child: _GroupedVerticalTransitionLayout(isDetail: true)),
         ),
       ),
     );
   }
 }
 
-class _GroupedHeaderVerticalOffsetHeader extends StatelessWidget {
-  const _GroupedHeaderVerticalOffsetHeader({required this.isDetail});
+class _GroupedVerticalTransitionLayout extends StatelessWidget {
+  const _GroupedVerticalTransitionLayout({required this.isDetail});
 
   final bool isDetail;
 
@@ -872,11 +903,11 @@ class _GroupedHeaderVerticalOffsetHeader extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
             ),
             QuiHero.text(
-              text: _GroupedHeaderVerticalOffsetTestApp.title,
+              text: _GroupedVerticalTransitionTestApp.title,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
             QuiHero.text(
-              text: _GroupedHeaderVerticalOffsetTestApp.payment,
+              text: _GroupedVerticalTransitionTestApp.payment,
               style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
             ),
           ],
@@ -886,8 +917,8 @@ class _GroupedHeaderVerticalOffsetHeader extends StatelessWidget {
   }
 }
 
-class _GroupedHeaderDynamicWrapTestApp extends StatelessWidget {
-  const _GroupedHeaderDynamicWrapTestApp();
+class _GroupedWidthWrapTransitionTestApp extends StatelessWidget {
+  const _GroupedWidthWrapTransitionTestApp();
 
   static const title = 'Cozinha Noturno';
 
@@ -930,10 +961,10 @@ class _GroupedHeaderDynamicWrapTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(builder: _GroupedHeaderDynamicWrapTestApp.buildDestination).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedWidthWrapTransitionTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 400, child: _GroupedHeaderDynamicWrapHeader(isDetail: false)),
+              child: const SizedBox(width: 400, child: _GroupedWidthWrapTransitionLayout(isDetail: false)),
             ),
           ),
         ),
@@ -947,15 +978,15 @@ class _GroupedHeaderDynamicWrapTestApp extends StatelessWidget {
         alignment: Alignment.topLeft,
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: const SizedBox(width: 400, child: _GroupedHeaderDynamicWrapHeader(isDetail: true)),
+          child: const SizedBox(width: 400, child: _GroupedWidthWrapTransitionLayout(isDetail: true)),
         ),
       ),
     );
   }
 }
 
-class _GroupedHeaderDynamicWrapHeader extends StatelessWidget {
-  const _GroupedHeaderDynamicWrapHeader({required this.isDetail});
+class _GroupedWidthWrapTransitionLayout extends StatelessWidget {
+  const _GroupedWidthWrapTransitionLayout({required this.isDetail});
 
   final bool isDetail;
 
@@ -973,7 +1004,7 @@ class _GroupedHeaderDynamicWrapHeader extends StatelessWidget {
               style: TextStyle(fontSize: isDetail ? 16 : 14),
             ),
             QuiHero.text(
-              text: _GroupedHeaderDynamicWrapTestApp.title,
+              text: _GroupedWidthWrapTransitionTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
@@ -989,8 +1020,8 @@ class _GroupedHeaderDynamicWrapHeader extends StatelessWidget {
   }
 }
 
-class _GroupedHeaderSiblingWrapTestApp extends StatelessWidget {
-  const _GroupedHeaderSiblingWrapTestApp();
+class _GroupedSiblingDisplacementTestApp extends StatelessWidget {
+  const _GroupedSiblingDisplacementTestApp();
 
   static const title = 'Atendente de Relacionamento (Voz e Chat)';
   static const payment = r'R$1.766,99/mes';
@@ -1037,10 +1068,10 @@ class _GroupedHeaderSiblingWrapTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(builder: _GroupedHeaderSiblingWrapTestApp.buildDestination).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedSiblingDisplacementTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 300, child: _GroupedHeaderSiblingWrapHeader(isDetail: false)),
+              child: const SizedBox(width: 300, child: _GroupedSiblingDisplacementLayout(isDetail: false)),
             ),
           ),
         ),
@@ -1052,14 +1083,14 @@ class _GroupedHeaderSiblingWrapTestApp extends StatelessWidget {
     return const Scaffold(
       body: Align(
         alignment: Alignment.topLeft,
-        child: SizedBox(width: 300, child: _GroupedHeaderSiblingWrapHeader(isDetail: true)),
+        child: SizedBox(width: 300, child: _GroupedSiblingDisplacementLayout(isDetail: true)),
       ),
     );
   }
 }
 
-class _GroupedHeaderSiblingWrapHeader extends StatelessWidget {
-  const _GroupedHeaderSiblingWrapHeader({required this.isDetail});
+class _GroupedSiblingDisplacementLayout extends StatelessWidget {
+  const _GroupedSiblingDisplacementLayout({required this.isDetail});
 
   final bool isDetail;
 
@@ -1078,13 +1109,13 @@ class _GroupedHeaderSiblingWrapHeader extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
             ),
             QuiHero.text(
-              text: _GroupedHeaderSiblingWrapTestApp.title,
+              text: _GroupedSiblingDisplacementTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
             QuiHero.text(
-              text: _GroupedHeaderSiblingWrapTestApp.payment,
+              text: _GroupedSiblingDisplacementTestApp.payment,
               style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
             ),
           ],
@@ -1094,8 +1125,8 @@ class _GroupedHeaderSiblingWrapHeader extends StatelessWidget {
   }
 }
 
-class _GroupedHeaderEndpointLineCeilingTestApp extends StatelessWidget {
-  const _GroupedHeaderEndpointLineCeilingTestApp();
+class _GroupedLineCeilingTestApp extends StatelessWidget {
+  const _GroupedLineCeilingTestApp();
 
   static const title = 'Auxiliar de Cozinha Noturno Agua Branca';
   static const samples = [
@@ -1144,12 +1175,10 @@ class _GroupedHeaderEndpointLineCeilingTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(
-                    builder: _GroupedHeaderEndpointLineCeilingTestApp.buildDestination,
-                  ).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedLineCeilingTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 280, child: _GroupedHeaderEndpointLineCeilingHeader(isDetail: false)),
+              child: const SizedBox(width: 280, child: _GroupedLineCeilingLayout(isDetail: false)),
             ),
           ),
         ),
@@ -1161,14 +1190,14 @@ class _GroupedHeaderEndpointLineCeilingTestApp extends StatelessWidget {
     return const Scaffold(
       body: Align(
         alignment: Alignment.topLeft,
-        child: SizedBox(width: 560, child: _GroupedHeaderEndpointLineCeilingHeader(isDetail: true)),
+        child: SizedBox(width: 560, child: _GroupedLineCeilingLayout(isDetail: true)),
       ),
     );
   }
 }
 
-class _GroupedHeaderEndpointLineCeilingHeader extends StatelessWidget {
-  const _GroupedHeaderEndpointLineCeilingHeader({required this.isDetail});
+class _GroupedLineCeilingLayout extends StatelessWidget {
+  const _GroupedLineCeilingLayout({required this.isDetail});
 
   final bool isDetail;
 
@@ -1182,7 +1211,7 @@ class _GroupedHeaderEndpointLineCeilingHeader extends StatelessWidget {
           tag: 'endpoint-line-ceiling-group',
           heroes: [
             QuiHero.text(
-              text: _GroupedHeaderEndpointLineCeilingTestApp.title,
+              text: _GroupedLineCeilingTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
@@ -1194,8 +1223,8 @@ class _GroupedHeaderEndpointLineCeilingHeader extends StatelessWidget {
   }
 }
 
-class _GroupedHeaderBorderWrapTestApp extends StatelessWidget {
-  const _GroupedHeaderBorderWrapTestApp();
+class _GroupedOverflowWrapTestApp extends StatelessWidget {
+  const _GroupedOverflowWrapTestApp();
 
   static const title = 'Atendente Geral de Restaurante';
 
@@ -1239,10 +1268,10 @@ class _GroupedHeaderBorderWrapTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(builder: _GroupedHeaderBorderWrapTestApp.buildDestination).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedOverflowWrapTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 300, child: _GroupedHeaderBorderWrapHeader(isDetail: false)),
+              child: const SizedBox(width: 300, child: _GroupedOverflowWrapLayout(isDetail: false)),
             ),
           ),
         ),
@@ -1254,14 +1283,14 @@ class _GroupedHeaderBorderWrapTestApp extends StatelessWidget {
     return const Scaffold(
       body: Align(
         alignment: Alignment.topLeft,
-        child: SizedBox(width: 300, child: _GroupedHeaderBorderWrapHeader(isDetail: true)),
+        child: SizedBox(width: 300, child: _GroupedOverflowWrapLayout(isDetail: true)),
       ),
     );
   }
 }
 
-class _GroupedHeaderBorderWrapHeader extends StatelessWidget {
-  const _GroupedHeaderBorderWrapHeader({required this.isDetail});
+class _GroupedOverflowWrapLayout extends StatelessWidget {
+  const _GroupedOverflowWrapLayout({required this.isDetail});
 
   final bool isDetail;
 
@@ -1275,7 +1304,7 @@ class _GroupedHeaderBorderWrapHeader extends StatelessWidget {
           tag: 'border-wrap-group',
           heroes: [
             QuiHero.text(
-              text: _GroupedHeaderBorderWrapTestApp.title,
+              text: _GroupedOverflowWrapTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
@@ -1287,8 +1316,8 @@ class _GroupedHeaderBorderWrapHeader extends StatelessWidget {
   }
 }
 
-class _GroupedHeaderBaselineTestApp extends StatelessWidget {
-  const _GroupedHeaderBaselineTestApp();
+class _GroupedBaselineSmoothnessTestApp extends StatelessWidget {
+  const _GroupedBaselineSmoothnessTestApp();
 
   static const title = 'Auxiliar de Cozinha';
   static const samples = [
@@ -1327,10 +1356,10 @@ class _GroupedHeaderBaselineTestApp extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push<void>(
-                  const QuiHeroPage(builder: _GroupedHeaderBaselineTestApp.buildDestination).createRoute(context),
+                  const QuiHeroPage(builder: _GroupedBaselineSmoothnessTestApp.buildDestination).createRoute(context),
                 );
               },
-              child: const SizedBox(width: 380, child: _GroupedHeaderBaselineHeader(isDetail: false)),
+              child: const SizedBox(width: 380, child: _GroupedBaselineSmoothnessLayout(isDetail: false)),
             ),
           ),
         ),
@@ -1344,15 +1373,15 @@ class _GroupedHeaderBaselineTestApp extends StatelessWidget {
         alignment: Alignment.topLeft,
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: const SizedBox(width: 380, child: _GroupedHeaderBaselineHeader(isDetail: true)),
+          child: const SizedBox(width: 380, child: _GroupedBaselineSmoothnessLayout(isDetail: true)),
         ),
       ),
     );
   }
 }
 
-class _GroupedHeaderBaselineHeader extends StatelessWidget {
-  const _GroupedHeaderBaselineHeader({required this.isDetail});
+class _GroupedBaselineSmoothnessLayout extends StatelessWidget {
+  const _GroupedBaselineSmoothnessLayout({required this.isDetail});
 
   final bool isDetail;
 
@@ -1366,7 +1395,7 @@ class _GroupedHeaderBaselineHeader extends StatelessWidget {
           tag: 'baseline-group',
           heroes: [
             QuiHero.text(
-              text: _GroupedHeaderBaselineTestApp.title,
+              text: _GroupedBaselineSmoothnessTestApp.title,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
           ],
@@ -1701,6 +1730,95 @@ class _MultipleExplicitTextHeroesTestApp extends StatelessWidget {
           QuiHero.text(tag: 'hola', text: 'Hola'),
         ],
       ),
+    );
+  }
+}
+
+class _GroupedTextEstimatedHeightRegressionTestApp extends StatelessWidget {
+  const _GroupedTextEstimatedHeightRegressionTestApp();
+
+  static const title = 'Atendente de Relacionamento (Voz e Chat)';
+  static const payment = r'R$1.766,99/mes';
+  static const samples = [
+    Duration(milliseconds: 80),
+    Duration(milliseconds: 160),
+    Duration(milliseconds: 240),
+    Duration(milliseconds: 320),
+    Duration(milliseconds: 400),
+  ];
+
+  static ({double paymentTop, double titleBottom}) flightSample(WidgetTester tester) {
+    final titleElement = find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((e) => e.renderObject)
+        .whereType<RenderBox>()
+        .firstWhere((box) => box.hasSize && box.size.width > 0);
+    final titleTop = titleElement.localToGlobal(Offset.zero).dy;
+    final titleBottom = titleTop + titleElement.size.height;
+    final paymentTop = tester.getTopLeft(find.text(payment, skipOffstage: false).last).dy;
+    return (paymentTop: paymentTop, titleBottom: titleBottom);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(const QuiHeroPage(builder: buildDestination).createRoute(context));
+              },
+              child: const SizedBox(width: 300, child: _GroupedEstimatedHeightRegressionLayout(isDetail: false)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).maybePop(),
+          child: const SizedBox(width: 300, child: _GroupedEstimatedHeightRegressionLayout(isDetail: true)),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedEstimatedHeightRegressionLayout extends StatelessWidget {
+  const _GroupedEstimatedHeightRegressionLayout({required this.isDetail});
+
+  final bool isDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'height-repro-group',
+          heroes: [
+            QuiHero.text(
+              text: _GroupedTextEstimatedHeightRegressionTestApp.title,
+              maxLines: isDetail ? null : 2,
+              overflow: isDetail ? null : TextOverflow.ellipsis,
+              style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
+            ),
+            QuiHero.text(
+              text: _GroupedTextEstimatedHeightRegressionTestApp.payment,
+              style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

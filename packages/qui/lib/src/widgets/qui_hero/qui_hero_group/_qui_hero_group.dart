@@ -18,6 +18,48 @@ final class _QuiHeroGroup extends QuiHero {
     final beginChildMetrics = _captureFlexChildMetrics(fromHeroContext);
     final endChildMetrics = _captureFlexChildMetrics(toHeroContext);
 
+    final textMetrics = <_QuiHeroTextFlightMetrics?>[];
+    final count = math.min(fromGroup.heroes.length, toGroup.heroes.length);
+    for (var i = 0; i < count; i++) {
+      final fromHero = fromGroup.heroes[i];
+      final toHero = toGroup.heroes[i];
+
+      if (fromHero is _QuiHeroText && toHero is _QuiHeroText) {
+        final fromText = fromHero._buildFlightChild(flightContext) as _QuiHeroTextFlight;
+        final toText = toHero._buildFlightChild(flightContext) as _QuiHeroTextFlight;
+
+        final beginSize = (beginChildMetrics != null && i < beginChildMetrics.length)
+            ? beginChildMetrics[i].size as Size?
+            : null;
+
+        final endSize = (endChildMetrics != null && i < endChildMetrics.length)
+            ? endChildMetrics[i].size as Size?
+            : null;
+
+        final beginLayoutWidth = (beginChildMetrics != null && i < beginChildMetrics.length)
+            ? beginChildMetrics[i].layoutWidth as double?
+            : null;
+
+        final endLayoutWidth = (endChildMetrics != null && i < endChildMetrics.length)
+            ? endChildMetrics[i].layoutWidth as double?
+            : null;
+
+        textMetrics.add(
+          _QuiHeroTextFlightMetrics.precompute(
+            context: flightContext,
+            from: fromText,
+            to: toText,
+            beginSize: beginSize,
+            endSize: endSize,
+            beginLayoutWidth: beginLayoutWidth,
+            endLayoutWidth: endLayoutWidth,
+          ),
+        );
+      } else {
+        textMetrics.add(null);
+      }
+    }
+
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: animation,
@@ -32,6 +74,7 @@ final class _QuiHeroGroup extends QuiHero {
               end: toGroup.heroes,
               value: value,
               flightDirection: HeroFlightDirection.push,
+              textMetrics: textMetrics,
             ),
             allowsFlightOverflow: true,
             beginChildMetrics: beginChildMetrics,
@@ -117,13 +160,20 @@ final class _QuiHeroGroup extends QuiHero {
     required List<QuiHero> end,
     required double value,
     required HeroFlightDirection flightDirection,
+    List<_QuiHeroTextFlightMetrics?>? textMetrics,
   }) {
     final count = math.min(begin.length, end.length);
     return List<QuiHero>.generate(count, (index) {
       final beginHero = begin[index];
       final endHero = end[index];
+      final metrics = (textMetrics != null && index < textMetrics.length) ? textMetrics[index] : null;
 
-      return beginHero._buildForGroupFlight(end: endHero, value: value, flightDirection: flightDirection);
+      return beginHero._buildForGroupFlight(
+        end: endHero,
+        value: value,
+        flightDirection: flightDirection,
+        flightMetrics: metrics,
+      );
     });
   }
 
@@ -139,6 +189,7 @@ final class _QuiHeroGroup extends QuiHero {
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
+    _QuiHeroTextFlightMetrics? flightMetrics,
   }) {
     assert(false, 'Nested QuiHero.group is not supported.');
     return value < 0.5 ? this : end;

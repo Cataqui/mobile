@@ -21,6 +21,7 @@ part 'qui_hero_group/_qui_hero_group_scope.dart';
 part 'qui_hero_group/qui_hero_group_enums.dart';
 part 'qui_hero_text/_qui_hero_text.dart';
 part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
+part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
 
 /// A hero widget that animates a shared element across screens with pre-built,
 /// device-safe flight animations.
@@ -255,6 +256,7 @@ sealed class QuiHero extends StatelessWidget {
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
+    _QuiHeroTextFlightMetrics? flightMetrics,
   });
 
   @override

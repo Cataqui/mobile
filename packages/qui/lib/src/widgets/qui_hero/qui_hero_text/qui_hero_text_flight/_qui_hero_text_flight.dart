@@ -17,6 +17,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     this.progressiveClampMaxLines,
     this.progressiveClampProgress = 0,
     this.padding,
+    this.flightMetrics,
   });
 
   final String text;
@@ -34,6 +35,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
   final double? endpointReservedLayoutWidth;
   final int? progressiveClampMaxLines;
   final double progressiveClampProgress;
+  final _QuiHeroTextFlightMetrics? flightMetrics;
 
   _QuiHeroTextFlight _copyWith({bool? shortenToBounds, int? endpointMaxLines, double? endpointReservedLayoutWidth}) {
     return _QuiHeroTextFlight(
@@ -52,8 +54,11 @@ class _QuiHeroTextFlight extends StatelessWidget {
       progressiveClampMaxLines: progressiveClampMaxLines,
       progressiveClampProgress: progressiveClampProgress,
       padding: padding,
+      flightMetrics: flightMetrics,
     );
   }
+
+  static final Map<_NaturalLineCacheKey, int> _lineCountCache = {};
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +221,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
 
   double _preferredLineHeight(BuildContext context, {required _QuiHeroTextScaledMetrics? scaledMetrics}) {
     if (scaledMetrics != null) return scaledMetrics.lineHeight;
+    if (flightMetrics != null) return flightMetrics!.stylePreferredLineHeight;
 
     final textPainter = TextPainter(
       text: TextSpan(text: ' ', style: DefaultTextStyle.of(context).style.merge(style)),
@@ -228,6 +234,11 @@ class _QuiHeroTextFlight extends StatelessWidget {
 
   double? _estimatedHeightForWidth({required BuildContext context, required double width}) {
     if (width <= 0) return null;
+
+    final metrics = flightMetrics;
+    if (metrics != null) {
+      return _cachedEstimatedHeight(context: context, width: width, metrics: metrics);
+    }
 
     final scaledMetrics = _scaledMetrics(context);
     final constraints = BoxConstraints(maxWidth: width);
@@ -256,6 +267,70 @@ class _QuiHeroTextFlight extends StatelessWidget {
     return textHeight + (padding?.resolve(Directionality.of(context)).vertical ?? 0);
   }
 
+  double? _cachedEstimatedHeight({
+    required BuildContext context,
+    required double width,
+    required _QuiHeroTextFlightMetrics metrics,
+  }) {
+    if (width <= 0) return null;
+
+    final scaledMetrics = _scaledMetrics(context);
+    final constraints = BoxConstraints(maxWidth: width);
+    final layoutWidth = scaledMetrics == null
+        ? width
+        : _layoutWidthFor(
+            constraints: constraints,
+            scaleX: scaledMetrics.scaleX,
+            reservedLayoutWidth: scaledMetrics.reservedLayoutWidth,
+          );
+    if (layoutWidth == null || layoutWidth <= 0) return null;
+
+    final effectiveMaxLines = shortenToBounds
+        ? _optimizedEffectiveMaxLines(
+            context: context,
+            width: layoutWidth,
+            scaledMetrics: scaledMetrics,
+            metrics: metrics,
+          )
+        : maxLines;
+
+    final mergedStyle = DefaultTextStyle.of(context).style.merge(scaledMetrics?.style ?? style);
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: mergedStyle),
+      textAlign: textAlign,
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: effectiveMaxLines,
+      ellipsis: _ellipsisFor(_effectiveOverflow(effectiveMaxLines)),
+    )..layout(maxWidth: layoutWidth);
+    final textHeight = textPainter.height * (scaledMetrics?.scaleY ?? 1);
+
+    return textHeight + (padding?.resolve(Directionality.of(context)).vertical ?? 0);
+  }
+
+  int? _optimizedEffectiveMaxLines({
+    required BuildContext context,
+    required double width,
+    required _QuiHeroTextScaledMetrics? scaledMetrics,
+    required _QuiHeroTextFlightMetrics metrics,
+  }) {
+    if (!shortenToBounds) return maxLines;
+
+    final lineHeight = scaledMetrics?.lineHeight ?? metrics.stylePreferredLineHeight;
+    if (lineHeight <= 0) return maxLines;
+
+    final boundedMaxLines = _boundedMaxLines(null);
+    if (!width.isFinite || width <= 0) return boundedMaxLines;
+
+    final progressiveMaxLines = _progressiveMaxLines(
+      context: context,
+      constraints: BoxConstraints(maxWidth: width),
+      boundedMaxLines: boundedMaxLines,
+      scaledMetrics: scaledMetrics,
+    );
+    return progressiveMaxLines;
+  }
+
   String? _ellipsisFor(TextOverflow? overflow) {
     if (overflow != TextOverflow.ellipsis) return null;
 
@@ -267,6 +342,16 @@ class _QuiHeroTextFlight extends StatelessWidget {
     required double width,
     required _QuiHeroTextScaledMetrics? scaledMetrics,
   }) {
+    final metrics = flightMetrics;
+    if (metrics != null && scaledMetrics != null) {
+      return _cachedNaturalLineCount(
+        context: context,
+        width: width,
+        scaledMetrics: scaledMetrics,
+        metrics: metrics,
+      );
+    }
+
     if (scaledMetrics != null) {
       final layoutWidth = math.max(width / scaledMetrics.scaleX, scaledMetrics.reservedLayoutWidth ?? 0);
       final textPainter = TextPainter(
@@ -289,7 +374,60 @@ class _QuiHeroTextFlight extends StatelessWidget {
     return math.max(1, textPainter.computeLineMetrics().length);
   }
 
+  int _cachedNaturalLineCount({
+    required BuildContext context,
+    required double width,
+    required _QuiHeroTextScaledMetrics scaledMetrics,
+    required _QuiHeroTextFlightMetrics metrics,
+  }) {
+    final key = _NaturalLineCacheKey(text: text, roundedWidth: (width / 25).round());
+    return _lineCountCache.putIfAbsent(key, () {
+      final layoutWidth = math.max(width / scaledMetrics.scaleX, scaledMetrics.reservedLayoutWidth ?? 0);
+      if (layoutWidth <= 0) return 1;
+      final textPainter = TextPainter(
+        text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.merge(scaledMetrics.style)),
+        textAlign: textAlign,
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout(maxWidth: layoutWidth);
+      return math.max(1, textPainter.computeLineMetrics().length);
+    });
+  }
+
   _QuiHeroTextScaledMetrics? _scaledMetrics(BuildContext context) {
+    final metrics = flightMetrics;
+    if (metrics != null && shortenToBounds && flightBeginStyle != null && flightEndStyle != null) {
+      return _optimizedScaledMetrics(context: context, metrics: metrics);
+    }
+    return _legacyScaledMetrics(context);
+  }
+
+  _QuiHeroTextScaledMetrics? _optimizedScaledMetrics({
+    required BuildContext context,
+    required _QuiHeroTextFlightMetrics metrics,
+  }) {
+    final currentFontSize = style.fontSize;
+    final stableFontSize = flightEndStyle!.fontSize;
+    if (currentFontSize == null || currentFontSize <= 0 || stableFontSize == null || stableFontSize <= 0) {
+      return null;
+    }
+
+    final progress = flightProgress.clamp(0.0, 1.0);
+    final lineHeight = _lerpDouble(metrics.beginLineHeight, metrics.endLineHeight, progress);
+    final baseline = _lerpDouble(metrics.beginBaseline, metrics.endBaseline, progress);
+    final scaledBaseline = metrics.scaledBaseline * (lineHeight / metrics.scaledLineHeight);
+
+    return _QuiHeroTextScaledMetrics(
+      style: style.copyWith(fontSize: stableFontSize),
+      scaleX: currentFontSize / stableFontSize,
+      scaleY: lineHeight / metrics.scaledLineHeight,
+      lineHeight: lineHeight,
+      baselineOffset: baseline - scaledBaseline,
+      reservedLayoutWidth: _computeReservedLayoutWidth(metrics: metrics),
+    );
+  }
+
+  _QuiHeroTextScaledMetrics? _legacyScaledMetrics(BuildContext context) {
     final beginStyle = flightBeginStyle;
     final endStyle = flightEndStyle;
     final currentFontSize = style.fontSize;
@@ -316,6 +454,17 @@ class _QuiHeroTextFlight extends StatelessWidget {
       baselineOffset: baseline - scaledBaseline,
       reservedLayoutWidth: _reservedLayoutWidth(context: context, style: scaledStyle),
     );
+  }
+
+  double? _computeReservedLayoutWidth({required _QuiHeroTextFlightMetrics metrics}) {
+    final showBegin = flightProgress < switchThreshold;
+    final reservedWidth = showBegin
+        ? metrics.reservedLayoutWidthForSourceText
+        : metrics.reservedLayoutWidthForTargetText;
+    final endpointMaxLines = metrics.endpointMaxLines;
+    if (reservedWidth == null || reservedWidth <= 0) return null;
+    if (endpointMaxLines != 1) return reservedWidth;
+    return reservedWidth;
   }
 
   static double _lerpDouble(double begin, double end, double value) {
@@ -416,4 +565,20 @@ class _QuiHeroTextScaledMetrics {
   final double lineHeight;
   final double baselineOffset;
   final double? reservedLayoutWidth;
+}
+
+@immutable
+class _NaturalLineCacheKey {
+  const _NaturalLineCacheKey({required this.text, required this.roundedWidth});
+
+  final String text;
+  final int roundedWidth;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _NaturalLineCacheKey && other.text == text && other.roundedWidth == roundedWidth;
+  }
+
+  @override
+  int get hashCode => Object.hash(text, roundedWidth);
 }
