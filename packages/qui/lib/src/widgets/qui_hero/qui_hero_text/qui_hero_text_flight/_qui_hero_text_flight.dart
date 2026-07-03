@@ -58,7 +58,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     );
   }
 
-  static final Map<_NaturalLineCacheKey, int> _lineCountCache = {};
+  static final Map<(String, int), int> _lineCountCache = {};
 
   @override
   Widget build(BuildContext context) {
@@ -294,18 +294,18 @@ class _QuiHeroTextFlight extends StatelessWidget {
           )
         : maxLines;
 
-    final mergedStyle = DefaultTextStyle.of(context).style.merge(scaledMetrics?.style ?? style);
+    final mergedStyle = metrics.defaultTextStyle.merge(scaledMetrics?.style ?? style);
     final textPainter = TextPainter(
       text: TextSpan(text: text, style: mergedStyle),
       textAlign: textAlign,
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
+      textDirection: metrics.textDirection,
+      textScaler: metrics.textScaler,
       maxLines: effectiveMaxLines,
       ellipsis: _ellipsisFor(_effectiveOverflow(effectiveMaxLines)),
     )..layout(maxWidth: layoutWidth);
     final textHeight = textPainter.height * (scaledMetrics?.scaleY ?? 1);
 
-    return textHeight + (padding?.resolve(Directionality.of(context)).vertical ?? 0);
+    return textHeight + (padding?.resolve(metrics.textDirection).vertical ?? 0);
   }
 
   int? _optimizedEffectiveMaxLines({
@@ -380,15 +380,15 @@ class _QuiHeroTextFlight extends StatelessWidget {
     required _QuiHeroTextScaledMetrics scaledMetrics,
     required _QuiHeroTextFlightMetrics metrics,
   }) {
-    final key = _NaturalLineCacheKey(text: text, roundedWidth: (width / 25).round());
+    final key = (text, (width / 25).round());
     return _lineCountCache.putIfAbsent(key, () {
       final layoutWidth = math.max(width / scaledMetrics.scaleX, scaledMetrics.reservedLayoutWidth ?? 0);
       if (layoutWidth <= 0) return 1;
       final textPainter = TextPainter(
-        text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.merge(scaledMetrics.style)),
+        text: TextSpan(text: text, style: metrics.defaultTextStyle.merge(scaledMetrics.style)),
         textAlign: textAlign,
-        textDirection: Directionality.of(context),
-        textScaler: MediaQuery.textScalerOf(context),
+        textDirection: metrics.textDirection,
+        textScaler: metrics.textScaler,
       )..layout(maxWidth: layoutWidth);
       return math.max(1, textPainter.computeLineMetrics().length);
     });
@@ -565,20 +565,4 @@ class _QuiHeroTextScaledMetrics {
   final double lineHeight;
   final double baselineOffset;
   final double? reservedLayoutWidth;
-}
-
-@immutable
-class _NaturalLineCacheKey {
-  const _NaturalLineCacheKey({required this.text, required this.roundedWidth});
-
-  final String text;
-  final int roundedWidth;
-
-  @override
-  bool operator ==(Object other) {
-    return other is _NaturalLineCacheKey && other.text == text && other.roundedWidth == roundedWidth;
-  }
-
-  @override
-  int get hashCode => Object.hash(text, roundedWidth);
 }

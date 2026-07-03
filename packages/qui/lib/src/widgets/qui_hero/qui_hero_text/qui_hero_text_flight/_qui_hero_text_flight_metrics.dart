@@ -15,6 +15,9 @@ class _QuiHeroTextFlightMetrics {
     required this.scaledLineHeight,
     required this.scaledBaseline,
     required this.stylePreferredLineHeight,
+    required this.textDirection,
+    required this.textScaler,
+    required this.defaultTextStyle,
     this.endpointMaxLines,
     this.reservedLayoutWidthForSourceText,
     this.reservedLayoutWidthForTargetText,
@@ -88,6 +91,9 @@ class _QuiHeroTextFlightMetrics {
       scaledLineHeight: scaledMetrics.lineHeight,
       scaledBaseline: scaledMetrics.baseline,
       stylePreferredLineHeight: scaledMetrics.lineHeight,
+      textDirection: direction,
+      textScaler: textScaler,
+      defaultTextStyle: defaultTextStyle.style,
       endpointMaxLines: endpointMaxLines,
       reservedLayoutWidthForSourceText: reservedLayoutWidthForSourceText,
       reservedLayoutWidthForTargetText: reservedLayoutWidthForTargetText,
@@ -101,6 +107,9 @@ class _QuiHeroTextFlightMetrics {
   final double scaledLineHeight;
   final double scaledBaseline;
   final double stylePreferredLineHeight;
+  final TextDirection textDirection;
+  final TextScaler textScaler;
+  final TextStyle defaultTextStyle;
   final int? endpointMaxLines;
   final double? reservedLayoutWidthForSourceText;
   final double? reservedLayoutWidthForTargetText;
