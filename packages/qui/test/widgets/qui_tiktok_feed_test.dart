@@ -1592,6 +1592,134 @@ void main() {
       expect(hapticCalls, isNotEmpty);
     });
   });
+
+  group('QuiTikTokFeed gesture interruption regression tests', () {
+    testWidgets(
+      'when tapping the feed mid commit animation to go next, it should not snap back to the previous item',
+      (tester) async {
+        final nextLogs = <_ItemLog<String>>[];
+        final previousLogs = <_ItemLog<String>>[];
+
+        await _pumpFeed(
+          tester,
+          onNext: (item, index) => nextLogs.add((item: item, index: index)),
+          onPrevious: (item, index) => previousLogs.add((item: item, index: index)),
+        );
+
+        final feedFinder = find.byType(QuiTikTokFeed<String>);
+
+        // Commit to go to next item (above swipe threshold)
+        await tester.drag(feedFinder, const Offset(0, -300));
+        await tester.pump(const Duration(milliseconds: 40));
+
+        // Tap on the current card while mid-commit — this should NOT cause a snap-back
+        // Use the feed center which hits both the feed's and card's gesture recognizers.
+        // On real devices, the card's TapGestureRecognizer wins the arena.
+        // In the test framework, the feed's VerticalDragGestureRecognizer may also fire,
+        // but _snapBack becomes a no-op because the interrupted commit already set offset to 0.
+        await tester.tapAt(tester.getCenter(feedFinder));
+        await tester.pumpAndSettle();
+
+        expect(nextLogs, hasLength(1));
+        expect(previousLogs, isEmpty);
+        expect(_currentCardLabel(tester), 'second');
+      },
+    );
+
+    testWidgets(
+      'when swiping down mid commit to go next, it should stop going forward and go back to the previous item',
+      (tester) async {
+        final nextLogs = <_ItemLog<String>>[];
+        final previousLogs = <_ItemLog<String>>[];
+
+        await _pumpFeed(
+          tester,
+          items: const ['first', 'second', 'third'],
+          onNext: (item, index) => nextLogs.add((item: item, index: index)),
+          onPrevious: (item, index) => previousLogs.add((item: item, index: index)),
+        );
+
+        // First advance from index 0 -> 1 to have a previous item
+        await _dragCard(tester, 'first', const Offset(0, -300));
+        expect(_currentCardLabel(tester), 'second');
+
+        final feedFinder = find.byType(QuiTikTokFeed<String>);
+
+        // Now commit to go from index 1 -> 2
+        await tester.drag(feedFinder, const Offset(0, -300));
+        await tester.pump(const Duration(milliseconds: 40));
+
+        // Reverse swipe down while mid-commit
+        await tester.drag(feedFinder, const Offset(0, 200));
+        await tester.pumpAndSettle();
+
+        expect(nextLogs, hasLength(2));
+        expect(previousLogs, hasLength(1));
+        expect(_currentCardLabel(tester), 'second');
+      },
+    );
+
+    testWidgets(
+      'when swiping up mid commit to go next, it should continue advancing (fast scroll)',
+      (tester) async {
+        final nextLogs = <_ItemLog<String>>[];
+
+        await _pumpFeed(
+          tester,
+          items: const ['first', 'second', 'third'],
+          onNext: (item, index) => nextLogs.add((item: item, index: index)),
+        );
+
+        final feedFinder = find.byType(QuiTikTokFeed<String>);
+
+        // Start commit to go next
+        await tester.drag(feedFinder, const Offset(0, -300));
+        await tester.pump(const Duration(milliseconds: 40));
+
+        // Another upward swipe while mid-commit (fast scroll)
+        await tester.drag(feedFinder, const Offset(0, -300));
+        await tester.pumpAndSettle();
+
+        expect(nextLogs, hasLength(2));
+        expect(_currentCardLabel(tester), 'third');
+      },
+    );
+
+    testWidgets(
+      'when tapping the feed mid commit to go previous, it should not snap back to the next item',
+      (tester) async {
+        final nextLogs = <_ItemLog<String>>[];
+        final previousLogs = <_ItemLog<String>>[];
+
+        await _pumpFeed(
+          tester,
+          items: const ['first', 'second', 'third'],
+          onNext: (item, index) => nextLogs.add((item: item, index: index)),
+          onPrevious: (item, index) => previousLogs.add((item: item, index: index)),
+        );
+
+        // advance to index 1
+        await _dragCard(tester, 'first', const Offset(0, -300));
+
+        // advance to index 2
+        await _dragCard(tester, 'second', const Offset(0, -300));
+
+        final feedFinder = find.byType(QuiTikTokFeed<String>);
+
+        // Now go back from index 2 -> 1 via commit
+        await tester.drag(feedFinder, const Offset(0, 300));
+        await tester.pump(const Duration(milliseconds: 40));
+
+        // Tap on the current card while mid-commit going back
+        await tester.tapAt(tester.getCenter(feedFinder));
+        await tester.pumpAndSettle();
+
+        expect(nextLogs, hasLength(2));
+        expect(previousLogs, hasLength(1));
+        expect(_currentCardLabel(tester), 'second');
+      },
+    );
+  });
 }
 
 const _feedSize = Size(400, 600);

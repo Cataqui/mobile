@@ -223,6 +223,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   int _activeDragGeneration = 0;
   _QuiTikTokFeedAwaitPhase _awaitPhase = _QuiTikTokFeedAwaitPhase.inactive;
   double _awaitDragProgress = 0;
+  bool _isCommitting = false;
   Animation<double>? _loadingLiftAnimation;
   final _disposeCompleter = Completer<void>();
   final Map<Object, _QuiTikTokFeedCachedCard<T>> _cardCache = <Object, _QuiTikTokFeedCachedCard<T>>{};
@@ -299,11 +300,11 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
   void _syncAnimatedOffset() {
     final offsetAnimation = _offsetAnimation;
+    final loadingLiftAnimation = _loadingLiftAnimation;
     if (offsetAnimation != null) {
       _setDragOffset(offsetAnimation.value);
     }
 
-    final loadingLiftAnimation = _loadingLiftAnimation;
     if (loadingLiftAnimation != null) {
       _loadingLiftNotifier.value = loadingLiftAnimation.value;
     }
@@ -370,6 +371,11 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     if (_isAwaitActive) {
       _completeCanceledMotion(_exitAwaitDrag(), motionGeneration: motionGeneration);
+      return;
+    }
+
+    if (_isCommitting) {
+      _completeCanceledMotion(_dragOffsetY < 0 ? _commitNext() : _commitPrevious(), motionGeneration: motionGeneration);
       return;
     }
 
@@ -464,8 +470,9 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
   Future<void> _finishRegularDrag(DragEndDetails details) async {
     final velocity = details.velocity.pixelsPerSecond.dy;
+    final shouldCommit = _shouldCommitSwipe(velocity: velocity);
 
-    if (!_shouldCommitSwipe(velocity: velocity)) {
+    if (!shouldCommit) {
       await _snapBack();
       return;
     }
@@ -536,30 +543,35 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
   Future<void> _commitNext() async {
     if (!_hasCurrentItem) return;
 
-    if (_currentIndex + 1 >= widget.items.count && _paginationMayBringMore) {
-      await _enterAwaitModeFromCommit();
-      return;
-    }
+    _isCommitting = true;
+    try {
+      if (_currentIndex + 1 >= widget.items.count && _paginationMayBringMore) {
+        await _enterAwaitModeFromCommit();
+        return;
+      }
 
-    final item = widget.items.provider(_currentIndex);
-    final itemIndex = _currentIndex;
+      final item = widget.items.provider(_currentIndex);
+      final itemIndex = _currentIndex;
 
-    await _animateTo(-_commitDistance, duration: _commitDuration, curve: Curves.easeOutCubic);
+      await _animateTo(-_commitDistance, duration: _commitDuration, curve: Curves.easeOutCubic);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _currentIndex += 1;
-      _dragOffsetY = 0;
-    });
+      setState(() {
+        _currentIndex += 1;
+        _dragOffsetY = 0;
+      });
 
-    _dragOffsetNotifier.value = 0;
+      _dragOffsetNotifier.value = 0;
 
-    widget.onNext?.call(item, itemIndex);
-    _scheduleLoadMoreIfNeeded();
+      widget.onNext?.call(item, itemIndex);
+      _scheduleLoadMoreIfNeeded();
 
-    if (widget.enableHapticFeedback) {
-      unawaited(HapticFeedback.selectionClick());
+      if (widget.enableHapticFeedback) {
+        unawaited(HapticFeedback.selectionClick());
+      }
+    } finally {
+      _isCommitting = false;
     }
   }
 
@@ -595,7 +607,12 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
     final itemIndex = _currentIndex;
     final hadRealItem = _hasCurrentItem;
 
-    await _animateTo(_commitDistance, duration: _commitDuration, curve: Curves.easeOutCubic);
+    _isCommitting = true;
+    try {
+      await _animateTo(_commitDistance, duration: _commitDuration, curve: Curves.easeOutCubic);
+    } finally {
+      _isCommitting = false;
+    }
 
     if (!mounted) return;
 
