@@ -173,6 +173,29 @@ final class _QuiHeroText extends QuiHero {
     );
   }
 
+  double? _estimatedFlightHeight({
+    required BuildContext context,
+    required double width,
+    required Size beginSize,
+    required Size endSize,
+    required double beginLayoutWidth,
+    required double endLayoutWidth,
+  }) {
+    final flight = this.flight;
+    if (flight == null) return null;
+
+    final endpointMaxLines = flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize);
+    final measuredFlight = flight._copyWith(
+      endpointMaxLines: endpointMaxLines,
+      endpointReservedLayoutWidth: flight._endpointReservedLayoutWidthFor(
+        beginLayoutWidth: beginLayoutWidth,
+        endLayoutWidth: endLayoutWidth,
+      ),
+    );
+
+    return measuredFlight._estimatedHeightForWidth(context: context, width: width);
+  }
+
   @override
   Widget _buildFlightChild(BuildContext context) {
     return _QuiHeroTextFlight(

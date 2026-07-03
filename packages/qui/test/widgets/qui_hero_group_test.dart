@@ -306,6 +306,24 @@ void main() {
     );
 
     testWidgets(
+      'when a grouped title opens into multiple lines, it should move the payment below the title during the flight',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedHeaderSiblingWrapTestApp());
+        await tester.tap(find.text(_GroupedHeaderSiblingWrapTestApp.title));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
+
+        final sample = _GroupedHeaderSiblingWrapTestApp.flightSample(tester);
+
+        expect(
+          (sample.titleLineCount >= 2, sample.paymentTop >= sample.titleBottom - 6),
+          equals((true, true)),
+          reason: 'sample=$sample',
+        );
+      },
+    );
+
+    testWidgets(
       'when a grouped title needs two card lines and three detail lines, it should not add a fourth line or ellipsis during the flight',
       (tester) async {
         await tester.pumpWidget(const _GroupedHeaderEndpointLineCeilingTestApp());
@@ -963,6 +981,111 @@ class _GroupedHeaderDynamicWrapHeader extends StatelessWidget {
             QuiHero.text(
               text: r'R$2.235,97/mes',
               style: TextStyle(fontSize: isDetail ? 30 : 25),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupedHeaderSiblingWrapTestApp extends StatelessWidget {
+  const _GroupedHeaderSiblingWrapTestApp();
+
+  static const title = 'Atendente de Relacionamento (Voz e Chat)';
+  static const payment = r'R$1.766,99/mes';
+
+  static ({double paymentTop, double titleBottom, int titleLineCount}) flightSample(WidgetTester tester) {
+    final titleEntry = find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((element) => (widget: element.widget as Text, renderObject: element.renderObject))
+        .where((entry) => entry.renderObject is RenderBox)
+        .map((entry) => (widget: entry.widget, renderBox: entry.renderObject! as RenderBox))
+        .where((entry) => entry.renderBox.hasSize && entry.renderBox.size.width > 0)
+        .reduce(
+          (largest, current) => current.renderBox.size.height > largest.renderBox.size.height ? current : largest,
+        );
+    final paymentTop = tester.getTopLeft(find.text(payment, skipOffstage: false).last).dy;
+    final titleTop = titleEntry.renderBox.localToGlobal(Offset.zero).dy;
+    final titleLineCount = _lineCount(titleEntry);
+
+    return (
+      paymentTop: paymentTop,
+      titleBottom: titleTop + titleEntry.renderBox.size.height,
+      titleLineCount: titleLineCount,
+    );
+  }
+
+  static int _lineCount(({RenderBox renderBox, Text widget}) entry) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: entry.widget.data, style: entry.widget.style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+    )..layout(maxWidth: entry.renderBox.size.width);
+
+    return textPainter.computeLineMetrics().length;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(builder: _GroupedHeaderSiblingWrapTestApp.buildDestination).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 300, child: _GroupedHeaderSiblingWrapHeader(isDetail: false)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return const Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(width: 300, child: _GroupedHeaderSiblingWrapHeader(isDetail: true)),
+      ),
+    );
+  }
+}
+
+class _GroupedHeaderSiblingWrapHeader extends StatelessWidget {
+  const _GroupedHeaderSiblingWrapHeader({required this.isDetail});
+
+  final bool isDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'sibling-wrap-group',
+          heroes: [
+            QuiHero.text(
+              text: '3 dias atras',
+              style: TextStyle(fontSize: isDetail ? 16 : 14, fontWeight: FontWeight.w500),
+              padding: const EdgeInsets.only(bottom: 6),
+            ),
+            QuiHero.text(
+              text: _GroupedHeaderSiblingWrapTestApp.title,
+              maxLines: isDetail ? null : 2,
+              overflow: isDetail ? null : TextOverflow.ellipsis,
+              style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
+            ),
+            QuiHero.text(
+              text: _GroupedHeaderSiblingWrapTestApp.payment,
+              style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
             ),
           ],
         ),

@@ -226,6 +226,42 @@ class _QuiHeroTextFlight extends StatelessWidget {
     return textPainter.preferredLineHeight;
   }
 
+  double? _estimatedHeightForWidth({required BuildContext context, required double width}) {
+    if (width <= 0) return null;
+
+    final scaledMetrics = _scaledMetrics(context);
+    final constraints = BoxConstraints(maxWidth: width);
+    final layoutWidth = scaledMetrics == null
+        ? width
+        : _layoutWidthFor(
+            constraints: constraints,
+            scaleX: scaledMetrics.scaleX,
+            reservedLayoutWidth: scaledMetrics.reservedLayoutWidth,
+          );
+    if (layoutWidth == null || layoutWidth <= 0) return null;
+
+    final effectiveMaxLines = shortenToBounds
+        ? _effectiveMaxLines(context: context, constraints: constraints, scaledMetrics: scaledMetrics)
+        : maxLines;
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.merge(scaledMetrics?.style ?? style)),
+      textAlign: textAlign,
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: effectiveMaxLines,
+      ellipsis: _ellipsisFor(_effectiveOverflow(effectiveMaxLines)),
+    )..layout(maxWidth: layoutWidth);
+    final textHeight = textPainter.height * (scaledMetrics?.scaleY ?? 1);
+
+    return textHeight + (padding?.resolve(Directionality.of(context)).vertical ?? 0);
+  }
+
+  String? _ellipsisFor(TextOverflow? overflow) {
+    if (overflow != TextOverflow.ellipsis) return null;
+
+    return '...';
+  }
+
   int _naturalLineCount({
     required BuildContext context,
     required double width,

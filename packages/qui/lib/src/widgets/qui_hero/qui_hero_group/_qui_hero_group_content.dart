@@ -94,6 +94,8 @@ class _QuiHeroGroupContent extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        var previousBottom = 0.0;
+
         return SizedBox(
           height: height,
           child: Stack(
@@ -104,6 +106,22 @@ class _QuiHeroGroupContent extends StatelessWidget {
               final offset = Offset.lerp(begin.offset, end.offset, progress)!;
               final size = Size.lerp(begin.size, end.size, progress)!;
               final width = constraints.hasBoundedWidth ? constraints.maxWidth - offset.dx : size.width;
+              final childHeight = _positionedChildHeight(
+                context: context,
+                hero: heroes[index],
+                width: width,
+                beginSize: begin.size,
+                endSize: end.size,
+                beginLayoutWidth: begin.layoutWidth,
+                endLayoutWidth: end.layoutWidth,
+              );
+              final top = _positionedChildTop(
+                index: index,
+                offset: offset,
+                previousBottom: previousBottom,
+                beginMetrics: beginMetrics,
+                endMetrics: endMetrics,
+              );
               final child = _buildPositionedChild(
                 context: context,
                 hero: heroes[index],
@@ -113,12 +131,55 @@ class _QuiHeroGroupContent extends StatelessWidget {
                 endLayoutWidth: end.layoutWidth,
               );
 
-              return Positioned(left: offset.dx, top: offset.dy, width: math.max(0, width), child: child);
+              previousBottom = top + childHeight;
+
+              return Positioned(left: offset.dx, top: top, width: math.max(0, width), child: child);
             }),
           ),
         );
       },
     );
+  }
+
+  double _positionedChildHeight({
+    required BuildContext context,
+    required QuiHero hero,
+    required double width,
+    required Size beginSize,
+    required Size endSize,
+    required double beginLayoutWidth,
+    required double endLayoutWidth,
+  }) {
+    if (hero is _QuiHeroText) {
+      final estimatedHeight = hero._estimatedFlightHeight(
+        context: context,
+        width: width,
+        beginSize: beginSize,
+        endSize: endSize,
+        beginLayoutWidth: beginLayoutWidth,
+        endLayoutWidth: endLayoutWidth,
+      );
+      if (estimatedHeight != null) return estimatedHeight;
+    }
+
+    return Size.lerp(beginSize, endSize, flightValue)!.height;
+  }
+
+  double _positionedChildTop({
+    required int index,
+    required Offset offset,
+    required double previousBottom,
+    required List<({double layoutWidth, Offset offset, Size size})> beginMetrics,
+    required List<({double layoutWidth, Offset offset, Size size})> endMetrics,
+  }) {
+    if (index == 0) return offset.dy;
+
+    final beginGap =
+        beginMetrics[index].offset.dy - (beginMetrics[index - 1].offset.dy + beginMetrics[index - 1].size.height);
+    final endGap = endMetrics[index].offset.dy - (endMetrics[index - 1].offset.dy + endMetrics[index - 1].size.height);
+    final gap = beginGap + (endGap - beginGap) * flightValue;
+
+    return math.max(offset.dy, previousBottom + gap);
   }
 
   Widget _buildPositionedChild({
