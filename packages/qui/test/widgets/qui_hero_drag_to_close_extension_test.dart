@@ -38,7 +38,7 @@ void main() {
       await tester.pumpWidget(const _QuiHeroDragToCloseTestApp());
       await tester.tap(find.byKey(_QuiHeroDragToCloseTestApp.openButtonKey));
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, 260));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 400));
       await tester.pumpAndSettle();
 
       expect(find.byKey(_QuiHeroDragToCloseTestApp.destinationKey), findsNothing);
@@ -53,6 +53,91 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(_QuiHeroDragToCloseTestApp.destinationKey), findsOneWidget);
+    });
+
+    testWidgets('when sensibility is high, it should move the route farther for the same drag distance', (
+      tester,
+    ) async {
+      final slowTransitionValue = await _QuiHeroDragToCloseTestApp.dragToTransitionValue(
+        tester: tester,
+        sensibility: 0,
+        dragDistance: 80,
+      );
+      final fastTransitionValue = await _QuiHeroDragToCloseTestApp.dragToTransitionValue(
+        tester: tester,
+        sensibility: 1,
+        dragDistance: 80,
+      );
+
+      expect(fastTransitionValue, lessThan(slowTransitionValue));
+    });
+
+    testWidgets('when sensibility is high and the user drags a small distance, it should pop back to the source hero', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _QuiHeroDragToCloseTestApp(sensibility: 1));
+      await tester.tap(find.byKey(_QuiHeroDragToCloseTestApp.openButtonKey));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 80));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(_QuiHeroDragToCloseTestApp.destinationKey), findsNothing);
+    });
+
+    testWidgets('when sensibility is low and the user drags a small distance, it should keep the destination open', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _QuiHeroDragToCloseTestApp(sensibility: 0));
+      await tester.tap(find.byKey(_QuiHeroDragToCloseTestApp.openButtonKey));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 80));
+      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+      await tester.pump();
+
+      expect(find.byKey(_QuiHeroDragToCloseTestApp.destinationKey), findsOneWidget);
+    });
+
+    testWidgets('when flinging down quickly below the commit threshold, it should pop back to the source hero', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _QuiHeroDragToCloseTestApp());
+      await tester.tap(find.byKey(_QuiHeroDragToCloseTestApp.openButtonKey));
+      await tester.pumpAndSettle();
+      await tester.fling(find.byType(CustomScrollView), const Offset(0, 30), 900);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(_QuiHeroDragToCloseTestApp.destinationKey), findsNothing);
+    });
+
+    testWidgets('when flinging down slowly below the commit threshold, it should keep the destination open', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _QuiHeroDragToCloseTestApp());
+      await tester.tap(find.byKey(_QuiHeroDragToCloseTestApp.openButtonKey));
+      await tester.pumpAndSettle();
+      await tester.fling(find.byType(CustomScrollView), const Offset(0, 80), 400);
+      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+      await tester.pump();
+
+      expect(find.byKey(_QuiHeroDragToCloseTestApp.destinationKey), findsOneWidget);
+    });
+
+    testWidgets('when flinging upward quickly from the top, it should keep the destination open', (tester) async {
+      await tester.pumpWidget(const _QuiHeroDragToCloseTestApp());
+      await tester.tap(find.byKey(_QuiHeroDragToCloseTestApp.openButtonKey));
+      await tester.pumpAndSettle();
+      await tester.fling(find.byType(CustomScrollView), const Offset(0, -80), 900);
+      await tester.pump();
+
+      expect(find.byKey(_QuiHeroDragToCloseTestApp.destinationKey), findsOneWidget);
+    });
+
+    testWidgets('when sensibility is below zero, it should reject the drag configuration', (tester) async {
+      expect(() => QuiHeroDragToCloseExtension(sensibility: -0.01), throwsAssertionError);
+    });
+
+    testWidgets('when sensibility is above one, it should reject the drag configuration', (tester) async {
+      expect(() => QuiHeroDragToCloseExtension(sensibility: 1.01), throwsAssertionError);
     });
 
     testWidgets('when dragging down from the top, it should notify that dragging started', (tester) async {
@@ -106,12 +191,34 @@ void main() {
 }
 
 class _QuiHeroDragToCloseTestApp extends StatefulWidget {
-  const _QuiHeroDragToCloseTestApp({this.onDragStateChanged});
+  const _QuiHeroDragToCloseTestApp({this.sensibility = 0.5, this.onDragStateChanged});
 
   static const openButtonKey = Key('open-hero-page');
   static const destinationKey = Key('hero-destination');
 
+  final double sensibility;
   final ValueChanged<QuiHeroDragToCloseState>? onDragStateChanged;
+
+  static Future<double> dragToTransitionValue({
+    required WidgetTester tester,
+    required double sensibility,
+    required double dragDistance,
+  }) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(_QuiHeroDragToCloseTestApp(sensibility: sensibility));
+    await tester.tap(find.byKey(openButtonKey));
+    await tester.pumpAndSettle();
+    final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+    await gesture.moveBy(Offset(0, dragDistance));
+    await tester.pump();
+
+    final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(destinationKey)));
+    final transitionValue = route!.transitionValue;
+    await gesture.up();
+    await tester.pumpAndSettle();
+    return transitionValue;
+  }
 
   @override
   State<_QuiHeroDragToCloseTestApp> createState() => _QuiHeroDragToCloseTestAppState();
@@ -146,6 +253,7 @@ class _QuiHeroDragToCloseTestAppState extends State<_QuiHeroDragToCloseTestApp> 
                         QuiHeroPage(
                           builder: (_) => _QuiHeroDragToCloseTestDestination(
                             scrollController: _scrollController,
+                            sensibility: widget.sensibility,
                             onDragStateChanged: widget.onDragStateChanged,
                           ),
                         ).createRoute(context),
@@ -164,9 +272,14 @@ class _QuiHeroDragToCloseTestAppState extends State<_QuiHeroDragToCloseTestApp> 
 }
 
 class _QuiHeroDragToCloseTestDestination extends StatelessWidget {
-  const _QuiHeroDragToCloseTestDestination({required this.scrollController, this.onDragStateChanged});
+  const _QuiHeroDragToCloseTestDestination({
+    required this.scrollController,
+    required this.sensibility,
+    this.onDragStateChanged,
+  });
 
   final ScrollController scrollController;
+  final double sensibility;
   final ValueChanged<QuiHeroDragToCloseState>? onDragStateChanged;
 
   @override
@@ -177,7 +290,11 @@ class _QuiHeroDragToCloseTestDestination extends StatelessWidget {
         tag: 'test-surface',
         decoration: const BoxDecoration(color: Colors.white),
         extensions: [
-          QuiHeroDragToCloseExtension(scrollController: scrollController, onDragStateChanged: onDragStateChanged),
+          QuiHeroDragToCloseExtension(
+            scrollController: scrollController,
+            sensibility: sensibility,
+            onDragStateChanged: onDragStateChanged,
+          ),
         ],
         child: CustomScrollView(
           key: _QuiHeroDragToCloseTestApp.destinationKey,

@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../qui_hero.dart';
 import '../../qui_hero_page/qui_hero_page.dart';
@@ -35,7 +37,13 @@ part 'qui_hero_drag_to_close_extension_enums.dart';
 ///
 /// When [MediaQuery.disableAnimationsOf] reports reduced motion, the extension
 /// skips the animated transition and commits or cancels the pop immediately
-/// based on the [commitThreshold], without flying the shared element.
+/// based on the [threshold], without flying the shared element.
+///
+/// ## Fast swipes
+///
+/// A fast downward swipe commits the close action even when the drag progress
+/// is still below [threshold]. This matches the fast-swipe intent used
+/// by other QUI gesture components while keeping upward swipes ignored.
 ///
 /// ## Lifecycle callbacks
 ///
@@ -74,14 +82,11 @@ class QuiHeroDragToCloseExtension extends QuiHeroExtension {
   /// [FlutterError] at runtime.
   const QuiHeroDragToCloseExtension({
     this.scrollController,
-    this.closeDragHeightFactor = 0.42,
-    this.commitThreshold = 0.5,
+    this.threshold = 0.5,
+    this.sensibility = 0.5,
     this.onDragStateChanged,
-  }) : assert(commitThreshold >= 0.0 && commitThreshold <= 1.0, 'commitThreshold must be between 0.0 and 1.0.'),
-       assert(
-         closeDragHeightFactor > 0.0 && closeDragHeightFactor <= 1.0,
-         'closeDragHeightFactor must be greater than 0.0 and at most 1.0.',
-       );
+  }) : assert(threshold >= 0.0 && threshold <= 1.0, 'commitThreshold must be between 0.0 and 1.0.'),
+       assert(sensibility >= 0.0 && sensibility <= 1.0, 'sensibility must be between 0.0 and 1.0.');
 
   /// An optional scroll controller for scroll-aware drag-to-close.
   ///
@@ -92,25 +97,26 @@ class QuiHeroDragToCloseExtension extends QuiHeroExtension {
   /// When `null`, downward drag always triggers drag-to-close.
   final ScrollController? scrollController;
 
-  /// The fraction of the screen height needed to complete a close gesture.
+  /// The responsiveness of drag progress to the user's finger movement.
   ///
-  /// A value of `0.42` means the user must drag their finger downward across
-  /// 42 % of the screen height to reach the full close state. A smaller value
-  /// makes the page feel easier to dismiss; a larger value requires a longer
-  /// drag.
+  /// A value of `0.0` makes the gesture less sensitive, so the user must drag
+  /// farther to reach the same closing progress. A value of `1.0` makes the
+  /// gesture more sensitive, so a small drag advances the close progress
+  /// quickly.
   ///
-  /// Defaults to `0.42`.
-  final double closeDragHeightFactor;
+  /// This does not change [threshold]. It only changes how quickly
+  /// finger movement becomes drag progress. Must be between `0.0` and `1.0`.
+  /// Defaults to `0.5`, which preserves the standard drag feel.
+  final double sensibility;
 
   /// The fraction of the drag progress at which releasing commits the pop.
   ///
-  /// When the user has dragged at least this far (as a fraction of
-  /// [closeDragHeightFactor]), lifting the finger commits the pop and
-  /// dismisses the page. If the drag progress is below this threshold,
-  /// the page animates back to its open position.
+  /// When the user has dragged at least this far, lifting the finger commits
+  /// the pop and dismisses the page. If the drag progress is below this
+  /// threshold, the page animates back to its open position.
   ///
   /// Must be between `0.0` and `1.0`. Defaults to `0.5`.
-  final double commitThreshold;
+  final double threshold;
 
   /// Called whenever the drag-to-close lifecycle changes.
   ///
@@ -124,8 +130,8 @@ class QuiHeroDragToCloseExtension extends QuiHeroExtension {
   Widget wrap({required BuildContext context, required Widget child}) {
     return _QuiHeroDragToCloseExtensionGesture(
       scrollController: scrollController,
-      closeDragHeightFactor: closeDragHeightFactor,
-      commitThreshold: commitThreshold,
+      commitThreshold: threshold,
+      sensibility: sensibility,
       onDragStateChanged: onDragStateChanged,
       child: child,
     );

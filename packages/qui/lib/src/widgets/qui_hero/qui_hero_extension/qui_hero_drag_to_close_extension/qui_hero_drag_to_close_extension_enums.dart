@@ -15,7 +15,7 @@ enum QuiHeroDragToCloseState {
   /// The hero overlay is tracking the user's finger position. When [dragging]
   /// is reported, the hero page is partially translated downward and the
   /// opacity may change to reflect the closing progress. If the user lifts
-  /// their finger before reaching the [QuiHeroDragToCloseExtension.commitThreshold],
+  /// their finger before reaching the [QuiHeroDragToCloseExtension.threshold],
   /// the state returns to [idle]. If the threshold is reached, the route
   /// pops and the extension resets internally.
   dragging,

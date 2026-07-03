@@ -4,15 +4,15 @@ class _QuiHeroDragToCloseExtensionGesture extends StatefulWidget {
   const _QuiHeroDragToCloseExtensionGesture({
     required this.child,
     this.scrollController,
-    this.closeDragHeightFactor = 0.42,
     this.commitThreshold = 0.5,
+    this.sensibility = 0.5,
     this.onDragStateChanged,
   });
 
   final Widget child;
   final ScrollController? scrollController;
-  final double closeDragHeightFactor;
   final double commitThreshold;
+  final double sensibility;
   final ValueChanged<QuiHeroDragToCloseState>? onDragStateChanged;
 
   @override
@@ -25,6 +25,7 @@ class _QuiHeroDragToCloseExtensionGestureState extends State<_QuiHeroDragToClose
   bool _isReducedMotionDrag = false;
   double _closeDragDistance = 1;
   double _interactiveClosingProgress = 0;
+  VelocityTracker? _velocityTracker;
   QuiHeroPageRoute? _activeRoute;
 
   @override
@@ -45,13 +46,22 @@ class _QuiHeroDragToCloseExtensionGestureState extends State<_QuiHeroDragToClose
     _activePointer = event.pointer;
     _activeRoute = null;
     _isReducedMotionDrag = MediaQuery.disableAnimationsOf(context);
-    final closeDragDistance = MediaQuery.sizeOf(context).height * widget.closeDragHeightFactor;
+    _velocityTracker = VelocityTracker.withKind(event.kind)..addPosition(event.timeStamp, event.position);
+    final closeDragDistance = MediaQuery.sizeOf(context).height * _dragToCloseHeightFraction();
     _closeDragDistance = closeDragDistance <= 0 ? 1 : closeDragDistance;
     _interactiveClosingProgress = 0;
   }
 
+  double _dragToCloseHeightFraction() {
+    // sensibility 0.5 → 0.5 (half-screen drag), 0.0 → 1.0, 1.0 → 0.125.
+    if (widget.sensibility <= 0.5) return 0.5 * (1 + ((0.5 - widget.sensibility) / 0.5));
+    return 0.5 * (1 - (((widget.sensibility - 0.5) / 0.5) * 0.75));
+  }
+
   void _handlePointerMove(PointerMoveEvent event) {
     if (_activePointer != event.pointer) return;
+
+    _velocityTracker?.addPosition(event.timeStamp, event.position);
     if (!_isInteractivePopActive && event.delta.dy <= 0) return;
     if (!_isInteractivePopActive && !_isScrollAtTop) return;
 
@@ -76,8 +86,10 @@ class _QuiHeroDragToCloseExtensionGestureState extends State<_QuiHeroDragToClose
   void _handlePointerUp(PointerUpEvent event) {
     if (_activePointer != event.pointer) return;
 
+    _velocityTracker?.addPosition(event.timeStamp, event.position);
+    final dragVelocity = _velocityTracker?.getVelocity() ?? Velocity.zero;
     _activePointer = null;
-    _finishInteractivePop();
+    _finishInteractivePop(dragVelocity: dragVelocity);
   }
 
   void _handlePointerCancel(PointerCancelEvent event) {
@@ -120,11 +132,11 @@ class _QuiHeroDragToCloseExtensionGestureState extends State<_QuiHeroDragToClose
     ]);
   }
 
-  void _finishInteractivePop() {
+  void _finishInteractivePop({required Velocity dragVelocity}) {
     if (!_isInteractivePopActive) return;
 
     if (_isReducedMotionDrag) {
-      _finishReducedMotionInteractivePop();
+      _finishReducedMotionInteractivePop(dragVelocity: dragVelocity);
       return;
     }
 
@@ -134,7 +146,7 @@ class _QuiHeroDragToCloseExtensionGestureState extends State<_QuiHeroDragToClose
       return;
     }
 
-    if (_interactiveClosingProgress >= widget.commitThreshold) {
+    if (_shouldCommitInteractivePop(dragVelocity: dragVelocity)) {
       route.commitInteractivePop();
       _resetGestureState();
       return;
@@ -143,14 +155,18 @@ class _QuiHeroDragToCloseExtensionGestureState extends State<_QuiHeroDragToClose
     _cancelInteractivePop();
   }
 
-  void _finishReducedMotionInteractivePop() {
-    if (_interactiveClosingProgress >= widget.commitThreshold) {
+  void _finishReducedMotionInteractivePop({required Velocity dragVelocity}) {
+    if (_shouldCommitInteractivePop(dragVelocity: dragVelocity)) {
       _resetGestureState();
       unawaited(Navigator.of(context).maybePop());
       return;
     }
 
     _restoreInteractiveChrome();
+  }
+
+  bool _shouldCommitInteractivePop({required Velocity dragVelocity}) {
+    return _interactiveClosingProgress >= widget.commitThreshold || dragVelocity.isSwipeDown();
   }
 
   void _cancelInteractivePop() {
@@ -168,6 +184,7 @@ class _QuiHeroDragToCloseExtensionGestureState extends State<_QuiHeroDragToClose
     _isReducedMotionDrag = false;
     _closeDragDistance = 1;
     _interactiveClosingProgress = 0;
+    _velocityTracker = null;
     _activeRoute = null;
   }
 
