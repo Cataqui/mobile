@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
 void main() {
-  group('QuiHero.box', () {
+  group('QuiHero.background', () {
     testWidgets('when building at rest, it should wrap the child in a Hero', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -11,7 +11,7 @@ void main() {
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test',
                 decoration: const BoxDecoration(color: Colors.white),
                 child: const SizedBox.shrink(),
@@ -31,7 +31,7 @@ void main() {
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test',
                 decoration: const BoxDecoration(color: Colors.white),
                 child: const SizedBox.shrink(),
@@ -54,7 +54,7 @@ void main() {
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test',
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(38)),
               ),
@@ -76,7 +76,7 @@ void main() {
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test',
                 decoration: const BoxDecoration(color: Colors.white),
                 child: const Text('hello'),
@@ -96,7 +96,7 @@ void main() {
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test',
                 decoration: const BoxDecoration(color: Colors.white),
                 padding: const EdgeInsets.all(24),
@@ -115,7 +115,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: QuiHero.box(
+            body: QuiHero.background(
               tag: 'test',
               decoration: const BoxDecoration(color: Colors.white),
               width: 300,
@@ -135,7 +135,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: QuiHero.box(
+            body: QuiHero.background(
               tag: 'test',
               decoration: const BoxDecoration(color: Colors.white),
               extensions: const [_QuiHeroKeyedExtension(key: extensionKey)],
@@ -157,7 +157,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: QuiHero.box(
+            body: QuiHero.background(
               tag: 'test',
               decoration: const BoxDecoration(color: Colors.white),
               extensions: const [

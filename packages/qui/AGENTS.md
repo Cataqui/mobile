@@ -70,7 +70,7 @@ for interactive samples (though the latter requires a separate fixture file).
 
 ```dart
 /// ```dart
-/// QuiHero.box(
+/// QuiHero.background(
 ///   tag: 'card-1',
 ///   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
 /// )

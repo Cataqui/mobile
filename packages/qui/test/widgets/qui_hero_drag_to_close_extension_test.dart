@@ -89,7 +89,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: QuiHero.box(
+            body: QuiHero.background(
               tag: 'test-surface',
               extensions: const [QuiHeroDragToCloseExtension()],
               child: const SizedBox(key: dragTargetKey, width: 200, height: 200),
@@ -133,7 +133,7 @@ class _QuiHeroDragToCloseTestAppState extends State<_QuiHeroDragToCloseTestApp> 
         builder: (context) {
           return Scaffold(
             body: Center(
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test-surface',
                 width: 220,
                 height: 120,
@@ -173,7 +173,7 @@ class _QuiHeroDragToCloseTestDestination extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: QuiHero.box(
+      body: QuiHero.background(
         tag: 'test-surface',
         decoration: const BoxDecoration(color: Colors.white),
         extensions: [

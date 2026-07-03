@@ -12,7 +12,7 @@ part 'qui_hero_drag_to_close_extension_enums.dart';
 
 /// Adds drag-to-close behavior to a hero destination page.
 ///
-/// Pass this extension to a [QuiHero] variant — typically [QuiHero.box] —
+/// Pass this extension to a [QuiHero] variant — typically [QuiHero.background] —
 /// displayed on a destination opened by [QuiHeroPage]. The extension tracks
 /// downward drag gestures and drives the route's interactive-pop API to create
 /// a natural swipe-to-dismiss experience.
@@ -45,7 +45,7 @@ part 'qui_hero_drag_to_close_extension_enums.dart';
 /// [QuiHeroDragToCloseState.dragging] when a gesture begins.
 ///
 /// ```dart
-/// QuiHero.box(
+/// QuiHero.background(
 ///   tag: 'job-1-surface',
 ///   extensions: [
 ///     QuiHeroDragToCloseExtension(

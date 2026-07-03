@@ -60,7 +60,7 @@ void main() {
             child: SizedBox(
               width: 300,
               height: 100,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test-box-with-child',
                 decoration: BoxDecoration(color: const Color(0xFFFF4A4B), borderRadius: BorderRadius.circular(38)),
                 padding: const EdgeInsets.all(16),
@@ -79,7 +79,7 @@ void main() {
             child: SizedBox(
               width: 300,
               height: 80,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'test-box-decoration',
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFE5E5),

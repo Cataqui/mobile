@@ -14,7 +14,7 @@ import 'qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
 /// ## Composition order
 ///
 /// When a hero receives multiple extensions via
-/// [QuiHero.box]`({... extensions: [...] })`, they are applied in declaration
+/// [QuiHero.background]`({... extensions: [...] })`, they are applied in declaration
 /// order: the **first** extension in the list becomes the **outermost** wrapper.
 ///
 /// ```dart

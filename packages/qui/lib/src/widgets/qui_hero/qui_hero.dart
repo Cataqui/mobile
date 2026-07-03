@@ -42,7 +42,7 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 ///    interpolated via [TextStyle.lerp] throughout the flight. Text content,
 ///    wrapping (`maxLines`, `overflow`) and text alignment switch from source
 ///    to destination at the point defined by [QuiHero.text.switchThreshold]
-///  * [QuiHero.box] — animates a [BoxDecoration]. Color, border radius,
+///  * [QuiHero.background] — animates a [BoxDecoration]. Color, border radius,
 ///    shadows, gradients, and border are interpolated via
 ///    [Decoration.lerp]. The `child` renders natively on each screen but is
 ///    **not** carried into the flight overlay — only the decoration morphs.
@@ -52,7 +52,7 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 /// Variants can use a [tag] to pair source and destination explicitly. When
 /// [tag] is omitted, QUI uses a private default tag for that variant. This
 /// keeps simple routes lightweight: one tagless [QuiHero.text], one tagless
-/// [QuiHero.box], etc. can coexist and animate to
+/// [QuiHero.background], etc. can coexist and animate to
 /// the matching variant on the destination route. If a route has multiple
 /// active heroes of the same tagless variant, Flutter asserts at navigation
 /// time; pass explicit tags for those cases.
@@ -65,7 +65,7 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 ///
 /// ```dart
 /// // Source — a rounded box with title
-/// QuiHero.box(
+/// QuiHero.background(
 ///   tag: 'card-1',
 ///   decoration: BoxDecoration(
 ///     color: surfaceColor,
@@ -79,7 +79,7 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 /// )
 ///
 /// // Destination — same tags trigger the shared-element transition
-/// QuiHero.box(
+/// QuiHero.background(
 ///   tag: 'card-1',
 ///   decoration: BoxDecoration(color: bgColor),
 ///   child: QuiHero.text(
@@ -155,8 +155,8 @@ sealed class QuiHero extends StatelessWidget {
     key: key,
   );
 
-  /// Creates a box hero that animates a [BoxDecoration] between source and
-  /// destination.
+  /// Creates a background hero that animates a [BoxDecoration] between source
+  /// and destination.
   ///
   /// The [decoration] — color, border radius, shadows, gradients, and border —
   /// is interpolated via [Decoration.lerp]. Interpolation uses
@@ -176,7 +176,7 @@ sealed class QuiHero extends StatelessWidget {
   /// the outermost wrapper.
   ///
   /// ```dart
-  /// QuiHero.box(
+  /// QuiHero.background(
   ///   tag: 'card-1',
   ///   width: double.infinity,
   ///   decoration: BoxDecoration(
@@ -196,7 +196,7 @@ sealed class QuiHero extends StatelessWidget {
   ///   ]),
   /// )
   /// ```
-  factory QuiHero.box({
+  factory QuiHero.background({
     Object? tag,
     BoxDecoration? decoration,
     double? width,
@@ -221,7 +221,7 @@ sealed class QuiHero extends StatelessWidget {
   /// The optional [tag] identifies the whole group. When omitted, the group
   /// pairs with the single tagless group on the destination route. The inner
   /// [heroes] must be tagless [QuiHero] variants such as [QuiHero.text] or
-  /// [QuiHero.box]. The group captures the closest supported parent layout
+  /// [QuiHero.background]. The group captures the closest supported parent layout
   /// ([Column], [Row], [Flex], or [Stack]) and reuses that layout during the
   /// shared-element flight.
   factory QuiHero.group({required List<QuiHero> heroes, Object? tag, Key? key}) =>
@@ -283,7 +283,7 @@ Widget quiHeroPreview() {
             SizedBox(
               width: 260,
               height: 100,
-              child: QuiHero.box(
+              child: QuiHero.background(
                 tag: 'preview-box',
                 decoration: BoxDecoration(color: const Color(0xFFFF4A4B), borderRadius: BorderRadius.circular(24)),
                 child: const Center(

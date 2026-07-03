@@ -1422,7 +1422,7 @@ class _SingleUntaggedBoxHeroTestApp extends StatelessWidget {
             child: SizedBox(
               width: 100,
               height: 100,
-              child: QuiHero.box(decoration: const BoxDecoration(color: Colors.red)),
+              child: QuiHero.background(decoration: const BoxDecoration(color: Colors.red)),
             ),
           ),
         ),
@@ -1435,7 +1435,7 @@ class _SingleUntaggedBoxHeroTestApp extends StatelessWidget {
       body: SizedBox(
         width: 200,
         height: 200,
-        child: QuiHero.box(decoration: const BoxDecoration(color: Colors.red)),
+        child: QuiHero.background(decoration: const BoxDecoration(color: Colors.red)),
       ),
     );
   }
@@ -1510,7 +1510,7 @@ class _MixedUntaggedHeroVariantsTestApp extends StatelessWidget {
                 SizedBox(
                   width: 60,
                   height: 60,
-                  child: QuiHero.box(decoration: const BoxDecoration(color: Colors.red)),
+                  child: QuiHero.background(decoration: const BoxDecoration(color: Colors.red)),
                 ),
                 QuiHero.group(
                   heroes: [
@@ -1534,7 +1534,7 @@ class _MixedUntaggedHeroVariantsTestApp extends StatelessWidget {
           SizedBox(
             width: 120,
             height: 120,
-            child: QuiHero.box(decoration: const BoxDecoration(color: Colors.blue)),
+            child: QuiHero.background(decoration: const BoxDecoration(color: Colors.blue)),
           ),
           QuiHero.group(
             heroes: [
@@ -1658,7 +1658,7 @@ class _TypeMismatchGroupTestApp extends StatelessWidget {
             tag: 'group',
             heroes: [
               QuiHero.text(text: 'Hello'),
-              QuiHero.box(decoration: const BoxDecoration(color: Colors.red), width: 100, height: 100),
+              QuiHero.background(decoration: const BoxDecoration(color: Colors.red), width: 100, height: 100),
             ],
           ),
         ],
