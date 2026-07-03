@@ -291,8 +291,14 @@ class _QuiHeroTextFlight extends StatelessWidget {
     required double scaleX,
     required double? reservedLayoutWidth,
   }) {
-    if (reservedLayoutWidth != null) return reservedLayoutWidth;
     if (!constraints.hasBoundedWidth) return reservedLayoutWidth;
+
+    if (reservedLayoutWidth != null) {
+      final widthForCurrentHero = constraints.maxWidth / scaleX;
+      if (scaleX > 1) return math.min(reservedLayoutWidth, widthForCurrentHero);
+
+      return reservedLayoutWidth;
+    }
 
     return constraints.maxWidth / scaleX;
   }
@@ -314,7 +320,11 @@ class _QuiHeroTextFlight extends StatelessWidget {
     if (beginFontSize == null || beginFontSize <= 0) return null;
     if (endFontSize == null || endFontSize <= 0) return null;
 
-    if (flightProgress < switchThreshold) return beginLayoutWidth * (endFontSize / beginFontSize);
+    if (flightProgress < switchThreshold) {
+      final beginLayoutWidthInEndFont = beginLayoutWidth * (endFontSize / beginFontSize);
+
+      return math.min(beginLayoutWidthInEndFont, endLayoutWidth);
+    }
 
     return endLayoutWidth;
   }

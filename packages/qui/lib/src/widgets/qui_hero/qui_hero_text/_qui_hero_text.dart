@@ -160,9 +160,11 @@ final class _QuiHeroText extends QuiHero {
     final flight = this.flight;
     if (flight == null) return this;
 
+    final endpointMaxLines = flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize);
+
     return _QuiHeroText.fromFlight(
       flight._copyWith(
-        endpointMaxLines: flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize),
+        endpointMaxLines: endpointMaxLines,
         endpointReservedLayoutWidth: flight._endpointReservedLayoutWidthFor(
           beginLayoutWidth: beginLayoutWidth,
           endLayoutWidth: endLayoutWidth,

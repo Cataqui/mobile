@@ -329,6 +329,37 @@ void main() {
       },
     );
 
+    testWidgets(
+      'when a grouped title would paint past the hero edge, it should wrap without ellipsis during the flight',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedHeaderBorderWrapTestApp());
+        await tester.tap(find.text(_GroupedHeaderBorderWrapTestApp.title));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
+
+        final sample = _GroupedHeaderBorderWrapTestApp.titleFlightSample(tester);
+
+        expect((sample.lineCount >= 2, sample.hasEllipsis), equals((true, false)), reason: 'sample=$sample');
+      },
+    );
+
+    testWidgets(
+      'when a grouped title is closing before one-line space is available, it should stay wrapped without ellipsis',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedHeaderBorderWrapTestApp());
+        await tester.tap(find.text(_GroupedHeaderBorderWrapTestApp.title));
+        await tester.pump();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(_GroupedHeaderBorderWrapTestApp.title));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 120));
+
+        final sample = _GroupedHeaderBorderWrapTestApp.titleFlightSample(tester);
+
+        expect((sample.lineCount >= 2, sample.hasEllipsis), equals((true, false)), reason: 'sample=$sample');
+      },
+    );
+
     testWidgets('when a grouped header title finishes closing, it should keep the same height when the card settles', (
       tester,
     ) async {
@@ -1029,6 +1060,99 @@ class _GroupedHeaderEndpointLineCeilingHeader extends StatelessWidget {
           heroes: [
             QuiHero.text(
               text: _GroupedHeaderEndpointLineCeilingTestApp.title,
+              maxLines: isDetail ? null : 2,
+              overflow: isDetail ? null : TextOverflow.ellipsis,
+              style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupedHeaderBorderWrapTestApp extends StatelessWidget {
+  const _GroupedHeaderBorderWrapTestApp();
+
+  static const title = 'Atendente Geral de Restaurante';
+
+  static ({bool hasEllipsis, int lineCount}) titleFlightSample(WidgetTester tester) {
+    final entries = find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((element) => (widget: element.widget as Text, renderObject: element.renderObject))
+        .where((entry) => entry.renderObject is RenderBox)
+        .map((entry) => (widget: entry.widget, renderBox: entry.renderObject! as RenderBox))
+        .where((entry) => entry.renderBox.hasSize && entry.renderBox.size.width > 0)
+        .where((entry) => entry.widget.maxLines != 2)
+        .toList();
+
+    return (
+      hasEllipsis: entries.any((entry) => entry.widget.overflow == TextOverflow.ellipsis),
+      lineCount: entries.map(_lineCount).reduce(math.max),
+    );
+  }
+
+  static int _lineCount(({RenderBox renderBox, Text widget}) entry) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: entry.widget.data, style: entry.widget.style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+    )..layout(maxWidth: entry.renderBox.size.width);
+
+    final lineCount = textPainter.computeLineMetrics().length;
+    final maxLines = entry.widget.maxLines;
+    if (maxLines != null && lineCount > maxLines) return maxLines;
+    return lineCount;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(builder: _GroupedHeaderBorderWrapTestApp.buildDestination).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 300, child: _GroupedHeaderBorderWrapHeader(isDetail: false)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return const Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(width: 300, child: _GroupedHeaderBorderWrapHeader(isDetail: true)),
+      ),
+    );
+  }
+}
+
+class _GroupedHeaderBorderWrapHeader extends StatelessWidget {
+  const _GroupedHeaderBorderWrapHeader({required this.isDetail});
+
+  final bool isDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'border-wrap-group',
+          heroes: [
+            QuiHero.text(
+              text: _GroupedHeaderBorderWrapTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
