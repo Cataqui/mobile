@@ -4,7 +4,7 @@ class _QuiHeroGroupScope extends InheritedWidget {
   const _QuiHeroGroupScope({required super.child});
 
   static _QuiHeroGroupScope? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_QuiHeroGroupScope>();
+    return context.getElementForInheritedWidgetOfExactType<_QuiHeroGroupScope>()?.widget as _QuiHeroGroupScope?;
   }
 
   @override

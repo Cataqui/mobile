@@ -193,6 +193,198 @@ void main() {
         );
       },
     );
+
+    testWidgets(
+      'when a grouped header opens to lower detail text, it should move the title and payment down toward the detail screen',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedHeaderVerticalOffsetTestApp());
+
+        final sourceTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.title,
+        );
+        final sourcePaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.payment,
+        );
+
+        await tester.tap(find.text(_GroupedHeaderVerticalOffsetTestApp.title));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 80));
+
+        final flightTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.title,
+        );
+        final flightPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.payment,
+        );
+
+        await tester.pumpAndSettle();
+
+        final destinationTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.title,
+        );
+        final destinationPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.payment,
+        );
+
+        expect((
+          sourceTitleTop < flightTitleTop,
+          flightTitleTop < destinationTitleTop,
+          sourcePaymentTop < flightPaymentTop,
+          flightPaymentTop < destinationPaymentTop,
+        ), equals((true, true, true, true)));
+      },
+    );
+
+    testWidgets(
+      'when a grouped header closes to higher card text, it should move the title and payment up toward the card',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedHeaderVerticalOffsetTestApp());
+
+        final sourceTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.title,
+        );
+        final sourcePaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.payment,
+        );
+
+        await tester.tap(find.text(_GroupedHeaderVerticalOffsetTestApp.title));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        final destinationTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.title,
+        );
+        final destinationPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.payment,
+        );
+
+        await tester.tap(find.text(_GroupedHeaderVerticalOffsetTestApp.title));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 80));
+
+        final flightTitleTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.title,
+        );
+        final flightPaymentTop = _GroupedHeaderVerticalOffsetTestApp.textTop(
+          tester,
+          _GroupedHeaderVerticalOffsetTestApp.payment,
+        );
+
+        expect((
+          sourceTitleTop < flightTitleTop,
+          flightTitleTop < destinationTitleTop,
+          sourcePaymentTop < flightPaymentTop,
+          flightPaymentTop < destinationPaymentTop,
+        ), equals((true, true, true, true)));
+      },
+    );
+
+    testWidgets(
+      'when a grouped header title closes with enough card width, it should rewrap from two lines to one line during the flight',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedHeaderDynamicWrapTestApp());
+        await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
+        await tester.pump();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 360));
+
+        expect(_GroupedHeaderDynamicWrapTestApp.flightTitleLineCount(tester), equals(1));
+      },
+    );
+
+    testWidgets(
+      'when a grouped title needs two card lines and three detail lines, it should not add a fourth line or ellipsis during the flight',
+      (tester) async {
+        await tester.pumpWidget(const _GroupedHeaderEndpointLineCeilingTestApp());
+        await tester.tap(find.text(_GroupedHeaderEndpointLineCeilingTestApp.title));
+        await tester.pump();
+
+        final samples = <({bool hasEllipsis, int lineCount})>[];
+        var elapsed = Duration.zero;
+
+        for (final sample in _GroupedHeaderEndpointLineCeilingTestApp.samples) {
+          await tester.pump(sample - elapsed);
+          elapsed = sample;
+          samples.add(_GroupedHeaderEndpointLineCeilingTestApp.titleFlightSample(tester));
+        }
+
+        expect(
+          (samples.every((sample) => sample.lineCount <= 3), samples.every((sample) => !sample.hasEllipsis)),
+          equals((true, true)),
+          reason: 'samples=$samples',
+        );
+      },
+    );
+
+    testWidgets('when a grouped header title finishes closing, it should keep the same height when the card settles', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _GroupedHeaderDynamicWrapTestApp());
+      await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
+      await tester.pump();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(_GroupedHeaderDynamicWrapTestApp.title));
+      await tester.pump();
+      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration - const Duration(milliseconds: 1));
+
+      final flightHeight = _GroupedHeaderDynamicWrapTestApp.titleHeight(tester);
+
+      await tester.pumpAndSettle();
+
+      final settledHeight = _GroupedHeaderDynamicWrapTestApp.titleHeight(tester);
+
+      expect((flightHeight - settledHeight).abs() < 2, isTrue);
+    });
+
+    testWidgets('when a grouped title changes font size while closing, it should avoid sudden painted baseline jumps', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _GroupedHeaderBaselineTestApp());
+
+      await tester.tap(find.text(_GroupedHeaderBaselineTestApp.title));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      final baselines = <double>[];
+      var elapsed = Duration.zero;
+
+      await tester.tap(find.text(_GroupedHeaderBaselineTestApp.title));
+      await tester.pump();
+
+      for (final sample in _GroupedHeaderBaselineTestApp.samples) {
+        await tester.pump(sample - elapsed);
+        elapsed = sample;
+        baselines.add(_GroupedHeaderBaselineTestApp.titleBaseline(tester));
+      }
+
+      final deltas = [
+        for (var index = 1; index < baselines.length; index += 1) baselines[index] - baselines[index - 1],
+      ];
+      final magnitudes = deltas.map((delta) => delta.abs()).toList();
+      final isAlwaysMovingTowardCard = deltas.every((delta) => delta < 0);
+      final hasNoMidFlightSpike = [
+        for (var index = 2; index < magnitudes.length; index += 1) magnitudes[index] <= magnitudes[index - 1] + 0.5,
+      ].every((isSmooth) => isSmooth);
+
+      expect(
+        (isAlwaysMovingTowardCard, hasNoMidFlightSpike),
+        equals((true, true)),
+        reason: 'baselines=$baselines deltas=$deltas',
+      );
+    });
   });
 
   group('QuiHero optional tags', () {
@@ -559,6 +751,376 @@ class _GroupedDescriptionHeader extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               switchThreshold: 0.8,
               style: const TextStyle(fontSize: 18, height: 1.38, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupedHeaderVerticalOffsetTestApp extends StatelessWidget {
+  const _GroupedHeaderVerticalOffsetTestApp();
+
+  static const title = 'Vendedora de Loja';
+  static const payment = r'R$150/dia';
+
+  static double textTop(WidgetTester tester, String text) {
+    return tester.getTopLeft(find.text(text, skipOffstage: false).last).dy;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(builder: _GroupedHeaderVerticalOffsetTestApp.buildDestination).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 300, child: _GroupedHeaderVerticalOffsetHeader(isDetail: false)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const SizedBox(width: 300, child: _GroupedHeaderVerticalOffsetHeader(isDetail: true)),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedHeaderVerticalOffsetHeader extends StatelessWidget {
+  const _GroupedHeaderVerticalOffsetHeader({required this.isDetail});
+
+  final bool isDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'vertical-offset-group',
+          heroes: [
+            QuiHero.text(
+              text: '20h atras',
+              style: TextStyle(fontSize: isDetail ? 16 : 14, fontWeight: FontWeight.w500),
+              padding: const EdgeInsets.only(bottom: 6),
+            ),
+            QuiHero.text(
+              text: _GroupedHeaderVerticalOffsetTestApp.title,
+              style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
+            ),
+            QuiHero.text(
+              text: _GroupedHeaderVerticalOffsetTestApp.payment,
+              style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupedHeaderDynamicWrapTestApp extends StatelessWidget {
+  const _GroupedHeaderDynamicWrapTestApp();
+
+  static const title = 'Cozinha Noturno';
+
+  static int flightTitleLineCount(WidgetTester tester) {
+    final titleEntry = find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((element) => (widget: element.widget as Text, renderObject: element.renderObject))
+        .where((entry) => entry.renderObject is RenderBox)
+        .map((entry) => (widget: entry.widget, renderBox: entry.renderObject! as RenderBox))
+        .where((entry) => entry.renderBox.hasSize)
+        .reduce((largest, current) => current.renderBox.size.width > largest.renderBox.size.width ? current : largest);
+    final textPainter = TextPainter(
+      text: TextSpan(text: titleEntry.widget.data, style: titleEntry.widget.style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+    )..layout(maxWidth: titleEntry.renderBox.size.width);
+
+    return textPainter.computeLineMetrics().length;
+  }
+
+  static double titleHeight(WidgetTester tester) {
+    return find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((element) => element.renderObject)
+        .whereType<RenderBox>()
+        .where((renderBox) => renderBox.hasSize)
+        .map((renderBox) => renderBox.size.height)
+        .reduce(math.max);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(builder: _GroupedHeaderDynamicWrapTestApp.buildDestination).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 400, child: _GroupedHeaderDynamicWrapHeader(isDetail: false)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const SizedBox(width: 400, child: _GroupedHeaderDynamicWrapHeader(isDetail: true)),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedHeaderDynamicWrapHeader extends StatelessWidget {
+  const _GroupedHeaderDynamicWrapHeader({required this.isDetail});
+
+  final bool isDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'dynamic-wrap-group',
+          heroes: [
+            QuiHero.text(
+              text: '20h atras',
+              style: TextStyle(fontSize: isDetail ? 16 : 14),
+            ),
+            QuiHero.text(
+              text: _GroupedHeaderDynamicWrapTestApp.title,
+              maxLines: isDetail ? null : 2,
+              overflow: isDetail ? null : TextOverflow.ellipsis,
+              style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
+            ),
+            QuiHero.text(
+              text: r'R$2.235,97/mes',
+              style: TextStyle(fontSize: isDetail ? 30 : 25),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupedHeaderEndpointLineCeilingTestApp extends StatelessWidget {
+  const _GroupedHeaderEndpointLineCeilingTestApp();
+
+  static const title = 'Auxiliar de Cozinha Noturno Agua Branca';
+  static const samples = [
+    Duration(milliseconds: 240),
+    Duration(milliseconds: 280),
+    Duration(milliseconds: 320),
+    Duration(milliseconds: 360),
+  ];
+
+  static ({bool hasEllipsis, int lineCount}) titleFlightSample(WidgetTester tester) {
+    final entries = find
+        .text(title, skipOffstage: false)
+        .evaluate()
+        .map((element) => (widget: element.widget as Text, renderObject: element.renderObject))
+        .where((entry) => entry.renderObject is RenderBox)
+        .map((entry) => (widget: entry.widget, renderBox: entry.renderObject! as RenderBox))
+        .where((entry) => entry.renderBox.hasSize && entry.renderBox.size.width > 0)
+        .toList();
+
+    return (
+      hasEllipsis: entries.any((entry) => entry.widget.maxLines != 2 && entry.widget.overflow == TextOverflow.ellipsis),
+      lineCount: entries.map(_lineCount).reduce(math.max),
+    );
+  }
+
+  static int _lineCount(({RenderBox renderBox, Text widget}) entry) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: entry.widget.data, style: entry.widget.style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+    )..layout(maxWidth: entry.renderBox.size.width);
+
+    final lineCount = textPainter.computeLineMetrics().length;
+    final maxLines = entry.widget.maxLines;
+    if (maxLines != null && lineCount > maxLines) return maxLines;
+    return lineCount;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(
+                    builder: _GroupedHeaderEndpointLineCeilingTestApp.buildDestination,
+                  ).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 280, child: _GroupedHeaderEndpointLineCeilingHeader(isDetail: false)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return const Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(width: 560, child: _GroupedHeaderEndpointLineCeilingHeader(isDetail: true)),
+      ),
+    );
+  }
+}
+
+class _GroupedHeaderEndpointLineCeilingHeader extends StatelessWidget {
+  const _GroupedHeaderEndpointLineCeilingHeader({required this.isDetail});
+
+  final bool isDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'endpoint-line-ceiling-group',
+          heroes: [
+            QuiHero.text(
+              text: _GroupedHeaderEndpointLineCeilingTestApp.title,
+              maxLines: isDetail ? null : 2,
+              overflow: isDetail ? null : TextOverflow.ellipsis,
+              style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupedHeaderBaselineTestApp extends StatelessWidget {
+  const _GroupedHeaderBaselineTestApp();
+
+  static const title = 'Auxiliar de Cozinha';
+  static const samples = [
+    Duration(milliseconds: 43),
+    Duration(milliseconds: 86),
+    Duration(milliseconds: 129),
+    Duration(milliseconds: 172),
+    Duration(milliseconds: 215),
+    Duration(milliseconds: 258),
+    Duration(milliseconds: 301),
+    Duration(milliseconds: 344),
+    Duration(milliseconds: 387),
+  ];
+
+  static double titleBaseline(WidgetTester tester) {
+    final element = find.text(title, skipOffstage: false).last.evaluate().single;
+    final textWidget = element.widget as Text;
+    final renderBox = element.renderObject! as RenderBox;
+    final textPainter = TextPainter(
+      text: TextSpan(text: textWidget.data, style: textWidget.style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+    )..layout(maxWidth: renderBox.size.width);
+    final baseline = textPainter.computeLineMetrics().first.baseline;
+
+    return renderBox.localToGlobal(Offset(0, baseline)).dy;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  const QuiHeroPage(builder: _GroupedHeaderBaselineTestApp.buildDestination).createRoute(context),
+                );
+              },
+              child: const SizedBox(width: 380, child: _GroupedHeaderBaselineHeader(isDetail: false)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget buildDestination(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const SizedBox(width: 380, child: _GroupedHeaderBaselineHeader(isDetail: true)),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedHeaderBaselineHeader extends StatelessWidget {
+  const _GroupedHeaderBaselineHeader({required this.isDetail});
+
+  final bool isDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuiHero.group(
+          tag: 'baseline-group',
+          heroes: [
+            QuiHero.text(
+              text: _GroupedHeaderBaselineTestApp.title,
+              style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
           ],
         ),

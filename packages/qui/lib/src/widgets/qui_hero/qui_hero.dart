@@ -3,6 +3,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 
@@ -246,6 +247,10 @@ sealed class QuiHero extends StatelessWidget {
 
   Widget _buildFlightChild(BuildContext context);
 
+  static RectTween _createRectTween(Rect? begin, Rect? end) {
+    return RectTween(begin: begin, end: end);
+  }
+
   QuiHero _buildForGroupFlight({
     required QuiHero end,
     required double value,
@@ -256,7 +261,7 @@ sealed class QuiHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return Hero(
       tag: tag ?? _defaultTag,
-      createRectTween: (begin, end) => RectTween(begin: begin, end: end),
+      createRectTween: _createRectTween,
       flightShuttleBuilder: _flightShuttleBuilder,
       transitionOnUserGestures: true,
       child: _buildFlightChild(context),

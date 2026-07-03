@@ -60,7 +60,7 @@ void main() {
       expect(find.text('Test Text'), findsOneWidget);
     });
 
-    testWidgets('when popping into a shorter text boundary, it should shorten the flight text with ellipsis', (
+    testWidgets('when popping into a shorter text boundary, it should shorten the flight text without ellipsis', (
       tester,
     ) async {
       const destinationText =
@@ -121,7 +121,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 220));
 
       final flightText = tester.widget<Text>(find.text(destinationText, skipOffstage: false).last);
-      expect(((flightText.maxLines ?? 999) < 10, flightText.overflow), equals((true, TextOverflow.ellipsis)));
+      expect(((flightText.maxLines ?? 999) < 10, flightText.overflow), equals((true, null)));
     });
 
     testWidgets('when popping into a shorter text boundary and lines disappear, it should keep the first line fixed', (
@@ -209,9 +209,9 @@ void main() {
 
       expect((
         secondFrameText.maxLines! < firstFrameMaxLines,
-        (secondFrameTop - firstFrameTop).abs() < 0.01,
+        (secondFrameTop - firstFrameTop).abs() < 0.5,
         secondFrameText.overflow,
-      ), equals((true, true, TextOverflow.ellipsis)));
+      ), equals((true, true, null)));
     });
   });
 

@@ -43,10 +43,14 @@ final class _QuiHeroText extends QuiHero {
   }) {
     final lerpValue = flightDirection == HeroFlightDirection.push ? value : (1 - value);
     final showBegin = lerpValue < from.switchThreshold;
+    final lerpedStyle = TextStyle.lerp(from.style, to.style, lerpValue)!;
     final progressiveClampMaxLines = _progressiveClampMaxLines(from: from, to: to, showBegin: showBegin);
     return _QuiHeroTextFlight(
       text: showBegin ? from.text : to.text,
-      style: TextStyle.lerp(from.style, to.style, lerpValue)!,
+      style: lerpedStyle,
+      flightBeginStyle: from.style,
+      flightEndStyle: to.style,
+      flightProgress: lerpValue,
       maxLines: showBegin ? from.maxLines : to.maxLines,
       overflow: showBegin ? from.overflow : to.overflow,
       textAlign: showBegin ? from.textAlign : to.textAlign,
@@ -103,13 +107,11 @@ final class _QuiHeroText extends QuiHero {
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) {
-          return RepaintBoundary(
-            child: _lerpTextFlight(
-              from: fromText,
-              to: toText,
-              value: Curves.easeOutCubic.transform(animation.value),
-              flightDirection: flightDirection,
-            ),
+          return _lerpTextFlight(
+            from: fromText,
+            to: toText,
+            value: Curves.easeOutCubic.transform(animation.value),
+            flightDirection: flightDirection,
           );
         },
       ),
@@ -130,11 +132,50 @@ final class _QuiHeroText extends QuiHero {
     return hero.child as _QuiHeroTextFlight;
   }
 
+  TextStyle _resolvedStyle(BuildContext context) {
+    return DefaultTextStyle.of(context).style.merge(style);
+  }
+
+  _QuiHeroText _buildWithResolvedStyle(BuildContext context) {
+    return _QuiHeroText(
+      tag: tag,
+      text: text,
+      style: _resolvedStyle(context),
+      textAlign: textAlign,
+      overflow: overflow,
+      maxLines: maxLines,
+      padding: padding,
+      switchThreshold: switchThreshold,
+      key: key,
+    );
+  }
+
+  _QuiHeroText _buildWithEndpointMetrics({
+    required BuildContext context,
+    required Size beginSize,
+    required Size endSize,
+    required double beginLayoutWidth,
+    required double endLayoutWidth,
+  }) {
+    final flight = this.flight;
+    if (flight == null) return this;
+
+    return _QuiHeroText.fromFlight(
+      flight._copyWith(
+        endpointMaxLines: flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize),
+        endpointReservedLayoutWidth: flight._endpointReservedLayoutWidthFor(
+          beginLayoutWidth: beginLayoutWidth,
+          endLayoutWidth: endLayoutWidth,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget _buildFlightChild(BuildContext context) {
     return _QuiHeroTextFlight(
       text: text,
-      style: style ?? const TextStyle(),
+      style: _resolvedStyle(context),
       textAlign: textAlign,
       overflow: overflow,
       maxLines: maxLines,

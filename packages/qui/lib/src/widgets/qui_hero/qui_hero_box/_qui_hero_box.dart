@@ -47,9 +47,7 @@ final class _QuiHeroBox extends QuiHero {
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) {
-          return RepaintBoundary(
-            child: _lerpBoxFlight(from: begin, to: end, value: Curves.easeOutCubic.transform(animation.value)),
-          );
+          return _lerpBoxFlight(from: begin, to: end, value: Curves.easeOutCubic.transform(animation.value));
         },
       ),
     );
@@ -123,7 +121,9 @@ final class _QuiHeroBox extends QuiHero {
 
   static double? _tryLerpDouble(double? begin, double? end, double value) {
     if (begin == null && end == null) return null;
-    return Tween<double>(begin: begin ?? 0, end: end ?? 0).transform(value);
+
+    final beginValue = begin ?? 0;
+    return beginValue + ((end ?? 0) - beginValue) * value;
   }
 
   Widget _wrapWithExtensions({required BuildContext context, required Widget child}) {

@@ -77,14 +77,11 @@ class QuiHeroDragToCloseExtension extends QuiHeroExtension {
     this.closeDragHeightFactor = 0.42,
     this.commitThreshold = 0.5,
     this.onDragStateChanged,
-  }) : assert(
-          commitThreshold >= 0.0 && commitThreshold <= 1.0,
-          'commitThreshold must be between 0.0 and 1.0.',
-        ),
-        assert(
-          closeDragHeightFactor > 0.0 && closeDragHeightFactor <= 1.0,
-          'closeDragHeightFactor must be greater than 0.0 and at most 1.0.',
-        );
+  }) : assert(commitThreshold >= 0.0 && commitThreshold <= 1.0, 'commitThreshold must be between 0.0 and 1.0.'),
+       assert(
+         closeDragHeightFactor > 0.0 && closeDragHeightFactor <= 1.0,
+         'closeDragHeightFactor must be greater than 0.0 and at most 1.0.',
+       );
 
   /// An optional scroll controller for scroll-aware drag-to-close.
   ///
