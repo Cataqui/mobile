@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "flutter-debugging": {
+      "source": "dhruvanbhalara/skills",
+      "sourceType": "github",
+      "skillPath": "skills/flutter/flutter-debugging/SKILL.md",
+      "computedHash": "6ac92b0da7f550e17039e2de13983450cf43475e53fc28f5106254daf635a468"
+    },
+    "systematic-debugging": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/systematic-debugging/SKILL.md",
+      "computedHash": "792a368e074981d7e3138edb439e138489b2ac247cd1e5739fab52af680fb17b"
+    }
+  }
+}
