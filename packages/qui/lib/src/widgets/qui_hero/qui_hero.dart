@@ -19,6 +19,8 @@ part 'qui_hero_group/_qui_hero_group_content.dart';
 part 'qui_hero_group/_qui_hero_group_layout.dart';
 part 'qui_hero_group/_qui_hero_group_scope.dart';
 part 'qui_hero_group/qui_hero_group_enums.dart';
+part 'qui_hero_lifecycle/_qui_hero_lifecycle_endpoint.dart';
+part 'qui_hero_lifecycle/_qui_hero_lifecycle_flight_shuttle.dart';
 part 'qui_hero_text/_qui_hero_text.dart';
 part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
 part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
@@ -116,6 +118,11 @@ sealed class QuiHero extends StatelessWidget {
   /// value delays the switch; a lower value triggers it earlier. Must be
   /// between `0.0` and `1.0`
   ///
+  /// [onStart] is called when this hero is the origin of a flight. [onEnd] is
+  /// called when that same origin flight settles at the opposite route. The
+  /// destination counterpart does not receive callbacks for a flight it did
+  /// not start.
+  ///
   /// ```dart
   /// // Source
   /// QuiHero.text(
@@ -143,6 +150,8 @@ sealed class QuiHero extends StatelessWidget {
     int? maxLines,
     EdgeInsetsGeometry? padding,
     double switchThreshold = 0.5,
+    VoidCallback? onStart,
+    VoidCallback? onEnd,
     Key? key,
   }) => _QuiHeroText(
     tag: tag,
@@ -153,6 +162,8 @@ sealed class QuiHero extends StatelessWidget {
     maxLines: maxLines,
     padding: padding,
     switchThreshold: switchThreshold,
+    onStart: onStart,
+    onEnd: onEnd,
     key: key,
   );
 
@@ -175,6 +186,11 @@ sealed class QuiHero extends StatelessWidget {
   /// [extensions] attach reusable behaviors around the rendered hero tree.
   /// Multiple extensions are applied in declaration order: the first becomes
   /// the outermost wrapper.
+  ///
+  /// [onStart] is called when this hero is the origin of a flight. [onEnd] is
+  /// called when that same origin flight settles at the opposite route. The
+  /// destination counterpart does not receive callbacks for a flight it did
+  /// not start.
   ///
   /// ```dart
   /// QuiHero.background(
@@ -205,6 +221,8 @@ sealed class QuiHero extends StatelessWidget {
     EdgeInsetsGeometry? padding,
     List<QuiHeroExtension> extensions = const [],
     Widget? child,
+    VoidCallback? onStart,
+    VoidCallback? onEnd,
     Key? key,
   }) => _QuiHeroBox(
     tag: tag,
@@ -213,6 +231,8 @@ sealed class QuiHero extends StatelessWidget {
     height: height,
     padding: padding,
     extensions: extensions,
+    onStart: onStart,
+    onEnd: onEnd,
     key: key,
     userChild: child,
   );
@@ -225,10 +245,28 @@ sealed class QuiHero extends StatelessWidget {
   /// [QuiHero.background]. The group captures the closest supported parent layout
   /// ([Column], [Row], [Flex], or [Stack]) and reuses that layout during the
   /// shared-element flight.
-  factory QuiHero.group({required List<QuiHero> heroes, Object? tag, Key? key}) =>
-      _QuiHeroGroup(tag: tag, heroes: heroes, key: key);
+  ///
+  /// [onStart] is called when this group is the origin of a flight. [onEnd] is
+  /// called when that same origin flight settles at the opposite route. The
+  /// destination counterpart does not receive callbacks for a flight it did
+  /// not start. Child heroes inside [heroes] keep their own lifecycle
+  /// callbacks and fire alongside the group callback when the group starts.
+  factory QuiHero.group({
+    required List<QuiHero> heroes,
+    Object? tag,
+    VoidCallback? onStart,
+    VoidCallback? onEnd,
+    Key? key,
+  }) => _QuiHeroGroup(tag: tag, heroes: heroes, onStart: onStart, onEnd: onEnd, key: key);
 
-  const QuiHero._({required this.tag, required this._defaultTag, required this._flightShuttleBuilder, super.key});
+  const QuiHero._({
+    required this.tag,
+    required this._defaultTag,
+    required this._flightShuttleBuilder,
+    required this._onStart,
+    required this._onEnd,
+    super.key,
+  });
 
   /// The optional identifier that pairs source and destination heroes.
   ///
@@ -244,12 +282,75 @@ sealed class QuiHero extends StatelessWidget {
 
   final Object _defaultTag;
 
-  final HeroFlightShuttleBuilder _flightShuttleBuilder;
+  final Widget Function(
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection flightDirection,
+    BuildContext fromHeroContext,
+    BuildContext toHeroContext,
+    Widget fromHeroChild,
+    Widget toHeroChild,
+  )
+  _flightShuttleBuilder;
+
+  final VoidCallback? _onStart;
+
+  final VoidCallback? _onEnd;
 
   Widget _buildFlightChild(BuildContext context);
 
   static RectTween _createRectTween(Rect? begin, Rect? end) {
     return RectTween(begin: begin, end: end);
+  }
+
+  List<VoidCallback> _lifecycleStartCallbacks(BuildContext context) {
+    final onStart = _onStart;
+    if (onStart == null) return const [];
+
+    return [onStart];
+  }
+
+  List<VoidCallback> _lifecycleEndCallbacks(BuildContext context) {
+    final onEnd = _onEnd;
+    if (onEnd == null) return const [];
+
+    return [onEnd];
+  }
+
+  Widget _buildLifecycleEndpoint(BuildContext context) {
+    return _QuiHeroLifecycleEndpoint(
+      onStartCallbacks: _lifecycleStartCallbacks(context),
+      onEndCallbacks: _lifecycleEndCallbacks(context),
+      child: _buildFlightChild(context),
+    );
+  }
+
+  Widget _buildLifecycleFlightShuttle(
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection flightDirection,
+    BuildContext fromHeroContext,
+    BuildContext toHeroContext,
+  ) {
+    final fromEndpoint = _QuiHeroLifecycleEndpoint.fromHeroContext(fromHeroContext);
+    final toEndpoint = _QuiHeroLifecycleEndpoint.fromHeroContext(toHeroContext);
+    final originEndpoint = fromEndpoint;
+
+    return _QuiHeroLifecycleFlightShuttle(
+      animation: animation,
+      flightDirection: flightDirection,
+      onStartCallbacks: originEndpoint.onStartCallbacks,
+      onEndCallbacks: originEndpoint.onEndCallbacks,
+      child: _flightShuttleBuilder(
+        flightContext,
+        animation,
+        flightDirection,
+        fromHeroContext,
+        toHeroContext,
+        fromEndpoint.child,
+        toEndpoint.child,
+      ),
+    );
   }
 
   QuiHero _buildForGroupFlight({
@@ -264,9 +365,9 @@ sealed class QuiHero extends StatelessWidget {
     return Hero(
       tag: tag ?? _defaultTag,
       createRectTween: _createRectTween,
-      flightShuttleBuilder: _flightShuttleBuilder,
+      flightShuttleBuilder: _buildLifecycleFlightShuttle,
       transitionOnUserGestures: true,
-      child: _buildFlightChild(context),
+      child: _buildLifecycleEndpoint(context),
     );
   }
 }

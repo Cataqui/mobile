@@ -4,6 +4,8 @@ final class _QuiHeroBox extends QuiHero {
   const _QuiHeroBox({
     required super.tag,
     required this.extensions,
+    required super.onStart,
+    required super.onEnd,
     super.key,
     this.decoration,
     this.width,
@@ -33,9 +35,11 @@ final class _QuiHeroBox extends QuiHero {
     HeroFlightDirection flightDirection,
     BuildContext fromHeroContext,
     BuildContext toHeroContext,
+    Widget fromHeroChild,
+    Widget toHeroChild,
   ) {
-    final fromBox = _boxFromHeroContext(fromHeroContext);
-    final toBox = _boxFromHeroContext(toHeroContext);
+    final fromBox = fromHeroChild as _QuiHeroBoxFlight;
+    final toBox = toHeroChild as _QuiHeroBoxFlight;
     final begin = flightDirection == HeroFlightDirection.push ? fromBox : toBox;
     final end = flightDirection == HeroFlightDirection.push ? toBox : fromBox;
 
@@ -51,11 +55,6 @@ final class _QuiHeroBox extends QuiHero {
         },
       ),
     );
-  }
-
-  static _QuiHeroBoxFlight _boxFromHeroContext(BuildContext context) {
-    final hero = context.widget as Hero;
-    return hero.child as _QuiHeroBoxFlight;
   }
 
   @override
@@ -116,6 +115,8 @@ final class _QuiHeroBox extends QuiHero {
       height: _tryLerpDouble(height, endBox.height, lerpValue),
       padding: EdgeInsetsGeometry.lerp(padding, endBox.padding, lerpValue),
       extensions: const [],
+      onStart: null,
+      onEnd: null,
       userChild: lerpValue < 0.5 ? userChild : endBox.userChild,
     );
   }

@@ -1,8 +1,13 @@
 part of '../qui_hero.dart';
 
 final class _QuiHeroGroup extends QuiHero {
-  const _QuiHeroGroup({required super.tag, required this.heroes, super.key})
-    : super._(defaultTag: _QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
+  const _QuiHeroGroup({
+    required super.tag,
+    required this.heroes,
+    required super.onStart,
+    required super.onEnd,
+    super.key,
+  }) : super._(defaultTag: _QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
 
   final List<QuiHero> heroes;
 
@@ -12,9 +17,11 @@ final class _QuiHeroGroup extends QuiHero {
     HeroFlightDirection flightDirection,
     BuildContext fromHeroContext,
     BuildContext toHeroContext,
+    Widget fromHeroChild,
+    Widget toHeroChild,
   ) {
-    final fromGroup = _groupFromHeroContext(fromHeroContext);
-    final toGroup = _groupFromHeroContext(toHeroContext);
+    final fromGroup = fromHeroChild as _QuiHeroGroupContent;
+    final toGroup = toHeroChild as _QuiHeroGroupContent;
     final beginChildMetrics = _captureFlexChildMetrics(fromHeroContext);
     final endChildMetrics = _captureFlexChildMetrics(toHeroContext);
 
@@ -84,11 +91,6 @@ final class _QuiHeroGroup extends QuiHero {
         },
       ),
     );
-  }
-
-  static _QuiHeroGroupContent _groupFromHeroContext(BuildContext context) {
-    final hero = context.widget as Hero;
-    return hero.child as _QuiHeroGroupContent;
   }
 
   static List<({double layoutWidth, Offset offset, Size size})>? _captureFlexChildMetrics(BuildContext context) {
@@ -181,6 +183,22 @@ final class _QuiHeroGroup extends QuiHero {
     return [
       for (final hero in heroes)
         if (hero is _QuiHeroText) hero._buildWithResolvedStyle(context) else hero,
+    ];
+  }
+
+  @override
+  List<VoidCallback> _lifecycleStartCallbacks(BuildContext context) {
+    return [
+      ...super._lifecycleStartCallbacks(context),
+      for (final hero in heroes) ...hero._lifecycleStartCallbacks(context),
+    ];
+  }
+
+  @override
+  List<VoidCallback> _lifecycleEndCallbacks(BuildContext context) {
+    return [
+      ...super._lifecycleEndCallbacks(context),
+      for (final hero in heroes) ...hero._lifecycleEndCallbacks(context),
     ];
   }
 

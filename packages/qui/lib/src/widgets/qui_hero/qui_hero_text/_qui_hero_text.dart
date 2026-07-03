@@ -4,6 +4,8 @@ final class _QuiHeroText extends QuiHero {
   const _QuiHeroText({
     required super.tag,
     required this.text,
+    required super.onStart,
+    required super.onEnd,
     super.key,
     this.style,
     this.textAlign = TextAlign.left,
@@ -24,7 +26,13 @@ final class _QuiHeroText extends QuiHero {
       padding = flight.padding,
       switchThreshold = flight.switchThreshold,
       flight = flight,
-      super._(tag: null, defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
+      super._(
+        tag: null,
+        defaultTag: _QuiHeroDefaultTag.text,
+        flightShuttleBuilder: _buildFlightShuttle,
+        onStart: null,
+        onEnd: null,
+      );
 
   final String text;
   final TextStyle? style;
@@ -97,19 +105,17 @@ final class _QuiHeroText extends QuiHero {
     HeroFlightDirection flightDirection,
     BuildContext fromHeroContext,
     BuildContext toHeroContext,
+    Widget fromHeroChild,
+    Widget toHeroChild,
   ) {
-    final fromText = _textFromHeroContext(fromHeroContext);
-    final toText = _textFromHeroContext(toHeroContext);
+    final fromText = fromHeroChild as _QuiHeroTextFlight;
+    final toText = toHeroChild as _QuiHeroTextFlight;
 
     if (_hasSamePresentation(begin: fromText, end: toText)) {
       return RepaintBoundary(child: fromText._copyWith(shortenToBounds: true));
     }
 
-    final flightMetrics = _QuiHeroTextFlightMetrics.precompute(
-      context: flightContext,
-      from: fromText,
-      to: toText,
-    );
+    final flightMetrics = _QuiHeroTextFlightMetrics.precompute(context: flightContext, from: fromText, to: toText);
 
     return RepaintBoundary(
       child: AnimatedBuilder(
@@ -136,11 +142,6 @@ final class _QuiHeroText extends QuiHero {
         begin.padding == end.padding;
   }
 
-  static _QuiHeroTextFlight _textFromHeroContext(BuildContext context) {
-    final hero = context.widget as Hero;
-    return hero.child as _QuiHeroTextFlight;
-  }
-
   TextStyle _resolvedStyle(BuildContext context) {
     return DefaultTextStyle.of(context).style.merge(style);
   }
@@ -155,6 +156,8 @@ final class _QuiHeroText extends QuiHero {
       maxLines: maxLines,
       padding: padding,
       switchThreshold: switchThreshold,
+      onStart: _onStart,
+      onEnd: _onEnd,
       key: key,
     );
   }

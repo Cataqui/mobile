@@ -60,6 +60,64 @@ void main() {
       expect(find.text('Test Text'), findsOneWidget);
     });
 
+    testWidgets('when pushing to a destination text hero, it should invoke only the source onStart callback', (
+      tester,
+    ) async {
+      final events = <String>[];
+
+      await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: events));
+      await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.sourceText));
+      await tester.pump();
+      await tester.pump();
+
+      expect(events, equals(['source-start']));
+    });
+
+    testWidgets(
+      'when pushing to a destination text hero and settling, it should invoke only the source onEnd callback',
+      (tester) async {
+        final events = <String>[];
+
+        await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: events));
+        await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+
+        expect(events, equals(['source-start', 'source-end']));
+      },
+    );
+
+    testWidgets('when popping from a destination text hero, it should invoke only the destination onStart callback', (
+      tester,
+    ) async {
+      final events = <String>[];
+
+      await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: events));
+      await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.sourceText));
+      await tester.pumpAndSettle();
+      events.clear();
+      await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.destinationText));
+      await tester.pump();
+      await tester.pump();
+
+      expect(events, equals(['destination-start']));
+    });
+
+    testWidgets(
+      'when popping from a destination text hero and settling, it should invoke only the destination onEnd callback',
+      (tester) async {
+        final events = <String>[];
+
+        await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: events));
+        await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+        events.clear();
+        await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.destinationText));
+        await tester.pumpAndSettle();
+
+        expect(events, equals(['destination-start', 'destination-end']));
+      },
+    );
+
     testWidgets('when popping into a shorter text boundary, it should shorten the flight text without ellipsis', (
       tester,
     ) async {
@@ -261,4 +319,63 @@ void main() {
       expect(find.text('Custom Threshold'), findsOneWidget);
     });
   });
+}
+
+class _QuiHeroTextLifecycleTestApp extends StatelessWidget {
+  const _QuiHeroTextLifecycleTestApp({required this.events});
+
+  static const sourceText = 'Source text hero';
+  static const destinationText = 'Destination text hero';
+
+  final List<String> events;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) {
+          return Scaffold(
+            body: Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push<void>(
+                    QuiHeroPage(builder: (_) => _QuiHeroTextLifecycleDestination(events: events)).createRoute(context),
+                  );
+                },
+                child: QuiHero.text(
+                  tag: 'text-lifecycle',
+                  text: sourceText,
+                  onStart: () => events.add('source-start'),
+                  onEnd: () => events.add('source-end'),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _QuiHeroTextLifecycleDestination extends StatelessWidget {
+  const _QuiHeroTextLifecycleDestination({required this.events});
+
+  final List<String> events;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: QuiHero.text(
+            tag: 'text-lifecycle',
+            text: _QuiHeroTextLifecycleTestApp.destinationText,
+            onStart: () => events.add('destination-start'),
+            onEnd: () => events.add('destination-end'),
+          ),
+        ),
+      ),
+    );
+  }
 }

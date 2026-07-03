@@ -121,6 +121,42 @@ void main() {
       expect(tester.getSize(find.byType(Hero)).width, equals(300));
     });
 
+    testWidgets('when pushing a grouped hero and settling, it should invoke only source group and child callbacks', (
+      tester,
+    ) async {
+      final events = <String>[];
+
+      await tester.pumpWidget(_GroupedLifecycleTestApp(events: events));
+      await tester.tap(find.text(_GroupedLifecycleTestApp.sourceText));
+      await tester.pumpAndSettle();
+
+      expect(events, equals(['source-group-start', 'source-child-start', 'source-group-end', 'source-child-end']));
+    });
+
+    testWidgets(
+      'when popping a grouped hero and settling, it should invoke only destination group and child callbacks',
+      (tester) async {
+        final events = <String>[];
+
+        await tester.pumpWidget(_GroupedLifecycleTestApp(events: events));
+        await tester.tap(find.text(_GroupedLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+        events.clear();
+        await tester.tap(find.text(_GroupedLifecycleTestApp.destinationText));
+        await tester.pumpAndSettle();
+
+        expect(
+          events,
+          equals([
+            'destination-group-start',
+            'destination-child-start',
+            'destination-group-end',
+            'destination-child-end',
+          ]),
+        );
+      },
+    );
+
     testWidgets(
       'when source and destination hero counts do not match, it should match by min length without throwing',
       (tester) async {
@@ -580,6 +616,87 @@ class _MismatchedGroupTestApp extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GroupedLifecycleTestApp extends StatelessWidget {
+  const _GroupedLifecycleTestApp({required this.events});
+
+  static const sourceText = 'Source grouped child';
+  static const destinationText = 'Destination grouped child';
+
+  final List<String> events;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) {
+          return Scaffold(
+            body: Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push<void>(
+                    QuiHeroPage(builder: (_) => _GroupedLifecycleDestination(events: events)).createRoute(context),
+                  );
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    QuiHero.group(
+                      tag: 'group-lifecycle',
+                      onStart: () => events.add('source-group-start'),
+                      onEnd: () => events.add('source-group-end'),
+                      heroes: [
+                        QuiHero.text(
+                          text: sourceText,
+                          onStart: () => events.add('source-child-start'),
+                          onEnd: () => events.add('source-child-end'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _GroupedLifecycleDestination extends StatelessWidget {
+  const _GroupedLifecycleDestination({required this.events});
+
+  final List<String> events;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              QuiHero.group(
+                tag: 'group-lifecycle',
+                onStart: () => events.add('destination-group-start'),
+                onEnd: () => events.add('destination-group-end'),
+                heroes: [
+                  QuiHero.text(
+                    text: _GroupedLifecycleTestApp.destinationText,
+                    onStart: () => events.add('destination-child-start'),
+                    onEnd: () => events.add('destination-child-end'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

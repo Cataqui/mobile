@@ -172,6 +172,19 @@ void main() {
 
       expect(find.ancestor(of: find.byKey(innerExtensionKey), matching: find.byKey(outerExtensionKey)), findsOneWidget);
     });
+
+    testWidgets(
+      'when pushing to a destination background hero and settling, it should invoke only the source callbacks',
+      (tester) async {
+        final events = <String>[];
+
+        await tester.pumpWidget(_QuiHeroBackgroundLifecycleTestApp(events: events));
+        await tester.tap(find.text(_QuiHeroBackgroundLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+
+        expect(events, equals(['source-start', 'source-end']));
+      },
+    );
   });
 }
 
@@ -183,5 +196,69 @@ class _QuiHeroKeyedExtension extends QuiHeroExtension {
   @override
   Widget wrap({required BuildContext context, required Widget child}) {
     return KeyedSubtree(key: key, child: child);
+  }
+}
+
+class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
+  const _QuiHeroBackgroundLifecycleTestApp({required this.events});
+
+  static const sourceText = 'Open background hero';
+  static const destinationText = 'Close background hero';
+
+  final List<String> events;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) {
+          return Scaffold(
+            body: Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push<void>(
+                    QuiHeroPage(
+                      builder: (_) => _QuiHeroBackgroundLifecycleDestination(events: events),
+                    ).createRoute(context),
+                  );
+                },
+                child: QuiHero.background(
+                  tag: 'background-lifecycle',
+                  width: 200,
+                  height: 80,
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  onStart: () => events.add('source-start'),
+                  onEnd: () => events.add('source-end'),
+                  child: const Center(child: Text(sourceText)),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _QuiHeroBackgroundLifecycleDestination extends StatelessWidget {
+  const _QuiHeroBackgroundLifecycleDestination({required this.events});
+
+  final List<String> events;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: QuiHero.background(
+          tag: 'background-lifecycle',
+          width: 260,
+          height: 120,
+          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(24)),
+          onStart: () => events.add('destination-start'),
+          onEnd: () => events.add('destination-end'),
+          child: const Center(child: Text(_QuiHeroBackgroundLifecycleTestApp.destinationText)),
+        ),
+      ),
+    );
   }
 }
