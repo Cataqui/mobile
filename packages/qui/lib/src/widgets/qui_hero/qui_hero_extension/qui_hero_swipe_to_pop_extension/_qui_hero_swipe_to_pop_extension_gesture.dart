@@ -32,10 +32,13 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
   double _peakScrollDelta = 0;
   int? _flingReachedTopAtUs;
 
+  double _accumulatedPointerDy = 0;
+
   static const int _flingCooldownUs = 200 * 1000;
   static const double _scrollAtTopTolerance = 0.5;
   static const double _scrollAwayThreshold = 5;
   static const double _fastScrollDeltaThreshold = 15;
+  static const double _activationMinNetDy = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +70,16 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
     final closeSwipeDistance = MediaQuery.sizeOf(context).height * _swipeToPopHeightFraction();
     _closeSwipeDistance = closeSwipeDistance <= 0 ? 1 : closeSwipeDistance;
     _interactiveClosingProgress = 0;
+    _accumulatedPointerDy = 0;
   }
 
   void _handlePointerMove(PointerMoveEvent event) {
     if (_activePointer != event.pointer) return;
 
     _velocityTracker?.addPosition(event.timeStamp, event.position);
+    _accumulatedPointerDy += event.delta.dy;
     if (!_isInteractivePopActive && event.delta.dy <= 0) return;
+    if (!_isInteractivePopActive && _accumulatedPointerDy < _activationMinNetDy) return;
     if (!_isInteractivePopActive && !_canStartSwipeToPop) return;
 
     if (!_isInteractivePopActive) {
