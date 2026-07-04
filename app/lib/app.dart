@@ -11,7 +11,7 @@ class CataquiApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appRouter = ref.watch(appRouterProvider);
+    final goRouter = ref.watch(goRouterProvider);
     final i18n = ref.watch(translationProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -27,7 +27,7 @@ class CataquiApp extends ConsumerWidget {
       ),
       child: MaterialApp.router(
         title: i18n.app.name,
-        routerConfig: appRouter.routerConfig,
+        routerConfig: goRouter,
         theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
         locale: i18n.$meta.locale.flutterLocale,
         supportedLocales: AppLocaleUtils.supportedLocales,

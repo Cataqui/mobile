@@ -1,13 +1,14 @@
 import 'package:cataqui_app/app_state.dart';
-import 'package:cataqui_app/core/app_router.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/config/env.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -32,7 +33,7 @@ Dio cataquiDio(Ref ref) {
       baseUrl: appConfig.cataquiApiUrl,
       connectTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 30),
       headers: const <String, String>{
         Headers.acceptHeader: Headers.jsonContentType,
         Headers.contentTypeHeader: Headers.jsonContentType,
@@ -56,8 +57,8 @@ FeedRepository feedRepository(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-AppRouter appRouter(Ref ref) {
-  return AppRouter();
+GoRouter goRouter(Ref ref) {
+  return GoRouter(initialLocation: '/', routes: [$feedRoute]);
 }
 
 @Riverpod(keepAlive: true)

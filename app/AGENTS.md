@@ -77,6 +77,29 @@ Each Riverpod feature notifier and its data class get their own files:
 
 Tests mirror the source at `app/test/views/<feature>/<feature>_state_test.dart`.
 
+## Routing (Type-Safe)
+
+Every screen-level view in `app/lib/views/<feature>/` must have a companion
+`<feature>_route.dart` declaring a `@TypedGoRoute<XxxRoute>` class
+`extends GoRouteData with $XxxRoute` with a `part '<feature>_route.g.dart'`.
+
+- **Parameters:** Path params, query params, and `$extra` are declared as typed
+  constructor fields. Path param names must match the `:param` placeholders in
+  the route path.
+- **Navigation:** Navigate ONLY via the generated typed API:
+  `XxxRoute(...).go(context)` / `.push<T>(context)` / `.pushReplacement(context)`
+  / `.replace(context)`. Never build route location strings by hand.
+- **Registration:** `app/lib/core/providers.dart` registers routes via the
+  generated `$xxxRoute` getters (e.g. `GoRouter(routes: [$feedRoute, $jobRoute])`).
+  Do NOT use `$appRoutes` — it is per-library and would collide across multiple
+  route files.
+- **Custom transitions:** Override `buildPage()` to return a `Page<void>` for
+  custom page types / transitions. Otherwise override `build()` and let go_router
+  supply the default `MaterialPage`.
+- **Engine:** Navigation is powered by `go_router` + `go_router_builder` code
+  generation. The routing algorithm is exposed as a `GoRouter` via
+  `goRouterProvider` (keepAlive).`
+
 ## DTOs
 
 - **Code Generation:** The `app` package is configured with **Freezed** and
