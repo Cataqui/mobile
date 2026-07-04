@@ -32,7 +32,7 @@ import 'qui_hero_page_route.dart';
 ///   PageRouteBuilder(
 ///     pageBuilder: (context, animation, secondaryAnimation) =>
 ///         QuiHeroPage(
-///           builder: (_) => const JobDetailScreen(feedJob: feedJob),
+///           builder: (_) => const DetailScreen(item: item),
 ///         ),
 ///   ),
 /// );
@@ -43,7 +43,7 @@ import 'qui_hero_page_route.dart';
 /// ```dart
 /// Navigator.of(context).push(
 ///   QuiHeroPageRoute(
-///     builder: (_) => const JobDetailScreen(feedJob: feedJob),
+///     builder: (_) => const DetailScreen(item: item),
 ///     transitionDuration: const Duration(milliseconds: 560),
 ///     reverseTransitionDuration: const Duration(milliseconds: 430),
 ///   ),

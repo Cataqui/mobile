@@ -208,7 +208,7 @@ sealed class QuiHero extends StatelessWidget {
   ///   child: Column(children: [
   ///     QuiHero.text(
   ///       tag: 'card-1-title',
-  ///       text: job.title,
+  ///       text: item.title,
   ///       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
   ///     ),
   ///   ]),
@@ -392,7 +392,7 @@ Widget quiHeroPreview() {
                 decoration: BoxDecoration(color: const Color(0xFFFF4A4B), borderRadius: BorderRadius.circular(24)),
                 child: const Center(
                   child: Text(
-                    'Cataquí',
+                    'Preview Text',
                     style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -403,7 +403,7 @@ Widget quiHeroPreview() {
               width: 260,
               child: QuiHero.text(
                 tag: 'preview-text',
-                text: 'Cataquí Hero',
+                text: 'Preview Title',
                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
               ),
             ),
