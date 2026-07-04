@@ -44,8 +44,20 @@ class _FeedViewState extends ConsumerState<FeedView> {
               ),
             ),
           ),
-          _buildEdgeGradient(isTop: true, background: designColors.background),
-          _buildEdgeGradient(isTop: false, background: designColors.background),
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: QuiEdgeFade(
+              position: QuiEdgeFadePosition.top,
+              color: designColors.background,
+            ),
+          ),
+          Positioned(
+            bottom: 0, left: 0, right: 0,
+            child: QuiEdgeFade(
+              position: QuiEdgeFadePosition.bottom,
+              color: designColors.background,
+            ),
+          ),
           const Positioned.fill(
             child: RepaintBoundary(
               child: SafeArea(
@@ -85,30 +97,6 @@ class _FeedViewState extends ConsumerState<FeedView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEdgeGradient({required bool isTop, required Color background}) {
-    return Positioned(
-      top: isTop ? 0 : null,
-      bottom: isTop ? null : 0,
-      left: 0,
-      right: 0,
-      height: 120,
-      child: IgnorePointer(
-        child: RepaintBoundary(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: isTop ? Alignment.topCenter : Alignment.bottomCenter,
-                end: isTop ? Alignment.bottomCenter : Alignment.topCenter,
-                stops: const [0.0, 0.3, 1.0],
-                colors: [background, background, background.withValues(alpha: 0)],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
