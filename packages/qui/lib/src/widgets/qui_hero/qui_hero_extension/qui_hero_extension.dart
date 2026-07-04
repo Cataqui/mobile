@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../qui_hero.dart';
 import '../qui_hero_page/qui_hero_page_route.dart';
-import 'qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
+import 'qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
 
 /// The base class for composable behaviors attached to a [QuiHero] variant.
 ///
@@ -38,14 +38,14 @@ import 'qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
 /// extensions that need to drive interactive pop or read route state.
 ///
 /// ```dart
-/// class QuiHeroDragToCloseExtension extends QuiHeroExtension {
-///   const QuiHeroDragToCloseExtension({required this.scrollController});
+/// class QuiHeroSwipeToPopExtension extends QuiHeroExtension {
+///   const QuiHeroSwipeToPopExtension({required this.scrollController});
 ///
 ///   final ScrollController scrollController;
 ///
 ///   @override
 ///   Widget wrap({required BuildContext context, required Widget child}) {
-///     return _DragToCloseGesture(
+///     return _SwipeToPopGesture(
 ///       scrollController: scrollController,
 ///       child: child,
 ///     );
@@ -54,7 +54,7 @@ import 'qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
 /// ```
 ///
 /// See also:
-///  * [QuiHeroDragToCloseExtension], a built-in extension that wires drag
+///  * [QuiHeroSwipeToPopExtension], a built-in extension that wires drag
 ///    gestures to the route's interactive-pop API.
 ///  * [QuiHero], the hero widget that accepts extensions.
 abstract class QuiHeroExtension {

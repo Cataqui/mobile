@@ -7,8 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 
-import 'qui_hero_extension/qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
 import 'qui_hero_extension/qui_hero_extension.dart';
+import 'qui_hero_extension/qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
 import 'qui_hero_page/qui_hero_page.dart';
 
 part 'qui_hero_box/_qui_hero_box.dart';
@@ -98,8 +98,8 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
 ///    compositing and reduced-motion support.
 ///  * [QuiHeroExtension], the base class for reusable behaviors attached to
 ///    hero variants.
-///  * [QuiHeroDragToCloseExtension], a built-in extension that adds
-///    drag-to-close gestures to hero destinations.
+///  * [QuiHeroSwipeToPopExtension], a built-in extension that adds
+///    swipe-to-pop gestures to hero destinations.
 ///  * Flutter's [Hero], the underlying widget that [QuiHero] wraps.
 sealed class QuiHero extends StatelessWidget {
   /// Creates a text hero that animates [TextStyle], content, and wrapping
@@ -202,7 +202,7 @@ sealed class QuiHero extends StatelessWidget {
   ///   ),
   ///   padding: const EdgeInsets.all(24),
   ///   extensions: const [
-  ///     QuiHeroDragToCloseExtension(scrollController: scrollController),
+  ///     QuiHeroSwipeToPopExtension(scrollController: scrollController),
   ///   ],
   ///   child: Column(children: [
   ///     QuiHero.text(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../qui_hero.dart';
-import '../qui_hero_extension/qui_hero_drag_to_close_extension/qui_hero_drag_to_close_extension.dart';
+import '../qui_hero_extension/qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
 import 'qui_hero_page.dart';
 
 /// A transparent [PageRoute] that manages hero flights for [QuiHeroPage].
@@ -18,8 +18,8 @@ import 'qui_hero_page.dart';
 ///    [HeroMode] is disabled so no heroes animate.
 ///  * **Interactive pop API** — [startInteractivePop], [updateInteractivePop],
 ///    [cancelInteractivePop], and [commitInteractivePop] expose a
-///    programmatic drag-to-close surface for extensions like
-///    [QuiHeroDragToCloseExtension].
+///    programmatic swipe-to-pop surface for extensions like
+///    [QuiHeroSwipeToPopExtension].
 ///
 /// ## Accessing the route from descendants
 ///
@@ -48,7 +48,7 @@ import 'qui_hero_page.dart';
 ///
 /// See also:
 ///  * [QuiHeroPage], the [Page] that creates this route.
-///  * [QuiHeroDragToCloseExtension], a built-in extension that drives the
+///  * [QuiHeroSwipeToPopExtension], a built-in extension that drives the
 ///    interactive pop API from drag gestures.
 ///  * [QuiHero], the hero widget that flies during the transition.
 class QuiHeroPageRoute extends PageRoute<void> {
