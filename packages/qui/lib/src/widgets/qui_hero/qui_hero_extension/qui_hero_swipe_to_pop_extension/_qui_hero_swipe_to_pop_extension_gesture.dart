@@ -28,6 +28,15 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
   VelocityTracker? _velocityTracker;
   QuiHeroPageRoute? _activeRoute;
 
+  bool _scrollWasAwayFromTop = false;
+  double _peakScrollDelta = 0;
+  int? _flingReachedTopAtUs;
+
+  static const int _flingCooldownUs = 200 * 1000;
+  static const double _scrollAtTopTolerance = 0.5;
+  static const double _scrollAwayThreshold = 5;
+  static const double _fastScrollDeltaThreshold = 15;
+
   @override
   Widget build(BuildContext context) {
     return Listener(
@@ -36,8 +45,16 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
       onPointerUp: _handlePointerUp,
       onPointerCancel: _handlePointerCancel,
       behavior: HitTestBehavior.deferToChild,
-      child: widget.child,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: _handleScrollNotification,
+        child: widget.child,
+      ),
     );
+  }
+
+  double _swipeToPopHeightFraction() {
+    if (widget.sensibility <= 0.5) return 0.5 * (1 + ((0.5 - widget.sensibility) / 0.5));
+    return 0.5 * (1 - (((widget.sensibility - 0.5) / 0.5) * 0.75));
   }
 
   void _handlePointerDown(PointerDownEvent event) {
@@ -52,18 +69,12 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
     _interactiveClosingProgress = 0;
   }
 
-  double _swipeToPopHeightFraction() {
-    // sensibility 0.5 → 0.5 (half-screen swipe), 0.0 → 1.0, 1.0 → 0.125.
-    if (widget.sensibility <= 0.5) return 0.5 * (1 + ((0.5 - widget.sensibility) / 0.5));
-    return 0.5 * (1 - (((widget.sensibility - 0.5) / 0.5) * 0.75));
-  }
-
   void _handlePointerMove(PointerMoveEvent event) {
     if (_activePointer != event.pointer) return;
 
     _velocityTracker?.addPosition(event.timeStamp, event.position);
     if (!_isInteractivePopActive && event.delta.dy <= 0) return;
-    if (!_isInteractivePopActive && !_isScrollAtTop) return;
+    if (!_isInteractivePopActive && !_canStartSwipeToPop) return;
 
     if (!_isInteractivePopActive) {
       if (_isReducedMotionSwipe) {
@@ -97,6 +108,43 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
 
     _activePointer = null;
     _cancelInteractivePop();
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (widget.scrollController == null) return false;
+    if (notification is! ScrollUpdateNotification) return false;
+
+    final metrics = notification.metrics;
+    final scrollDelta = notification.scrollDelta ?? 0;
+    final isBallistic = notification.dragDetails == null;
+
+    if (_activePointer != null && _flingReachedTopAtUs != null) {
+      _flingReachedTopAtUs = SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds;
+    }
+
+    if (metrics.pixels > metrics.minScrollExtent + _scrollAwayThreshold) {
+      _scrollWasAwayFromTop = true;
+      _flingReachedTopAtUs = null;
+      _peakScrollDelta = 0;
+      return false;
+    }
+
+    if (!_scrollWasAwayFromTop) return false;
+
+    if (_peakScrollDelta <= _fastScrollDeltaThreshold && scrollDelta.abs() > _peakScrollDelta) {
+      _peakScrollDelta = scrollDelta.abs();
+    }
+
+    if (_flingReachedTopAtUs != null) return false;
+    if (metrics.pixels > metrics.minScrollExtent + _scrollAtTopTolerance) return false;
+
+    _scrollWasAwayFromTop = false;
+    if (isBallistic || _peakScrollDelta > _fastScrollDeltaThreshold) {
+      _flingReachedTopAtUs = SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds;
+    }
+    _peakScrollDelta = 0;
+
+    return false;
   }
 
   bool _startInteractivePop() {
@@ -186,6 +234,7 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
     _interactiveClosingProgress = 0;
     _velocityTracker = null;
     _activeRoute = null;
+    _flingReachedTopAtUs = null;
   }
 
   void _restoreInteractiveChrome() {
@@ -201,6 +250,12 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
     if (!controller.hasClients) return true;
 
     final position = controller.position;
-    return position.pixels <= position.minScrollExtent + 0.5;
+    return position.pixels <= position.minScrollExtent + _scrollAtTopTolerance;
+  }
+
+  bool get _canStartSwipeToPop {
+    if (!_isScrollAtTop) return false;
+    if (_flingReachedTopAtUs == null) return true;
+    return SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds - _flingReachedTopAtUs! >= _flingCooldownUs;
   }
 }
