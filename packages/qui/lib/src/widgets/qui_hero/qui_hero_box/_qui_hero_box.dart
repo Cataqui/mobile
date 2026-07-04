@@ -64,21 +64,26 @@ final class _QuiHeroBox extends QuiHero {
 
   @override
   Widget build(BuildContext context) {
-    if (_QuiHeroGroupScope.maybeOf(context) != null) return _buildSizedContent(flightChild: _buildFlightChild(context));
+    if (_QuiHeroGroupScope.maybeOf(context) != null) {
+      return _buildSizedContent(flightChild: _buildFlightChild(context));
+    }
 
     return _wrapWithExtensions(
       context: context,
-      child: _buildSizedContent(flightChild: super.build(context)),
+      child: _buildSizedContent(flightChild: super.build(context), boxContext: context),
     );
   }
 
-  Widget _buildSizedContent({required Widget flightChild}) {
+  Widget _buildSizedContent({required Widget flightChild, BuildContext? boxContext}) {
     final child = userChild;
     var result = flightChild;
 
     if (child != null) {
       var content = child;
       if (padding != null) content = Padding(padding: padding!, child: content);
+      if (boxContext != null) {
+        content = _QuiHeroBoxScope(boxContext: boxContext, child: content);
+      }
       result = Stack(
         children: [
           Positioned.fill(child: result),

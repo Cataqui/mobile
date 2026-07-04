@@ -8,6 +8,8 @@ final class _QuiHeroGroup extends QuiHero {
     required super.onEnd,
     super.key,
   }) : super._(defaultTag: _QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
+  static List<({double layoutWidth, Offset offset, Size size})>? _cachedEndChildMetrics;
+  static _QuiHeroBoxFlightMetrics? _cachedEndBoxMetrics;
 
   final List<QuiHero> heroes;
 
@@ -23,7 +25,19 @@ final class _QuiHeroGroup extends QuiHero {
     final fromGroup = fromHeroChild as _QuiHeroGroupContent;
     final toGroup = toHeroChild as _QuiHeroGroupContent;
     final beginChildMetrics = _captureFlexChildMetrics(fromHeroContext);
-    final endChildMetrics = _captureFlexChildMetrics(toHeroContext);
+
+    final freshEndChildMetrics = _captureFlexChildMetrics(toHeroContext);
+    if (freshEndChildMetrics != null) _cachedEndChildMetrics = freshEndChildMetrics;
+    final endChildMetrics = freshEndChildMetrics ?? _cachedEndChildMetrics ?? beginChildMetrics;
+
+    final beginBoxMetrics = _captureBoxMetrics(fromHeroContext);
+
+    final freshEndBoxMetrics = _captureBoxMetrics(toHeroContext);
+    if (freshEndBoxMetrics != null) _cachedEndBoxMetrics = freshEndBoxMetrics;
+    final endBoxMetrics = freshEndBoxMetrics ?? _cachedEndBoxMetrics ?? beginBoxMetrics;
+
+    final beginHeight = _metricsHeight(beginChildMetrics);
+    final endHeight = _metricsHeight(endChildMetrics);
 
     final textMetrics = <_QuiHeroTextFlightMetrics?>[];
     final count = math.min(fromGroup.heroes.length, toGroup.heroes.length);
@@ -74,6 +88,12 @@ final class _QuiHeroGroup extends QuiHero {
           final animationValue = flightDirection == HeroFlightDirection.push ? animation.value : 1 - animation.value;
           final value = Curves.easeOutCubic.transform(animationValue);
 
+          final availableHeight = _computeAvailableHeight(
+            beginBoxMetrics: beginBoxMetrics,
+            endBoxMetrics: endBoxMetrics,
+            progress: value,
+          );
+
           return _QuiHeroGroupContent(
             layout: toGroup.layout,
             heroes: _lerpHeroes(
@@ -87,6 +107,9 @@ final class _QuiHeroGroup extends QuiHero {
             beginChildMetrics: beginChildMetrics,
             endChildMetrics: endChildMetrics,
             flightValue: value,
+            maxAvailableHeight: availableHeight,
+            beginHeight: beginHeight,
+            endHeight: endHeight,
           );
         },
       ),
@@ -179,6 +202,54 @@ final class _QuiHeroGroup extends QuiHero {
     });
   }
 
+  static _QuiHeroBoxFlightMetrics? _captureBoxMetrics(BuildContext heroContext) {
+    final boxScope = _QuiHeroBoxScope.maybeOf(heroContext);
+    if (boxScope == null) return null;
+
+    final boxRenderObject = boxScope.boxRenderObject;
+    if (boxRenderObject == null || !boxRenderObject.hasSize) return null;
+
+    final groupRenderObject = heroContext.findRenderObject();
+    if (groupRenderObject is! RenderBox || !groupRenderObject.hasSize) return null;
+
+    final boxOrigin = boxRenderObject.localToGlobal(Offset.zero);
+    final groupOrigin = groupRenderObject.localToGlobal(Offset.zero);
+    final groupOffsetInBox = groupOrigin - boxOrigin;
+
+    return _QuiHeroBoxFlightMetrics(boxSize: boxRenderObject.size, groupOffsetInBox: groupOffsetInBox);
+  }
+
+  static double? _computeAvailableHeight({
+    required _QuiHeroBoxFlightMetrics? beginBoxMetrics,
+    required _QuiHeroBoxFlightMetrics? endBoxMetrics,
+    required double progress,
+  }) {
+    if (beginBoxMetrics == null || endBoxMetrics == null) return null;
+
+    final beginBoxHeight = beginBoxMetrics.boxSize.height;
+    final endBoxHeight = endBoxMetrics.boxSize.height;
+    final currentBoxHeight = beginBoxHeight + (endBoxHeight - beginBoxHeight) * progress;
+
+    final beginGroupOffset = beginBoxMetrics.groupOffsetInBox.dy;
+    final endGroupOffset = endBoxMetrics.groupOffsetInBox.dy;
+    final currentGroupOffset = beginGroupOffset + (endGroupOffset - beginGroupOffset) * progress;
+
+    final available = currentBoxHeight - currentGroupOffset;
+    return available > 0 ? available : 0.0;
+  }
+
+  static double _metricsHeight(List<({double layoutWidth, Offset offset, Size size})>? metrics) {
+    if (metrics == null || metrics.isEmpty) return 0;
+
+    var height = 0.0;
+
+    for (final metric in metrics) {
+      height = math.max(height, metric.offset.dy + metric.size.height);
+    }
+
+    return height;
+  }
+
   static List<QuiHero> _resolveEndpointHeroes({required BuildContext context, required List<QuiHero> heroes}) {
     return [
       for (final hero in heroes)
@@ -230,4 +301,11 @@ final class _QuiHeroGroup extends QuiHero {
 
     return super.build(context);
   }
+}
+
+class _QuiHeroBoxFlightMetrics {
+  const _QuiHeroBoxFlightMetrics({required this.boxSize, required this.groupOffsetInBox});
+
+  final Size boxSize;
+  final Offset groupOffsetInBox;
 }

@@ -13,6 +13,7 @@ import 'qui_hero_page/qui_hero_page.dart';
 
 part 'qui_hero_box/_qui_hero_box.dart';
 part 'qui_hero_box/qui_hero_box_flight/_qui_hero_box_flight.dart';
+part 'qui_hero_box/qui_hero_box_flight/_qui_hero_box_scope.dart';
 part 'qui_hero_enums.dart';
 part 'qui_hero_group/_qui_hero_group.dart';
 part 'qui_hero_group/_qui_hero_group_content.dart';

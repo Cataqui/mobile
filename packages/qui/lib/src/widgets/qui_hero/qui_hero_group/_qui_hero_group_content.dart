@@ -8,6 +8,9 @@ class _QuiHeroGroupContent extends StatelessWidget {
     this.beginChildMetrics,
     this.endChildMetrics,
     this.flightValue = 0,
+    this.maxAvailableHeight,
+    this.beginHeight = 0,
+    this.endHeight = 0,
   });
 
   final _QuiHeroGroupLayout layout;
@@ -16,6 +19,9 @@ class _QuiHeroGroupContent extends StatelessWidget {
   final List<({double layoutWidth, Offset offset, Size size})>? beginChildMetrics;
   final List<({double layoutWidth, Offset offset, Size size})>? endChildMetrics;
   final double flightValue;
+  final double? maxAvailableHeight;
+  final double beginHeight;
+  final double endHeight;
 
   bool get _canUsePositionedFlight {
     final beginMetrics = beginChildMetrics;
@@ -26,18 +32,6 @@ class _QuiHeroGroupContent extends StatelessWidget {
     return beginMetrics.length >= heroes.length && endMetrics.length >= heroes.length;
   }
 
-  double _metricsHeight(List<({double layoutWidth, Offset offset, Size size})> metrics) {
-    if (metrics.isEmpty) return 0;
-
-    var height = 0.0;
-
-    for (final metric in metrics) {
-      height = math.max(height, metric.offset.dy + metric.size.height);
-    }
-
-    return height;
-  }
-
   @override
   Widget build(BuildContext context) {
     final content = _buildWidthAwareContent();
@@ -46,10 +40,24 @@ class _QuiHeroGroupContent extends StatelessWidget {
       return Material(type: MaterialType.transparency, child: content);
     }
 
+    final maxHeight = maxAvailableHeight;
+
     return Material(
       type: MaterialType.transparency,
       child: LayoutBuilder(
         builder: (context, constraints) {
+          if (maxHeight != null) {
+            final effectiveWidth = constraints.hasBoundedWidth ? constraints.maxWidth : double.infinity;
+            return OverflowBox(
+              alignment: Alignment.topLeft,
+              minWidth: effectiveWidth,
+              maxWidth: effectiveWidth,
+              minHeight: 0,
+              maxHeight: maxHeight,
+              child: content,
+            );
+          }
+
           if (!constraints.hasBoundedHeight || !constraints.hasBoundedWidth) return content;
 
           return OverflowBox(
@@ -81,7 +89,31 @@ class _QuiHeroGroupContent extends StatelessWidget {
   Widget _buildLayout() {
     if (_canUsePositionedFlight) return _buildPositionedFlight();
 
-    return layout.build(children: heroes);
+    final maxHeight = maxAvailableHeight;
+    if (maxHeight == null) return layout.build(children: heroes);
+
+    // When height-constrained but positioned flight is unavailable, prevent
+    // RenderFlex overflow by switching to mainAxisSize: max and constraining
+    // each child to a share of the available height.
+    final perChild = maxHeight / math.max(1, heroes.length);
+    final constrainedHeroes = heroes.map((hero) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: perChild),
+        child: hero,
+      );
+    }).toList();
+
+    return Flex(
+      direction: layout.direction,
+      mainAxisAlignment: layout.mainAxisAlignment,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: layout.crossAxisAlignment,
+      textDirection: layout.textDirection,
+      verticalDirection: layout.verticalDirection,
+      textBaseline: layout.textBaseline,
+      spacing: layout.spacing,
+      children: constrainedHeroes,
+    );
   }
 
   Widget _buildPositionedFlight() {
@@ -89,15 +121,17 @@ class _QuiHeroGroupContent extends StatelessWidget {
     final endMetrics = endChildMetrics!;
     final childCount = math.min(heroes.length, math.min(beginMetrics.length, endMetrics.length));
     final progress = flightValue;
-    final beginHeight = _metricsHeight(beginMetrics);
-    final height = beginHeight + (_metricsHeight(endMetrics) - beginHeight) * progress;
+    final height = beginHeight + (endHeight - beginHeight) * progress;
+    final maxHeight = maxAvailableHeight;
+    final shouldClip = maxHeight != null;
+    final effectiveHeight = shouldClip ? math.min(height, maxHeight) : height;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         var previousBottom = 0.0;
 
-        return SizedBox(
-          height: height,
+        Widget content = SizedBox(
+          height: effectiveHeight,
           child: Stack(
             clipBehavior: Clip.none,
             children: List<Widget>.generate(childCount, (index) {
@@ -124,12 +158,26 @@ class _QuiHeroGroupContent extends StatelessWidget {
                 endMetrics: endMetrics,
               );
 
-              previousBottom = top + childHeight;
+              final effectiveChildHeight = shouldClip
+                  ? math.min(childHeight, math.max(0, maxHeight - top))
+                  : childHeight;
+              previousBottom = top + effectiveChildHeight;
 
-              return Positioned(left: offset.dx, top: top, width: math.max(0, width), child: positionedChild.child);
+              final childWidget = shouldClip
+                  ? ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: math.max(0, maxHeight - top)),
+                      child: positionedChild.child,
+                    )
+                  : positionedChild.child;
+
+              return Positioned(left: offset.dx, top: top, width: math.max(0, width), child: childWidget);
             }),
           ),
         );
+
+        if (shouldClip) content = _QuiHeroClampScope(child: content);
+
+        return content;
       },
     );
   }
@@ -174,4 +222,15 @@ class _QuiHeroGroupContent extends StatelessWidget {
 
     return math.max(offset.dy, previousBottom + gap);
   }
+}
+
+class _QuiHeroClampScope extends InheritedWidget {
+  const _QuiHeroClampScope({required super.child});
+
+  static bool isActive(BuildContext context) {
+    return context.getElementForInheritedWidgetOfExactType<_QuiHeroClampScope>() != null;
+  }
+
+  @override
+  bool updateShouldNotify(_QuiHeroClampScope oldWidget) => false;
 }

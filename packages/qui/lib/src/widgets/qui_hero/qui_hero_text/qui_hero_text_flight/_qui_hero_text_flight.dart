@@ -93,7 +93,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
         final text = _buildText(
           context: context,
           maxLines: effectiveMaxLines,
-          overflow: _effectiveOverflow(effectiveMaxLines),
+          overflow: _effectiveOverflow(effectiveMaxLines, context: context, isHeightBounded: constraints.hasBoundedHeight),
           scaledMetrics: scaledMetrics,
         );
 
@@ -215,7 +215,10 @@ class _QuiHeroTextFlight extends StatelessWidget {
     return math.max(targetMaxLines, interpolatedMaxLines.ceil());
   }
 
-  TextOverflow? _effectiveOverflow(int? effectiveMaxLines) {
+  TextOverflow? _effectiveOverflow(int? effectiveMaxLines, {BuildContext? context, bool isHeightBounded = false}) {
+    if (isHeightBounded && effectiveMaxLines != null && context != null && _QuiHeroClampScope.isActive(context)) {
+      return TextOverflow.ellipsis;
+    }
     return overflow;
   }
 
