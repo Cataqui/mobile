@@ -120,6 +120,29 @@ void main() {
       expect(find.text('Destination'), findsNothing);
     });
 
+    testWidgets('when committing an interactive pop, it should complete the pop and clean up within the frame lifecycle', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _RouteTestApp());
+      await tester.tap(find.text('Push'));
+      await tester.pump();
+      final route = _RouteTestApp.capturedRoute!;
+
+      route.startInteractivePop();
+      route.updateInteractivePop(closingProgress: 0.8);
+      route.commitInteractivePop();
+
+      // The interactive pop should remain active immediately after commit
+      // (cleanup is deferred, not synchronous).
+      expect(route.isInteractivePopActive, isTrue);
+
+      // After settling, the pop animation should complete and cleanup should
+      // have fired — no exceptions should remain.
+      await tester.pumpAndSettle();
+      expect(route.isInteractivePopActive, isFalse);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('when the route is opaque, it should return false', (tester) async {
       await tester.pumpWidget(const _RouteTestApp());
       await tester.tap(find.text('Push'));

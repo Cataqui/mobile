@@ -48,10 +48,7 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
       onPointerUp: _handlePointerUp,
       onPointerCancel: _handlePointerCancel,
       behavior: HitTestBehavior.deferToChild,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: _handleScrollNotification,
-        child: widget.child,
-      ),
+      child: NotificationListener<ScrollNotification>(onNotification: _handleScrollNotification, child: widget.child),
     );
   }
 
@@ -262,6 +259,7 @@ class _QuiHeroSwipeToPopExtensionGestureState extends State<_QuiHeroSwipeToPopEx
   bool get _canStartSwipeToPop {
     if (!_isScrollAtTop) return false;
     if (_flingReachedTopAtUs == null) return true;
-    return SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds - _flingReachedTopAtUs! >= _flingCooldownUs;
+    return SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds - _flingReachedTopAtUs! >=
+        _flingCooldownUs;
   }
 }

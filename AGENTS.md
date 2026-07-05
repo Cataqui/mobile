@@ -183,6 +183,12 @@ void _resumeOrSkipTransition() {
 }
 ```
 
+### Dart Documentation
+
+- **Public API requires Dart doc.** Every declaration visible outside its library (public classes, public members, public typedefs, top-level constants) must have a `///` doc comment explaining what it does, when to use it, and what callers must know.
+- **Internal code does not need Dart doc.** Private declarations (`_`-prefixed), library-internal declarations (in packages, anything not exported via `library` or `export`), and any symbol that cannot be reached from outside its owning file or package does not require a doc comment. The code itself — clear naming, strong types, small functions — is the documentation.
+- When in doubt about whether something is public API, check whether it is exported by the package's main barrel file or referenced in another package's imports. If it is not reachable from outside, treat it as internal and skip the doc comment.
+
 ---
 
 ## 4. Testing Protocol

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../qui_hero.dart';
 import '../qui_hero_extension/qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
@@ -172,17 +173,22 @@ class QuiHeroPageRoute extends PageRoute<void> {
     if (!_isInteractivePopActive || routeController == null) return;
 
     navigator?.pop();
+
     if (routeController.isAnimating) {
       _stopUserGestureWhenAnimationEnds(routeController);
       return;
     }
 
-    _stopInteractivePop();
+    _deferStopInteractivePop();
+  }
+
+  void _deferStopInteractivePop() {
+    SchedulerBinding.instance.addPostFrameCallback((_) => _stopInteractivePop());
   }
 
   void _stopUserGestureWhenAnimationEnds(AnimationController routeController) {
     if (!routeController.isAnimating) {
-      _stopInteractivePop();
+      _deferStopInteractivePop();
       return;
     }
 
