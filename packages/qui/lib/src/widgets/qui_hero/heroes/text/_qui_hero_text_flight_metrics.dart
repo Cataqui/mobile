@@ -1,13 +1,7 @@
-part of '../../qui_hero.dart';
+part of 'qui_hero_text.dart';
 
-/// Pre-computed text metrics used during hero flight.
-///
-/// All font metrics (line height, baseline) are computed once at shuttle
-/// creation. During animation, the [_QuiHeroTextScaledMetrics] builder uses these
-/// cached values for pure-math interpolation instead of allocating
-/// [TextPainter] objects each frame.
-class _QuiHeroTextFlightMetrics {
-  const _QuiHeroTextFlightMetrics({
+class QuiHeroTextFlightMetrics {
+  const QuiHeroTextFlightMetrics({
     required this.beginLineHeight,
     required this.beginBaseline,
     required this.endLineHeight,
@@ -23,10 +17,10 @@ class _QuiHeroTextFlightMetrics {
     this.reservedLayoutWidthForTargetText,
   });
 
-  factory _QuiHeroTextFlightMetrics.precompute({
+  factory QuiHeroTextFlightMetrics.precompute({
     required BuildContext context,
-    required _QuiHeroTextFlight from,
-    required _QuiHeroTextFlight to,
+    required QuiHeroTextFlight from,
+    required QuiHeroTextFlight to,
     Size? beginSize,
     Size? endSize,
     double? beginLayoutWidth,
@@ -83,7 +77,7 @@ class _QuiHeroTextFlightMetrics {
       }
     }
 
-    return _QuiHeroTextFlightMetrics(
+    return QuiHeroTextFlightMetrics(
       beginLineHeight: beginMetrics.lineHeight,
       beginBaseline: beginMetrics.baseline,
       endLineHeight: endMetrics.lineHeight,

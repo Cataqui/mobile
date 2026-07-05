@@ -54,7 +54,7 @@ part 'qui_hero_swipe_to_pop_extension_enums.dart';
 /// [QuiHeroSwipeToPopState.dragging] when a gesture begins.
 ///
 /// ```dart
-/// QuiHero.background(
+/// QuiHeroBackground(
 ///   tag: 'job-1-surface',
 ///   extensions: [
 ///     QuiHeroSwipeToPopExtension(

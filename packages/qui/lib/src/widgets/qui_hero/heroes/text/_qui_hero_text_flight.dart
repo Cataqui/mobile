@@ -1,13 +1,14 @@
-part of '../../qui_hero.dart';
+part of 'qui_hero_text.dart';
 
-class _QuiHeroTextFlight extends StatelessWidget {
-  const _QuiHeroTextFlight({
+class QuiHeroTextFlight extends StatelessWidget {
+  const QuiHeroTextFlight({
     required this.text,
     required this.style,
     required this.textAlign,
     required this.overflow,
     required this.maxLines,
     required this.switchThreshold,
+    super.key,
     this.shortenToBounds = false,
     this.flightBeginStyle,
     this.flightEndStyle,
@@ -35,10 +36,10 @@ class _QuiHeroTextFlight extends StatelessWidget {
   final double? endpointReservedLayoutWidth;
   final int? progressiveClampMaxLines;
   final double progressiveClampProgress;
-  final _QuiHeroTextFlightMetrics? flightMetrics;
+  final QuiHeroTextFlightMetrics? flightMetrics;
 
-  _QuiHeroTextFlight _copyWith({bool? shortenToBounds, int? endpointMaxLines, double? endpointReservedLayoutWidth}) {
-    return _QuiHeroTextFlight(
+  QuiHeroTextFlight copyWith({bool? shortenToBounds, int? endpointMaxLines, double? endpointReservedLayoutWidth}) {
+    return QuiHeroTextFlight(
       text: text,
       style: style,
       textAlign: textAlign,
@@ -60,113 +61,10 @@ class _QuiHeroTextFlight extends StatelessWidget {
 
   static final Map<(String, int), int> _lineCountCache = {};
 
-  @override
-  Widget build(BuildContext context) {
-    Widget result = SizedBox(
-      width: double.infinity,
-      child: Material(
-        type: MaterialType.transparency,
-        child: Align(
-          alignment: shortenToBounds ? AlignmentDirectional.topStart : Alignment.centerLeft,
-          child: shortenToBounds
-              ? _buildShortenedText(context)
-              : _buildText(context: context, maxLines: maxLines, overflow: overflow),
-        ),
-      ),
-    );
-
-    if (padding != null) result = Padding(padding: padding!, child: result);
-
-    return result;
-  }
-
-  Widget _buildShortenedText(BuildContext context) {
-    final scaledMetrics = _scaledMetrics(context);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final effectiveMaxLines = _effectiveMaxLines(
-          context: context,
-          constraints: constraints,
-          scaledMetrics: scaledMetrics,
-        );
-        final text = _buildText(
-          context: context,
-          maxLines: effectiveMaxLines,
-          overflow: _effectiveOverflow(effectiveMaxLines, context: context, isHeightBounded: constraints.hasBoundedHeight),
-          scaledMetrics: scaledMetrics,
-        );
-
-        if (!constraints.hasBoundedHeight) return text;
-
-        return SizedBox(
-          width: double.infinity,
-          height: constraints.maxHeight,
-          child: Align(alignment: AlignmentDirectional.topStart, child: text),
-        );
-      },
-    );
-  }
-
-  Widget _buildText({
-    required BuildContext context,
-    required int? maxLines,
-    required TextOverflow? overflow,
-    _QuiHeroTextScaledMetrics? scaledMetrics,
-  }) {
-    final effectiveScaledMetrics = scaledMetrics ?? _scaledMetrics(context);
-    if (effectiveScaledMetrics == null) {
-      return Text(text, style: style, textAlign: textAlign, maxLines: maxLines, overflow: overflow);
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final layoutWidth = _layoutWidthFor(
-          constraints: constraints,
-          scaleX: effectiveScaledMetrics.scaleX,
-          reservedLayoutWidth: effectiveScaledMetrics.reservedLayoutWidth,
-        );
-        Widget result = Text(
-          text,
-          style: effectiveScaledMetrics.style,
-          textAlign: textAlign,
-          maxLines: maxLines,
-          overflow: overflow,
-        );
-
-        if (layoutWidth != null) {
-          result = OverflowBox(
-            alignment: AlignmentDirectional.topStart,
-            fit: OverflowBoxFit.deferToChild,
-            minWidth: layoutWidth,
-            maxWidth: layoutWidth,
-            child: SizedBox(width: layoutWidth, child: result),
-          );
-        }
-
-        final scaledText = Align(
-          alignment: AlignmentDirectional.topStart,
-          widthFactor: effectiveScaledMetrics.scaleX,
-          heightFactor: effectiveScaledMetrics.scaleY,
-          child: Transform.scale(
-            scaleX: effectiveScaledMetrics.scaleX,
-            scaleY: effectiveScaledMetrics.scaleY,
-            alignment: AlignmentDirectional.topStart,
-            child: result,
-          ),
-        );
-
-        if (effectiveScaledMetrics.baselineOffset == 0) return scaledText;
-
-        return Transform.translate(offset: Offset(0, effectiveScaledMetrics.baselineOffset), child: scaledText);
-      },
-    );
-  }
-
-  int? _effectiveMaxLines({
+  int? _effectiveMaxLinesOf({
     required BuildContext context,
     required BoxConstraints constraints,
-    required _QuiHeroTextScaledMetrics? scaledMetrics,
+    required QuiHeroTextScaledMetrics? scaledMetrics,
   }) {
     if (!shortenToBounds) return maxLines;
 
@@ -176,8 +74,8 @@ class _QuiHeroTextFlight extends StatelessWidget {
     final heightBoundedMaxLines = constraints.hasBoundedHeight
         ? math.max(1, constraints.maxHeight ~/ lineHeight)
         : null;
-    final boundedMaxLines = _boundedMaxLines(heightBoundedMaxLines);
-    final progressiveMaxLines = _progressiveMaxLines(
+    final boundedMaxLines = _boundedMaxLinesOf(heightBoundedMaxLines);
+    final progressiveMaxLines = _progressiveMaxLinesOf(
       context: context,
       constraints: constraints,
       boundedMaxLines: boundedMaxLines,
@@ -186,18 +84,18 @@ class _QuiHeroTextFlight extends StatelessWidget {
     return progressiveMaxLines;
   }
 
-  int? _boundedMaxLines(int? heightBoundedMaxLines) {
+  int? _boundedMaxLinesOf(int? heightBoundedMaxLines) {
     if (heightBoundedMaxLines == null) return maxLines;
     if (maxLines == null) return heightBoundedMaxLines;
 
     return math.min(maxLines!, heightBoundedMaxLines);
   }
 
-  int? _progressiveMaxLines({
+  int? _progressiveMaxLinesOf({
     required BuildContext context,
     required BoxConstraints constraints,
     required int? boundedMaxLines,
-    required _QuiHeroTextScaledMetrics? scaledMetrics,
+    required QuiHeroTextScaledMetrics? scaledMetrics,
   }) {
     final targetMaxLines = progressiveClampMaxLines;
     if (targetMaxLines == null) return boundedMaxLines;
@@ -215,14 +113,17 @@ class _QuiHeroTextFlight extends StatelessWidget {
     return math.max(targetMaxLines, interpolatedMaxLines.ceil());
   }
 
-  TextOverflow? _effectiveOverflow(int? effectiveMaxLines, {BuildContext? context, bool isHeightBounded = false}) {
-    if (isHeightBounded && effectiveMaxLines != null && context != null && _QuiHeroClampScope.isActive(context)) {
+  TextOverflow? _effectiveOverflowOf(int? effectiveMaxLines, {BuildContext? context, bool isHeightBounded = false}) {
+    if (isHeightBounded &&
+        effectiveMaxLines != null &&
+        context != null &&
+        QuiHeroGroupHeightClampScope.isActive(context)) {
       return TextOverflow.ellipsis;
     }
     return overflow;
   }
 
-  double _preferredLineHeight(BuildContext context, {required _QuiHeroTextScaledMetrics? scaledMetrics}) {
+  double _preferredLineHeight(BuildContext context, {required QuiHeroTextScaledMetrics? scaledMetrics}) {
     if (scaledMetrics != null) return scaledMetrics.lineHeight;
     if (flightMetrics != null) return flightMetrics!.stylePreferredLineHeight;
 
@@ -243,7 +144,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
       return _cachedEstimatedHeight(context: context, width: width, metrics: metrics);
     }
 
-    final scaledMetrics = _scaledMetrics(context);
+    final scaledMetrics = _scaledMetricsOf(context);
     final constraints = BoxConstraints(maxWidth: width);
     final layoutWidth = scaledMetrics == null
         ? width
@@ -255,7 +156,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     if (layoutWidth == null || layoutWidth <= 0) return null;
 
     final effectiveMaxLines = shortenToBounds
-        ? _effectiveMaxLines(context: context, constraints: constraints, scaledMetrics: scaledMetrics)
+        ? _effectiveMaxLinesOf(context: context, constraints: constraints, scaledMetrics: scaledMetrics)
         : maxLines;
     final textPainter = TextPainter(
       text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.merge(scaledMetrics?.style ?? style)),
@@ -263,7 +164,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
       maxLines: effectiveMaxLines,
-      ellipsis: _ellipsisFor(_effectiveOverflow(effectiveMaxLines)),
+      ellipsis: _ellipsisFor(_effectiveOverflowOf(effectiveMaxLines)),
     )..layout(maxWidth: layoutWidth);
     final textHeight = textPainter.height * (scaledMetrics?.scaleY ?? 1);
 
@@ -273,11 +174,11 @@ class _QuiHeroTextFlight extends StatelessWidget {
   double? _cachedEstimatedHeight({
     required BuildContext context,
     required double width,
-    required _QuiHeroTextFlightMetrics metrics,
+    required QuiHeroTextFlightMetrics metrics,
   }) {
     if (width <= 0) return null;
 
-    final scaledMetrics = _scaledMetrics(context);
+    final scaledMetrics = _scaledMetricsOf(context);
     final constraints = BoxConstraints(maxWidth: width);
     final layoutWidth = scaledMetrics == null
         ? width
@@ -304,7 +205,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
       textDirection: metrics.textDirection,
       textScaler: metrics.textScaler,
       maxLines: effectiveMaxLines,
-      ellipsis: _ellipsisFor(_effectiveOverflow(effectiveMaxLines)),
+      ellipsis: _ellipsisFor(_effectiveOverflowOf(effectiveMaxLines)),
     )..layout(maxWidth: layoutWidth);
     final textHeight = textPainter.height * (scaledMetrics?.scaleY ?? 1);
 
@@ -314,18 +215,18 @@ class _QuiHeroTextFlight extends StatelessWidget {
   int? _optimizedEffectiveMaxLines({
     required BuildContext context,
     required double width,
-    required _QuiHeroTextScaledMetrics? scaledMetrics,
-    required _QuiHeroTextFlightMetrics metrics,
+    required QuiHeroTextScaledMetrics? scaledMetrics,
+    required QuiHeroTextFlightMetrics metrics,
   }) {
     if (!shortenToBounds) return maxLines;
 
     final lineHeight = scaledMetrics?.lineHeight ?? metrics.stylePreferredLineHeight;
     if (lineHeight <= 0) return maxLines;
 
-    final boundedMaxLines = _boundedMaxLines(null);
+    final boundedMaxLines = _boundedMaxLinesOf(null);
     if (!width.isFinite || width <= 0) return boundedMaxLines;
 
-    final progressiveMaxLines = _progressiveMaxLines(
+    final progressiveMaxLines = _progressiveMaxLinesOf(
       context: context,
       constraints: BoxConstraints(maxWidth: width),
       boundedMaxLines: boundedMaxLines,
@@ -343,16 +244,11 @@ class _QuiHeroTextFlight extends StatelessWidget {
   int _naturalLineCount({
     required BuildContext context,
     required double width,
-    required _QuiHeroTextScaledMetrics? scaledMetrics,
+    required QuiHeroTextScaledMetrics? scaledMetrics,
   }) {
     final metrics = flightMetrics;
     if (metrics != null && scaledMetrics != null) {
-      return _cachedNaturalLineCount(
-        context: context,
-        width: width,
-        scaledMetrics: scaledMetrics,
-        metrics: metrics,
-      );
+      return _cachedNaturalLineCount(context: context, width: width, scaledMetrics: scaledMetrics, metrics: metrics);
     }
 
     if (scaledMetrics != null) {
@@ -380,8 +276,8 @@ class _QuiHeroTextFlight extends StatelessWidget {
   int _cachedNaturalLineCount({
     required BuildContext context,
     required double width,
-    required _QuiHeroTextScaledMetrics scaledMetrics,
-    required _QuiHeroTextFlightMetrics metrics,
+    required QuiHeroTextScaledMetrics scaledMetrics,
+    required QuiHeroTextFlightMetrics metrics,
   }) {
     final key = (text, (width / 25).round());
     return _lineCountCache.putIfAbsent(key, () {
@@ -397,7 +293,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     });
   }
 
-  _QuiHeroTextScaledMetrics? _scaledMetrics(BuildContext context) {
+  QuiHeroTextScaledMetrics? _scaledMetricsOf(BuildContext context) {
     final metrics = flightMetrics;
     if (metrics != null && shortenToBounds && flightBeginStyle != null && flightEndStyle != null) {
       return _optimizedScaledMetrics(context: context, metrics: metrics);
@@ -405,9 +301,9 @@ class _QuiHeroTextFlight extends StatelessWidget {
     return _legacyScaledMetrics(context);
   }
 
-  _QuiHeroTextScaledMetrics? _optimizedScaledMetrics({
+  QuiHeroTextScaledMetrics? _optimizedScaledMetrics({
     required BuildContext context,
-    required _QuiHeroTextFlightMetrics metrics,
+    required QuiHeroTextFlightMetrics metrics,
   }) {
     final currentFontSize = style.fontSize;
     final stableFontSize = flightEndStyle!.fontSize;
@@ -420,7 +316,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     final baseline = _lerpDouble(metrics.beginBaseline, metrics.endBaseline, progress);
     final scaledBaseline = metrics.scaledBaseline * (lineHeight / metrics.scaledLineHeight);
 
-    return _QuiHeroTextScaledMetrics(
+    return QuiHeroTextScaledMetrics(
       style: style.copyWith(fontSize: stableFontSize),
       scaleX: currentFontSize / stableFontSize,
       scaleY: lineHeight / metrics.scaledLineHeight,
@@ -430,13 +326,15 @@ class _QuiHeroTextFlight extends StatelessWidget {
     );
   }
 
-  _QuiHeroTextScaledMetrics? _legacyScaledMetrics(BuildContext context) {
+  QuiHeroTextScaledMetrics? _legacyScaledMetrics(BuildContext context) {
     final beginStyle = flightBeginStyle;
     final endStyle = flightEndStyle;
     final currentFontSize = style.fontSize;
     final stableFontSize = endStyle?.fontSize;
     if (!shortenToBounds || beginStyle == null || endStyle == null) return null;
-    if (currentFontSize == null || currentFontSize <= 0 || stableFontSize == null || stableFontSize <= 0) return null;
+    if (currentFontSize == null || currentFontSize <= 0 || stableFontSize == null || stableFontSize <= 0) {
+      return null;
+    }
 
     final scaledStyle = style.copyWith(fontSize: stableFontSize);
     final scaledTextMetrics = _textMetrics(context: context, style: scaledStyle);
@@ -449,7 +347,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     final baseline = _lerpDouble(beginTextMetrics.baseline, endTextMetrics.baseline, progress);
     final scaledBaseline = scaledTextMetrics.baseline * (lineHeight / scaledTextMetrics.lineHeight);
 
-    return _QuiHeroTextScaledMetrics(
+    return QuiHeroTextScaledMetrics(
       style: scaledStyle,
       scaleX: currentFontSize / stableFontSize,
       scaleY: lineHeight / scaledTextMetrics.lineHeight,
@@ -459,7 +357,7 @@ class _QuiHeroTextFlight extends StatelessWidget {
     );
   }
 
-  double? _computeReservedLayoutWidth({required _QuiHeroTextFlightMetrics metrics}) {
+  double? _computeReservedLayoutWidth({required QuiHeroTextFlightMetrics metrics}) {
     final showBegin = flightProgress < switchThreshold;
     final reservedWidth = showBegin
         ? metrics.reservedLayoutWidthForSourceText
@@ -527,7 +425,9 @@ class _QuiHeroTextFlight extends StatelessWidget {
   double? _reservedLayoutWidth({required BuildContext context, required TextStyle style}) {
     final endpointReservedLayoutWidth = this.endpointReservedLayoutWidth;
     final endpointMaxLines = this.endpointMaxLines;
-    if (endpointReservedLayoutWidth == null || endpointReservedLayoutWidth <= 0) return null;
+    if (endpointReservedLayoutWidth == null || endpointReservedLayoutWidth <= 0) {
+      return null;
+    }
 
     if (endpointMaxLines != 1) return endpointReservedLayoutWidth;
 
@@ -550,22 +450,111 @@ class _QuiHeroTextFlight extends StatelessWidget {
 
     return (lineHeight: textPainter.preferredLineHeight, baseline: textPainter.computeLineMetrics().first.baseline);
   }
-}
 
-class _QuiHeroTextScaledMetrics {
-  const _QuiHeroTextScaledMetrics({
-    required this.style,
-    required this.scaleX,
-    required this.scaleY,
-    required this.lineHeight,
-    required this.baselineOffset,
-    required this.reservedLayoutWidth,
-  });
+  @override
+  Widget build(BuildContext context) {
+    Widget result = SizedBox(
+      width: double.infinity,
+      child: Material(
+        type: MaterialType.transparency,
+        child: Align(
+          alignment: shortenToBounds ? AlignmentDirectional.topStart : Alignment.centerLeft,
+          child: shortenToBounds
+              ? _buildShortenedText(context)
+              : _buildText(context: context, maxLines: maxLines, overflow: overflow),
+        ),
+      ),
+    );
 
-  final TextStyle style;
-  final double scaleX;
-  final double scaleY;
-  final double lineHeight;
-  final double baselineOffset;
-  final double? reservedLayoutWidth;
+    if (padding != null) result = Padding(padding: padding!, child: result);
+
+    return result;
+  }
+
+  Widget _buildShortenedText(BuildContext context) {
+    final scaledMetrics = _scaledMetricsOf(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final effectiveMaxLines = _effectiveMaxLinesOf(
+          context: context,
+          constraints: constraints,
+          scaledMetrics: scaledMetrics,
+        );
+        final text = _buildText(
+          context: context,
+          maxLines: effectiveMaxLines,
+          overflow: _effectiveOverflowOf(
+            effectiveMaxLines,
+            context: context,
+            isHeightBounded: constraints.hasBoundedHeight,
+          ),
+          scaledMetrics: scaledMetrics,
+        );
+
+        if (!constraints.hasBoundedHeight) return text;
+
+        return SizedBox(
+          width: double.infinity,
+          height: constraints.maxHeight,
+          child: Align(alignment: AlignmentDirectional.topStart, child: text),
+        );
+      },
+    );
+  }
+
+  Widget _buildText({
+    required BuildContext context,
+    required int? maxLines,
+    required TextOverflow? overflow,
+    QuiHeroTextScaledMetrics? scaledMetrics,
+  }) {
+    final effectiveScaledMetrics = scaledMetrics ?? _scaledMetricsOf(context);
+    if (effectiveScaledMetrics == null) {
+      return Text(text, style: style, textAlign: textAlign, maxLines: maxLines, overflow: overflow);
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final layoutWidth = _layoutWidthFor(
+          constraints: constraints,
+          scaleX: effectiveScaledMetrics.scaleX,
+          reservedLayoutWidth: effectiveScaledMetrics.reservedLayoutWidth,
+        );
+        Widget result = Text(
+          text,
+          style: effectiveScaledMetrics.style,
+          textAlign: textAlign,
+          maxLines: maxLines,
+          overflow: overflow,
+        );
+
+        if (layoutWidth != null) {
+          result = OverflowBox(
+            alignment: AlignmentDirectional.topStart,
+            fit: OverflowBoxFit.deferToChild,
+            minWidth: layoutWidth,
+            maxWidth: layoutWidth,
+            child: SizedBox(width: layoutWidth, child: result),
+          );
+        }
+
+        final scaledText = Align(
+          alignment: AlignmentDirectional.topStart,
+          widthFactor: effectiveScaledMetrics.scaleX,
+          heightFactor: effectiveScaledMetrics.scaleY,
+          child: Transform.scale(
+            scaleX: effectiveScaledMetrics.scaleX,
+            scaleY: effectiveScaledMetrics.scaleY,
+            alignment: AlignmentDirectional.topStart,
+            child: result,
+          ),
+        );
+
+        if (effectiveScaledMetrics.baselineOffset == 0) return scaledText;
+
+        return Transform.translate(offset: Offset(0, effectiveScaledMetrics.baselineOffset), child: scaledText);
+      },
+    );
+  }
 }

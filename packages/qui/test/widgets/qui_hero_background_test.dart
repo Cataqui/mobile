@@ -6,42 +6,42 @@ void main() {
   group('QuiHero.background', () {
     testWidgets('when building at rest, it should wrap the child in a Hero', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.background(
+              child: QuiHeroBackground(
                 tag: 'test',
-                decoration: const BoxDecoration(color: Colors.white),
-                child: const SizedBox.shrink(),
+                decoration: BoxDecoration(color: Colors.white),
+                child: SizedBox.shrink(),
               ),
             ),
           ),
         ),
       );
 
-      expect(find.byType(Hero), findsOneWidget);
+      expect(find.byType(Hero), findsNWidgets(2));
     });
 
     testWidgets('when building at rest, it should not add a repaint boundary to the feed tree', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.background(
+              child: QuiHeroBackground(
                 tag: 'test',
-                decoration: const BoxDecoration(color: Colors.white),
-                child: const SizedBox.shrink(),
+                decoration: BoxDecoration(color: Colors.white),
+                child: SizedBox.shrink(),
               ),
             ),
           ),
         ),
       );
 
-      final hero = tester.widget<Hero>(find.byType(Hero));
+      final hero = tester.widget<Hero>(find.byType(Hero).first);
       expect(hero.child, isNot(isA<RepaintBoundary>()));
     });
 
@@ -54,7 +54,7 @@ void main() {
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.background(
+              child: QuiHeroBackground(
                 tag: 'test',
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(38)),
               ),
@@ -71,15 +71,15 @@ void main() {
 
     testWidgets('when building with a child, it should render the child inside the box', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.background(
+              child: QuiHeroBackground(
                 tag: 'test',
-                decoration: const BoxDecoration(color: Colors.white),
-                child: const Text('hello'),
+                decoration: BoxDecoration(color: Colors.white),
+                child: Text('hello'),
               ),
             ),
           ),
@@ -91,16 +91,16 @@ void main() {
 
     testWidgets('when building with padding, it should wrap the child in a Padding widget', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 300,
               height: 200,
-              child: QuiHero.background(
+              child: QuiHeroBackground(
                 tag: 'test',
-                decoration: const BoxDecoration(color: Colors.white),
-                padding: const EdgeInsets.all(24),
-                child: const Text('hello'),
+                decoration: BoxDecoration(color: Colors.white),
+                padding: EdgeInsets.all(24),
+                child: Text('hello'),
               ),
             ),
           ),
@@ -113,11 +113,11 @@ void main() {
 
     testWidgets('when building with width, it should constrain the width via SizedBox', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.background(
+            body: QuiHeroBackground(
               tag: 'test',
-              decoration: const BoxDecoration(color: Colors.white),
+              decoration: BoxDecoration(color: Colors.white),
               width: 300,
             ),
           ),
@@ -133,13 +133,13 @@ void main() {
       const extensionKey = Key('extension');
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.background(
+            body: QuiHeroBackground(
               tag: 'test',
-              decoration: const BoxDecoration(color: Colors.white),
-              extensions: const [_QuiHeroKeyedExtension(key: extensionKey)],
-              child: const Text('hello'),
+              decoration: BoxDecoration(color: Colors.white),
+              extensions: [_QuiHeroKeyedExtension(key: extensionKey)],
+              child: Text('hello'),
             ),
           ),
         ),
@@ -155,16 +155,16 @@ void main() {
       const innerExtensionKey = Key('inner-extension');
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.background(
+            body: QuiHeroBackground(
               tag: 'test',
-              decoration: const BoxDecoration(color: Colors.white),
-              extensions: const [
+              decoration: BoxDecoration(color: Colors.white),
+              extensions: [
                 _QuiHeroKeyedExtension(key: outerExtensionKey),
                 _QuiHeroKeyedExtension(key: innerExtensionKey),
               ],
-              child: const Text('hello'),
+              child: Text('hello'),
             ),
           ),
         ),
@@ -210,6 +210,7 @@ class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
       home: Builder(
         builder: (context) {
           return Scaffold(
@@ -222,7 +223,7 @@ class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
                     ).createRoute(context),
                   );
                 },
-                child: QuiHero.background(
+                child: QuiHeroBackground(
                   tag: 'background-lifecycle',
                   width: 200,
                   height: 80,
@@ -249,7 +250,7 @@ class _QuiHeroBackgroundLifecycleDestination extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: QuiHero.background(
+        child: QuiHeroBackground(
           tag: 'background-lifecycle',
           width: 260,
           height: 120,

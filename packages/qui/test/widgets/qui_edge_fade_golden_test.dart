@@ -8,12 +8,12 @@ import 'package:qui/qui.dart';
 class _FadeScenario extends StatelessWidget {
   const _FadeScenario({
     required this.position,
-    this.color,
+    this.style = const QuiEdgeFadeStyle(),
     this.backgroundColor = const Color(0xFF4A90D9),
   });
 
   final QuiEdgeFadePosition position;
-  final Color? color;
+  final QuiEdgeFadeStyle style;
   final Color backgroundColor;
 
   @override
@@ -30,7 +30,7 @@ class _FadeScenario extends StatelessWidget {
             top: 0,
             left: 0,
             right: 0,
-            child: QuiEdgeFade(position: position, color: color),
+            child: QuiEdgeFade(position: position, style: style),
           ),
         ],
       ),
@@ -58,7 +58,7 @@ void main() {
             name: 'custom color',
             child: const _FadeScenario(
               position: QuiEdgeFadePosition.top,
-              color: Color(0xFFFF4A4B),
+              style: QuiEdgeFadeStyle(color: Color(0xFFFF4A4B)),
             ),
           ),
           GoldenTestScenario(

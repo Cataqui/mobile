@@ -25,7 +25,7 @@ void main() {
 
       await tester.pumpWidget(
         const TestApp(
-          child: QuiEdgeFade(position: QuiEdgeFadePosition.top, color: customColor),
+          child: QuiEdgeFade(position: QuiEdgeFadePosition.top, style: QuiEdgeFadeStyle(color: customColor)),
         ),
       );
 

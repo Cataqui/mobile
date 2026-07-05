@@ -6,9 +6,9 @@ void main() {
   group('QuiHero.text', () {
     testWidgets('when building at rest, it should wrap the child in a Hero', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.text(tag: 'test', text: 'Hello', style: const TextStyle(fontSize: 16)),
+            body: QuiHeroText('Hello', tag: 'test', style: TextStyle(fontSize: 16)),
           ),
         ),
       );
@@ -18,9 +18,9 @@ void main() {
 
     testWidgets('when building at rest, it should not add a repaint boundary to the feed tree', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.text(tag: 'test', text: 'Hello', style: const TextStyle(fontSize: 16)),
+            body: QuiHeroText('Hello', tag: 'test', style: TextStyle(fontSize: 16)),
           ),
         ),
       );
@@ -31,11 +31,11 @@ void main() {
 
     testWidgets('when inside a bounded width, it should reserve the full row width for the flight', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 300,
-              child: QuiHero.text(tag: 'test', text: 'Hello', style: const TextStyle(fontSize: 16)),
+              child: QuiHeroText('Hello', tag: 'test', style: TextStyle(fontSize: 16)),
             ),
           ),
         ),
@@ -46,12 +46,12 @@ void main() {
 
     testWidgets('when building with a custom style, it should display the text', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.text(
+            body: QuiHeroText(
+              'Test Text',
               tag: 'test',
-              text: 'Test Text',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -138,13 +138,13 @@ void main() {
                           body: Center(
                             child: GestureDetector(
                               onTap: () => Navigator.pop(context),
-                              child: SizedBox(
+                              child: const SizedBox(
                                 width: 220,
-                                child: QuiHero.text(
+                                child: QuiHeroText(
+                                  destinationText,
                                   tag: 'test',
-                                  text: destinationText,
                                   switchThreshold: 0.99,
-                                  style: const TextStyle(fontSize: 18, height: 1.4),
+                                  style: TextStyle(fontSize: 18, height: 1.4),
                                 ),
                               ),
                             ),
@@ -153,15 +153,15 @@ void main() {
                       ).createRoute(context),
                     );
                   },
-                  child: SizedBox(
+                  child: const SizedBox(
                     width: 220,
                     height: 24,
-                    child: QuiHero.text(
+                    child: QuiHeroText(
+                      'Resumo curto',
                       tag: 'test',
-                      text: 'Resumo curto',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ),
@@ -211,13 +211,13 @@ void main() {
                                     left: 40,
                                     child: GestureDetector(
                                       onTap: () => Navigator.pop(context),
-                                      child: SizedBox(
+                                      child: const SizedBox(
                                         width: 220,
-                                        child: QuiHero.text(
+                                        child: QuiHeroText(
+                                          destinationText,
                                           tag: 'test',
-                                          text: destinationText,
                                           switchThreshold: 0.99,
-                                          style: const TextStyle(fontSize: 18, height: 1.4),
+                                          style: TextStyle(fontSize: 18, height: 1.4),
                                         ),
                                       ),
                                     ),
@@ -228,15 +228,15 @@ void main() {
                           ).createRoute(context),
                         );
                       },
-                      child: SizedBox(
+                      child: const SizedBox(
                         width: 220,
                         height: 24,
-                        child: QuiHero.text(
+                        child: QuiHeroText(
+                          'Resumo curto',
                           tag: 'test',
-                          text: 'Resumo curto',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 16),
+                          style: TextStyle(fontSize: 16),
                         ),
                       ),
                     ),
@@ -275,43 +275,38 @@ void main() {
 
   group('QuiHero.text switchThreshold', () {
     test('when creating with switchThreshold 0.5, it should not throw', () {
-      expect(() => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0.5), returnsNormally);
+      expect(() => const QuiHeroText('Hello', tag: 'test', switchThreshold: 0.5), returnsNormally);
     });
 
     test('when creating with switchThreshold 0.8, it should not throw', () {
-      expect(() => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0.8), returnsNormally);
+      expect(() => const QuiHeroText('Hello', tag: 'test', switchThreshold: 0.8), returnsNormally);
     });
 
     test('when creating with switchThreshold 0.2, it should not throw', () {
-      expect(() => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0.2), returnsNormally);
+      expect(() => const QuiHeroText('Hello', tag: 'test', switchThreshold: 0.2), returnsNormally);
     });
 
     test('when creating with switchThreshold 0.0, it should not throw', () {
-      expect(() => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 0), returnsNormally);
+      expect(() => const QuiHeroText('Hello', tag: 'test', switchThreshold: 0), returnsNormally);
     });
 
     test('when creating with switchThreshold 1.0, it should not throw', () {
-      expect(() => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 1), returnsNormally);
+      expect(() => const QuiHeroText('Hello', tag: 'test', switchThreshold: 1), returnsNormally);
     });
 
     test('when creating with switchThreshold -0.1, it should throw an assertion error', () {
-      expect(() => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: -0.1), throwsA(isA<AssertionError>()));
+      expect(() => QuiHeroText('Hello', tag: 'test', switchThreshold: -0.1), throwsA(isA<AssertionError>()));
     });
 
     test('when creating with switchThreshold 1.5, it should throw an assertion error', () {
-      expect(() => QuiHero.text(tag: 'test', text: 'Hello', switchThreshold: 1.5), throwsA(isA<AssertionError>()));
+      expect(() => QuiHeroText('Hello', tag: 'test', switchThreshold: 1.5), throwsA(isA<AssertionError>()));
     });
 
     testWidgets('when building with switchThreshold 0.8, it should display the text', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.text(
-              tag: 'test',
-              text: 'Custom Threshold',
-              switchThreshold: 0.8,
-              style: const TextStyle(fontSize: 16),
-            ),
+            body: QuiHeroText('Custom Threshold', tag: 'test', switchThreshold: 0.8, style: TextStyle(fontSize: 16)),
           ),
         ),
       );
@@ -342,9 +337,9 @@ class _QuiHeroTextLifecycleTestApp extends StatelessWidget {
                     QuiHeroPage(builder: (_) => _QuiHeroTextLifecycleDestination(events: events)).createRoute(context),
                   );
                 },
-                child: QuiHero.text(
+                child: QuiHeroText(
+                  sourceText,
                   tag: 'text-lifecycle',
-                  text: sourceText,
                   onStart: () => events.add('source-start'),
                   onEnd: () => events.add('source-end'),
                 ),
@@ -368,9 +363,9 @@ class _QuiHeroTextLifecycleDestination extends StatelessWidget {
       body: Center(
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: QuiHero.text(
+          child: QuiHeroText(
+            _QuiHeroTextLifecycleTestApp.destinationText,
             tag: 'text-lifecycle',
-            text: _QuiHeroTextLifecycleTestApp.destinationText,
             onStart: () => events.add('destination-start'),
             onEnd: () => events.add('destination-end'),
           ),

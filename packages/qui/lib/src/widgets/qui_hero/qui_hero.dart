@@ -1,30 +1,23 @@
 library;
 
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:qui/qui.dart' show QuiHeroExtension, QuiHeroPage, QuiHeroSwipeToPopExtension;
 import 'package:qui/src/theme/qui_theme.dart';
+import 'package:qui/src/theme/qui_theme_data.dart';
+import 'package:qui/src/widgets/qui_edge_fade/qui_edge_fade.dart'
+    show QuiEdgeFade, QuiEdgeFadePosition, QuiEdgeFadeStyle;
+import 'package:qui/src/widgets/qui_hero/heroes/background/qui_hero_background.dart';
+import 'package:qui/src/widgets/qui_hero/heroes/text/qui_hero_text.dart';
 
-import 'qui_hero_extension/qui_hero_extension.dart';
-import 'qui_hero_extension/qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
-import 'qui_hero_page/qui_hero_page.dart';
+import 'heroes/background/qui_hero_background.dart' show QuiHeroBackground;
+import 'heroes/group/qui_hero_group.dart' show QuiHeroGroup;
+import 'heroes/text/qui_hero_text.dart' show QuiHeroText, QuiHeroTextFlightMetrics;
 
-part 'qui_hero_box/_qui_hero_box.dart';
-part 'qui_hero_box/qui_hero_box_flight/_qui_hero_box_flight.dart';
-part 'qui_hero_box/qui_hero_box_flight/_qui_hero_box_scope.dart';
+part 'qui_hero_edge_fade.dart';
 part 'qui_hero_enums.dart';
-part 'qui_hero_group/_qui_hero_group.dart';
-part 'qui_hero_group/_qui_hero_group_content.dart';
-part 'qui_hero_group/_qui_hero_group_layout.dart';
-part 'qui_hero_group/_qui_hero_group_scope.dart';
-part 'qui_hero_group/qui_hero_group_enums.dart';
 part 'qui_hero_lifecycle/_qui_hero_lifecycle_endpoint.dart';
 part 'qui_hero_lifecycle/_qui_hero_lifecycle_flight_shuttle.dart';
-part 'qui_hero_text/_qui_hero_text.dart';
-part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight.dart';
-part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
 
 /// A hero widget that animates a shared element across screens with pre-built,
 /// device-safe flight animations.
@@ -38,28 +31,22 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
 /// route stays composited underneath so the flight is visible against the
 /// previous screen.
 ///
-/// ## Choosing a variant
+/// ## Variants
 ///
-/// [QuiHero] exposes typed factory constructors:
+/// Use one of the concrete hero classes directly instead of factory
+/// constructors:
 ///
-///  * [QuiHero.text] — animates a text block. The [TextStyle] is smoothly
-///    interpolated via [TextStyle.lerp] throughout the flight. Text content,
-///    wrapping (`maxLines`, `overflow`) and text alignment switch from source
-///    to destination at the point defined by [QuiHero.text.switchThreshold]
-///  * [QuiHero.background] — animates a [BoxDecoration]. Color, border radius,
-///    shadows, gradients, and border are interpolated via
-///    [Decoration.lerp]. The `child` renders natively on each screen but is
-///    **not** carried into the flight overlay — only the decoration morphs.
-///    Nest other [QuiHero] variants inside `child` to animate inner elements
-///    independently alongside the box.
+///  * [QuiHeroText] — animates a text block
+///  * [QuiHeroBackground] — animates a [BoxDecoration]
+///  * [QuiHeroGroup] — moves several [QuiHero] as one shared element
 ///
 /// Variants can use a [tag] to pair source and destination explicitly. When
 /// [tag] is omitted, QUI uses a private default tag for that variant. This
-/// keeps simple routes lightweight: one tagless [QuiHero.text], one tagless
-/// [QuiHero.background], etc. can coexist and animate to
-/// the matching variant on the destination route. If a route has multiple
-/// active heroes of the same tagless variant, Flutter asserts at navigation
-/// time; pass explicit tags for those cases.
+/// keeps simple routes lightweight: one tagless [QuiHeroText], one tagless
+/// [QuiHeroBackground], etc. can coexist and animate to the matching variant
+/// on the destination route. If a route has multiple active heroes of the same
+/// tagless variant, Flutter asserts at navigation time; pass explicit tags for
+/// those cases.
 ///
 /// ## Performance on low-end devices
 ///
@@ -69,13 +56,13 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
 ///
 /// ```dart
 /// // Source — a rounded box with title
-/// QuiHero.background(
+/// QuiHeroBackground(
 ///   tag: 'card-1',
 ///   decoration: BoxDecoration(
 ///     color: surfaceColor,
 ///     borderRadius: BorderRadius.circular(38),
 ///   ),
-///   child: QuiHero.text(
+///   child: QuiHeroText(
 ///     tag: 'card-1-title',
 ///     text: 'Garçom para Fim de Semana',
 ///     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
@@ -83,10 +70,10 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
 /// )
 ///
 /// // Destination — same tags trigger the shared-element transition
-/// QuiHero.background(
+/// QuiHeroBackground(
 ///   tag: 'card-1',
 ///   decoration: BoxDecoration(color: bgColor),
-///   child: QuiHero.text(
+///   child: QuiHeroText(
 ///     tag: 'card-1-title',
 ///     text: 'Garçom para Fim de Semana',
 ///     style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
@@ -102,186 +89,22 @@ part 'qui_hero_text/qui_hero_text_flight/_qui_hero_text_flight_metrics.dart';
 ///  * [QuiHeroSwipeToPopExtension], a built-in extension that adds
 ///    swipe-to-pop gestures to hero destinations.
 ///  * Flutter's [Hero], the underlying widget that [QuiHero] wraps.
-sealed class QuiHero extends StatelessWidget {
-  /// Creates a text hero that animates [TextStyle], content, and wrapping
-  /// behavior between source and destination.
+abstract class QuiHero extends StatelessWidget {
+  /// Creates a QUI hero with the given shared animation configuration.
   ///
-  /// The [TextStyle] is interpolated via [TextStyle.lerp] across the full
-  /// flight. Text content and layout constraints ([maxLines], [overflow])
-  /// switch from the source configuration to the destination configuration
-  /// at the exact midpoint (50 %) of the flight animation. The optional
-  /// [padding] is applied around the text and is interpolated during flight.
-  ///
-  /// [switchThreshold] controls when text content, wrapping constraints, and
-  /// alignment switch from the source to the destination during the flight.
-  /// The origin's [switchThreshold] governs the push direction; the
-  /// destination's [switchThreshold] governs the pop direction. A higher
-  /// value delays the switch; a lower value triggers it earlier. Must be
-  /// between `0.0` and `1.0`
-  ///
-  /// [onStart] is called when this hero is the origin of a flight. [onEnd] is
-  /// called when that same origin flight settles at the opposite route. The
-  /// destination counterpart does not receive callbacks for a flight it did
-  /// not start.
-  ///
-  /// ```dart
-  /// // Source
-  /// QuiHero.text(
-  ///   tag: 'title',
-  ///   text: 'Garçom para Fim de Semana',
-  ///   style: TextStyle(fontSize: 18, color: textColor),
-  ///   maxLines: 2,
-  ///   overflow: TextOverflow.ellipsis,
-  /// )
-  ///
-  /// // Destination
-  /// QuiHero.text(
-  ///   tag: 'title',
-  ///   text: 'Garçom para Fim de Semana',
-  ///   style: TextStyle(fontSize: 28, color: textColor),
-  ///   maxLines: 4,
-  /// )
-  /// ```
-  factory QuiHero.text({
-    required String text,
-    Object? tag,
-    TextStyle? style,
-    TextAlign textAlign = TextAlign.left,
-    TextOverflow? overflow,
-    int? maxLines,
-    EdgeInsetsGeometry? padding,
-    double switchThreshold = 0.5,
-    VoidCallback? onStart,
-    VoidCallback? onEnd,
-    Key? key,
-  }) => _QuiHeroText(
-    tag: tag,
-    text: text,
-    style: style,
-    textAlign: textAlign,
-    overflow: overflow,
-    maxLines: maxLines,
-    padding: padding,
-    switchThreshold: switchThreshold,
-    onStart: onStart,
-    onEnd: onEnd,
-    key: key,
-  );
+  /// Rather than calling this constructor directly, use one of the concrete
+  /// subclasses: [QuiHeroText], [QuiHeroBackground], or [QuiHeroGroup].
+  const QuiHero({required this.tag, required this.flightShuttleBuilder, this.onStart, this.onEnd, super.key});
 
-  /// Creates a background hero that animates a [BoxDecoration] between source
-  /// and destination.
-  ///
-  /// The [decoration] — color, border radius, shadows, gradients, and border —
-  /// is interpolated via [Decoration.lerp]. Interpolation uses
-  /// [Curves.easeOutCubic] for a natural feel at low GPU cost.
-  ///
-  /// The [child] renders natively on each screen but is **not** part of the
-  /// flight overlay. To animate inner elements during the transition, nest
-  /// [QuiHero.text] or other hero variants inside [child] with their own
-  /// [tag] pairs. Each inner hero flies independently alongside the box.
-  ///
-  /// When [width] or [height] is set, the box is sized to those dimensions.
-  /// When both are `null`, the box sizes itself to its [child]. [padding] is
-  /// applied inside the box, outside the decoration.
-  ///
-  /// [extensions] attach reusable behaviors around the rendered hero tree.
-  /// Multiple extensions are applied in declaration order: the first becomes
-  /// the outermost wrapper.
-  ///
-  /// [onStart] is called when this hero is the origin of a flight. [onEnd] is
-  /// called when that same origin flight settles at the opposite route. The
-  /// destination counterpart does not receive callbacks for a flight it did
-  /// not start.
-  ///
-  /// ```dart
-  /// QuiHero.background(
-  ///   tag: 'card-1',
-  ///   width: double.infinity,
-  ///   decoration: BoxDecoration(
-  ///     color: surfaceColor,
-  ///     borderRadius: BorderRadius.circular(38),
-  ///   ),
-  ///   padding: const EdgeInsets.all(24),
-  ///   extensions: const [
-  ///     QuiHeroSwipeToPopExtension(scrollController: scrollController),
-  ///   ],
-  ///   child: Column(children: [
-  ///     QuiHero.text(
-  ///       tag: 'card-1-title',
-  ///       text: item.title,
-  ///       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-  ///     ),
-  ///   ]),
-  /// )
-  /// ```
-  factory QuiHero.background({
-    Object? tag,
-    BoxDecoration? decoration,
-    double? width,
-    double? height,
-    EdgeInsetsGeometry? padding,
-    List<QuiHeroExtension> extensions = const [],
-    Widget? child,
-    VoidCallback? onStart,
-    VoidCallback? onEnd,
-    Key? key,
-  }) => _QuiHeroBox(
-    tag: tag,
-    decoration: decoration,
-    width: width,
-    height: height,
-    padding: padding,
-    extensions: extensions,
-    onStart: onStart,
-    onEnd: onEnd,
-    key: key,
-    userChild: child,
-  );
-
-  /// Creates a grouped hero that moves several [heroes] as one shared element.
-  ///
-  /// The optional [tag] identifies the whole group. When omitted, the group
-  /// pairs with the single tagless group on the destination route. The inner
-  /// [heroes] must be tagless [QuiHero] variants such as [QuiHero.text] or
-  /// [QuiHero.background]. The group captures the closest supported parent layout
-  /// ([Column], [Row], [Flex], or [Stack]) and reuses that layout during the
-  /// shared-element flight.
-  ///
-  /// [onStart] is called when this group is the origin of a flight. [onEnd] is
-  /// called when that same origin flight settles at the opposite route. The
-  /// destination counterpart does not receive callbacks for a flight it did
-  /// not start. Child heroes inside [heroes] keep their own lifecycle
-  /// callbacks and fire alongside the group callback when the group starts.
-  factory QuiHero.group({
-    required List<QuiHero> heroes,
-    Object? tag,
-    VoidCallback? onStart,
-    VoidCallback? onEnd,
-    Key? key,
-  }) => _QuiHeroGroup(tag: tag, heroes: heroes, onStart: onStart, onEnd: onEnd, key: key);
-
-  const QuiHero._({
-    required this.tag,
-    required this._defaultTag,
-    required this._flightShuttleBuilder,
-    required this._onStart,
-    required this._onEnd,
-    super.key,
-  });
-
-  /// The optional identifier that pairs source and destination heroes.
+  /// The identifier that pairs source and destination heroes.
   ///
   /// This [tag] must be identical on both the source and destination
   /// instances of the same shared element. It must be unique among all
   /// heroes in the same scope.
   ///
-  /// When [tag] is omitted, QUI uses a private default tag for this hero
-  /// variant. This is intended for the unambiguous case where a route has only
-  /// one active hero of that variant. If there are multiple heroes of the same
-  /// tagless variant in the same route, pass explicit tags.
-  final Object? tag;
-
-  final Object _defaultTag;
+  /// Concrete subclasses supply a variant-specific default when the user
+  /// does not pass one explicitly.
+  final Object tag;
 
   final Widget Function(
     BuildContext flightContext,
@@ -292,41 +115,41 @@ sealed class QuiHero extends StatelessWidget {
     Widget fromHeroChild,
     Widget toHeroChild,
   )
-  _flightShuttleBuilder;
+  flightShuttleBuilder;
 
-  final VoidCallback? _onStart;
+  final VoidCallback? onStart;
 
-  final VoidCallback? _onEnd;
+  final VoidCallback? onEnd;
 
-  Widget _buildFlightChild(BuildContext context);
+  Widget buildFlightChild(BuildContext context);
 
-  static RectTween _createRectTween(Rect? begin, Rect? end) {
+  static RectTween createRectTween(Rect? begin, Rect? end) {
     return RectTween(begin: begin, end: end);
   }
 
-  List<VoidCallback> _lifecycleStartCallbacks(BuildContext context) {
-    final onStart = _onStart;
+  List<VoidCallback> lifecycleStartCallbacks(BuildContext context) {
+    final onStart = this.onStart;
     if (onStart == null) return const [];
 
     return [onStart];
   }
 
-  List<VoidCallback> _lifecycleEndCallbacks(BuildContext context) {
-    final onEnd = _onEnd;
+  List<VoidCallback> lifecycleEndCallbacks(BuildContext context) {
+    final onEnd = this.onEnd;
     if (onEnd == null) return const [];
 
     return [onEnd];
   }
 
-  Widget _buildLifecycleEndpoint(BuildContext context) {
+  Widget buildLifecycleEndpoint(BuildContext context) {
     return _QuiHeroLifecycleEndpoint(
-      onStartCallbacks: _lifecycleStartCallbacks(context),
-      onEndCallbacks: _lifecycleEndCallbacks(context),
-      child: _buildFlightChild(context),
+      onStartCallbacks: lifecycleStartCallbacks(context),
+      onEndCallbacks: lifecycleEndCallbacks(context),
+      child: buildFlightChild(context),
     );
   }
 
-  Widget _buildLifecycleFlightShuttle(
+  Widget buildLifecycleFlightShuttle(
     BuildContext flightContext,
     Animation<double> animation,
     HeroFlightDirection flightDirection,
@@ -342,7 +165,7 @@ sealed class QuiHero extends StatelessWidget {
       flightDirection: flightDirection,
       onStartCallbacks: originEndpoint.onStartCallbacks,
       onEndCallbacks: originEndpoint.onEndCallbacks,
-      child: _flightShuttleBuilder(
+      child: flightShuttleBuilder(
         flightContext,
         animation,
         flightDirection,
@@ -354,21 +177,21 @@ sealed class QuiHero extends StatelessWidget {
     );
   }
 
-  QuiHero _buildForGroupFlight({
+  QuiHero buildForGroupFlight({
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
-    _QuiHeroTextFlightMetrics? flightMetrics,
+    QuiHeroTextFlightMetrics? flightMetrics,
   });
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: tag ?? _defaultTag,
-      createRectTween: _createRectTween,
-      flightShuttleBuilder: _buildLifecycleFlightShuttle,
+      tag: tag,
+      createRectTween: createRectTween,
+      flightShuttleBuilder: buildLifecycleFlightShuttle,
       transitionOnUserGestures: true,
-      child: _buildLifecycleEndpoint(context),
+      child: buildLifecycleEndpoint(context),
     );
   }
 }
@@ -378,8 +201,8 @@ Widget quiHeroPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
+    home: const Scaffold(
+      backgroundColor: Color(0xFFFFFFFF),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -387,10 +210,14 @@ Widget quiHeroPreview() {
             SizedBox(
               width: 260,
               height: 100,
-              child: QuiHero.background(
+              child: QuiHeroBackground(
                 tag: 'preview-box',
-                decoration: BoxDecoration(color: const Color(0xFFFF4A4B), borderRadius: BorderRadius.circular(24)),
-                child: const Center(
+                extensions: [],
+                decoration: BoxDecoration(
+                  color: Color(0xFFFF4A4B),
+                  borderRadius: BorderRadius.all(Radius.circular(24)),
+                ),
+                child: Center(
                   child: Text(
                     'Preview Text',
                     style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
@@ -398,13 +225,13 @@ Widget quiHeroPreview() {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             SizedBox(
               width: 260,
-              child: QuiHero.text(
+              child: QuiHeroText(
+                'Preview Title',
                 tag: 'preview-text',
-                text: 'Preview Title',
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
               ),
             ),
           ],

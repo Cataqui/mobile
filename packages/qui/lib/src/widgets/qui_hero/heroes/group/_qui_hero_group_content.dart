@@ -1,4 +1,4 @@
-part of '../qui_hero.dart';
+part of 'qui_hero_group.dart';
 
 class _QuiHeroGroupContent extends StatelessWidget {
   const _QuiHeroGroupContent({
@@ -13,7 +13,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
     this.endHeight = 0,
   });
 
-  final _QuiHeroGroupLayout layout;
+  final QuiHeroGroupLayout layout;
   final List<QuiHero> heroes;
   final bool allowsFlightOverflow;
   final List<({double layoutWidth, Offset offset, Size size})>? beginChildMetrics;
@@ -23,22 +23,37 @@ class _QuiHeroGroupContent extends StatelessWidget {
   final double beginHeight;
   final double endHeight;
 
-  bool get _canUsePositionedFlight {
+  bool get canUsePositionedFlight {
     final beginMetrics = beginChildMetrics;
     final endMetrics = endChildMetrics;
     if (!allowsFlightOverflow || beginMetrics == null || endMetrics == null) return false;
-    if (layout.type != _QuiHeroGroupLayoutType.flex || layout.direction != Axis.vertical) return false;
+    if (layout.type != QuiHeroGroupLayoutType.flex || layout.direction != Axis.vertical) return false;
 
     return beginMetrics.length >= heroes.length && endMetrics.length >= heroes.length;
+  }
+
+  double _positionedChildTop({
+    required int index,
+    required Offset offset,
+    required double previousBottom,
+    required List<({double layoutWidth, Offset offset, Size size})> beginMetrics,
+    required List<({double layoutWidth, Offset offset, Size size})> endMetrics,
+  }) {
+    if (index == 0) return offset.dy;
+
+    final beginGap =
+        beginMetrics[index].offset.dy - (beginMetrics[index - 1].offset.dy + beginMetrics[index - 1].size.height);
+    final endGap = endMetrics[index].offset.dy - (endMetrics[index - 1].offset.dy + endMetrics[index - 1].size.height);
+    final gap = beginGap + (endGap - beginGap) * flightValue;
+
+    return math.max(offset.dy, previousBottom + gap);
   }
 
   @override
   Widget build(BuildContext context) {
     final content = _buildWidthAwareContent();
 
-    if (!allowsFlightOverflow) {
-      return Material(type: MaterialType.transparency, child: content);
-    }
+    if (!allowsFlightOverflow) return Material(type: MaterialType.transparency, child: content);
 
     final maxHeight = maxAvailableHeight;
 
@@ -48,6 +63,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
         builder: (context, constraints) {
           if (maxHeight != null) {
             final effectiveWidth = constraints.hasBoundedWidth ? constraints.maxWidth : double.infinity;
+
             return OverflowBox(
               alignment: Alignment.topLeft,
               minWidth: effectiveWidth,
@@ -74,7 +90,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
   }
 
   Widget _buildWidthAwareContent() {
-    final content = _QuiHeroGroupScope(child: _buildLayout());
+    final content = QuiHeroGroupScope(child: _buildLayout());
 
     if (!layout.shouldReserveBoundedWidth) return content;
 
@@ -87,7 +103,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
   }
 
   Widget _buildLayout() {
-    if (_canUsePositionedFlight) return _buildPositionedFlight();
+    if (canUsePositionedFlight) return _buildPositionedFlight();
 
     final maxHeight = maxAvailableHeight;
     if (maxHeight == null) return layout.build(children: heroes);
@@ -140,7 +156,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
               final offset = Offset.lerp(begin.offset, end.offset, progress)!;
               final size = Size.lerp(begin.size, end.size, progress)!;
               final width = constraints.hasBoundedWidth ? constraints.maxWidth - offset.dx : size.width;
-              final positionedChild = _positionedChild(
+              final childData = _positionedChild(
                 context: context,
                 hero: heroes[index],
                 width: width,
@@ -149,7 +165,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
                 beginLayoutWidth: begin.layoutWidth,
                 endLayoutWidth: end.layoutWidth,
               );
-              final childHeight = positionedChild.estimatedHeight ?? size.height;
+              final childHeight = childData.estimatedHeight ?? size.height;
               final top = _positionedChildTop(
                 index: index,
                 offset: offset,
@@ -166,16 +182,16 @@ class _QuiHeroGroupContent extends StatelessWidget {
               final childWidget = shouldClip
                   ? ConstrainedBox(
                       constraints: BoxConstraints(maxHeight: math.max(0, maxHeight - top)),
-                      child: positionedChild.child,
+                      child: childData.child,
                     )
-                  : positionedChild.child;
+                  : childData.child;
 
               return Positioned(left: offset.dx, top: top, width: math.max(0, width), child: childWidget);
             }),
           ),
         );
 
-        if (shouldClip) content = _QuiHeroClampScope(child: content);
+        if (shouldClip) content = QuiHeroGroupHeightClampScope(child: content);
 
         return content;
       },
@@ -191,8 +207,8 @@ class _QuiHeroGroupContent extends StatelessWidget {
     required double beginLayoutWidth,
     required double endLayoutWidth,
   }) {
-    if (hero is _QuiHeroText) {
-      final textFlight = hero._buildWithEndpointMetricsAndEstimatedHeight(
+    if (hero is QuiHeroText) {
+      final textFlight = hero.buildWithEndpointMetricsAndEstimatedHeight(
         context: context,
         width: width,
         beginSize: beginSize,
@@ -205,32 +221,4 @@ class _QuiHeroGroupContent extends StatelessWidget {
 
     return (child: hero, estimatedHeight: null);
   }
-
-  double _positionedChildTop({
-    required int index,
-    required Offset offset,
-    required double previousBottom,
-    required List<({double layoutWidth, Offset offset, Size size})> beginMetrics,
-    required List<({double layoutWidth, Offset offset, Size size})> endMetrics,
-  }) {
-    if (index == 0) return offset.dy;
-
-    final beginGap =
-        beginMetrics[index].offset.dy - (beginMetrics[index - 1].offset.dy + beginMetrics[index - 1].size.height);
-    final endGap = endMetrics[index].offset.dy - (endMetrics[index - 1].offset.dy + endMetrics[index - 1].size.height);
-    final gap = beginGap + (endGap - beginGap) * flightValue;
-
-    return math.max(offset.dy, previousBottom + gap);
-  }
-}
-
-class _QuiHeroClampScope extends InheritedWidget {
-  const _QuiHeroClampScope({required super.child});
-
-  static bool isActive(BuildContext context) {
-    return context.getElementForInheritedWidgetOfExactType<_QuiHeroClampScope>() != null;
-  }
-
-  @override
-  bool updateShouldNotify(_QuiHeroClampScope oldWidget) => false;
 }

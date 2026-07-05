@@ -1,7 +1,7 @@
-part of '../../qui_hero.dart';
+part of 'qui_hero_background.dart';
 
-class _QuiHeroBoxFlight extends StatelessWidget {
-  const _QuiHeroBoxFlight({this.decoration});
+class QuiHeroBackgroundFlight extends StatelessWidget {
+  const QuiHeroBackgroundFlight({super.key, this.decoration});
 
   final BoxDecoration? decoration;
 

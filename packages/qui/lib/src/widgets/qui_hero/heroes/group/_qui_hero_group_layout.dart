@@ -1,7 +1,7 @@
-part of '../qui_hero.dart';
+part of 'qui_hero_group.dart';
 
-class _QuiHeroGroupLayout {
-  const _QuiHeroGroupLayout.flex({
+class QuiHeroGroupLayout {
+  const QuiHeroGroupLayout.flex({
     required this.direction,
     required this.mainAxisAlignment,
     required this.mainAxisSize,
@@ -10,17 +10,17 @@ class _QuiHeroGroupLayout {
     required this.verticalDirection,
     required this.textBaseline,
     required this.spacing,
-  }) : type = _QuiHeroGroupLayoutType.flex,
+  }) : type = QuiHeroGroupLayoutType.flex,
        alignment = null,
        stackFit = null,
        clipBehavior = Clip.none;
 
-  const _QuiHeroGroupLayout.stack({
+  const QuiHeroGroupLayout.stack({
     required this.alignment,
     required this.textDirection,
     required this.stackFit,
     required this.clipBehavior,
-  }) : type = _QuiHeroGroupLayoutType.stack,
+  }) : type = QuiHeroGroupLayoutType.stack,
        direction = Axis.vertical,
        mainAxisAlignment = MainAxisAlignment.start,
        mainAxisSize = MainAxisSize.max,
@@ -29,14 +29,14 @@ class _QuiHeroGroupLayout {
        textBaseline = null,
        spacing = 0;
 
-  factory _QuiHeroGroupLayout.fromContext(BuildContext context) {
-    _QuiHeroGroupLayout? result;
+  factory QuiHeroGroupLayout.fromContext(BuildContext context) {
+    QuiHeroGroupLayout? result;
 
     context.visitAncestorElements((element) {
       final widget = element.widget;
 
       if (widget is Flex) {
-        result = _QuiHeroGroupLayout.flex(
+        result = QuiHeroGroupLayout.flex(
           direction: widget.direction,
           mainAxisAlignment: widget.mainAxisAlignment,
           mainAxisSize: widget.mainAxisSize,
@@ -50,7 +50,7 @@ class _QuiHeroGroupLayout {
       }
 
       if (widget is Stack) {
-        result = _QuiHeroGroupLayout.stack(
+        result = QuiHeroGroupLayout.stack(
           alignment: widget.alignment,
           textDirection: widget.textDirection,
           stackFit: widget.fit,
@@ -68,7 +68,7 @@ class _QuiHeroGroupLayout {
     );
 
     return result ??
-        const _QuiHeroGroupLayout.flex(
+        const QuiHeroGroupLayout.flex(
           direction: Axis.vertical,
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -80,7 +80,7 @@ class _QuiHeroGroupLayout {
         );
   }
 
-  final _QuiHeroGroupLayoutType type;
+  final QuiHeroGroupLayoutType type;
   final Axis direction;
   final MainAxisAlignment mainAxisAlignment;
   final MainAxisSize mainAxisSize;
@@ -95,16 +95,16 @@ class _QuiHeroGroupLayout {
 
   bool get shouldReserveBoundedWidth {
     switch (type) {
-      case _QuiHeroGroupLayoutType.flex:
+      case QuiHeroGroupLayoutType.flex:
         return direction == Axis.vertical;
-      case _QuiHeroGroupLayoutType.stack:
+      case QuiHeroGroupLayoutType.stack:
         return true;
     }
   }
 
   Widget build({required List<Widget> children}) {
     switch (type) {
-      case _QuiHeroGroupLayoutType.flex:
+      case QuiHeroGroupLayoutType.flex:
         return Flex(
           direction: direction,
           mainAxisAlignment: mainAxisAlignment,
@@ -116,7 +116,7 @@ class _QuiHeroGroupLayout {
           spacing: spacing,
           children: children,
         );
-      case _QuiHeroGroupLayoutType.stack:
+      case QuiHeroGroupLayoutType.stack:
         return Stack(
           alignment: alignment!,
           textDirection: textDirection,

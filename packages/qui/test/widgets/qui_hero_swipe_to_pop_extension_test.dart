@@ -293,9 +293,7 @@ void main() {
     testWidgets(
       'when fast-flinging upward with ClampingScrollPhysics reaches the top and the user drags down immediately, it should keep the destination open',
       (tester) async {
-        await tester.pumpWidget(const _QuiHeroSwipeToPopTestApp(
-          scrollPhysics: ClampingScrollPhysics(),
-        ));
+        await tester.pumpWidget(const _QuiHeroSwipeToPopTestApp(scrollPhysics: ClampingScrollPhysics()));
         await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
         await tester.pumpAndSettle();
 
@@ -304,24 +302,16 @@ void main() {
         await tester.pumpAndSettle();
 
         // Fast fling upward.
-        await tester.timedDrag(
-          find.byType(CustomScrollView),
-          const Offset(0, 1000),
-          const Duration(milliseconds: 80),
-        );
+        await tester.timedDrag(find.byType(CustomScrollView), const Offset(0, 1000), const Duration(milliseconds: 80));
         // Let the ballistic run enough for position to reach the top.
         await tester.pump(const Duration(milliseconds: 50));
 
         // Try to swipe down immediately — should be blocked by the fling cooldown.
-        final gesture = await tester.startGesture(
-          tester.getCenter(find.byType(CustomScrollView)),
-        );
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
         await gesture.moveBy(const Offset(0, 80));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, equals(1));
 
         await gesture.up();
@@ -331,9 +321,7 @@ void main() {
     testWidgets(
       'when waiting for the fling cooldown to expire after a fast fling and then swiping down, it should trigger the swipe-to-pop',
       (tester) async {
-        await tester.pumpWidget(const _QuiHeroSwipeToPopTestApp(
-          scrollPhysics: ClampingScrollPhysics(),
-        ));
+        await tester.pumpWidget(const _QuiHeroSwipeToPopTestApp(scrollPhysics: ClampingScrollPhysics()));
         await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
         await tester.pumpAndSettle();
 
@@ -342,26 +330,18 @@ void main() {
         await tester.pumpAndSettle();
 
         // Fast fling upward.
-        await tester.timedDrag(
-          find.byType(CustomScrollView),
-          const Offset(0, 1000),
-          const Duration(milliseconds: 80),
-        );
+        await tester.timedDrag(find.byType(CustomScrollView), const Offset(0, 1000), const Duration(milliseconds: 80));
         await tester.pump(const Duration(milliseconds: 50));
 
         // Wait for the cooldown to fully expire (250ms) plus margin.
         await tester.pump(const Duration(milliseconds: 300));
 
         // Now swipe down — cooldown has expired, pop should activate.
-        final gesture = await tester.startGesture(
-          tester.getCenter(find.byType(CustomScrollView)),
-        );
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
         await gesture.moveBy(const Offset(0, 160));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, lessThan(1));
 
         await gesture.up();
@@ -382,11 +362,7 @@ void main() {
         // Three rapid upward flings to reach the top — the user is trying to
         // get back to the top quickly, not to pop.
         for (var i = 0; i < 3; i++) {
-          await tester.timedDrag(
-            find.byType(CustomScrollView),
-            const Offset(0, 500),
-            const Duration(milliseconds: 50),
-          );
+          await tester.timedDrag(find.byType(CustomScrollView), const Offset(0, 500), const Duration(milliseconds: 50));
           await tester.pump(const Duration(milliseconds: 30));
         }
 
@@ -395,9 +371,7 @@ void main() {
         await gesture.moveBy(const Offset(0, 160));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, equals(1));
 
         await gesture.up();
@@ -417,11 +391,7 @@ void main() {
 
         // Three rapid upward flings to reach the top.
         for (var i = 0; i < 3; i++) {
-          await tester.timedDrag(
-            find.byType(CustomScrollView),
-            const Offset(0, 500),
-            const Duration(milliseconds: 50),
-          );
+          await tester.timedDrag(find.byType(CustomScrollView), const Offset(0, 500), const Duration(milliseconds: 50));
           await tester.pump(const Duration(milliseconds: 30));
         }
 
@@ -430,9 +400,7 @@ void main() {
         await gesture.moveBy(const Offset(0, 160));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, equals(1));
 
         await gesture.up();
@@ -450,9 +418,7 @@ void main() {
         await gesture.moveBy(const Offset(0, 160));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, lessThan(1));
 
         await gesture.up();
@@ -470,9 +436,7 @@ void main() {
         await gesture.moveBy(const Offset(0, -160));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, equals(1));
 
         await gesture.up();
@@ -482,10 +446,9 @@ void main() {
     testWidgets(
       'when the scroll content fits the screen with BouncingScrollPhysics and the user drags downward, it should move the route toward the source hero',
       (tester) async {
-        await tester.pumpWidget(const _QuiHeroSwipeToPopTestApp(
-          contentHeight: 50,
-          scrollPhysics: BouncingScrollPhysics(),
-        ));
+        await tester.pumpWidget(
+          const _QuiHeroSwipeToPopTestApp(contentHeight: 50, scrollPhysics: BouncingScrollPhysics()),
+        );
         await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
         await tester.pumpAndSettle();
 
@@ -493,9 +456,7 @@ void main() {
         await gesture.moveBy(const Offset(0, 160));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, lessThan(1));
 
         await gesture.up();
@@ -505,42 +466,41 @@ void main() {
     testWidgets(
       'when the scroll content fits the screen and the user drags downward, it should notify that dragging started',
       (tester) async {
-      final dragStateChanges = <QuiHeroSwipeToPopState>[];
+        final dragStateChanges = <QuiHeroSwipeToPopState>[];
 
-      await tester.pumpWidget(_QuiHeroSwipeToPopTestApp(
-        contentHeight: 50,
-        onSwipeStateChanged: dragStateChanges.add,
-      ));
-      await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _QuiHeroSwipeToPopTestApp(contentHeight: 50, onSwipeStateChanged: dragStateChanges.add),
+        );
+        await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
+        await tester.pumpAndSettle();
 
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
-      await gesture.moveBy(const Offset(0, 160));
-      await tester.pump();
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+        await gesture.moveBy(const Offset(0, 160));
+        await tester.pump();
 
-      expect(dragStateChanges.last, equals(QuiHeroSwipeToPopState.dragging));
+        expect(dragStateChanges.last, equals(QuiHeroSwipeToPopState.dragging));
 
-      await gesture.up();
-    });
+        await gesture.up();
+      },
+    );
 
     testWidgets(
       'when the scroll content fits the screen and the user drags downward, it should activate the interactive pop',
       (tester) async {
-      await tester.pumpWidget(const _QuiHeroSwipeToPopTestApp(contentHeight: 50));
-      await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(const _QuiHeroSwipeToPopTestApp(contentHeight: 50));
+        await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
+        await tester.pumpAndSettle();
 
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
-      await gesture.moveBy(const Offset(0, 160));
-      await tester.pump();
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+        await gesture.moveBy(const Offset(0, 160));
+        await tester.pump();
 
-      final route = QuiHeroPageRoute.maybeOf(
-        tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-      );
-      expect(route!.isInteractivePopActive, isTrue);
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
+        expect(route!.isInteractivePopActive, isTrue);
 
-      await gesture.up();
-    });
+        await gesture.up();
+      },
+    );
 
     testWidgets(
       'when the scroll content fits the screen and the user drags upward then releases with a spring-back, it should keep the route fully open',
@@ -557,9 +517,7 @@ void main() {
         await gesture.moveBy(const Offset(0, 6));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(
-          tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)),
-        );
+        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey)));
         expect(route!.transitionValue, equals(1));
 
         await gesture.up();
@@ -570,12 +528,12 @@ void main() {
       const dragTargetKey = Key('drag-target');
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.background(
+            body: QuiHeroBackground(
               tag: 'test-surface',
-              extensions: const [QuiHeroSwipeToPopExtension()],
-              child: const SizedBox(key: dragTargetKey, width: 200, height: 200),
+              extensions: [QuiHeroSwipeToPopExtension()],
+              child: SizedBox(key: dragTargetKey, width: 200, height: 200),
             ),
           ),
         ),
@@ -613,7 +571,9 @@ class _QuiHeroSwipeToPopTestApp extends StatefulWidget {
   }) async {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
-    await tester.pumpWidget(_QuiHeroSwipeToPopTestApp(sensibility: sensibility, scrollPhysics: scrollPhysics, contentHeight: contentHeight));
+    await tester.pumpWidget(
+      _QuiHeroSwipeToPopTestApp(sensibility: sensibility, scrollPhysics: scrollPhysics, contentHeight: contentHeight),
+    );
     await tester.tap(find.byKey(openButtonKey));
     await tester.pumpAndSettle();
     final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
@@ -647,7 +607,7 @@ class _QuiHeroSwipeToPopTestAppState extends State<_QuiHeroSwipeToPopTestApp> {
         builder: (context) {
           return Scaffold(
             body: Center(
-              child: QuiHero.background(
+              child: QuiHeroBackground(
                 tag: 'test-surface',
                 width: 220,
                 height: 120,
@@ -699,7 +659,7 @@ class _QuiHeroSwipeToPopTestDestination extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: QuiHero.background(
+      body: QuiHeroBackground(
         tag: 'test-surface',
         decoration: const BoxDecoration(color: Colors.white),
         extensions: [

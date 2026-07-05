@@ -8,18 +8,18 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: QuiHero.background(
+            body: QuiHeroBackground(
               tag: 'box',
               width: 300,
               height: 400,
-              decoration: const BoxDecoration(color: Colors.white),
-              child: QuiHero.group(
+              decoration: BoxDecoration(color: Colors.white),
+              child: QuiHeroGroup(
                 tag: 'group',
                 heroes: [
-                  QuiHero.text(text: 'Title', style: const TextStyle(fontSize: 18)),
-                  QuiHero.text(text: 'Description', style: const TextStyle(fontSize: 14)),
+                  QuiHeroText('Title', style: TextStyle(fontSize: 18)),
+                  QuiHeroText('Description', style: TextStyle(fontSize: 14)),
                 ],
               ),
             ),
@@ -200,20 +200,20 @@ class _NoBoxPopTest extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push<void>(const QuiHeroPage(builder: _buildDestination).createRoute(context));
               },
-              child: SizedBox(
+              child: const SizedBox(
                 width: 300,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    QuiHero.group(
+                    QuiHeroGroup(
                       tag: 'no-box-group',
                       heroes: [
-                        QuiHero.text(text: groupText1, style: const TextStyle(fontSize: 18)),
-                        QuiHero.text(text: groupText2, style: const TextStyle(fontSize: 14)),
+                        QuiHeroText(groupText1, style: TextStyle(fontSize: 18)),
+                        QuiHeroText(groupText2, style: TextStyle(fontSize: 14)),
                       ],
                     ),
-                    const Text(pushButton),
+                    Text(pushButton),
                   ],
                 ),
               ),
@@ -230,20 +230,20 @@ class _NoBoxPopTest extends StatelessWidget {
         alignment: Alignment.topLeft,
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: SizedBox(
+          child: const SizedBox(
             width: 300,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                QuiHero.group(
+                QuiHeroGroup(
                   tag: 'no-box-group',
                   heroes: [
-                    QuiHero.text(text: groupText1, style: const TextStyle(fontSize: 28)),
-                    QuiHero.text(text: groupText2, style: const TextStyle(fontSize: 18)),
+                    QuiHeroText(groupText1, style: TextStyle(fontSize: 28)),
+                    QuiHeroText(groupText2, style: TextStyle(fontSize: 18)),
                   ],
                 ),
-                const Text(popButton),
+                Text(popButton),
               ],
             ),
           ),
@@ -275,30 +275,30 @@ class _BoxPopTest extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push<void>(const QuiHeroPage(builder: _buildDestination).createRoute(context));
               },
-              child: SizedBox(
+              child: const SizedBox(
                 width: 300,
-                child: QuiHero.background(
+                child: QuiHeroBackground(
                   tag: 'pop-box',
                   width: 300,
                   height: 120,
-                  decoration: const BoxDecoration(color: Colors.white),
+                  decoration: BoxDecoration(color: Colors.white),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      QuiHero.group(
+                      QuiHeroGroup(
                         tag: 'pop-group',
                         heroes: [
-                          QuiHero.text(text: titleText, style: const TextStyle(fontSize: 14)),
-                          QuiHero.text(
-                            text: longText,
-                            style: const TextStyle(fontSize: 12),
+                          QuiHeroText(titleText, style: TextStyle(fontSize: 14)),
+                          QuiHeroText(
+                            longText,
+                            style: TextStyle(fontSize: 12),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                      const Text(pushButton),
+                      Text(pushButton),
                     ],
                   ),
                 ),
@@ -315,23 +315,23 @@ class _BoxPopTest extends StatelessWidget {
       body: SafeArea(
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: SizedBox(
+          child: const SizedBox(
             width: 300,
-            child: QuiHero.background(
+            child: QuiHeroBackground(
               tag: 'pop-box',
-              decoration: const BoxDecoration(color: Colors.white),
+              decoration: BoxDecoration(color: Colors.white),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  QuiHero.group(
+                  QuiHeroGroup(
                     tag: 'pop-group',
                     heroes: [
-                      QuiHero.text(text: titleText, style: const TextStyle(fontSize: 24)),
-                      QuiHero.text(text: longText, style: const TextStyle(fontSize: 18)),
+                      QuiHeroText(titleText, style: TextStyle(fontSize: 24)),
+                      QuiHeroText(longText, style: TextStyle(fontSize: 18)),
                     ],
                   ),
-                  const Text(popButton),
+                  Text(popButton),
                 ],
               ),
             ),
@@ -365,30 +365,30 @@ class _RepeatedPopBoxTest extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push<void>(const QuiHeroPage(builder: _buildDestination).createRoute(context));
               },
-              child: SizedBox(
+              child: const SizedBox(
                 width: 300,
-                child: QuiHero.background(
+                child: QuiHeroBackground(
                   tag: 'repeat-box',
                   width: 300,
                   height: 120,
-                  decoration: const BoxDecoration(color: Colors.white),
+                  decoration: BoxDecoration(color: Colors.white),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      QuiHero.group(
+                      QuiHeroGroup(
                         tag: 'repeat-group',
                         heroes: [
-                          QuiHero.text(text: titleText, style: const TextStyle(fontSize: 14)),
-                          QuiHero.text(
-                            text: longText,
-                            style: const TextStyle(fontSize: 12),
+                          QuiHeroText(titleText, style: TextStyle(fontSize: 14)),
+                          QuiHeroText(
+                            longText,
+                            style: TextStyle(fontSize: 12),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                      const Text(pushButton),
+                      Text(pushButton),
                     ],
                   ),
                 ),
@@ -405,23 +405,23 @@ class _RepeatedPopBoxTest extends StatelessWidget {
       body: SafeArea(
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: SizedBox(
+          child: const SizedBox(
             width: 300,
-            child: QuiHero.background(
+            child: QuiHeroBackground(
               tag: 'repeat-box',
-              decoration: const BoxDecoration(color: Colors.white),
+              decoration: BoxDecoration(color: Colors.white),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  QuiHero.group(
+                  QuiHeroGroup(
                     tag: 'repeat-group',
                     heroes: [
-                      QuiHero.text(text: titleText, style: const TextStyle(fontSize: 24)),
-                      QuiHero.text(text: longText, style: const TextStyle(fontSize: 18)),
+                      QuiHeroText(titleText, style: TextStyle(fontSize: 24)),
+                      QuiHeroText(longText, style: TextStyle(fontSize: 18)),
                     ],
                   ),
-                  const Text(popButton),
+                  Text(popButton),
                 ],
               ),
             ),
@@ -455,34 +455,26 @@ class _ThreeHeroBoxPopTest extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push<void>(const QuiHeroPage(builder: _buildDestination).createRoute(context));
               },
-              child: SizedBox(
+              child: const SizedBox(
                 width: 300,
-                child: QuiHero.background(
+                child: QuiHeroBackground(
                   tag: 'three-box',
                   width: 300,
                   height: 150,
-                  decoration: const BoxDecoration(color: Colors.white),
+                  decoration: BoxDecoration(color: Colors.white),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      QuiHero.group(
+                      QuiHeroGroup(
                         tag: 'three-group',
                         heroes: [
-                          QuiHero.text(
-                            text: t1,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                          ),
-                          QuiHero.text(text: t2, style: const TextStyle(fontSize: 12)),
-                          QuiHero.text(
-                            text: t3,
-                            style: const TextStyle(fontSize: 11),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          QuiHeroText(t1, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                          QuiHeroText(t2, style: TextStyle(fontSize: 12)),
+                          QuiHeroText(t3, style: TextStyle(fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
                         ],
                       ),
-                      const Text(pushButton),
+                      Text(pushButton),
                     ],
                   ),
                 ),
@@ -499,27 +491,24 @@ class _ThreeHeroBoxPopTest extends StatelessWidget {
       body: SafeArea(
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: SizedBox(
+          child: const SizedBox(
             width: 300,
-            child: QuiHero.background(
+            child: QuiHeroBackground(
               tag: 'three-box',
-              decoration: const BoxDecoration(color: Colors.white),
+              decoration: BoxDecoration(color: Colors.white),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  QuiHero.group(
+                  QuiHeroGroup(
                     tag: 'three-group',
                     heroes: [
-                      QuiHero.text(
-                        text: t1,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-                      ),
-                      QuiHero.text(text: t2, style: const TextStyle(fontSize: 18)),
-                      QuiHero.text(text: t3, style: const TextStyle(fontSize: 16)),
+                      QuiHeroText(t1, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                      QuiHeroText(t2, style: TextStyle(fontSize: 18)),
+                      QuiHeroText(t3, style: TextStyle(fontSize: 16)),
                     ],
                   ),
-                  const Text(popButton),
+                  Text(popButton),
                 ],
               ),
             ),
@@ -553,34 +542,26 @@ class _BoxMultiHeroPopTest extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push<void>(const QuiHeroPage(builder: _buildDestination).createRoute(context));
               },
-              child: SizedBox(
+              child: const SizedBox(
                 width: 300,
-                child: QuiHero.background(
+                child: QuiHeroBackground(
                   tag: 'multi-box',
                   width: 300,
                   height: 150,
-                  decoration: const BoxDecoration(color: Colors.white),
+                  decoration: BoxDecoration(color: Colors.white),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      QuiHero.group(
+                      QuiHeroGroup(
                         tag: 'multi-group',
                         heroes: [
-                          QuiHero.text(
-                            text: t1,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                          ),
-                          QuiHero.text(text: t2, style: const TextStyle(fontSize: 12)),
-                          QuiHero.text(
-                            text: t3,
-                            style: const TextStyle(fontSize: 11),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          QuiHeroText(t1, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                          QuiHeroText(t2, style: TextStyle(fontSize: 12)),
+                          QuiHeroText(t3, style: TextStyle(fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
                         ],
                       ),
-                      const Text(pushButton),
+                      Text(pushButton),
                     ],
                   ),
                 ),
@@ -597,27 +578,24 @@ class _BoxMultiHeroPopTest extends StatelessWidget {
       body: SafeArea(
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: SizedBox(
+          child: const SizedBox(
             width: 300,
-            child: QuiHero.background(
+            child: QuiHeroBackground(
               tag: 'multi-box',
-              decoration: const BoxDecoration(color: Colors.white),
+              decoration: BoxDecoration(color: Colors.white),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  QuiHero.group(
+                  QuiHeroGroup(
                     tag: 'multi-group',
                     heroes: [
-                      QuiHero.text(
-                        text: t1,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-                      ),
-                      QuiHero.text(text: t2, style: const TextStyle(fontSize: 18)),
-                      QuiHero.text(text: t3, style: const TextStyle(fontSize: 16)),
+                      QuiHeroText(t1, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                      QuiHeroText(t2, style: TextStyle(fontSize: 18)),
+                      QuiHeroText(t3, style: TextStyle(fontSize: 16)),
                     ],
                   ),
-                  const Text(popButton),
+                  Text(popButton),
                 ],
               ),
             ),

@@ -1,16 +1,82 @@
-part of '../qui_hero.dart';
+library;
 
-final class _QuiHeroGroup extends QuiHero {
-  const _QuiHeroGroup({
-    required super.tag,
-    required this.heroes,
-    required super.onStart,
-    required super.onEnd,
-    super.key,
-  }) : super._(defaultTag: _QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:qui/src/widgets/qui_hero/heroes/background/qui_hero_background.dart';
+import 'package:qui/src/widgets/qui_hero/heroes/text/qui_hero_text.dart';
+import 'package:qui/src/widgets/qui_hero/qui_hero.dart';
+
+part '_qui_hero_group_background_flight_metrics.dart';
+part '_qui_hero_group_content.dart';
+part '_qui_hero_group_enums.dart';
+part '_qui_hero_group_height_clamp_scope.dart';
+part '_qui_hero_group_layout.dart';
+part '_qui_hero_group_scope.dart';
+
+/// A group hero that animates several tagless [QuiHero] children as a single
+/// shared element across screens.
+///
+/// Unlike [QuiHeroText] or [QuiHeroBackground], which animate a single element,
+/// [QuiHeroGroup] composites multiple heroes and flies them together. The group
+/// captures the closest supported parent layout — [Column], [Row], [Flex], or
+/// [Stack] — and mirrors that layout during the shared-element flight so each
+/// child maintains its relative position.
+///
+/// ## Pairing rule
+///
+/// Heroes in a group are matched by **positional order** (not by tag). Source
+/// and destination must have the same number of children. Each child hero at
+/// index *i* on the source group flies to the child hero at index *i* on the
+/// destination group.
+///
+/// Child heroes inside a group must be **tagless** — the group owns the shared
+/// tag. If a route has multiple groups, assign them explicit [tag]s.
+///
+/// ## Nesting inside a background
+///
+/// When [QuiHeroGroup] is placed inside [QuiHeroBackground], the group flight
+/// clamps its content to the background box's bounds so children stay visually
+/// inside the background shape during the animation.
+///
+/// ## Lifecycle
+///
+/// The group aggregates lifecycle callbacks from all children. [onStart] fires
+/// after all child [onStart] callbacks; [onEnd] fires after all child [onEnd]
+/// callbacks.
+///
+/// ```dart
+/// QuiHeroGroup(
+///   heroes: [
+///     QuiHeroText('1 dia atrás', style: TextStyle(fontSize: 14)),
+///     QuiHeroText('Separador de Mercadorias', style: TextStyle(fontSize: 22)),
+///     QuiHeroText(r'R\$2.200/mês', style: TextStyle(fontSize: 25, color: Color(0xFF00DD55))),
+///   ],
+/// )
+/// ```
+///
+/// See also:
+///  * [QuiHeroText], a hero that animates a single text element.
+///  * [QuiHeroBackground], a hero that animates a [BoxDecoration].
+final class QuiHeroGroup extends QuiHero {
+  /// Creates a group hero that animates [heroes] as a single shared element.
+  ///
+  /// All [heroes] must be tagless — the group owns the shared tag. Pass an
+  /// explicit [tag] when multiple groups coexist on the same route.
+  ///
+  /// See [QuiHeroGroup] for pairing rules and nesting constraints.
+  const QuiHeroGroup({required this.heroes, Object? tag, super.onStart, super.onEnd, super.key})
+    : super(tag: tag ?? QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
+
   static List<({double layoutWidth, Offset offset, Size size})>? _cachedEndChildMetrics;
-  static _QuiHeroBoxFlightMetrics? _cachedEndBoxMetrics;
+  static QuiHeroGroupBackgroundFlightMetrics? _cachedEndBoxMetrics;
 
+  /// The tagless child heroes that animate together.
+  ///
+  /// Every hero in this list must have no explicit [tag]. Source and
+  /// destination groups must have the same length — heroes are paired by
+  /// positional index.
   final List<QuiHero> heroes;
 
   static Widget _buildFlightShuttle(
@@ -30,24 +96,24 @@ final class _QuiHeroGroup extends QuiHero {
     if (freshEndChildMetrics != null) _cachedEndChildMetrics = freshEndChildMetrics;
     final endChildMetrics = freshEndChildMetrics ?? _cachedEndChildMetrics ?? beginChildMetrics;
 
-    final beginBoxMetrics = _captureBoxMetrics(fromHeroContext);
+    final beginBackgroundMetrics = _captureBackgroundMetrics(fromHeroContext);
+    final freshEndBackgroundMetrics = _captureBackgroundMetrics(toHeroContext);
 
-    final freshEndBoxMetrics = _captureBoxMetrics(toHeroContext);
-    if (freshEndBoxMetrics != null) _cachedEndBoxMetrics = freshEndBoxMetrics;
-    final endBoxMetrics = freshEndBoxMetrics ?? _cachedEndBoxMetrics ?? beginBoxMetrics;
+    if (freshEndBackgroundMetrics != null) _cachedEndBoxMetrics = freshEndBackgroundMetrics;
+    final endBoxMetrics = freshEndBackgroundMetrics ?? _cachedEndBoxMetrics ?? beginBackgroundMetrics;
 
     final beginHeight = _metricsHeight(beginChildMetrics);
     final endHeight = _metricsHeight(endChildMetrics);
 
-    final textMetrics = <_QuiHeroTextFlightMetrics?>[];
+    final textMetrics = <QuiHeroTextFlightMetrics?>[];
     final count = math.min(fromGroup.heroes.length, toGroup.heroes.length);
     for (var i = 0; i < count; i++) {
       final fromHero = fromGroup.heroes[i];
       final toHero = toGroup.heroes[i];
 
-      if (fromHero is _QuiHeroText && toHero is _QuiHeroText) {
-        final fromText = fromHero._buildFlightChild(flightContext) as _QuiHeroTextFlight;
-        final toText = toHero._buildFlightChild(flightContext) as _QuiHeroTextFlight;
+      if (fromHero is QuiHeroText && toHero is QuiHeroText) {
+        final fromText = fromHero.buildFlightChild(flightContext) as QuiHeroTextFlight;
+        final toText = toHero.buildFlightChild(flightContext) as QuiHeroTextFlight;
 
         final beginSize = (beginChildMetrics != null && i < beginChildMetrics.length)
             ? beginChildMetrics[i].size as Size?
@@ -66,7 +132,7 @@ final class _QuiHeroGroup extends QuiHero {
             : null;
 
         textMetrics.add(
-          _QuiHeroTextFlightMetrics.precompute(
+          QuiHeroTextFlightMetrics.precompute(
             context: flightContext,
             from: fromText,
             to: toText,
@@ -89,7 +155,7 @@ final class _QuiHeroGroup extends QuiHero {
           final value = Curves.easeOutCubic.transform(animationValue);
 
           final availableHeight = _computeAvailableHeight(
-            beginBoxMetrics: beginBoxMetrics,
+            beginBoxMetrics: beginBackgroundMetrics,
             endBoxMetrics: endBoxMetrics,
             progress: value,
           );
@@ -153,6 +219,7 @@ final class _QuiHeroGroup extends QuiHero {
     if (root is RenderParagraph && root.constraints.hasBoundedWidth) return root.constraints.maxWidth;
 
     double? result;
+
     void visit(RenderObject child) {
       if (result != null) return;
       result = _paragraphLayoutWidth(child);
@@ -185,7 +252,7 @@ final class _QuiHeroGroup extends QuiHero {
     required List<QuiHero> end,
     required double value,
     required HeroFlightDirection flightDirection,
-    List<_QuiHeroTextFlightMetrics?>? textMetrics,
+    List<QuiHeroTextFlightMetrics?>? textMetrics,
   }) {
     final count = math.min(begin.length, end.length);
     return List<QuiHero>.generate(count, (index) {
@@ -193,7 +260,7 @@ final class _QuiHeroGroup extends QuiHero {
       final endHero = end[index];
       final metrics = (textMetrics != null && index < textMetrics.length) ? textMetrics[index] : null;
 
-      return beginHero._buildForGroupFlight(
+      return beginHero.buildForGroupFlight(
         end: endHero,
         value: value,
         flightDirection: flightDirection,
@@ -202,8 +269,8 @@ final class _QuiHeroGroup extends QuiHero {
     });
   }
 
-  static _QuiHeroBoxFlightMetrics? _captureBoxMetrics(BuildContext heroContext) {
-    final boxScope = _QuiHeroBoxScope.maybeOf(heroContext);
+  static QuiHeroGroupBackgroundFlightMetrics? _captureBackgroundMetrics(BuildContext heroContext) {
+    final boxScope = QuiHeroBackgroundScope.maybeOf(heroContext);
     if (boxScope == null) return null;
 
     final boxRenderObject = boxScope.boxRenderObject;
@@ -216,18 +283,18 @@ final class _QuiHeroGroup extends QuiHero {
     final groupOrigin = groupRenderObject.localToGlobal(Offset.zero);
     final groupOffsetInBox = groupOrigin - boxOrigin;
 
-    return _QuiHeroBoxFlightMetrics(boxSize: boxRenderObject.size, groupOffsetInBox: groupOffsetInBox);
+    return QuiHeroGroupBackgroundFlightMetrics(size: boxRenderObject.size, groupOffsetInBox: groupOffsetInBox);
   }
 
   static double? _computeAvailableHeight({
-    required _QuiHeroBoxFlightMetrics? beginBoxMetrics,
-    required _QuiHeroBoxFlightMetrics? endBoxMetrics,
+    required QuiHeroGroupBackgroundFlightMetrics? beginBoxMetrics,
+    required QuiHeroGroupBackgroundFlightMetrics? endBoxMetrics,
     required double progress,
   }) {
     if (beginBoxMetrics == null || endBoxMetrics == null) return null;
 
-    final beginBoxHeight = beginBoxMetrics.boxSize.height;
-    final endBoxHeight = endBoxMetrics.boxSize.height;
+    final beginBoxHeight = beginBoxMetrics.size.height;
+    final endBoxHeight = endBoxMetrics.size.height;
     final currentBoxHeight = beginBoxHeight + (endBoxHeight - beginBoxHeight) * progress;
 
     final beginGroupOffset = beginBoxMetrics.groupOffsetInBox.dy;
@@ -253,59 +320,39 @@ final class _QuiHeroGroup extends QuiHero {
   static List<QuiHero> _resolveEndpointHeroes({required BuildContext context, required List<QuiHero> heroes}) {
     return [
       for (final hero in heroes)
-        if (hero is _QuiHeroText) hero._buildWithResolvedStyle(context) else hero,
+        if (hero is QuiHeroText) hero.buildWithResolvedStyle(context) else hero,
     ];
   }
 
   @override
-  List<VoidCallback> _lifecycleStartCallbacks(BuildContext context) {
+  List<VoidCallback> lifecycleStartCallbacks(BuildContext context) {
     return [
-      ...super._lifecycleStartCallbacks(context),
-      for (final hero in heroes) ...hero._lifecycleStartCallbacks(context),
+      ...super.lifecycleStartCallbacks(context),
+      for (final hero in heroes) ...hero.lifecycleStartCallbacks(context),
     ];
   }
 
   @override
-  List<VoidCallback> _lifecycleEndCallbacks(BuildContext context) {
-    return [
-      ...super._lifecycleEndCallbacks(context),
-      for (final hero in heroes) ...hero._lifecycleEndCallbacks(context),
-    ];
+  List<VoidCallback> lifecycleEndCallbacks(BuildContext context) {
+    return [...super.lifecycleEndCallbacks(context), for (final hero in heroes) ...hero.lifecycleEndCallbacks(context)];
   }
 
   @override
-  QuiHero _buildForGroupFlight({
+  QuiHero buildForGroupFlight({
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
-    _QuiHeroTextFlightMetrics? flightMetrics,
+    QuiHeroTextFlightMetrics? flightMetrics,
   }) {
     assert(false, 'Nested QuiHero.group is not supported.');
     return value < 0.5 ? this : end;
   }
 
   @override
-  Widget _buildFlightChild(BuildContext context) {
+  Widget buildFlightChild(BuildContext context) {
     return _QuiHeroGroupContent(
-      layout: _QuiHeroGroupLayout.fromContext(context),
+      layout: QuiHeroGroupLayout.fromContext(context),
       heroes: _resolveEndpointHeroes(context: context, heroes: heroes),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    assert(
-      heroes.every((hero) => hero.tag == null),
-      'QuiHero.group heroes must be tagless because the group owns the shared tag.',
-    );
-
-    return super.build(context);
-  }
-}
-
-class _QuiHeroBoxFlightMetrics {
-  const _QuiHeroBoxFlightMetrics({required this.boxSize, required this.groupOffsetInBox});
-
-  final Size boxSize;
-  final Offset groupOffsetInBox;
 }

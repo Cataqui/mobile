@@ -1,11 +1,38 @@
-part of '../qui_hero.dart';
+library;
 
-final class _QuiHeroText extends QuiHero {
-  const _QuiHeroText({
-    required super.tag,
-    required this.text,
-    required super.onStart,
-    required super.onEnd,
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:qui/src/widgets/qui_hero/heroes/group/qui_hero_group.dart';
+import 'package:qui/src/widgets/qui_hero/qui_hero.dart';
+
+part '_qui_hero_text_flight.dart';
+part '_qui_hero_text_flight_metrics.dart';
+part '_qui_hero_text_scaled_metrics.dart';
+
+/// A hero widget that animates a text block between source and destination
+/// routes.
+///
+/// [QuiHeroText] pairs with another [QuiHeroText] on the destination route
+/// using the same [tag]. During the shared-element transition Flutter renders
+/// a "flight" — an interpolated copy that morphs [TextStyle], text content,
+/// alignment, overflow behavior, layout constraints ([maxLines]), and padding.
+///
+///
+/// ## Flight progress and easing
+///
+/// Style interpolation uses [Curves.easeOutCubic] — a lightweight easing
+/// curve that performs well on low-end GPUs while producing smooth,
+/// natural-looking motion.
+final class QuiHeroText extends QuiHero {
+  /// Creates a text hero with the given [tag], [text], and optional style
+  /// configuration.
+  const QuiHeroText(
+    this.text, {
+    Object? tag,
+    super.onStart,
+    super.onEnd,
     super.key,
     this.style,
     this.textAlign = TextAlign.left,
@@ -14,10 +41,10 @@ final class _QuiHeroText extends QuiHero {
     this.padding,
     this.switchThreshold = 0.5,
   }) : assert(switchThreshold >= 0.0 && switchThreshold <= 1.0, 'switchThreshold must be between 0.0 and 1.0.'),
-       flight = null,
-       super._(defaultTag: _QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
+       _flight = null,
+       super(tag: tag ?? QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle);
 
-  _QuiHeroText.fromFlight(_QuiHeroTextFlight flight)
+  QuiHeroText._fromFlight(QuiHeroTextFlight flight)
     : text = flight.text,
       style = flight.style,
       textAlign = flight.textAlign,
@@ -25,36 +52,37 @@ final class _QuiHeroText extends QuiHero {
       maxLines = flight.maxLines,
       padding = flight.padding,
       switchThreshold = flight.switchThreshold,
-      flight = flight,
-      super._(
-        tag: null,
-        defaultTag: _QuiHeroDefaultTag.text,
-        flightShuttleBuilder: _buildFlightShuttle,
-        onStart: null,
-        onEnd: null,
-      );
+      _flight = flight,
+      super(tag: QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle, onStart: null, onEnd: null);
 
-  final String text;
-  final TextStyle? style;
-  final TextAlign textAlign;
-  final TextOverflow? overflow;
-  final int? maxLines;
-  final EdgeInsetsGeometry? padding;
-  final double switchThreshold;
-  final _QuiHeroTextFlight? flight;
+  QuiHeroText buildWithResolvedStyle(BuildContext context) {
+    return QuiHeroText(
+      text,
+      tag: tag,
+      style: _resolvedStyle(context),
+      textAlign: textAlign,
+      overflow: overflow,
+      maxLines: maxLines,
+      padding: padding,
+      switchThreshold: switchThreshold,
+      onStart: onStart,
+      onEnd: onEnd,
+      key: key,
+    );
+  }
 
-  static _QuiHeroTextFlight _lerpTextFlight({
-    required _QuiHeroTextFlight from,
-    required _QuiHeroTextFlight to,
+  static QuiHeroTextFlight _lerpTextFlight({
+    required QuiHeroTextFlight from,
+    required QuiHeroTextFlight to,
     required double value,
     required HeroFlightDirection flightDirection,
-    _QuiHeroTextFlightMetrics? flightMetrics,
+    QuiHeroTextFlightMetrics? flightMetrics,
   }) {
     final lerpValue = flightDirection == HeroFlightDirection.push ? value : (1 - value);
     final showBegin = lerpValue < from.switchThreshold;
     final lerpedStyle = TextStyle.lerp(from.style, to.style, lerpValue)!;
-    final progressiveClampMaxLines = _progressiveClampMaxLines(from: from, to: to, showBegin: showBegin);
-    return _QuiHeroTextFlight(
+    final progressiveClampMaxLines = _progressiveClampMaxLinesHelper(from: from, to: to, showBegin: showBegin);
+    return QuiHeroTextFlight(
       text: showBegin ? from.text : to.text,
       style: lerpedStyle,
       flightBeginStyle: from.style,
@@ -67,7 +95,7 @@ final class _QuiHeroText extends QuiHero {
       switchThreshold: from.switchThreshold,
       shortenToBounds: true,
       progressiveClampMaxLines: progressiveClampMaxLines,
-      progressiveClampProgress: _progressiveClampProgress(
+      progressiveClampProgress: _progressiveClampProgressHelper(
         lerpValue: lerpValue,
         switchThreshold: from.switchThreshold,
         progressiveClampMaxLines: progressiveClampMaxLines,
@@ -76,9 +104,9 @@ final class _QuiHeroText extends QuiHero {
     );
   }
 
-  static int? _progressiveClampMaxLines({
-    required _QuiHeroTextFlight from,
-    required _QuiHeroTextFlight to,
+  static int? _progressiveClampMaxLinesHelper({
+    required QuiHeroTextFlight from,
+    required QuiHeroTextFlight to,
     required bool showBegin,
   }) {
     if (!showBegin) return null;
@@ -88,7 +116,7 @@ final class _QuiHeroText extends QuiHero {
     return to.maxLines;
   }
 
-  static double _progressiveClampProgress({
+  static double _progressiveClampProgressHelper({
     required double lerpValue,
     required double switchThreshold,
     required int? progressiveClampMaxLines,
@@ -108,14 +136,14 @@ final class _QuiHeroText extends QuiHero {
     Widget fromHeroChild,
     Widget toHeroChild,
   ) {
-    final fromText = fromHeroChild as _QuiHeroTextFlight;
-    final toText = toHeroChild as _QuiHeroTextFlight;
+    final fromText = fromHeroChild as QuiHeroTextFlight;
+    final toText = toHeroChild as QuiHeroTextFlight;
 
     if (_hasSamePresentation(begin: fromText, end: toText)) {
-      return RepaintBoundary(child: fromText._copyWith(shortenToBounds: true));
+      return RepaintBoundary(child: fromText.copyWith(shortenToBounds: true));
     }
 
-    final flightMetrics = _QuiHeroTextFlightMetrics.precompute(context: flightContext, from: fromText, to: toText);
+    final flightMetrics = QuiHeroTextFlightMetrics.precompute(context: flightContext, from: fromText, to: toText);
 
     return RepaintBoundary(
       child: AnimatedBuilder(
@@ -133,7 +161,7 @@ final class _QuiHeroText extends QuiHero {
     );
   }
 
-  static bool _hasSamePresentation({required _QuiHeroTextFlight begin, required _QuiHeroTextFlight end}) {
+  static bool _hasSamePresentation({required QuiHeroTextFlight begin, required QuiHeroTextFlight end}) {
     return begin.text == end.text &&
         begin.style == end.style &&
         begin.textAlign == end.textAlign &&
@@ -142,27 +170,33 @@ final class _QuiHeroText extends QuiHero {
         begin.padding == end.padding;
   }
 
-  TextStyle _resolvedStyle(BuildContext context) {
-    return DefaultTextStyle.of(context).style.merge(style);
-  }
+  /// The text content rendered by this hero.
+  final String text;
 
-  _QuiHeroText _buildWithResolvedStyle(BuildContext context) {
-    return _QuiHeroText(
-      tag: tag,
-      text: text,
-      style: _resolvedStyle(context),
-      textAlign: textAlign,
-      overflow: overflow,
-      maxLines: maxLines,
-      padding: padding,
-      switchThreshold: switchThreshold,
-      onStart: _onStart,
-      onEnd: _onEnd,
-      key: key,
-    );
-  }
+  /// The optional [TextStyle] applied to the text.
+  ///
+  /// When null, [DefaultTextStyle.of] is used at build time.
+  final TextStyle? style;
 
-  ({_QuiHeroText hero, double? estimatedHeight}) _buildWithEndpointMetricsAndEstimatedHeight({
+  /// How the text should be aligned horizontally.
+  final TextAlign textAlign;
+
+  /// How visual overflow should be handled.
+  final TextOverflow? overflow;
+
+  /// The maximum number of lines for the text.
+  final int? maxLines;
+
+  /// Optional padding around the text.
+  final EdgeInsetsGeometry? padding;
+
+  /// The flight progress threshold (0.0–1.0) at which text string switches
+  /// from the source string to the destination string.
+  final double switchThreshold;
+
+  final QuiHeroTextFlight? _flight;
+
+  ({QuiHeroText hero, double? estimatedHeight}) buildWithEndpointMetricsAndEstimatedHeight({
     required BuildContext context,
     required double width,
     required Size beginSize,
@@ -170,11 +204,11 @@ final class _QuiHeroText extends QuiHero {
     required double beginLayoutWidth,
     required double endLayoutWidth,
   }) {
-    final flight = this.flight;
+    final flight = _flight;
     if (flight == null) return (hero: this, estimatedHeight: null);
 
     if (flight.flightMetrics != null) {
-      final measuredFlight = flight._copyWith(
+      final measuredFlight = flight.copyWith(
         endpointMaxLines: flight.flightMetrics!.endpointMaxLines,
         endpointReservedLayoutWidth: flight._endpointReservedLayoutWidthFor(
           beginLayoutWidth: beginLayoutWidth,
@@ -182,13 +216,13 @@ final class _QuiHeroText extends QuiHero {
         ),
       );
       return (
-        hero: _QuiHeroText.fromFlight(measuredFlight),
+        hero: QuiHeroText._fromFlight(measuredFlight),
         estimatedHeight: measuredFlight._estimatedHeightForWidth(context: context, width: width),
       );
     }
 
     final endpointMaxLines = flight._endpointMaxLinesFor(context: context, beginSize: beginSize, endSize: endSize);
-    final measuredFlight = flight._copyWith(
+    final measuredFlight = flight.copyWith(
       endpointMaxLines: endpointMaxLines,
       endpointReservedLayoutWidth: flight._endpointReservedLayoutWidthFor(
         beginLayoutWidth: beginLayoutWidth,
@@ -197,14 +231,14 @@ final class _QuiHeroText extends QuiHero {
     );
 
     return (
-      hero: _QuiHeroText.fromFlight(measuredFlight),
+      hero: QuiHeroText._fromFlight(measuredFlight),
       estimatedHeight: measuredFlight._estimatedHeightForWidth(context: context, width: width),
     );
   }
 
   @override
-  Widget _buildFlightChild(BuildContext context) {
-    return _QuiHeroTextFlight(
+  Widget buildFlightChild(BuildContext context) {
+    return QuiHeroTextFlight(
       text: text,
       style: _resolvedStyle(context),
       textAlign: textAlign,
@@ -216,17 +250,17 @@ final class _QuiHeroText extends QuiHero {
   }
 
   @override
-  _QuiHeroText _buildForGroupFlight({
+  QuiHeroText buildForGroupFlight({
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
-    _QuiHeroTextFlightMetrics? flightMetrics,
+    dynamic flightMetrics,
   }) {
-    final endText = end as _QuiHeroText;
+    final endText = end as QuiHeroText;
 
-    return _QuiHeroText.fromFlight(
+    return QuiHeroText._fromFlight(
       _lerpTextFlight(
-        from: _QuiHeroTextFlight(
+        from: QuiHeroTextFlight(
           text: text,
           style: style ?? const TextStyle(),
           textAlign: textAlign,
@@ -236,7 +270,7 @@ final class _QuiHeroText extends QuiHero {
           switchThreshold: switchThreshold,
           shortenToBounds: true,
         ),
-        to: _QuiHeroTextFlight(
+        to: QuiHeroTextFlight(
           text: endText.text,
           style: endText.style ?? const TextStyle(),
           textAlign: endText.textAlign,
@@ -247,15 +281,17 @@ final class _QuiHeroText extends QuiHero {
         ),
         value: value,
         flightDirection: flightDirection,
-        flightMetrics: flightMetrics,
+        flightMetrics: flightMetrics as QuiHeroTextFlightMetrics?,
       ),
     );
   }
 
+  TextStyle _resolvedStyle(BuildContext context) => DefaultTextStyle.of(context).style.merge(style);
+
   @override
   Widget build(BuildContext context) {
-    if (_QuiHeroGroupScope.maybeOf(context) != null) {
-      if (flight != null) return flight!;
+    if (QuiHeroGroupScope.maybeOf(context) != null) {
+      if (_flight != null) return _flight;
 
       Widget result = Text(text, style: style, textAlign: textAlign, maxLines: maxLines, overflow: overflow);
       if (padding != null) result = Padding(padding: padding!, child: result);

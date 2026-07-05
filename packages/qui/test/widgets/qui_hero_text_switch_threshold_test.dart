@@ -20,11 +20,11 @@ void main() {
                           body: Center(
                             child: GestureDetector(
                               onTap: () => Navigator.pop(context),
-                              child: QuiHero.text(
+                              child: const QuiHeroText(
+                                'DEST',
                                 tag: 'test',
-                                text: 'DEST',
                                 switchThreshold: 0.99,
-                                style: const TextStyle(fontSize: 16),
+                                style: TextStyle(fontSize: 16),
                               ),
                             ),
                           ),
@@ -32,12 +32,7 @@ void main() {
                       ).createRoute(context),
                     );
                   },
-                  child: QuiHero.text(
-                    tag: 'test',
-                    text: 'ORIGIN',
-                    switchThreshold: 0.5,
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  child: const QuiHeroText('ORIGIN', tag: 'test', switchThreshold: 0.5, style: TextStyle(fontSize: 16)),
                 ),
               ),
             ),

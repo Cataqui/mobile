@@ -8,17 +8,11 @@ void main() {
   group('QuiHero.group', () {
     testWidgets('when built under a column, it should lay out heroes vertically', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                QuiHero.group(
-                  tag: 'group',
-                  heroes: [
-                    QuiHero.text(text: 'Hello'),
-                    QuiHero.text(text: 'Hola'),
-                  ],
-                ),
+                QuiHeroGroup(tag: 'group', heroes: [QuiHeroText('Hello'), QuiHeroText('Hola')]),
               ],
             ),
           ),
@@ -30,17 +24,11 @@ void main() {
 
     testWidgets('when built under a row, it should lay out heroes horizontally', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Row(
               children: [
-                QuiHero.group(
-                  tag: 'group',
-                  heroes: [
-                    QuiHero.text(text: 'Hello'),
-                    QuiHero.text(text: 'Hola'),
-                  ],
-                ),
+                QuiHeroGroup(tag: 'group', heroes: [QuiHeroText('Hello'), QuiHeroText('Hola')]),
               ],
             ),
           ),
@@ -52,17 +40,11 @@ void main() {
 
     testWidgets('when built under a stack, it should lay out heroes as a stack', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Stack(
               children: [
-                QuiHero.group(
-                  tag: 'group',
-                  heroes: [
-                    QuiHero.text(text: 'Hello'),
-                    QuiHero.text(text: 'Hola'),
-                  ],
-                ),
+                QuiHeroGroup(tag: 'group', heroes: [QuiHeroText('Hello'), QuiHeroText('Hola')]),
               ],
             ),
           ),
@@ -74,15 +56,15 @@ void main() {
 
     testWidgets('when built with grouped heroes, it should render one Flutter Hero', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                QuiHero.group(
+                QuiHeroGroup(
                   tag: 'group',
                   heroes: [
-                    QuiHero.text(text: 'Hello', padding: const EdgeInsets.only(bottom: 4)),
-                    QuiHero.text(text: 'Hola'),
+                    QuiHeroText('Hello', padding: EdgeInsets.only(bottom: 4)),
+                    QuiHeroText('Hola'),
                   ],
                 ),
               ],
@@ -98,19 +80,13 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 300,
               child: Column(
                 children: [
-                  QuiHero.group(
-                    tag: 'group',
-                    heroes: [
-                      QuiHero.text(text: 'Hello'),
-                      QuiHero.text(text: 'Hola'),
-                    ],
-                  ),
+                  QuiHeroGroup(tag: 'group', heroes: [QuiHeroText('Hello'), QuiHeroText('Hola')]),
                 ],
               ),
             ),
@@ -592,10 +568,7 @@ class _MismatchedGroupTestApp extends StatelessWidget {
                     context,
                   ).push<void>(MaterialPageRoute<void>(builder: _MismatchedGroupTestApp.buildDestination));
                 },
-                child: QuiHero.group(
-                  tag: 'group',
-                  heroes: [QuiHero.text(text: 'Hello')],
-                ),
+                child: const QuiHeroGroup(tag: 'group', heroes: [QuiHeroText('Hello')]),
               ),
             ],
           ),
@@ -605,16 +578,10 @@ class _MismatchedGroupTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Column(
         children: [
-          QuiHero.group(
-            tag: 'group',
-            heroes: [
-              QuiHero.text(text: 'Hello'),
-              QuiHero.text(text: 'Hola'),
-            ],
-          ),
+          QuiHeroGroup(tag: 'group', heroes: [QuiHeroText('Hello'), QuiHeroText('Hola')]),
         ],
       ),
     );
@@ -645,13 +612,13 @@ class _GroupedLifecycleTestApp extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    QuiHero.group(
+                    QuiHeroGroup(
                       tag: 'group-lifecycle',
                       onStart: () => events.add('source-group-start'),
                       onEnd: () => events.add('source-group-end'),
                       heroes: [
-                        QuiHero.text(
-                          text: sourceText,
+                        QuiHeroText(
+                          sourceText,
                           onStart: () => events.add('source-child-start'),
                           onEnd: () => events.add('source-child-end'),
                         ),
@@ -682,13 +649,13 @@ class _GroupedLifecycleDestination extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              QuiHero.group(
+              QuiHeroGroup(
                 tag: 'group-lifecycle',
                 onStart: () => events.add('destination-group-start'),
                 onEnd: () => events.add('destination-group-end'),
                 heroes: [
-                  QuiHero.text(
-                    text: _GroupedLifecycleTestApp.destinationText,
+                  QuiHeroText(
+                    _GroupedLifecycleTestApp.destinationText,
                     onStart: () => events.add('destination-child-start'),
                     onEnd: () => events.add('destination-child-end'),
                   ),
@@ -764,17 +731,17 @@ class _GroupedWidthWrapFlightLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'group',
           heroes: [
-            QuiHero.text(text: '2 dias atras', style: const TextStyle(fontSize: 14)),
-            QuiHero.text(
-              text: title,
+            const QuiHeroText('2 dias atras', style: TextStyle(fontSize: 14)),
+            QuiHeroText(
+              title,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
             ),
-            QuiHero.text(text: r'R$3.800/mes', style: const TextStyle(fontSize: 25)),
+            const QuiHeroText(r'R$3.800/mes', style: TextStyle(fontSize: 25)),
           ],
         ),
       ],
@@ -848,17 +815,17 @@ class _GroupedWidthUnwrapPopLayout extends StatelessWidget {
       children: [
         SizedBox(
           width: width,
-          child: QuiHero.group(
+          child: QuiHeroGroup(
             tag: 'pop-group',
             heroes: [
-              QuiHero.text(text: '2 dias atras', style: const TextStyle(fontSize: 14)),
-              QuiHero.text(
-                text: _GroupedWidthUnwrapPopTestApp.title,
+              const QuiHeroText('2 dias atras', style: TextStyle(fontSize: 14)),
+              QuiHeroText(
+                _GroupedWidthUnwrapPopTestApp.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
               ),
-              QuiHero.text(text: r'R$2.100/mes', style: const TextStyle(fontSize: 25)),
+              const QuiHeroText(r'R$2.100/mes', style: TextStyle(fontSize: 25)),
             ],
           ),
         ),
@@ -933,17 +900,14 @@ class _GroupedLineClampPopLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'description-group',
           heroes: [
-            QuiHero.text(text: '17h atras', style: const TextStyle(fontSize: 14)),
-            QuiHero.text(
-              text: 'Instrumentista',
-              style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w700),
-            ),
-            QuiHero.text(text: r'R$4.000/mes', style: const TextStyle(fontSize: 30)),
-            QuiHero.text(
-              text: description,
+            const QuiHeroText('17h atras', style: TextStyle(fontSize: 14)),
+            const QuiHeroText('Instrumentista', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700)),
+            const QuiHeroText(r'R$4.000/mes', style: TextStyle(fontSize: 30)),
+            QuiHeroText(
+              description,
               maxLines: maxLines,
               overflow: TextOverflow.ellipsis,
               switchThreshold: 0.8,
@@ -1011,20 +975,20 @@ class _GroupedVerticalTransitionLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'vertical-offset-group',
           heroes: [
-            QuiHero.text(
-              text: '20h atras',
+            QuiHeroText(
+              '20h atras',
               style: TextStyle(fontSize: isDetail ? 16 : 14, fontWeight: FontWeight.w500),
               padding: const EdgeInsets.only(bottom: 6),
             ),
-            QuiHero.text(
-              text: _GroupedVerticalTransitionTestApp.title,
+            QuiHeroText(
+              _GroupedVerticalTransitionTestApp.title,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
-            QuiHero.text(
-              text: _GroupedVerticalTransitionTestApp.payment,
+            QuiHeroText(
+              _GroupedVerticalTransitionTestApp.payment,
               style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
             ),
           ],
@@ -1113,23 +1077,17 @@ class _GroupedWidthWrapTransitionLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'dynamic-wrap-group',
           heroes: [
-            QuiHero.text(
-              text: '20h atras',
-              style: TextStyle(fontSize: isDetail ? 16 : 14),
-            ),
-            QuiHero.text(
-              text: _GroupedWidthWrapTransitionTestApp.title,
+            QuiHeroText('20h atras', style: TextStyle(fontSize: isDetail ? 16 : 14)),
+            QuiHeroText(
+              _GroupedWidthWrapTransitionTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
-            QuiHero.text(
-              text: r'R$2.235,97/mes',
-              style: TextStyle(fontSize: isDetail ? 30 : 25),
-            ),
+            QuiHeroText(r'R$2.235,97/mes', style: TextStyle(fontSize: isDetail ? 30 : 25)),
           ],
         ),
       ],
@@ -1217,22 +1175,22 @@ class _GroupedSiblingDisplacementLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'sibling-wrap-group',
           heroes: [
-            QuiHero.text(
-              text: '3 dias atras',
+            QuiHeroText(
+              '3 dias atras',
               style: TextStyle(fontSize: isDetail ? 16 : 14, fontWeight: FontWeight.w500),
               padding: const EdgeInsets.only(bottom: 6),
             ),
-            QuiHero.text(
-              text: _GroupedSiblingDisplacementTestApp.title,
+            QuiHeroText(
+              _GroupedSiblingDisplacementTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
-            QuiHero.text(
-              text: _GroupedSiblingDisplacementTestApp.payment,
+            QuiHeroText(
+              _GroupedSiblingDisplacementTestApp.payment,
               style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
             ),
           ],
@@ -1324,11 +1282,11 @@ class _GroupedLineCeilingLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'endpoint-line-ceiling-group',
           heroes: [
-            QuiHero.text(
-              text: _GroupedLineCeilingTestApp.title,
+            QuiHeroText(
+              _GroupedLineCeilingTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
@@ -1417,11 +1375,11 @@ class _GroupedOverflowWrapLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'border-wrap-group',
           heroes: [
-            QuiHero.text(
-              text: _GroupedOverflowWrapTestApp.title,
+            QuiHeroText(
+              _GroupedOverflowWrapTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
@@ -1508,11 +1466,11 @@ class _GroupedBaselineSmoothnessLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'baseline-group',
           heroes: [
-            QuiHero.text(
-              text: _GroupedBaselineSmoothnessTestApp.title,
+            QuiHeroText(
+              _GroupedBaselineSmoothnessTestApp.title,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
           ],
@@ -1536,7 +1494,7 @@ class _SingleUntaggedTextHeroTestApp extends StatelessWidget {
                 context,
               ).push<void>(MaterialPageRoute<void>(builder: _SingleUntaggedTextHeroTestApp.buildDestination));
             },
-            child: QuiHero.text(text: 'Hello'),
+            child: const QuiHeroText('Hello'),
           ),
         ),
       ),
@@ -1544,7 +1502,7 @@ class _SingleUntaggedTextHeroTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(body: QuiHero.text(text: 'Hello'));
+    return const Scaffold(body: QuiHeroText('Hello'));
   }
 }
 
@@ -1565,10 +1523,10 @@ class _SingleUntaggedBoxHeroTestApp extends StatelessWidget {
                 context,
               ).push<void>(MaterialPageRoute<void>(builder: _SingleUntaggedBoxHeroTestApp.buildDestination));
             },
-            child: SizedBox(
+            child: const SizedBox(
               width: 100,
               height: 100,
-              child: QuiHero.background(decoration: const BoxDecoration(color: Colors.red)),
+              child: QuiHeroBackground(decoration: BoxDecoration(color: Colors.red)),
             ),
           ),
         ),
@@ -1577,11 +1535,11 @@ class _SingleUntaggedBoxHeroTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SizedBox(
         width: 200,
         height: 200,
-        child: QuiHero.background(decoration: const BoxDecoration(color: Colors.red)),
+        child: QuiHeroBackground(decoration: BoxDecoration(color: Colors.red)),
       ),
     );
   }
@@ -1603,10 +1561,10 @@ class _SingleUntaggedGroupHeroTestApp extends StatelessWidget {
                     context,
                   ).push<void>(MaterialPageRoute<void>(builder: _SingleUntaggedGroupHeroTestApp.buildDestination));
                 },
-                child: QuiHero.group(
+                child: const QuiHeroGroup(
                   heroes: [
-                    QuiHero.text(text: 'Hello', padding: const EdgeInsets.only(bottom: 4)),
-                    QuiHero.text(text: 'Hola'),
+                    QuiHeroText('Hello', padding: EdgeInsets.only(bottom: 4)),
+                    QuiHeroText('Hola'),
                   ],
                 ),
               ),
@@ -1618,13 +1576,13 @@ class _SingleUntaggedGroupHeroTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Column(
         children: [
-          QuiHero.group(
+          QuiHeroGroup(
             heroes: [
-              QuiHero.text(text: 'Hello', padding: const EdgeInsets.only(bottom: 8)),
-              QuiHero.text(text: 'Hola'),
+              QuiHeroText('Hello', padding: EdgeInsets.only(bottom: 8)),
+              QuiHeroText('Hola'),
             ],
           ),
         ],
@@ -1650,18 +1608,18 @@ class _MixedUntaggedHeroVariantsTestApp extends StatelessWidget {
                 context,
               ).push<void>(MaterialPageRoute<void>(builder: _MixedUntaggedHeroVariantsTestApp.buildDestination));
             },
-            child: Column(
+            child: const Column(
               children: [
-                QuiHero.text(text: 'Hello'),
+                QuiHeroText('Hello'),
                 SizedBox(
                   width: 60,
                   height: 60,
-                  child: QuiHero.background(decoration: const BoxDecoration(color: Colors.red)),
+                  child: QuiHeroBackground(decoration: BoxDecoration(color: Colors.red)),
                 ),
-                QuiHero.group(
+                QuiHeroGroup(
                   heroes: [
-                    QuiHero.text(text: 'Bom dia', padding: const EdgeInsets.only(bottom: 4)),
-                    QuiHero.text(text: 'Boa tarde'),
+                    QuiHeroText('Bom dia', padding: EdgeInsets.only(bottom: 4)),
+                    QuiHeroText('Boa tarde'),
                   ],
                 ),
               ],
@@ -1673,19 +1631,19 @@ class _MixedUntaggedHeroVariantsTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Column(
         children: [
-          QuiHero.text(text: 'Hello'),
+          QuiHeroText('Hello'),
           SizedBox(
             width: 120,
             height: 120,
-            child: QuiHero.background(decoration: const BoxDecoration(color: Colors.blue)),
+            child: QuiHeroBackground(decoration: BoxDecoration(color: Colors.blue)),
           ),
-          QuiHero.group(
+          QuiHeroGroup(
             heroes: [
-              QuiHero.text(text: 'Bom dia', padding: const EdgeInsets.only(bottom: 8)),
-              QuiHero.text(text: 'Boa tarde'),
+              QuiHeroText('Bom dia', padding: EdgeInsets.only(bottom: 8)),
+              QuiHeroText('Boa tarde'),
             ],
           ),
         ],
@@ -1710,9 +1668,9 @@ class _MultipleUntaggedTextHeroesTestApp extends StatelessWidget {
                     context,
                   ).push<void>(MaterialPageRoute<void>(builder: _MultipleUntaggedTextHeroesTestApp.buildDestination));
                 },
-                child: QuiHero.text(text: 'Hello'),
+                child: const QuiHeroText('Hello'),
               ),
-              QuiHero.text(text: 'Hola'),
+              const QuiHeroText('Hola'),
             ],
           ),
         ),
@@ -1721,7 +1679,7 @@ class _MultipleUntaggedTextHeroesTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(body: QuiHero.text(text: 'Hello'));
+    return const Scaffold(body: QuiHeroText('Hello'));
   }
 }
 
@@ -1741,9 +1699,9 @@ class _MultipleUntaggedGroupHeroesTestApp extends StatelessWidget {
                     context,
                   ).push<void>(MaterialPageRoute<void>(builder: _MultipleUntaggedGroupHeroesTestApp.buildDestination));
                 },
-                child: QuiHero.group(heroes: [QuiHero.text(text: 'Hello')]),
+                child: const QuiHeroGroup(heroes: [QuiHeroText('Hello')]),
               ),
-              QuiHero.group(heroes: [QuiHero.text(text: 'Hola')]),
+              const QuiHeroGroup(heroes: [QuiHeroText('Hola')]),
             ],
           ),
         ),
@@ -1752,10 +1710,10 @@ class _MultipleUntaggedGroupHeroesTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Column(
         children: [
-          QuiHero.group(heroes: [QuiHero.text(text: 'Hello')]),
+          QuiHeroGroup(heroes: [QuiHeroText('Hello')]),
         ],
       ),
     );
@@ -1781,13 +1739,7 @@ class _TypeMismatchGroupTestApp extends StatelessWidget {
                     context,
                   ).push<void>(MaterialPageRoute<void>(builder: _TypeMismatchGroupTestApp.buildDestination));
                 },
-                child: QuiHero.group(
-                  tag: 'group',
-                  heroes: [
-                    QuiHero.text(text: 'Hello'),
-                    QuiHero.text(text: 'World'),
-                  ],
-                ),
+                child: const QuiHeroGroup(tag: 'group', heroes: [QuiHeroText('Hello'), QuiHeroText('World')]),
               ),
             ],
           ),
@@ -1797,14 +1749,14 @@ class _TypeMismatchGroupTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Column(
         children: [
-          QuiHero.group(
+          QuiHeroGroup(
             tag: 'group',
             heroes: [
-              QuiHero.text(text: 'Hello'),
-              QuiHero.background(decoration: const BoxDecoration(color: Colors.red), width: 100, height: 100),
+              QuiHeroText('Hello'),
+              QuiHeroBackground(decoration: BoxDecoration(color: Colors.red), width: 100, height: 100),
             ],
           ),
         ],
@@ -1829,9 +1781,9 @@ class _MultipleExplicitTextHeroesTestApp extends StatelessWidget {
                     context,
                   ).push<void>(MaterialPageRoute<void>(builder: _MultipleExplicitTextHeroesTestApp.buildDestination));
                 },
-                child: QuiHero.text(tag: 'hello', text: 'Hello'),
+                child: const QuiHeroText('Hello', tag: 'hello'),
               ),
-              QuiHero.text(tag: 'hola', text: 'Hola'),
+              const QuiHeroText('Hola', tag: 'hola'),
             ],
           ),
         ),
@@ -1840,11 +1792,11 @@ class _MultipleExplicitTextHeroesTestApp extends StatelessWidget {
   }
 
   static Widget buildDestination(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Column(
         children: [
-          QuiHero.text(tag: 'hello', text: 'Hello'),
-          QuiHero.text(tag: 'hola', text: 'Hola'),
+          QuiHeroText('Hello', tag: 'hello'),
+          QuiHeroText('Hola', tag: 'hola'),
         ],
       ),
     );
@@ -1920,17 +1872,17 @@ class _GroupedEstimatedHeightRegressionLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        QuiHero.group(
+        QuiHeroGroup(
           tag: 'height-repro-group',
           heroes: [
-            QuiHero.text(
-              text: _GroupedTextEstimatedHeightRegressionTestApp.title,
+            QuiHeroText(
+              _GroupedTextEstimatedHeightRegressionTestApp.title,
               maxLines: isDetail ? null : 2,
               overflow: isDetail ? null : TextOverflow.ellipsis,
               style: TextStyle(fontSize: isDetail ? 34 : 22, fontWeight: FontWeight.w600),
             ),
-            QuiHero.text(
-              text: _GroupedTextEstimatedHeightRegressionTestApp.payment,
+            QuiHeroText(
+              _GroupedTextEstimatedHeightRegressionTestApp.payment,
               style: TextStyle(fontSize: isDetail ? 30 : 25, fontWeight: FontWeight.w600),
             ),
           ],
