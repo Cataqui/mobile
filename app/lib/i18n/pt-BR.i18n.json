@@ -64,5 +64,12 @@
     "paymentPeriodYearly": "/ano",
     "paymentOther": "Outro pagamento",
     "paymentUnknown": "Desconhecido"
+  },
+  "job": {
+    "error": {
+      "title": "Eita...",
+      "description": "Algo deu errado quando a gente ia te mostrar esse trampo. Tenta de novo",
+      "retryButtonTitle": "Tentar de novo"
+    }
   }
 }

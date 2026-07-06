@@ -4,7 +4,7 @@ import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
-import 'package:cataqui_app/widgets/feed_job_card.dart';
+import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,13 +58,13 @@ void main() {
   group('FeedJobCard', () {
     group('rendering', () {
       testWidgets('when created with a job, it should display the title', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         expect(find.text('Garçom para Fim de Semana'), findsOneWidget);
       });
 
       testWidgets('when created with a job, it should display the payment', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         expect(find.textContaining(r'R$'), findsOneWidget);
         expect(find.textContaining('120'), findsOneWidget);
@@ -72,22 +72,21 @@ void main() {
       });
 
       testWidgets('when created with a job, it should display the description', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         expect(find.text('Experiente em atendimento ao cliente.'), findsOneWidget);
       });
 
       testWidgets('when created, the card should have 38px border radius', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
-        final container = tester.widget<Container>(find.byType(Container).first);
-        final decoration = container.decoration! as BoxDecoration;
+        final decoratedBox = tester.widget<DecoratedBox>(find.byType(DecoratedBox).first);
 
-        expect(decoration.borderRadius, equals(BorderRadius.circular(38)));
+        expect((decoratedBox.decoration as BoxDecoration).borderRadius, equals(BorderRadius.circular(38)));
       });
 
       testWidgets('when created, the title should use semi-bold weight', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -95,7 +94,7 @@ void main() {
       });
 
       testWidgets('when created, the title should use 22px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -103,7 +102,7 @@ void main() {
       });
 
       testWidgets('when created, the payment should use 25px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
@@ -112,7 +111,7 @@ void main() {
       });
 
       testWidgets('when created, the payment should use money color', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
@@ -121,7 +120,7 @@ void main() {
       });
 
       testWidgets('when created, the description should use 15.7px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -129,7 +128,7 @@ void main() {
       });
 
       testWidgets('when created, the description should use secondary text color', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -137,7 +136,7 @@ void main() {
       });
 
       testWidgets('when created, the title should be limited to 2 lines', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -145,7 +144,7 @@ void main() {
       });
 
       testWidgets('when created, the title should use ellipsis overflow', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -153,7 +152,7 @@ void main() {
       });
 
       testWidgets('when created, the description should be limited to 3 lines', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -161,7 +160,7 @@ void main() {
       });
 
       testWidgets('when created, the description should use ellipsis overflow', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -175,14 +174,7 @@ void main() {
         final fixedNow = createdAt.add(const Duration(hours: 20));
 
         await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(
-            _wrap(
-              FeedJobCard(
-                feedJob: _fixture().copyWith(createdAt: createdAt),
-                onTap: () async {},
-              ),
-            ),
-          );
+          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt))));
 
           expect(find.text(i18n.feedJob.timeAgo.hours(count: 20)), findsOneWidget);
         });
@@ -193,33 +185,10 @@ void main() {
         final fixedNow = createdAt.add(const Duration(days: 1));
 
         await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(
-            _wrap(
-              FeedJobCard(
-                feedJob: _fixture().copyWith(createdAt: createdAt),
-                onTap: () async {},
-              ),
-            ),
-          );
+          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt))));
 
           expect(find.text(i18n.feedJob.timeAgo.days(count: 1)), findsOneWidget);
         });
-      });
-    });
-
-    group('interaction', () {
-      testWidgets('when the card is tapped, it should call onTap', (tester) async {
-        var tapCount = 0;
-        Future<void> onTap() async {
-          tapCount += 1;
-        }
-
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: onTap)));
-
-        await tester.tap(find.text('Garçom para Fim de Semana'));
-        await tester.pumpAndSettle();
-
-        expect(tapCount, equals(1));
       });
     });
   });

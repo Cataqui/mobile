@@ -5,8 +5,9 @@ import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
@@ -58,7 +59,7 @@ FeedRepository feedRepository(Ref ref) {
 
 @Riverpod(keepAlive: true)
 GoRouter goRouter(Ref ref) {
-  return GoRouter(initialLocation: '/', routes: [$feedRoute]);
+  return GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
 }
 
 @Riverpod(keepAlive: true)

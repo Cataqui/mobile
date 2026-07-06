@@ -4,7 +4,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
-import 'package:cataqui_app/widgets/feed_job_card.dart';
+import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
@@ -24,11 +24,8 @@ class _FeedViewState extends ConsumerState<FeedView> {
   final _cardBorderRadius = BorderRadius.circular(44);
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
 
-  Future<void> _openJobDetails() async {}
-
   @override
   Widget build(BuildContext context) {
-    final i18n = ref.watch(translationProvider);
     final designColors = context.qui.colors;
 
     return Scaffold(
@@ -40,7 +37,6 @@ class _FeedViewState extends ConsumerState<FeedView> {
                 controller: _feedController,
                 cardBorderRadius: _cardBorderRadius,
                 feedInCurve: _feedInCurve,
-                onOpenJobDetails: _openJobDetails,
               ),
             ),
           ),
@@ -48,14 +44,14 @@ class _FeedViewState extends ConsumerState<FeedView> {
             top: 0, left: 0, right: 0,
             child: QuiEdgeFade(
               position: QuiEdgeFadePosition.top,
-              color: designColors.background,
+              style: QuiEdgeFadeStyle(color: designColors.background),
             ),
           ),
           Positioned(
             bottom: 0, left: 0, right: 0,
             child: QuiEdgeFade(
               position: QuiEdgeFadePosition.bottom,
-              color: designColors.background,
+              style: QuiEdgeFadeStyle(color: designColors.background),
             ),
           ),
           const Positioned.fill(

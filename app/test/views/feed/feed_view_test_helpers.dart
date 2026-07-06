@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
@@ -130,16 +132,26 @@ class FeedViewTestHelpers {
     );
   }
 
-  static ProviderScope buildScope({required FakeFeedState feedState, required Widget child}) {
-    return ProviderScope(overrides: [feedStateProvider.overrideWith(() => feedState)], child: child);
+  static ProviderScope buildScope({required FakeFeedState feedState, required Widget child, GoRouter? goRouter}) {
+    return ProviderScope(
+      overrides: [
+        feedStateProvider.overrideWith(() => feedState),
+        if (goRouter != null) goRouterProvider.overrideWithValue(goRouter),
+      ],
+      child: child,
+    );
   }
 
-  static Future<void> pumpFeedView({required WidgetTester tester, required FakeFeedState feedState}) async {
+  static Future<void> pumpFeedView({
+    required WidgetTester tester,
+    required FakeFeedState feedState,
+    GoRouter? goRouter,
+  }) async {
     mockHapticFeedback(tester);
     mockPlatformViews(tester);
     await tester.pumpWidget(
       buildApp(
-        child: buildScope(feedState: feedState, child: const FeedView()),
+        child: buildScope(feedState: feedState, goRouter: goRouter, child: const FeedView()),
       ),
     );
     await tester.pump(); // Microtask resolves, data arrives, exit starts

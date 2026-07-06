@@ -23,9 +23,6 @@ abstract class FeedJobDto with _$FeedJobDto {
 
   factory FeedJobDto.fromJson(Map<String, Object?> json) => _$FeedJobDtoFromJson(json);
 
-  // Freezed-generated classes cannot have custom constructors,
-  // so a static factory method is the only option.
-  // ignore: prefer_constructors_over_static_methods
   factory FeedJobDto.fixture() => FeedJobDto(
     jobId: 'job_123',
     title: 'Descarregar Caminhão',

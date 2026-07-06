@@ -6,6 +6,7 @@ pre-commit:
   commands:
     analyze:
       run: melos analyze
+      staged_only: true
     test:
       preset: melos
       staged_only: true

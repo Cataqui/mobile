@@ -1,10 +1,16 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
-import 'package:cataqui_app/widgets/feed_job_card.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:cataqui_app/views/job/job_route.dart';
+import 'package:cataqui_app/views/job/job_view.dart';
+import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qui/qui.dart';
 
 import 'feed_view_test_helpers.dart';
@@ -18,34 +24,23 @@ void main() {
 
   group('FeedView', () {
     group('chrome', () {
-      testWidgets('when the view renders in any state, it should show the São Paulo location button', (tester) async {
+      testWidgets('when the view renders in any state, it should not show the location button', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.text('São Paulo'), findsOneWidget);
+        expect(find.text('São Paulo'), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when the view renders in any state, it should show the search bar placeholder', (tester) async {
+      testWidgets('when the view renders in any state, it should not show the search bar', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.text(i18n.feed.searchPlaceholder), findsOneWidget);
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when the location button is tapped, it should not throw', (tester) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
-        );
-        await tester.pump();
-        await tester.tap(find.text('São Paulo'));
-        await tester.pump(const Duration(milliseconds: 900));
+        expect(find.text(i18n.feed.searchPlaceholder), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
@@ -276,14 +271,36 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when the job card is tapped, it should not throw', (tester) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+      testWidgets('when the visible job card tap action runs, it should navigate to that job detail', (tester) async {
+        final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
+        FeedViewTestHelpers.mockHapticFeedback(tester);
+        FeedViewTestHelpers.mockPlatformViews(tester);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              feedStateProvider.overrideWith(() => FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3))),
+              goRouterProvider.overrideWithValue(goRouter),
+            ],
+            child: MaterialApp.router(
+              theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+              routerConfig: goRouter,
+            ),
+          ),
         );
-        await tester.pump(const Duration(milliseconds: 600));
-        await tester.tap(find.text('Descarregar Caminhão'));
+        await tester.pump();
         await tester.pump(const Duration(milliseconds: 900));
+        await tester.pump();
+        final feedJobCard = find.byType(FeedJobCard).first;
+        final tapAnimation = tester.widget<QuiTapAnimation>(
+          find.descendant(of: feedJobCard, matching: find.byType(QuiTapAnimation)),
+        );
+        await tapAnimation.onPressed!(Future<void>.value());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+
+        expect(find.byType(JobView), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 

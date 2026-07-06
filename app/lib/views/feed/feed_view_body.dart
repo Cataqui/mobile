@@ -1,17 +1,11 @@
 part of 'feed_view.dart';
 
 class _FeedViewBody extends ConsumerStatefulWidget {
-  const _FeedViewBody({
-    required this.controller,
-    required this.cardBorderRadius,
-    required this.feedInCurve,
-    required this.onOpenJobDetails,
-  });
+  const _FeedViewBody({required this.controller, required this.cardBorderRadius, required this.feedInCurve});
 
   final QuiTikTokFeedController controller;
   final BorderRadius cardBorderRadius;
   final CurveTween feedInCurve;
-  final Future<void> Function() onOpenJobDetails;
 
   @override
   ConsumerState<_FeedViewBody> createState() => _FeedBodyContentState();
@@ -138,7 +132,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                     padding: const EdgeInsets.all(9),
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: FeedJobCard(feedJob: job, onTap: widget.onOpenJobDetails),
+                      child: FeedJobCard(feedJob: job),
                     ),
                   ),
                 ],
