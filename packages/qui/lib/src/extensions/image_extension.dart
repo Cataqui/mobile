@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:qui/gen/assets.gen.dart';
 
-/// Optimized asset-image decoding for [AssetGenImage].
-///
-/// Decodes the image at the physical pixel size needed for display
-/// (`displaySize * devicePixelRatio`), capped via [ResizeImage]. This avoids
-/// decoding large source rasters into memory at their native resolution — a
-/// critical low-end-device (2–4 GB RAM) optimization.
-///
-/// The decode (cache) size is derived directly from the `width` and `height`
-/// you pass — no separate "display override" params needed.
-///
-/// ```dart
-/// // Decode at display resolution (150×150 logical → 150*dpr physical):
-/// Qui3d.workItemsMess.downsampledImage(context, width: 150, height: 150);
-///
-/// // Height-only constraint, cacheHeight = 140 * devicePixelRatio:
-/// Qui3d.locationPinRestingCracked.downsampledImage(context, height: 140);
-/// ```
 extension ImageExtension on AssetGenImage {
+  /// Optimized asset-image decoding for [AssetGenImage].
+  ///
+  /// Decodes the image at the physical pixel size needed for display
+  /// (`displaySize * devicePixelRatio`), capped via [ResizeImage]. This avoids
+  /// decoding large source rasters into memory at their native resolution — a
+  /// critical low-end-device (2–4 GB RAM) optimization.
+  ///
+  /// The decode (cache) size is derived directly from the `width` and `height`
+  /// you pass — no separate "display override" params needed.
+  ///
+  /// ```dart
+  /// // Decode at display resolution (150×150 logical → 150*dpr physical):
+  /// Qui3d.workItemsMess.downsampledImage(context, width: 150, height: 150);
+  ///
+  /// // Height-only constraint, cacheHeight = 140 * devicePixelRatio:
+  /// Qui3d.locationPinRestingCracked.downsampledImage(context, height: 140);
+  /// ```
   Image downsampledImage(
     BuildContext context, {
     Key? key,

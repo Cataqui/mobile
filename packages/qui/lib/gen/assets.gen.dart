@@ -112,6 +112,10 @@ class $AssetsThreeDGen {
   AssetGenImage get smallTruck =>
       const AssetGenImage('assets/three_d/small_truck.webp');
 
+  /// File path: assets/three_d/spilled_coffee.webp
+  AssetGenImage get spilledCoffee =>
+      const AssetGenImage('assets/three_d/spilled_coffee.webp');
+
   /// File path: assets/three_d/tool_box.webp
   AssetGenImage get toolBox =>
       const AssetGenImage('assets/three_d/tool_box.webp');
@@ -137,6 +141,7 @@ class $AssetsThreeDGen {
     motorcycle,
     shoppingCart,
     smallTruck,
+    spilledCoffee,
     toolBox,
     wifiExclamation,
     workItemsMess,
