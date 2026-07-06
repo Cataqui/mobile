@@ -40,6 +40,8 @@ class QuiColors {
     required this.ghost,
     required this.shimmerTextBase,
     required this.shimmerTextGlow,
+    required this.skeleton,
+    required this.skeletonShimmerGlow,
   });
 
   /// Light-theme defaults.
@@ -114,6 +116,18 @@ class QuiColors {
   /// visible but not abrupt.
   final Color shimmerTextGlow;
 
+  /// The base fill color of skeleton bones.
+  ///
+  /// Used as the resting color of skeleton placeholders when the shimmer
+  /// sweep is not actively passing over them.
+  final Color skeleton;
+
+  /// The bright glow color of the skeleton shimmer sweep animation.
+  ///
+  /// This highlight travels across the skeleton bones to indicate ongoing
+  /// loading.  Typically a lightened version of [skeleton].
+  final Color skeletonShimmerGlow;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -136,7 +150,9 @@ class QuiColors {
           mapBackground == other.mapBackground &&
           ghost == other.ghost &&
           shimmerTextBase == other.shimmerTextBase &&
-          shimmerTextGlow == other.shimmerTextGlow;
+          shimmerTextGlow == other.shimmerTextGlow &&
+          skeleton == other.skeleton &&
+          skeletonShimmerGlow == other.skeletonShimmerGlow;
 
   @override
   int get hashCode => Object.hash(
@@ -158,6 +174,8 @@ class QuiColors {
     ghost,
     shimmerTextBase,
     shimmerTextGlow,
+    skeleton,
+    skeletonShimmerGlow,
   );
 
   /// Returns a copy of this [QuiColors] with the given fields replaced.
@@ -180,6 +198,8 @@ class QuiColors {
     Color? ghost,
     Color? shimmerTextBase,
     Color? shimmerTextGlow,
+    Color? skeleton,
+    Color? skeletonShimmerGlow,
   }) {
     return QuiColors(
       primary: primary ?? this.primary,
@@ -200,6 +220,8 @@ class QuiColors {
       ghost: ghost ?? this.ghost,
       shimmerTextBase: shimmerTextBase ?? this.shimmerTextBase,
       shimmerTextGlow: shimmerTextGlow ?? this.shimmerTextGlow,
+      skeleton: skeleton ?? this.skeleton,
+      skeletonShimmerGlow: skeletonShimmerGlow ?? this.skeletonShimmerGlow,
     );
   }
 
@@ -227,6 +249,8 @@ class QuiColors {
       ghost: Color.lerp(a.ghost, b.ghost, t)!,
       shimmerTextBase: Color.lerp(a.shimmerTextBase, b.shimmerTextBase, t)!,
       shimmerTextGlow: Color.lerp(a.shimmerTextGlow, b.shimmerTextGlow, t)!,
+      skeleton: Color.lerp(a.skeleton, b.skeleton, t)!,
+      skeletonShimmerGlow: Color.lerp(a.skeletonShimmerGlow, b.skeletonShimmerGlow, t)!,
     );
   }
 }
@@ -251,5 +275,7 @@ class _LightQuiColors extends QuiColors {
         ghost: const Color(0xFFCDCDCD),
         shimmerTextBase: const Color(0xFFB3B3B3),
         shimmerTextGlow: const Color(0xFFE0E0E0),
+        skeleton: const Color(0xFFEFEFEF),
+        skeletonShimmerGlow: const Color(0xFFFAFAFA),
       );
 }

@@ -2,6 +2,7 @@
 library;
 
 export 'src/extensions/image_extension.dart' show ImageExtension;
+export 'src/extensions/widget_extension.dart' show WidgetExtension;
 export 'src/icons/qui_icons.dart' show QuiIcons;
 export 'src/lottie/qui_lottie.dart' show QuiLottie;
 export 'src/theme/map_style/qui_map_style.dart' show QuiMapLibreStyle;
@@ -44,6 +45,7 @@ export 'src/widgets/qui_pulse/qui_pulse.dart' show QuiPulse, QuiPulseStep;
 export 'src/widgets/qui_search_bar_button.dart' show QuiSearchBarButton;
 export 'src/widgets/qui_secondary_button.dart'
     show QuiSecondaryButton, QuiSecondaryButtonFit, QuiSecondaryButtonIconBuilder, QuiSecondaryButtonIconState;
+export 'src/widgets/qui_skeleton/qui_skeleton.dart' show QuiSkeleton;
 export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
     show
         QuiSwipeDeck,

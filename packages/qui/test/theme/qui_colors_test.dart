@@ -23,6 +23,8 @@ const _lerpA = QuiColors(
   ghost: Color(0xFFCDCDCD),
   shimmerTextBase: Color(0xFFB3B3B3),
   shimmerTextGlow: Color(0xFFE0E0E0),
+  skeleton: Color(0xFFEFEFEF),
+  skeletonShimmerGlow: Color(0xFFFAFAFA),
 );
 
 const _lerpB = QuiColors(
@@ -44,6 +46,8 @@ const _lerpB = QuiColors(
   ghost: Color(0xFF000000),
   shimmerTextBase: Color(0xFF000000),
   shimmerTextGlow: Color(0xFF000000),
+  skeleton: Color(0xFF000000),
+  skeletonShimmerGlow: Color(0xFF000000),
 );
 
 void main() {
@@ -112,6 +116,14 @@ void main() {
       expect(_lightColors.shimmerTextGlow, equals(const Color(0xFFE0E0E0)));
     });
 
+    test('when light colors are created, it should set skeleton to light gray', () {
+      expect(_lightColors.skeleton, equals(const Color(0xFFEFEFEF)));
+    });
+
+    test('when light colors are created, it should set skeletonShimmerGlow to very light gray', () {
+      expect(_lightColors.skeletonShimmerGlow, equals(const Color(0xFFFAFAFA)));
+    });
+
     test('light() sets money to green', () {
       expect(_lightColors.money, equals(const Color(0xFF00DD55)));
     });
@@ -143,6 +155,8 @@ void main() {
         ghost: Color(0xFFCDCDCD),
         shimmerTextBase: Color(0xFFB3B3B3),
         shimmerTextGlow: Color(0xFFE0E0E0),
+        skeleton: Color(0xFFEFEFEF),
+        skeletonShimmerGlow: Color(0xFFFAFAFA),
       );
 
       expect(colors, isA<QuiColors>());
@@ -254,6 +268,20 @@ void main() {
       final result = _lightColors.copyWith(money: custom);
 
       expect(result.money, equals(custom));
+    });
+
+    test('when copyWith receives skeleton, it should replace skeleton', () {
+      const custom = Color(0xFFCCCCCC);
+      final result = _lightColors.copyWith(skeleton: custom);
+
+      expect(result.skeleton, equals(custom));
+    });
+
+    test('when copyWith receives skeletonShimmerGlow, it should replace skeletonShimmerGlow', () {
+      const custom = Color(0xFFFFFFFF);
+      final result = _lightColors.copyWith(skeletonShimmerGlow: custom);
+
+      expect(result.skeletonShimmerGlow, equals(custom));
     });
 
     // ----------------------------------------------------------------
@@ -374,6 +402,18 @@ void main() {
       expect(result.money, equals(Color.lerp(_lerpA.money, _lerpB.money, 0.5)));
     });
 
+    test('when lerping at t=0.5, it should interpolate skeleton', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(result.skeleton, equals(Color.lerp(_lerpA.skeleton, _lerpB.skeleton, 0.5)));
+    });
+
+    test('when lerping at t=0.5, it should interpolate skeletonShimmerGlow', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(result.skeletonShimmerGlow, equals(Color.lerp(_lerpA.skeletonShimmerGlow, _lerpB.skeletonShimmerGlow, 0.5)));
+    });
+
     // ----------------------------------------------------------------
     // Equality & hashCode
     // ----------------------------------------------------------------
@@ -423,6 +463,34 @@ void main() {
     test('when borderOnBackground differs, it should have a distinct hash code', () {
       const a = _lightColors;
       final b = _lightColors.copyWith(borderOnBackground: const Color(0xFF000000));
+
+      expect(a.hashCode, isNot(equals(b.hashCode)));
+    });
+
+    test('when skeleton differs, it should return false for equality', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(skeleton: const Color(0xFF000000));
+
+      expect(a == b, isFalse);
+    });
+
+    test('when skeletonShimmerGlow differs, it should return false for equality', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(skeletonShimmerGlow: const Color(0xFF000000));
+
+      expect(a == b, isFalse);
+    });
+
+    test('when skeleton differs, it should have a distinct hash code', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(skeleton: const Color(0xFF000000));
+
+      expect(a.hashCode, isNot(equals(b.hashCode)));
+    });
+
+    test('when skeletonShimmerGlow differs, it should have a distinct hash code', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(skeletonShimmerGlow: const Color(0xFF000000));
 
       expect(a.hashCode, isNot(equals(b.hashCode)));
     });

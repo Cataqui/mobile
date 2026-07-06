@@ -116,6 +116,13 @@ Pure utility functions (formatting, measurement, computation) must live as
 `static` methods on the class that owns the domain they serve — typically the
 widget or model that produces or consumes the data.
 
+- **Do not mark a helper `static` if its only caller is an instance method.**
+  A function should only be `static` when it is called from multiple contexts
+  or has no logical tie to instance state.  If an instance method is the sole
+  caller, make it an instance private method instead — this keeps the calling
+  convention consistent and avoids the `static` keyword as a ceremonial
+  ceremony that adds no value.
+
 ### Constants Local to Widgets
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
@@ -139,9 +146,11 @@ Every class must follow a consistent top-to-bottom method ordering so that relat
 
 1. **Static public members** — `static` fields and methods usable by external callers.
 2. **Static private members** — `static` helpers scoped to the class.
-3. **Instance public methods** — public instance methods (including getters and setters) that do not override a superclass member.
-4. **Instance private methods** — private instance methods (including getters and setters) that do not override a superclass member.
-5. **Overrides** — `@override` methods (lifecycle, operator overloads, interface implementations).
+3. **Instance public fields** — `final`/`var` public fields and variables.
+4. **Instance private fields** — `final`/`var` private fields and variables.
+5. **Instance public methods** — public instance methods (including getters and setters) that do not override a superclass member.
+6. **Instance private methods** — private instance methods (including getters and setters) that do not override a superclass member.
+7. **Overrides** — `@override` methods (lifecycle, operator overloads, interface implementations).
 
 #### Widget Classes (StatefulWidget + State, StatelessWidget, ConsumerWidget, etc.)
 
