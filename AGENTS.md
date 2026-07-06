@@ -130,13 +130,62 @@ widget or model that produces or consumes the data.
 
 - **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility `ConsumerWidget` or `HookConsumerWidget` components.
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
-- **Widget Method Ordering:** In Flutter widget classes, place helper methods that do not return widgets above `build`. Helper methods that return widgets must stay below `build`.
+
+### Method Ordering Within Classes
+
+Every class must follow a consistent top-to-bottom method ordering so that related concerns are easy to find.
+
+#### General Classes (Non-Widgets)
+
+1. **Static public members** — `static` fields and methods usable by external callers.
+2. **Static private members** — `static` helpers scoped to the class.
+3. **Instance public methods** — public instance methods (including getters and setters) that do not override a superclass member.
+4. **Instance private methods** — private instance methods (including getters and setters) that do not override a superclass member.
+5. **Overrides** — `@override` methods (lifecycle, operator overloads, interface implementations).
+
+#### Widget Classes (StatefulWidget + State, StatelessWidget, ConsumerWidget, etc.)
+
+1. **Static public members** — `static const` fields, `static` methods (including those returning Widget).
+2. **Static private members** — `static const` private fields, `static` methods (including those returning Widget).
+3. **Instance public fields** — `final`/`var` public fields (rare in widgets).
+4. **Constructor** — the widget's constructor.
+5. **Overrides** — `@override` methods in this exact order:
+   - `createState()` (StatefulWidget only)
+   - `didChangeDependencies()` (State only)
+   - `didUpdateWidget()` (State only)
+   - `dispose()` (State only)
+   - `build()` / `build(BuildContext)` (always the last override)
+6. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
+7. **Private helper functions** — `_doSomething()` methods that return non-Widget values.
+8. **Public helper functions** — public instance methods that return non-Widget values (rare).
+
+### Universal Extensions (One Per Type)
+
+Extensions on a given type must live in a single shared file, not in dedicated
+per-feature files. This avoids scattering multiple `extension on X` declarations
+across the codebase and keeps the import surface minimal.
+
+Apply this to every extension type: `WidgetExtension`, `StringExtension`,
+`ColorExtension`, `BuildContextExtension`, and so on.
+
+```dart
+// Good — one extension per type, all methods on that type live together:
+extension WidgetExtension on Widget {
+  Widget skeleton({bool enabled = true, bool shimmer = true}) { ... }
+  Widget fadeIn(...) { ... }
+}
+
+// Avoid — multiple per-feature extensions on the same type:
+extension QuiSkeletonExtension on Widget { Widget skeleton() { ... } }
+extension FadeInExtension on Widget { Widget fadeIn() { ... } }
+```
 
 ### Subdirectory Per File Group
 
 Whenever a set of files is related to a single primary subject (e.g., a widget split into `QuiHeroBox` and `_QuiHeroBoxContent`, or a class with separate `_types`, `_enums`, or `_providers` files), **all related files must be placed under a dedicated subdirectory** named after the primary subject — even if a broader parent folder already exists.
 
 For example, instead of:
+
 ```
 qui_hero/
   qui_hero_box.dart
@@ -144,6 +193,7 @@ qui_hero/
 ```
 
 place files under:
+
 ```
 qui_hero/qui_hero_box/
   qui_hero_box.dart
@@ -340,13 +390,13 @@ descriptions should understand how the app behaves without reading the test body
   actions and the resulting state so a failing test name is immediately
   actionable.
 - **Good:** `when on the last card while loading more, after swiping up to enter
-  the waiting scale then swiping back down to exit, swiping down again navigates
-  to the previous card`
+the waiting scale then swiping back down to exit, swiping down again navigates
+to the previous card`
 - **Bad:** `when exiting await and swiping down again, it should navigate to the
-  previous item instead of re-entering await` (uses internal state terms like
+previous item instead of re-entering await` (uses internal state terms like
   "await" and "re-entering")
 - **Bad:** `when rendering state after exiting from await, it should match the
-  approved goldens` (does not describe what the user sees)
+approved goldens` (does not describe what the user sees)
 - This applies to **all** test types: unit, widget, golden, integration.
 
 ---
