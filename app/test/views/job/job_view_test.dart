@@ -8,7 +8,9 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
@@ -350,6 +352,91 @@ void main() {
       );
       expect(fadeTransition.opacity.value, equals(0));
       await gesture.up();
+    });
+  });
+
+  group('when opened from a deep link without a feed job', () {
+    testWidgets('when loading, it should not show the title', (tester) async {
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.loadingState(),
+      );
+
+      expect(find.text(JobViewTestHelpers.feedJob().title), findsNothing);
+    });
+
+    testWidgets('when loaded, it should show the job title from the fetched data', (tester) async {
+      const title = 'Carregar caminhão';
+
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.loadedState(job: JobViewTestHelpers.job(title: title)),
+      );
+
+      expect(find.text(title), findsOneWidget);
+    });
+
+    testWidgets('when loaded, it should show the payment from the fetched data', (tester) async {
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.loadedState(),
+      );
+
+      expect(find.textContaining(r'R$150'), findsOneWidget);
+    });
+
+    testWidgets('when loaded with a job posted 20 hours ago, it should show the time-ago from the fetched data', (
+      tester,
+    ) async {
+      final fixedNow = DateTime(2026, 6, 30, 11);
+      final createdAt = fixedNow.subtract(const Duration(hours: 20));
+
+      await withClock(Clock(() => fixedNow), () async {
+        await JobViewTestHelpers.pumpJobView(
+          tester: tester,
+          feedJob: null,
+          jobId: 'job_deep_link',
+          jobState: JobViewTestHelpers.loadedState(job: JobViewTestHelpers.job(createdAt: createdAt)),
+        );
+      });
+
+      expect(find.text(i18n.feedJob.timeAgo.hours(count: 20)), findsOneWidget);
+    });
+
+    testWidgets('when the full job fails, it should show the retry button', (tester) async {
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.errorState(),
+      );
+
+      expect(find.text(i18n.feed.error.retryButtonTitle), findsOneWidget);
+    });
+
+    testWidgets('when the full job fails and retry is tapped, it should retry loading the full job', (tester) async {
+      var retryCount = 0;
+
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.errorState(
+          retryResult: () async {
+            retryCount += 1;
+          },
+        ),
+      );
+      await tester.tap(find.text(i18n.feed.error.retryButtonTitle));
+      await tester.pump();
+
+      expect(retryCount, equals(1));
     });
   });
 }

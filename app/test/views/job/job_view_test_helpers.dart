@@ -68,10 +68,11 @@ class JobViewTestHelpers {
     );
   }
 
-  static JobDto job({String jobId = 'job_123', String? description}) {
+  static JobDto job({String jobId = 'job_123', String? title, String? description, DateTime? createdAt}) {
     return JobDto.fixture().copyWith(
       jobId: jobId,
-      title: 'Unload a truck',
+      title: title ?? 'Unload a truck',
+      createdAt: createdAt ?? JobDto.fixture().createdAt,
       description:
           description ??
           'Precisamos de uma pessoa para descarregar um caminhão pequeno no centro. O trabalho deve durar algumas horas e o pagamento será feito no fim do dia.',
@@ -103,7 +104,8 @@ class JobViewTestHelpers {
     );
   }
 
-  static Widget buildApp({required FeedJobDto feedJob, required FakeJobState jobState, bool disableAnimations = true}) {
+  static Widget buildApp({required FakeJobState jobState, String? jobId, FeedJobDto? feedJob, bool disableAnimations = true}) {
+    final resolvedJobId = jobId ?? feedJob!.jobId;
     final mediaQueryData = const MediaQueryData(
       size: Size(390, 844),
       devicePixelRatio: 3,
@@ -111,12 +113,15 @@ class JobViewTestHelpers {
     ).copyWith(disableAnimations: disableAnimations);
 
     return ProviderScope(
-      overrides: [jobStateProvider(feedJob.jobId).overrideWith(() => jobState)],
+      overrides: [
+        jobStateProvider(resolvedJobId).overrideWith(() => jobState),
+        quiLottieProvider.overrideWithValue(QuiLottie(animate: false)),
+      ],
       child: MaterialApp(
         theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
         home: MediaQuery(
           data: mediaQueryData,
-          child: JobView(feedJob: feedJob),
+          child: JobView(jobId: resolvedJobId, feedJob: feedJob),
         ),
       ),
     );
@@ -139,6 +144,7 @@ class JobViewTestHelpers {
         goRouterProvider.overrideWithValue(goRouter),
         feedStateProvider.overrideWith(feedState),
         jobRepositoryProvider.overrideWithValue(jobRepository),
+        quiLottieProvider.overrideWithValue(QuiLottie(animate: false)),
       ],
       child: MaterialApp.router(
         theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
@@ -152,11 +158,13 @@ class JobViewTestHelpers {
 
   static Future<void> pumpJobView({
     required WidgetTester tester,
-    required FeedJobDto feedJob,
     required FakeJobState jobState,
+    FeedJobDto? feedJob,
+    String? jobId,
     bool disableAnimations = true,
   }) async {
-    await tester.pumpWidget(buildApp(feedJob: feedJob, jobState: jobState, disableAnimations: disableAnimations));
+    final resolvedJobId = jobId ?? feedJob!.jobId;
+    await tester.pumpWidget(buildApp(jobId: resolvedJobId, feedJob: feedJob, jobState: jobState, disableAnimations: disableAnimations));
     await tester.pump();
   }
 

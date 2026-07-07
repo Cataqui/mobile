@@ -65,6 +65,45 @@ void main() {
     );
 
     goldenTest(
+      'when deep-linked and loading, it should show header skeletons and description skeleton',
+      fileName: 'job_view_deep_link_loading',
+      builder: () => withClock(
+        JobViewGoldenTestHelpers.fixedClock(),
+        () => JobViewGoldenTestHelpers.scenario(
+          feedJob: null,
+          jobId: 'job_deep_link',
+          jobState: JobViewTestHelpers.loadingState(),
+        ),
+      ),
+    );
+
+    goldenTest(
+      'when deep-linked and loaded, it should show the fetched header and description',
+      fileName: 'job_view_deep_link_loaded',
+      builder: () => withClock(
+        JobViewGoldenTestHelpers.fixedClock(),
+        () => JobViewGoldenTestHelpers.scenario(
+          feedJob: null,
+          jobId: 'job_deep_link',
+          jobState: JobViewTestHelpers.loadedState(),
+        ),
+      ),
+    );
+
+    goldenTest(
+      'when deep-linked and error, it should show header skeletons and retry action',
+      fileName: 'job_view_deep_link_error',
+      builder: () => withClock(
+        JobViewGoldenTestHelpers.fixedClock(),
+        () => JobViewGoldenTestHelpers.scenario(
+          feedJob: null,
+          jobId: 'job_deep_link',
+          jobState: JobViewTestHelpers.errorState(),
+        ),
+      ),
+    );
+
+    goldenTest(
       'when dragging down from the top, it should show the card shrinking back toward the feed',
       fileName: 'job_view_mid_drag_close',
       builder: () => withClock(JobViewGoldenTestHelpers.fixedClock(), JobViewGoldenTestHelpers.routedScenario),
@@ -81,13 +120,14 @@ class JobViewGoldenTestHelpers {
     return Clock(() => DateTime(2026, 6, 30, 11));
   }
 
-  static Widget scenario({required FeedJobDto feedJob, required FakeJobState jobState}) {
+  static Widget scenario({FeedJobDto? feedJob, String? jobId, required FakeJobState jobState}) {
+    final resolvedJobId = jobId ?? feedJob!.jobId;
     return SizedBox(
       width: 390,
       height: 844,
       child: TickerMode(
         enabled: false,
-        child: JobViewTestHelpers.buildApp(feedJob: feedJob, jobState: jobState),
+        child: JobViewTestHelpers.buildApp(jobId: resolvedJobId, feedJob: feedJob, jobState: jobState),
       ),
     );
   }

@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 class FeedJobCard extends ConsumerWidget {
@@ -18,7 +18,6 @@ class FeedJobCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.qui.colors;
     final i18n = ref.watch(translationProvider);
-    final now = clock.now();
 
     return QuiTapAnimation(
       animation: QuiTapAnimationType.scale,
@@ -37,7 +36,14 @@ class FeedJobCard extends ConsumerWidget {
               tag: 'job-${feedJob.jobId}-header',
               heroes: [
                 QuiHeroText(
-                  feedJob.formatCreatedAtAgo(i18n, now: now),
+                  feedJob.createdAt.timeAgo(
+                    onNow: () => i18n.feedJob.timeAgo.now,
+                    onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                    onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                    onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                    onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                    fallback: OmfTimeAgoFallback.finer,
+                  ),
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.placeholder),
                   padding: const EdgeInsets.only(bottom: 6),
                 ),

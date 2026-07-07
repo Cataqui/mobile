@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
+import 'package:qui/qui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
@@ -66,3 +67,7 @@ GoRouter goRouter(Ref ref) {
 JobRepository jobRepository(Ref ref) {
   return JobRepository(dio: ref.watch(cataquiDioProvider));
 }
+
+final quiLottieProvider = Provider<QuiLottie>((ref) {
+  return QuiLottie(animate: true);
+});

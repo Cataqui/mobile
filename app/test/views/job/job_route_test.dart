@@ -28,11 +28,25 @@ class JobRouteTestHelpers {
     FeedViewTestHelpers.mockHapticFeedback(tester);
     FeedViewTestHelpers.mockPlatformViews(tester);
     FeedViewTestHelpers.mockMapChannels();
+    final jobRepository = MockJobRepository();
+    when(
+      () => jobRepository.getJob(
+        jobId: any(named: 'jobId'),
+        locale: any(named: 'locale'),
+      ),
+    ).thenAnswer(
+      (_) async => ApiEnvelopeDto<JobDto>(
+        data: JobViewTestHelpers.job(),
+        requestId: 'test-request-id',
+        timestamp: DateTime(2026, 6, 30),
+        endpoint: '/job/$jobId',
+      ),
+    );
     await tester.pumpWidget(
       JobViewTestHelpers.buildRoutedApp(
         goRouter: goRouter(initialLocation: '/job/$jobId'),
         feedState: () => FakeFeedState(buildResult: () => const FeedData(jobs: [], hasMore: false)),
-        jobRepository: MockJobRepository(),
+        jobRepository: jobRepository,
       ),
     );
     await tester.pump();
@@ -152,21 +166,32 @@ void main() {
   });
 
   group('when deep-linking to /job/:jobId without an extra', () {
-    testWidgets('when deep-linking to /job/:jobId with no extra, it should render the FeedView', (tester) async {
+    testWidgets('when deep-linking to /job/:jobId with no extra, it should render the JobView', (tester) async {
       await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
-      expect(find.byType(FeedView), findsOneWidget);
-    });
-
-    testWidgets('when deep-linking to /job/:jobId with no extra, it should not render the JobView', (tester) async {
-      await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
-      expect(find.byType(JobView), findsNothing);
+      expect(find.byType(JobView), findsOneWidget);
     });
 
     testWidgets(
-      'when deep-linking to /job/:jobId with no extra, it should mount the FeedView under a NoTransitionPage',
+      'when deep-linking to /job/:jobId with no extra, it should set the correct jobId on the JobView',
       (tester) async {
         await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
-        final settings = ModalRoute.of(tester.element(find.byType(FeedView)))!.settings;
+        expect(tester.widget<JobView>(find.byType(JobView)).jobId, 'abc');
+      },
+    );
+
+    testWidgets(
+      'when deep-linking to /job/:jobId with no extra, it should set feedJob to null on the JobView',
+      (tester) async {
+        await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
+        expect(tester.widget<JobView>(find.byType(JobView)).feedJob, isNull);
+      },
+    );
+
+    testWidgets(
+      'when deep-linking to /job/:jobId with no extra, it should mount the JobView under a NoTransitionPage',
+      (tester) async {
+        await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
+        final settings = ModalRoute.of(tester.element(find.byType(JobView)))!.settings;
         expect(settings, isA<NoTransitionPage<void>>());
       },
     );

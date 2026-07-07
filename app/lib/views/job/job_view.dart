@@ -5,7 +5,6 @@ import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,9 +12,10 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 class JobView extends ConsumerStatefulWidget {
-  const JobView({required this.feedJob, super.key});
+  const JobView({required this.jobId, this.feedJob, super.key});
 
-  final FeedJobDto feedJob;
+  final String jobId;
+  final FeedJobDto? feedJob;
 
   @override
   ConsumerState<JobView> createState() => _JobViewState();
@@ -43,7 +43,9 @@ class _JobViewState extends ConsumerState<JobView> {
     if (_hasInitiatedAppear) return;
     _hasInitiatedAppear = true;
 
-    if (MediaQuery.disableAnimationsOf(context)) {
+    final isHeroRoute = QuiHeroPageRoute.maybeOf(context) != null;
+
+    if (!isHeroRoute || MediaQuery.disableAnimationsOf(context)) {
       _backButtonAppearController.appear();
       _descriptionAppearController.appear();
     } else {
@@ -75,15 +77,16 @@ class _JobViewState extends ConsumerState<JobView> {
   Widget build(BuildContext context) {
     final colors = context.qui.colors;
     final i18n = ref.watch(translationProvider);
-    final jobState = ref.watch(jobStateProvider(widget.feedJob.jobId));
+    final jobState = ref.watch(jobStateProvider(widget.jobId));
     final jobData = jobState.asData?.value;
+    final feedJob = widget.feedJob;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           QuiHeroBackground(
-            tag: 'job-${widget.feedJob.jobId}-surface',
+            tag: 'job-${widget.jobId}-surface',
             decoration: BoxDecoration(color: colors.background, borderRadius: BorderRadius.circular(50)),
             edgeFade: QuiHeroEdgeFade(bottom: QuiEdgeFadeStyle(color: colors.background)),
             onStart: () {
@@ -114,59 +117,102 @@ class _JobViewState extends ConsumerState<JobView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          QuiHeroGroup(
-                            tag: 'job-${widget.feedJob.jobId}-header',
-                            onEnd: HapticFeedback.lightImpact,
-                            heroes: [
-                              QuiHeroText(
-                                widget.feedJob.formatCreatedAtAgo(i18n, now: clock.now()),
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colors.placeholder),
-                                padding: const EdgeInsets.only(bottom: 6),
-                              ),
-                              QuiHeroText(
-                                widget.feedJob.title,
-                                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w600, color: colors.textPrimary),
-                              ),
-                              QuiHeroText(
-                                widget.feedJob.payment.formatPayment(i18n),
-                                style: TextStyle(fontSize: 30, color: colors.money, fontWeight: FontWeight.w600),
-                                padding: const EdgeInsets.only(bottom: 8),
-                              ),
-                              if (jobData != null)
+                          if (feedJob != null || jobData != null) ...[
+                            QuiHeroGroup(
+                              tag: 'job-${widget.jobId}-header',
+                              onEnd: HapticFeedback.lightImpact,
+                              heroes: [
                                 QuiHeroText(
-                                  jobData.job.description,
-                                  switchThreshold: 0.97,
+                                  (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
+                                    onNow: () => i18n.feedJob.timeAgo.now,
+                                    onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                                    onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                                    onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                                    onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                                    fallback: OmfTimeAgoFallback.finer,
+                                  ),
                                   style: TextStyle(
-                                    fontSize: 18,
-                                    color: colors.textSecondary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: colors.placeholder,
+                                  ),
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                ),
+                                QuiHeroText(
+                                  feedJob?.title ?? jobData!.job.title,
+                                  style: TextStyle(
+                                    fontSize: 34,
                                     fontWeight: FontWeight.w600,
+                                    color: colors.textPrimary,
                                   ),
                                 ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          jobState.when(
-                            data: (_) => const SizedBox.shrink(),
-                            error: (error, _) => QuiAppear(
-                              controller: _descriptionAppearController,
-                              destroyDuration: Duration.zero,
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 40),
-                                child: _buildError(context, i18n, error),
-                              ),
+                                QuiHeroText(
+                                  (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
+                                  style: TextStyle(fontSize: 30, color: colors.money, fontWeight: FontWeight.w600),
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                ),
+                                if (jobData != null)
+                                  QuiHeroText(
+                                    jobData.job.description,
+                                    switchThreshold: 0.97,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: colors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                              ],
                             ),
-                            loading: () => QuiAppear(
-                              controller: _descriptionAppearController,
-                              destroyDuration: Duration.zero,
-                              child: QuiSkeleton(
-                                style: const QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()),
-                                child: Text(
-                                  JobDto.fixture().description,
-                                  style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w600),
+                            const SizedBox(height: 20),
+                            if (feedJob != null)
+                              jobState.when(
+                                data: (_) => const SizedBox.shrink(),
+                                error: (error, _) => QuiAppear(
+                                  controller: _descriptionAppearController,
+                                  destroyDuration: Duration.zero,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 40),
+                                    child: _buildError(context, i18n, error),
+                                  ),
+                                ),
+                                loading: () => QuiAppear(
+                                  controller: _descriptionAppearController,
+                                  destroyDuration: Duration.zero,
+                                  child: QuiSkeleton(
+                                    style: const QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()),
+                                    child: Text(
+                                      JobDto.fixture().description,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
+                          ] else ...[
+                            jobState.when(
+                              loading: () => SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.7,
+                                child: Center(
+                                  child: QuiDotMatrix(
+                                    width: 60,
+                                    height: 60,
+                                    radius: 30,
+                                    dotSize: 6,
+                                    duration: const Duration(seconds: 1),
+                                    colors: [context.qui.colors.primary],
+                                  ),
+                                ),
+                              ),
+                              error: (error, _) => SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.6,
+                                child: _buildError(context, i18n, error),
+                              ),
+                              data: (_) => const SizedBox.shrink(),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -200,7 +246,7 @@ class _JobViewState extends ConsumerState<JobView> {
         description: i18n.feed.offline.description,
         retry: (
           label: i18n.feed.offline.retryButtonTitle,
-          onRetry: () => ref.read(jobStateProvider(widget.feedJob.jobId).notifier).retry(),
+          onRetry: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),
         ),
       );
     }
@@ -235,7 +281,7 @@ class _JobViewState extends ConsumerState<JobView> {
               colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
             ),
             leadingIconSpacing: 10,
-            onPressed: () => ref.read(jobStateProvider(widget.feedJob.jobId).notifier).retry(),
+            onPressed: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),
           ),
         ],
       ),
