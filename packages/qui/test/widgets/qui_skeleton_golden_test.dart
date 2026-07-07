@@ -13,24 +13,23 @@ void main() {
         children: [
           GoldenTestScenario(
             name: 'disabled (pass through)',
-            child: const _SkeletonFrame(child: QuiSkeleton(enabled: false, shimmer: false, child: _CardContent())),
+            child: const _SkeletonFrame(child: QuiSkeleton(enabled: false, child: _CardContent())),
           ),
           GoldenTestScenario(
-            name: 'static skeleton (no shimmer)',
-            child: const _SkeletonFrame(child: QuiSkeleton(shimmer: false, child: _CardContent())),
+            name: 'static skeleton (no effect)',
+            child: const _SkeletonFrame(child: QuiSkeleton(child: _CardContent())),
           ),
           GoldenTestScenario(
             name: 'text only skeleton',
             child: const _SkeletonFrame(
               child: QuiSkeleton(
-                shimmer: false,
                 child: Text('Loading text that becomes skeleton bones', style: TextStyle(fontSize: 16)),
               ),
             ),
           ),
           GoldenTestScenario(
             name: 'card with icon',
-            child: const _SkeletonFrame(child: QuiSkeleton(shimmer: false, child: _CardContent())),
+            child: const _SkeletonFrame(child: QuiSkeleton(child: _CardContent())),
           ),
         ],
       ),

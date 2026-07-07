@@ -45,7 +45,8 @@ export 'src/widgets/qui_pulse/qui_pulse.dart' show QuiPulse, QuiPulseStep;
 export 'src/widgets/qui_search_bar_button.dart' show QuiSearchBarButton;
 export 'src/widgets/qui_secondary_button.dart'
     show QuiSecondaryButton, QuiSecondaryButtonFit, QuiSecondaryButtonIconBuilder, QuiSecondaryButtonIconState;
-export 'src/widgets/qui_skeleton/qui_skeleton.dart' show QuiSkeleton;
+export 'src/widgets/qui_skeleton/qui_skeleton.dart'
+    show QuiSkeleton, QuiSkeletonAnimatedEffectBase, QuiSkeletonShimmerEffect, QuiSkeletonStaticEffectBase;
 export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
     show
         QuiSwipeDeck,

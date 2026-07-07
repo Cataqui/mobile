@@ -24,14 +24,18 @@ void main() {
       expect(find.text('Hello'), findsOneWidget);
     });
 
-    testWidgets('when shimmer is false, it should not create an animation controller', (tester) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
+    testWidgets('when effect is null, it should not create an animation controller', (tester) async {
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
 
       expect(find.text('Hello'), findsOneWidget);
     });
 
-    testWidgets('when enabled and shimmer are true, it should create an animation controller', (tester) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: true, child: Text('Hello'))));
+    testWidgets('when effect is a QuiSkeletonShimmerEffect, it should create an animation controller', (tester) async {
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+        ),
+      );
 
       expect(find.text('Hello'), findsOneWidget);
     });
@@ -42,7 +46,9 @@ void main() {
           theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
           home: const MediaQuery(
             data: MediaQueryData(disableAnimations: true),
-            child: Scaffold(body: QuiSkeleton(child: Text('Hello'))),
+            child: Scaffold(
+              body: QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+            ),
           ),
         ),
       );
@@ -52,82 +58,100 @@ void main() {
     });
 
     testWidgets('when skeletonizing a child, it should isolate repaint work inside a render boundary', (tester) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
 
       final renderObject = _findSkeletonRenderObject(tester);
 
       expect(renderObject.isRepaintBoundary, isTrue);
     });
 
-    testWidgets('when skeletonizing a child, the render object should require compositing for shimmer', (tester) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
+    testWidgets('when skeletonizing a child, the render object should require compositing', (tester) async {
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
 
       final renderObject = _findSkeletonRenderObject(tester);
 
       expect(renderObject.alwaysNeedsCompositing, isTrue);
     });
 
-    testWidgets('when the widget rebuilds with shimmer toggled, it should update the render object', (tester) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: true, child: Text('Hello'))));
+    testWidgets('when the widget rebuilds with effect toggled, it should update the render object', (tester) async {
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+        ),
+      );
       final renderObject = _findSkeletonRenderObject(tester) as dynamic;
-      expect(renderObject.shimmer, isTrue);
+      expect(renderObject.effect, isA<QuiSkeletonShimmerEffect>());
 
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
-      expect(renderObject.shimmer, isFalse);
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
+      expect(renderObject.effect, isNull);
     });
 
-    testWidgets('when the widget rebuilds with shimmer toggled off then on, the render object persists', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: true, child: Text('Hello'))));
+    testWidgets('when the widget rebuilds with effect toggled off then on, the render object persists', (tester) async {
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+        ),
+      );
       final renderObject = _findSkeletonRenderObject(tester) as dynamic;
-      expect(renderObject.shimmer, isTrue);
+      expect(renderObject.effect, isA<QuiSkeletonShimmerEffect>());
 
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
-      expect(renderObject.shimmer, isFalse);
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
+      expect(renderObject.effect, isNull);
 
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: true, child: Text('Hello'))));
-      expect(renderObject.shimmer, isTrue);
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+        ),
+      );
+      expect(renderObject.effect, isA<QuiSkeletonShimmerEffect>());
     });
   });
 
   group('_RenderQuiSkeleton getter/setter', () {
-    testWidgets('when the render object is created with shimmer disabled, it should return correct defaults', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
+    testWidgets('when the render object is created with no effect, it should return correct defaults', (tester) async {
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
       final ro = _findSkeletonRenderObject(tester) as dynamic;
 
-      expect(ro.skeletonColor, isNot(isNull));
-      expect(ro.shimmerGlowColor, isNot(isNull));
-      expect(ro.shimmer, isFalse);
-      expect(ro.shimmerAnimation, isNull);
+      expect(ro.colors.skeleton, isNot(isNull));
+      expect(ro.colors.skeletonShimmerGlow, isNot(isNull));
+      expect(ro.effect, isNull);
+      expect(ro.effectAnimation, isNull);
     });
 
-    testWidgets('when the render object is created with shimmer enabled, it should report shimmer true', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: true, child: Text('Hello'))));
+    testWidgets('when the render object is created with an effect, it should report effect non-null', (tester) async {
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+        ),
+      );
       final ro = _findSkeletonRenderObject(tester) as dynamic;
 
-      expect(ro.shimmer, isTrue);
+      expect(ro.effect, isA<QuiSkeletonShimmerEffect>());
     });
 
-    testWidgets('when didUpdateWidget fires with changed shimmer, it should invoke syncAnimationController', (
+    testWidgets('when didUpdateWidget fires with changed effect, it should invoke syncAnimationController', (
       tester,
     ) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
       final ro = _findSkeletonRenderObject(tester) as dynamic;
-      expect(ro.shimmer, isFalse);
+      expect(ro.effect, isNull);
 
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: true, child: Text('Hello'))));
-      expect(ro.shimmer, isTrue);
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+        ),
+      );
+      expect(ro.effect, isA<QuiSkeletonShimmerEffect>());
     });
 
-    testWidgets('when shimmer toggles via widget rebuild, setter markNeedsPaint should not throw', (tester) async {
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: false, child: Text('Hello'))));
+    testWidgets('when effect toggles via widget rebuild, setter markNeedsPaint should not throw', (tester) async {
+      await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
 
-      await tester.pumpWidget(_app(child: const QuiSkeleton(shimmer: true, child: Text('Hello'))));
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: Text('Hello')),
+        ),
+      );
       await tester.pump();
 
       expect(tester.takeException(), isNull);
@@ -139,7 +163,6 @@ void main() {
       await tester.pumpWidget(
         _app(
           child: const QuiSkeleton(
-            shimmer: false,
             child: Column(
               children: [
                 Text('Header'),
@@ -162,7 +185,7 @@ void main() {
     testWidgets('when skeletonizing Transform widgets, it should render without error', (tester) async {
       await tester.pumpWidget(
         _app(
-          child: QuiSkeleton(shimmer: false, child: Transform.scale(scale: 0.8, child: const Text('Scaled text'))),
+          child: QuiSkeleton(child: Transform.scale(scale: 0.8, child: const Text('Scaled text'))),
         ),
       );
 
@@ -172,7 +195,7 @@ void main() {
     testWidgets('when skeletonizing a CircleAvatar, it should render without error', (tester) async {
       await tester.pumpWidget(
         _app(
-          child: const QuiSkeleton(shimmer: false, child: CircleAvatar(child: Text('AB'))),
+          child: const QuiSkeleton(child: CircleAvatar(child: Text('AB'))),
         ),
       );
 
@@ -182,7 +205,7 @@ void main() {
     testWidgets('when skeletonizing a RotatedBox, it should render without error', (tester) async {
       await tester.pumpWidget(
         _app(
-          child: const QuiSkeleton(shimmer: false, child: RotatedBox(quarterTurns: 1, child: Text('Rotated'))),
+          child: const QuiSkeleton(child: RotatedBox(quarterTurns: 1, child: Text('Rotated'))),
         ),
       );
 
@@ -192,7 +215,7 @@ void main() {
     testWidgets('when skeletonizing an Opacity wrapper, it should render without error', (tester) async {
       await tester.pumpWidget(
         _app(
-          child: const QuiSkeleton(shimmer: false, child: Opacity(opacity: 0.5, child: Text('Faded'))),
+          child: const QuiSkeleton(child: Opacity(opacity: 0.5, child: Text('Faded'))),
         ),
       );
 
@@ -203,7 +226,6 @@ void main() {
       await tester.pumpWidget(
         _app(
           child: const QuiSkeleton(
-            shimmer: false,
             child: ClipPath(
               clipper: _TestClipper(),
               child: ColoredBox(color: Colors.blue, child: SizedBox(width: 100, height: 100)),
@@ -219,7 +241,6 @@ void main() {
       await tester.pumpWidget(
         _app(
           child: const QuiSkeleton(
-            shimmer: false,
             child: OverflowBox(minWidth: 50, maxWidth: 200, minHeight: 50, maxHeight: 200, child: Text('Overflow')),
           ),
         ),
@@ -234,7 +255,6 @@ void main() {
       await tester.pumpWidget(
         _app(
           child: const QuiSkeleton(
-            shimmer: false,
             child: SizedBox(width: 50, height: 50, child: ColoredBox(color: Colors.blue)),
           ),
         ),
@@ -247,7 +267,6 @@ void main() {
       await tester.pumpWidget(
         _app(
           child: const QuiSkeleton(
-            shimmer: false,
             child: SizedBox(
               width: 50,
               height: 50,
@@ -266,7 +285,6 @@ void main() {
       await tester.pumpWidget(
         _app(
           child: const QuiSkeleton(
-            shimmer: false,
             child: SizedBox(
               width: 50,
               height: 50,
@@ -287,7 +305,6 @@ void main() {
       await tester.pumpWidget(
         _app(
           child: const QuiSkeleton(
-            shimmer: false,
             child: Align(
               alignment: Alignment.center,
               child: SizedBox(width: 50, height: 50, child: ColoredBox(color: Colors.green)),
@@ -314,16 +331,18 @@ void main() {
             colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF4A4B)),
             extensions: [QuiThemeData(colors: customColors)],
           ),
-          home: const Scaffold(body: QuiSkeleton(shimmer: false, child: Text('Hello'))),
+          home: const Scaffold(body: QuiSkeleton(child: Text('Hello'))),
         ),
       );
 
       final ro = _findSkeletonRenderObject(tester) as dynamic;
-      expect(ro.skeletonColor, equals(const Color(0xFF111111)));
-      expect(ro.shimmerGlowColor, equals(const Color(0xFF222222)));
+      expect(ro.colors.skeleton, equals(const Color(0xFF111111)));
+      expect(ro.colors.skeletonShimmerGlow, equals(const Color(0xFF222222)));
     });
 
-    testWidgets('when the theme provides custom shimmerGlowColor, the render object should use it', (tester) async {
+    testWidgets('when the theme provides custom skeletonShimmerGlow, the colors object should carry it', (
+      tester,
+    ) async {
       final customColors = const QuiColors.light().copyWith(skeletonShimmerGlow: const Color(0xFF444444));
 
       await tester.pumpWidget(
@@ -333,12 +352,12 @@ void main() {
             colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF4A4B)),
             extensions: [QuiThemeData(colors: customColors)],
           ),
-          home: const Scaffold(body: QuiSkeleton(shimmer: false, child: Text('Hello'))),
+          home: const Scaffold(body: QuiSkeleton(child: Text('Hello'))),
         ),
       );
 
       final ro = _findSkeletonRenderObject(tester) as dynamic;
-      expect(ro.shimmerGlowColor, equals(const Color(0xFF444444)));
+      expect(ro.colors.skeletonShimmerGlow, equals(const Color(0xFF444444)));
     });
   });
 

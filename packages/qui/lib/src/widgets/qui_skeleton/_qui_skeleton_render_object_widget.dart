@@ -2,36 +2,28 @@ part of 'qui_skeleton.dart';
 
 class _QuiSkeletonRenderObjectWidget extends SingleChildRenderObjectWidget {
   const _QuiSkeletonRenderObjectWidget({
-    required this.skeletonColor,
-    required this.shimmerGlowColor,
-    required this.shimmerAnimation,
-    required this.shimmer,
+    required this.colors,
+    required this.effect,
+    required this.effectAnimation,
     required super.child,
   });
 
-  final Color skeletonColor;
-  final Color shimmerGlowColor;
-  final Animation<double>? shimmerAnimation;
-  final bool shimmer;
+  final QuiColors colors;
+  final QuiSkeletonEffect? effect;
+  final Animation<double>? effectAnimation;
 
   @override
   _RenderQuiSkeleton createRenderObject(BuildContext context) {
-    return _RenderQuiSkeleton(
-      skeletonColor: skeletonColor,
-      shimmerGlowColor: shimmerGlowColor,
-      shimmerAnimation: shimmerAnimation,
-      shimmer: shimmer,
-    );
+    return _RenderQuiSkeleton(colors: colors, effect: effect, effectAnimation: effectAnimation);
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderObject renderObject) {
     if (renderObject is _RenderQuiSkeleton) {
       renderObject
-        ..skeletonColor = skeletonColor
-        ..shimmerGlowColor = shimmerGlowColor
-        ..shimmerAnimation = shimmerAnimation
-        ..shimmer = shimmer;
+        ..colors = colors
+        ..effect = effect
+        ..effectAnimation = effectAnimation;
     }
   }
 }

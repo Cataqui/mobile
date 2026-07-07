@@ -159,6 +159,7 @@ class _JobViewState extends ConsumerState<JobView> {
                               controller: _descriptionAppearController,
                               destroyDuration: Duration.zero,
                               child: QuiSkeleton(
+                                effect: const QuiSkeletonShimmerEffect(),
                                 child: Text(
                                   JobDto.fixture().description,
                                   style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w600),

@@ -1,68 +1,42 @@
 part of 'qui_skeleton.dart';
 
 class _RenderQuiSkeleton extends RenderProxyBox {
-  _RenderQuiSkeleton({
-    required Color skeletonColor,
-    required Color shimmerGlowColor,
-    required this._shimmerAnimation,
-    required this._shimmer,
-  }) : _skeletonColor = skeletonColor,
-       _shimmerGlowColor = shimmerGlowColor,
-       _shimmerColors = <Color>[skeletonColor, shimmerGlowColor, skeletonColor] {
-    _solidSkeletonPaint.color = skeletonColor;
+  _RenderQuiSkeleton({required QuiColors colors, required this._effect, required this._effectAnimation})
+    : _colors = colors {
+    _solidSkeletonPaint.color = colors.skeleton;
   }
-
-  static const _shimmerStops = <double>[0.1, 0.3, 0.4];
 
   final Paint _solidSkeletonPaint = Paint();
-  final Paint _shimmerSkeletonPaint = Paint()..color = const Color(0xFFFFFFFF);
-  final List<Color> _shimmerColors;
   final _QuiSkeletonLeafRegistry _leafRegistry = _QuiSkeletonLeafRegistry();
 
-  Color _skeletonColor;
-  Color _shimmerGlowColor;
-  Animation<double>? _shimmerAnimation;
-  bool _shimmer;
+  QuiColors _colors;
+  QuiSkeletonEffect? _effect;
+  Animation<double>? _effectAnimation;
 
-  Color get skeletonColor => _skeletonColor;
-  Color get shimmerGlowColor => _shimmerGlowColor;
-  Animation<double>? get shimmerAnimation => _shimmerAnimation;
-  bool get shimmer => _shimmer;
+  QuiColors get colors => _colors;
+  QuiSkeletonEffect? get effect => _effect;
+  Animation<double>? get effectAnimation => _effectAnimation;
 
-  set skeletonColor(Color value) {
-    if (value == _skeletonColor) return;
-
-    _skeletonColor = value;
-    _shimmerColors[0] = value;
-    _shimmerColors[2] = value;
-    _solidSkeletonPaint.color = value;
-
+  set colors(QuiColors value) {
+    if (value == _colors) return;
+    _colors = value;
+    _solidSkeletonPaint.color = value.skeleton;
     markNeedsPaint();
   }
 
-  set shimmerGlowColor(Color value) {
-    if (value == _shimmerGlowColor) return;
-
-    _shimmerGlowColor = value;
-    _shimmerColors[1] = value;
-
+  set effect(QuiSkeletonEffect? value) {
+    if (identical(value, _effect)) return;
+    if (value != null && value == _effect) return;
+    _effect = value;
     markNeedsPaint();
   }
 
-  set shimmerAnimation(Animation<double>? value) {
-    if (identical(value, _shimmerAnimation)) return;
-
-    _shimmerAnimation?.removeListener(markNeedsPaint);
-    _shimmerAnimation = value;
-    _shimmerAnimation?.addListener(markNeedsPaint);
-
+  set effectAnimation(Animation<double>? value) {
+    if (identical(value, _effectAnimation)) return;
+    _effectAnimation?.removeListener(markNeedsPaint);
+    _effectAnimation = value;
+    _effectAnimation?.addListener(markNeedsPaint);
     if (value != null) markNeedsPaint();
-  }
-
-  set shimmer(bool value) {
-    if (value == _shimmer) return;
-    _shimmer = value;
-    markNeedsPaint();
   }
 
   @override
@@ -74,12 +48,12 @@ class _RenderQuiSkeleton extends RenderProxyBox {
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
-    _shimmerAnimation?.addListener(markNeedsPaint);
+    _effectAnimation?.addListener(markNeedsPaint);
   }
 
   @override
   void detach() {
-    _shimmerAnimation?.removeListener(markNeedsPaint);
+    _effectAnimation?.removeListener(markNeedsPaint);
     super.detach();
   }
 
@@ -96,31 +70,20 @@ class _RenderQuiSkeleton extends RenderProxyBox {
       (layerContext, layerOffset) {
         final skeletonContext = _QuiSkeletonPaintingContext(skeletonLayer, bounds, _leafRegistry, skeletonPaint);
 
-        if (_shimmer) skeletonContext.setWillChangeHint();
+        if (_effect != null && _effectAnimation != null) skeletonContext.setWillChangeHint();
 
         super.paint(skeletonContext, layerOffset);
         skeletonContext.finish();
       },
-
       offset,
       childPaintBounds: bounds,
     );
   }
 
   Paint _buildSkeletonPaint(Rect bounds) {
-    if (!_shimmer) return _solidSkeletonPaint;
+    if (_effect == null) return _solidSkeletonPaint;
 
-    final t = _shimmerAnimation?.value ?? 0.0;
-    final dx = bounds.width * t;
-    final centerY = bounds.center.dy;
-    final shader = ui.Gradient.linear(
-      Offset(bounds.left + dx, centerY),
-      Offset(bounds.right + dx, centerY),
-      _shimmerColors,
-      _shimmerStops,
-      TileMode.clamp,
-    );
-
-    return _shimmerSkeletonPaint..shader = shader;
+    final t = _effectAnimation?.value ?? 0.0;
+    return _effect!.buildPaint(bounds: bounds, t: t, colors: _colors);
   }
 }

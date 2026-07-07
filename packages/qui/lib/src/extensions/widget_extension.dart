@@ -9,14 +9,16 @@ extension WidgetExtension on Widget {
   /// Wraps this widget with [QuiSkeleton] for loading-placeholder display.
   ///
   /// [enabled] controls whether the skeleton effect is active (default
-  /// `true`).  [shimmer] controls whether an animated shimmer sweep plays
-  /// across the skeleton bones (default `true`).
+  /// `true`).  [effect] controls the paint effect on the skeleton bones
+  /// — when `null` (default), bones render as a static solid fill with
+  /// zero per-frame cost.
   ///
   /// ```dart
   /// Text('Hello').skeleton();
+  /// Text('Hello').skeleton(effect: QuiSkeletonShimmerEffect());
   /// CircularProgressIndicator().skeleton(enabled: isLoading);
   /// ```
-  Widget skeleton({bool enabled = true, bool shimmer = true}) {
-    return QuiSkeleton(enabled: enabled, shimmer: shimmer, child: this);
+  Widget skeleton({bool enabled = true, QuiSkeletonEffect? effect}) {
+    return QuiSkeleton(enabled: enabled, effect: effect, child: this);
   }
 }
