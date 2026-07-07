@@ -3,7 +3,12 @@ part of 'package:qui/src/widgets/qui_skeleton/qui_skeleton.dart';
 abstract class QuiSkeletonEffect {
   const QuiSkeletonEffect();
 
-  Paint buildPaint({required Rect bounds, required double t, required QuiColors colors});
+  Paint buildPaint({
+    required Rect bounds,
+    required double t,
+    required QuiColors colors,
+    required QuiSkeletonStyle style,
+  });
 }
 
 /// A skeleton effect that does not require an active animation ticker.
@@ -15,7 +20,7 @@ abstract class QuiSkeletonEffect {
 ///   const MyDimmedEffect();
 ///
 ///   @override
-///   Paint buildPaint({required Rect bounds, required double t, required QuiColors colors}) {
+///   Paint buildPaint({required Rect bounds, required double t, required QuiColors colors, required QuiSkeletonStyle style}) {
 ///     return Paint()..color = colors.skeleton.withValues(alpha: 0.5);
 ///   }
 /// }
@@ -34,6 +39,7 @@ abstract class QuiSkeletonStaticEffectBase extends QuiSkeletonEffect {
     required Rect bounds,
     required double t,
     required QuiColors colors,
+    required QuiSkeletonStyle style,
   });
 }
 
@@ -54,7 +60,7 @@ abstract class QuiSkeletonStaticEffectBase extends QuiSkeletonEffect {
 ///   double get upperBound => math.pi * 2;
 ///
 ///   @override
-///   Paint buildPaint({required Rect bounds, required double t, required QuiColors colors}) {
+///   Paint buildPaint({required Rect bounds, required double t, required QuiColors colors, required QuiSkeletonStyle style}) {
 ///     final alpha = (0.5 + 0.5 * math.sin(t)).clamp(0.0, 1.0);
 ///     return Paint()..color = colors.skeleton.withValues(alpha: alpha);
 ///   }
@@ -78,6 +84,7 @@ abstract class QuiSkeletonAnimatedEffectBase extends QuiSkeletonEffect {
     required Rect bounds,
     required double t,
     required QuiColors colors,
+    required QuiSkeletonStyle style,
   });
 
   /// The duration of one animation cycle.

@@ -8,13 +8,15 @@ part of 'package:qui/src/widgets/qui_skeleton/qui_skeleton.dart';
 ///
 /// ```dart
 /// // Default — horizontal sweep, highlight from theme.
-/// QuiSkeleton(effect: QuiSkeletonShimmerEffect());
+/// QuiSkeleton(style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()));
 ///
 /// // Diagonal sweep with a custom highlight.
 /// QuiSkeleton(
-///   effect: QuiSkeletonShimmerEffect(
-///     color: Color(0xFFFFFFFF),
-///     angle: math.pi / 4,
+///   style: QuiSkeletonStyle(
+///     effect: QuiSkeletonShimmerEffect(
+///       color: Color(0xFFFFFFFF),
+///       angle: math.pi / 4,
+///     ),
 ///   ),
 /// );
 /// ```
@@ -27,9 +29,10 @@ class QuiSkeletonShimmerEffect extends QuiSkeletonAnimatedEffectBase {
   /// Creates a shimmer skeleton effect.
   ///
   /// [color] overrides the theme's `skeletonShimmerGlow` token when non-null.
-  /// This overrides ONLY the highlight — the resting bone color
-  /// ([QuiColors.skeleton]) is always theme-driven and not overridable here.
-  /// [angle] is in radians, where `0.0` sweeps left-to-right horizontally.
+  /// This overrides ONLY the highlight — the resting bone color is driven by
+  /// the resolved [QuiSkeletonStyle.color] (or the theme's `skeleton` token
+  /// when the style's color is null). [angle] is in radians, where `0.0`
+  /// sweeps left-to-right horizontally.
   const QuiSkeletonShimmerEffect({this.color, this.angle = 0.0});
 
   /// The highlight color of the shimmer band.
@@ -48,10 +51,11 @@ class QuiSkeletonShimmerEffect extends QuiSkeletonAnimatedEffectBase {
     required Rect bounds,
     required double t,
     required QuiColors colors,
+    required QuiSkeletonStyle style,
   }) {
-    final skeletonColor = colors.skeleton;
+    final boneColor = style.color ?? colors.skeleton;
     final glow = color ?? colors.skeletonShimmerGlow;
-    final gradientColors = <Color>[skeletonColor, glow, skeletonColor];
+    final gradientColors = <Color>[boneColor, glow, boneColor];
     const stops = <double>[0.1, 0.3, 0.4];
 
     final center = bounds.center;

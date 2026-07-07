@@ -1,7 +1,13 @@
 part of 'qui_skeleton.dart';
 
 class _QuiSkeletonPaintingContext extends PaintingContext {
-  _QuiSkeletonPaintingContext(super.containerLayer, super.estimatedBounds, this._leafRegistry, this._skeletonPaint);
+  _QuiSkeletonPaintingContext(
+    super.containerLayer,
+    super.estimatedBounds,
+    this._leafRegistry,
+    this._skeletonPaint,
+    this._textRadius,
+  );
 
   static bool _isLeaf(RenderObject child) {
     if (child is RenderObjectWithChildMixin<RenderBox>) {
@@ -17,12 +23,18 @@ class _QuiSkeletonPaintingContext extends PaintingContext {
 
   final _QuiSkeletonLeafRegistry _leafRegistry;
   final Paint _skeletonPaint;
+  final Radius? _textRadius;
 
   void finish() => stopRecordingIfNeeded();
 
   @override
   Canvas get canvas {
-    return _QuiSkeletonCanvas(parent: super.canvas, leafRegistry: _leafRegistry, skeletonPaint: _skeletonPaint);
+    return _QuiSkeletonCanvas(
+      parent: super.canvas,
+      leafRegistry: _leafRegistry,
+      skeletonPaint: _skeletonPaint,
+      textRadius: _textRadius,
+    );
   }
 
   @override
@@ -34,6 +46,6 @@ class _QuiSkeletonPaintingContext extends PaintingContext {
 
   @override
   PaintingContext createChildContext(ContainerLayer childLayer, Rect bounds) {
-    return _QuiSkeletonPaintingContext(childLayer, bounds, _leafRegistry, _skeletonPaint);
+    return _QuiSkeletonPaintingContext(childLayer, bounds, _leafRegistry, _skeletonPaint, _textRadius);
   }
 }

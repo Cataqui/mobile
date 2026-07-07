@@ -20,6 +20,7 @@ part '_qui_skeleton_render_object.dart';
 part '_qui_skeleton_render_object_widget.dart';
 part 'effects/qui_skeleton_effect.dart';
 part 'effects/qui_skeleton_shimmer_effect.dart';
+part 'qui_skeleton_style.dart';
 
 /// A QUI skeleton widget that transforms its child tree into gray bone boxes
 /// for loading-placeholder display.
@@ -33,7 +34,7 @@ part 'effects/qui_skeleton_shimmer_effect.dart';
 ///
 /// Rendering is driven at the render-object level — the effect animation
 /// calls `markNeedsPaint` directly on the render object without any
-/// `setState` or widget rebuilds.  When [effect] is `null`, no
+/// `setState` or widget rebuilds.  When [QuiSkeletonStyle.effect] is `null`, no
 /// [AnimationController] is created and the skeleton is rendered as a static
 /// solid fill, adding zero per-frame cost.  Animated effects also fall back
 /// to the static path when [MediaQueryData.disableAnimations] is `true`.
@@ -45,22 +46,23 @@ part 'effects/qui_skeleton_shimmer_effect.dart';
 /// QuiSkeleton(child: myCardWidget);
 ///
 /// // Animated shimmer sweep.
-/// QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: myCardWidget);
+/// QuiSkeleton(style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()), child: myCardWidget);
 ///
 /// // Via the `.skeleton()` widget extension:
 /// myCardWidget.skeleton();
-/// myCardWidget.skeleton(effect: QuiSkeletonShimmerEffect());
+/// myCardWidget.skeleton(style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()));
 /// ```
 ///
 /// See also:
 ///  * [QuiSkeletonStaticEffectBase], the base class for static skeleton effects.
 ///  * [QuiSkeletonAnimatedEffectBase], the base class for animated skeleton effects.
 ///  * [QuiSkeletonShimmerEffect], the built-in animated shimmer sweep effect.
+///  * [QuiSkeletonStyle], the style bundle for customizing skeleton appearance.
 ///  * `WidgetExtension` (`.skeleton()`), the widget extension that wraps any
 ///    widget with [QuiSkeleton].
 class QuiSkeleton extends StatefulWidget {
   /// Creates a QUI skeleton loading placeholder.
-  const QuiSkeleton({required this.child, super.key, this.enabled = true, this.effect});
+  const QuiSkeleton({required this.child, super.key, this.enabled = true, this.style});
 
   /// The widget subtree to skeletonize when [enabled] is `true`.
   final Widget child;
@@ -70,19 +72,12 @@ class QuiSkeleton extends StatefulWidget {
   /// When `false`, the [child] renders normally with zero skeleton overhead.
   final bool enabled;
 
-  /// The paint effect applied to the skeleton bones.
+  /// The visual style applied to the skeleton bones.
   ///
-  /// When `null`, bones render as a static solid fill (zero per-frame cost).
-  /// Pass a [QuiSkeletonShimmerEffect] to animate the bones with a shimmer
-  /// sweep, or create a custom effect by extending
-  /// [QuiSkeletonStaticEffectBase] or [QuiSkeletonAnimatedEffectBase].
-  ///
-  /// The resting bone color is always driven by the theme's `skeleton` token.
-  /// An effect may define its own configurable parameters (like the shimmer
-  /// effect's [QuiSkeletonShimmerEffect.color] and
-  /// [QuiSkeletonShimmerEffect.angle]), but it cannot override the resting
-  /// skeleton color.
-  final QuiSkeletonEffect? effect;
+  /// When `null`, defaults to a [QuiSkeletonStyle] with all-null fields:
+  /// theme-driven resting color, static solid fill (no effect), and pill
+  /// text-line bones.  Pass a [QuiSkeletonStyle] to customize any subset
+  final QuiSkeletonStyle? style;
 
   @override
   State<QuiSkeleton> createState() => _QuiSkeletonState();
@@ -92,18 +87,20 @@ class _QuiSkeletonState extends State<QuiSkeleton> with TickerProviderStateMixin
   AnimationController? _controller;
   bool _disableAnimations = false;
 
-  bool get _shouldAnimate => widget.enabled && widget.effect is QuiSkeletonAnimatedEffectBase && !_disableAnimations;
+  QuiSkeletonStyle get _style => widget.style ?? const QuiSkeletonStyle();
+  QuiSkeletonEffect? get _effect => _style.effect;
+
+  bool get _shouldAnimate => widget.enabled && _effect is QuiSkeletonAnimatedEffectBase && !_disableAnimations;
 
   bool get _effectActive {
-    if (widget.effect == null) return false;
-    if (widget.effect is QuiSkeletonAnimatedEffectBase && _disableAnimations) return false;
+    if (_effect == null) return false;
+    if (_effect is QuiSkeletonAnimatedEffectBase && _disableAnimations) return false;
     return true;
   }
 
   void _syncAnimationController() {
     if (_shouldAnimate) {
-      final effect = widget.effect! as QuiSkeletonAnimatedEffectBase;
-
+      final effect = _effect! as QuiSkeletonAnimatedEffectBase;
       _controller ??= AnimationController(
         vsync: this,
         duration: effect.duration,
@@ -132,7 +129,7 @@ class _QuiSkeletonState extends State<QuiSkeleton> with TickerProviderStateMixin
   @override
   void didUpdateWidget(QuiSkeleton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final effectChanged = !_effectEquals(oldWidget.effect, widget.effect);
+    final effectChanged = !_effectEquals(oldWidget.style?.effect, _effect);
     final enabledChanged = widget.enabled != oldWidget.enabled;
     if (effectChanged || enabledChanged) {
       _syncAnimationController();
@@ -149,10 +146,16 @@ class _QuiSkeletonState extends State<QuiSkeleton> with TickerProviderStateMixin
     if (!widget.enabled) return widget.child;
 
     final colors = Theme.of(context).extension<QuiThemeData>()!.colors;
+    final boneColor = _style.color ?? colors.skeleton;
+
+    final effectiveStyle = _effectActive
+        ? _style
+        : QuiSkeletonStyle(color: _style.color, effect: null, textRadius: _style.textRadius);
 
     return _QuiSkeletonRenderObjectWidget(
       colors: colors,
-      effect: _effectActive ? widget.effect : null,
+      style: effectiveStyle,
+      boneColor: boneColor,
       effectAnimation: _shouldAnimate ? _controller : null,
       child: widget.child,
     );
@@ -176,7 +179,10 @@ Widget quiSkeletonPreview() {
               SizedBox(height: 24),
               SizedBox(
                 width: 340,
-                child: QuiSkeleton(effect: QuiSkeletonShimmerEffect(), child: _PreviewCard()),
+                child: QuiSkeleton(
+                  style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()),
+                  child: _PreviewCard(),
+                ),
               ),
             ],
           ),

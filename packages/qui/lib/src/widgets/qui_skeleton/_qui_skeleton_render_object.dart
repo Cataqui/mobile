@@ -1,33 +1,46 @@
 part of 'qui_skeleton.dart';
 
 class _RenderQuiSkeleton extends RenderProxyBox {
-  _RenderQuiSkeleton({required QuiColors colors, required this._effect, required this._effectAnimation})
-    : _colors = colors {
-    _solidSkeletonPaint.color = colors.skeleton;
+  _RenderQuiSkeleton({
+    required this._colors,
+    required this._style,
+    required this._boneColor,
+    required this._effectAnimation,
+  }) {
+    _solidSkeletonPaint.color = _boneColor;
   }
 
   final Paint _solidSkeletonPaint = Paint();
   final _QuiSkeletonLeafRegistry _leafRegistry = _QuiSkeletonLeafRegistry();
 
   QuiColors _colors;
-  QuiSkeletonEffect? _effect;
+  QuiSkeletonStyle? _style;
+  Color _boneColor;
   Animation<double>? _effectAnimation;
 
   QuiColors get colors => _colors;
-  QuiSkeletonEffect? get effect => _effect;
+  QuiSkeletonStyle? get style => _style;
+  Color get boneColor => _boneColor;
+  QuiSkeletonEffect? get effect => _style?.effect;
+  Radius? get textRadius => _style?.textRadius;
   Animation<double>? get effectAnimation => _effectAnimation;
 
   set colors(QuiColors value) {
     if (value == _colors) return;
     _colors = value;
-    _solidSkeletonPaint.color = value.skeleton;
     markNeedsPaint();
   }
 
-  set effect(QuiSkeletonEffect? value) {
-    if (identical(value, _effect)) return;
-    if (value != null && value == _effect) return;
-    _effect = value;
+  set style(QuiSkeletonStyle? value) {
+    if (value == _style) return;
+    _style = value;
+    markNeedsPaint();
+  }
+
+  set boneColor(Color value) {
+    if (value == _boneColor) return;
+    _boneColor = value;
+    _solidSkeletonPaint.color = value;
     markNeedsPaint();
   }
 
@@ -68,9 +81,15 @@ class _RenderQuiSkeleton extends RenderProxyBox {
     context.pushLayer(
       skeletonLayer,
       (layerContext, layerOffset) {
-        final skeletonContext = _QuiSkeletonPaintingContext(skeletonLayer, bounds, _leafRegistry, skeletonPaint);
+        final skeletonContext = _QuiSkeletonPaintingContext(
+          skeletonLayer,
+          bounds,
+          _leafRegistry,
+          skeletonPaint,
+          _style?.textRadius,
+        );
 
-        if (_effect != null && _effectAnimation != null) skeletonContext.setWillChangeHint();
+        if (_style?.effect != null && _effectAnimation != null) skeletonContext.setWillChangeHint();
 
         super.paint(skeletonContext, layerOffset);
         skeletonContext.finish();
@@ -81,9 +100,10 @@ class _RenderQuiSkeleton extends RenderProxyBox {
   }
 
   Paint _buildSkeletonPaint(Rect bounds) {
-    if (_effect == null) return _solidSkeletonPaint;
+    final effect = _style?.effect;
+    if (effect == null) return _solidSkeletonPaint;
 
     final t = _effectAnimation?.value ?? 0.0;
-    return _effect!.buildPaint(bounds: bounds, t: t, colors: _colors);
+    return effect.buildPaint(bounds: bounds, t: t, colors: _colors, style: _style!);
   }
 }

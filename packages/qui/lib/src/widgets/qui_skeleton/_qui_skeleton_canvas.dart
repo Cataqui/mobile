@@ -1,11 +1,17 @@
 part of 'qui_skeleton.dart';
 
 class _QuiSkeletonCanvas implements Canvas {
-  _QuiSkeletonCanvas({required this._parent, required this._leafRegistry, required this._skeletonPaint});
+  _QuiSkeletonCanvas({
+    required this._parent,
+    required this._leafRegistry,
+    required this._skeletonPaint,
+    required this._textRadius,
+  });
 
   final Canvas _parent;
   final _QuiSkeletonLeafRegistry _leafRegistry;
   final Paint _skeletonPaint;
+  final Radius? _textRadius;
 
   Rect _textLineToRect({required LineMetrics line, required Offset offset}) {
     return Rect.fromLTWH(
@@ -92,7 +98,8 @@ class _QuiSkeletonCanvas implements Canvas {
       final line = lines[i];
       final lineOffset = offset + Offset(0, i * lineSpacing);
       final rect = _textLineToRect(line: line, offset: lineOffset);
-      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(rect.height / 2));
+      final radius = _textRadius ?? Radius.circular(rect.height / 2);
+      final rrect = RRect.fromRectAndRadius(rect, radius);
       _parent.drawRRect(rrect, _skeletonPaint);
     }
   }
