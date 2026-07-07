@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
 void main() {
-  group('QuiPulse Golden Tests', () {
+  group('QuiRadarPulse Golden Tests', () {
     goldenTest(
       'when rendering visual states, it should match the approved goldens',
-      fileName: 'qui_pulse_states',
+      fileName: 'qui_radar_pulse_states',
       builder: () => GoldenTestGroup(
         scenarioConstraints: const BoxConstraints.tightFor(width: 300, height: 300),
         children: [
@@ -16,7 +16,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(child: _goldenDot()),
+                child: QuiRadarPulse(child: _goldenDot()),
               ),
             ),
           ),
@@ -25,10 +25,10 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(
+                child: QuiRadarPulse(
                   steps: const [
-                    QuiPulseStep(borderRadius: BorderRadius.zero),
-                    QuiPulseStep(borderRadius: BorderRadius.zero),
+                    QuiRadarPulseStep(borderRadius: BorderRadius.zero),
+                    QuiRadarPulseStep(borderRadius: BorderRadius.zero),
                   ],
                   child: _goldenDot(),
                 ),
@@ -40,10 +40,10 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(
+                child: QuiRadarPulse(
                   steps: const [
-                    QuiPulseStep(borderRadius: BorderRadius.all(Radius.circular(24))),
-                    QuiPulseStep(borderRadius: BorderRadius.all(Radius.circular(24))),
+                    QuiRadarPulseStep(borderRadius: BorderRadius.all(Radius.circular(24))),
+                    QuiRadarPulseStep(borderRadius: BorderRadius.all(Radius.circular(24))),
                   ],
                   child: _goldenDot(),
                 ),
@@ -55,10 +55,10 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(
+                child: QuiRadarPulse(
                   steps: const [
-                    QuiPulseStep(color: Color(0xFFFF4A4B)),
-                    QuiPulseStep(color: Color(0xFF00A896)),
+                    QuiRadarPulseStep(color: Color(0xFFFF4A4B)),
+                    QuiRadarPulseStep(color: Color(0xFF00A896)),
                   ],
                   child: _goldenDot(),
                 ),
@@ -70,10 +70,10 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(
+                child: QuiRadarPulse(
                   steps: const [
-                    QuiPulseStep(color: Color(0xFFFF4A4B), alpha: 0.7),
-                    QuiPulseStep(color: Color(0xFF00A896), alpha: 0.15),
+                    QuiRadarPulseStep(color: Color(0xFFFF4A4B), alpha: 0.7),
+                    QuiRadarPulseStep(color: Color(0xFF00A896), alpha: 0.15),
                   ],
                   child: _goldenDot(),
                 ),
@@ -85,8 +85,8 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(
-                  steps: const [QuiPulseStep()],
+                child: QuiRadarPulse(
+                  steps: const [QuiRadarPulseStep()],
                   child: _goldenDot(),
                 ),
               ),
@@ -97,12 +97,12 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(
+                child: QuiRadarPulse(
                   steps: const [
-                    QuiPulseStep(color: Color(0xFFFF4A4B)),
-                    QuiPulseStep(color: Color(0xFF00A896)),
-                    QuiPulseStep(color: Color(0xFF3D5A80)),
-                    QuiPulseStep(color: Color(0xFFF4A261)),
+                    QuiRadarPulseStep(color: Color(0xFFFF4A4B)),
+                    QuiRadarPulseStep(color: Color(0xFF00A896)),
+                    QuiRadarPulseStep(color: Color(0xFF3D5A80)),
+                    QuiRadarPulseStep(color: Color(0xFFF4A261)),
                   ],
                   child: _goldenDot(),
                 ),
@@ -114,7 +114,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(child: _goldenDot(size: 24)),
+                child: QuiRadarPulse(child: _goldenDot(size: 24)),
               ),
             ),
           ),
@@ -123,7 +123,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(child: _goldenDot(size: 120)),
+                child: QuiRadarPulse(child: _goldenDot(size: 120)),
               ),
             ),
           ),
@@ -132,7 +132,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _GoldenFrame(
-                child: QuiPulse(
+                child: QuiRadarPulse(
                   child: const Icon(Icons.bolt_rounded, size: 56, color: Color(0xFFFF4A4B)),
                 ),
               ),

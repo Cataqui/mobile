@@ -6,12 +6,12 @@ import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
-part 'qui_pulse_step.dart';
-part 'qui_pulse_painter.dart';
+part 'qui_radar_pulse_step.dart';
+part 'qui_radar_pulse_painter.dart';
 
 /// A pulse of expanding rings that emanate from behind a child widget.
 ///
-/// `QuiPulse` wraps [child] and draws a continuous sequence of translucent
+/// `QuiRadarPulse` wraps [child] and draws a continuous sequence of translucent
 /// rings that start at the child's size and expand outward to [maxScale]× while
 /// fading. The rings are drawn behind the child, so the child always sits on
 /// top of the pulse — the pulse appears to come from behind the child. The
@@ -24,42 +24,42 @@ part 'qui_pulse_painter.dart';
 /// motion is enabled.
 ///
 /// When placed inside a keep-alive list item that scrolls off-screen, the pulse
-/// continues animating until the item is disposed. Avoid wrapping [QuiPulse] in
+/// continues animating until the item is disposed. Avoid wrapping [QuiRadarPulse] in
 /// [AutomaticKeepAlive] for off-screen items, or pause it manually, to save
 /// CPU/GPU on low-end devices.
 ///
 /// ```dart
-/// QuiPulse(
+/// QuiRadarPulse(
 ///   child: Icon(Icons.bolt_rounded, size: 48, color: Colors.white),
 /// )
 /// ```
 ///
 /// To customize the per-ring appearance, pass [steps] with custom
-/// [QuiPulseStep.color], [QuiPulseStep.borderRadius], and [QuiPulseStep.alpha]
+/// [QuiRadarPulseStep.color], [QuiRadarPulseStep.borderRadius], and [QuiRadarPulseStep.alpha]
 /// values:
 ///
 /// ```dart
-/// QuiPulse(
+/// QuiRadarPulse(
 ///   steps: const [
-///     QuiPulseStep(color: Color(0xFFFF4A4B), alpha: 0.6),
-///     QuiPulseStep(color: Color(0xFF00A896), alpha: 0.2),
+///     QuiRadarPulseStep(color: Color(0xFFFF4A4B), alpha: 0.6),
+///     QuiRadarPulseStep(color: Color(0xFF00A896), alpha: 0.2),
 ///   ],
 ///   child: Icon(Icons.bolt_rounded, size: 48, color: Colors.white),
 /// )
 /// ```
-class QuiPulse extends StatefulWidget {
+class QuiRadarPulse extends StatefulWidget {
   /// Creates a QUI pulse widget around [child].
   ///
   /// Requires at least one [steps] entry (enforced by `assert` in debug mode).
   /// [maxScale] must be greater than `1.0` so the rings can expand beyond the
   /// child bounds.
-  const QuiPulse({
+  const QuiRadarPulse({
     required this.child,
     super.key,
-    this.steps = const [QuiPulseStep(), QuiPulseStep()],
+    this.steps = const [QuiRadarPulseStep(), QuiRadarPulseStep()],
     this.duration = const Duration(milliseconds: 1600),
     this.maxScale = 1.5,
-  }) : assert(steps.length > 0, 'QuiPulse requires at least one step, but steps is empty.'),
+  }) : assert(steps.length > 0, 'QuiRadarPulse requires at least one step, but steps is empty.'),
        assert(maxScale > 1, 'maxScale must be greater than 1.0 so the pulse can expand beyond the child.');
 
   /// The widget rendered at the center of the pulse.
@@ -71,10 +71,10 @@ class QuiPulse extends StatefulWidget {
   /// Visual layers for the pulse sequence.
   ///
   /// The number of rings equals the length of this list. Each ring uses the
-  /// corresponding step's [QuiPulseStep.color] (or the theme primary when
-  /// `null`) and [QuiPulseStep.borderRadius]. Rings are drawn behind the child
+  /// corresponding step's [QuiRadarPulseStep.color] (or the theme primary when
+  /// `null`) and [QuiRadarPulseStep.borderRadius]. Rings are drawn behind the child
   /// and are staggered in time so a ripple effect is always visible.
-  final List<QuiPulseStep> steps;
+  final List<QuiRadarPulseStep> steps;
 
   /// Duration of one full pulse cycle.
   final Duration duration;
@@ -86,10 +86,10 @@ class QuiPulse extends StatefulWidget {
   final double maxScale;
 
   @override
-  State<QuiPulse> createState() => _QuiPulseState();
+  State<QuiRadarPulse> createState() => _QuiRadarPulseState();
 }
 
-class _QuiPulseState extends State<QuiPulse> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+class _QuiRadarPulseState extends State<QuiRadarPulse> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller;
 
   @override
@@ -108,7 +108,7 @@ class _QuiPulseState extends State<QuiPulse> with SingleTickerProviderStateMixin
   }
 
   @override
-  void didUpdateWidget(covariant QuiPulse oldWidget) {
+  void didUpdateWidget(covariant QuiRadarPulse oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.duration != oldWidget.duration) _controller.duration = widget.duration;
   }
@@ -152,7 +152,7 @@ class _QuiPulseState extends State<QuiPulse> with SingleTickerProviderStateMixin
         Positioned.fill(
           child: RepaintBoundary(
             child: CustomPaint(
-              painter: _PulseRingPainter(
+              painter: _RadarPulseRingPainter(
                 steps: widget.steps,
                 progress: progress,
                 animated: animated,
@@ -183,8 +183,8 @@ class _QuiPulseState extends State<QuiPulse> with SingleTickerProviderStateMixin
   }
 }
 
-@Preview(name: 'QuiPulse', group: 'Pulse')
-Widget quiPulsePreview() {
+@Preview(name: 'QuiRadarPulse', group: 'Pulse')
+Widget quiRadarPulsePreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
@@ -194,13 +194,13 @@ Widget quiPulsePreview() {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            QuiPulse(
+            QuiRadarPulse(
               child: const _PreviewDot(icon: Icons.bolt_rounded, color: Color(0xFFFF4A4B)),
             ),
-            QuiPulse(
+            QuiRadarPulse(
               steps: const [
-                QuiPulseStep(color: Color(0xFFFF4A4B), borderRadius: BorderRadius.all(Radius.circular(24))),
-                QuiPulseStep(color: Color(0xFF00A896)),
+                QuiRadarPulseStep(color: Color(0xFFFF4A4B), borderRadius: BorderRadius.all(Radius.circular(24))),
+                QuiRadarPulseStep(color: Color(0xFF00A896)),
               ],
               child: const _PreviewDot(icon: Icons.restaurant_rounded, color: Color(0xFF00A896)),
             ),

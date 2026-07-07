@@ -41,7 +41,7 @@ export 'src/widgets/qui_offline_error_state.dart' show QuiOfflineErrorState, Qui
 export 'src/widgets/qui_orbit/qui_orbit.dart' show QuiOrbit, QuiOrbitDirection, QuiOrbitItem;
 export 'src/widgets/qui_primary_button.dart'
     show QuiPrimaryButton, QuiPrimaryButtonFit, QuiPrimaryButtonIconBuilder, QuiPrimaryButtonIconState;
-export 'src/widgets/qui_pulse/qui_pulse.dart' show QuiPulse, QuiPulseStep;
+export 'src/widgets/qui_radar_pulse/qui_radar_pulse.dart' show QuiRadarPulse, QuiRadarPulseStep;
 export 'src/widgets/qui_search_bar_button.dart' show QuiSearchBarButton;
 export 'src/widgets/qui_secondary_button.dart'
     show QuiSecondaryButton, QuiSecondaryButtonFit, QuiSecondaryButtonIconBuilder, QuiSecondaryButtonIconState;

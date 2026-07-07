@@ -8,43 +8,43 @@ const _kChildSize = 50.0;
 const _kChild = SizedBox(width: _kChildSize, height: _kChildSize);
 
 void main() {
-  group('when constructing QuiPulse', () {
+  group('when constructing QuiRadarPulse', () {
     test('with zero steps, it should throw AssertionError', () {
-      expect(() => QuiPulse(steps: const [], child: _kChild), throwsA(isA<AssertionError>()));
+      expect(() => QuiRadarPulse(steps: const [], child: _kChild), throwsA(isA<AssertionError>()));
     });
 
     test('with default steps, it should not throw', () {
-      expect(() => QuiPulse(child: _kChild), returnsNormally);
+      expect(() => QuiRadarPulse(child: _kChild), returnsNormally);
     });
 
     test('with maxScale equal to 1.0, it should throw AssertionError', () {
-      expect(() => QuiPulse(maxScale: 1, child: _kChild), throwsA(isA<AssertionError>()));
+      expect(() => QuiRadarPulse(maxScale: 1, child: _kChild), throwsA(isA<AssertionError>()));
     });
 
     test('with maxScale below 1.0, it should throw AssertionError', () {
-      expect(() => QuiPulse(maxScale: 0.5, child: _kChild), throwsA(isA<AssertionError>()));
+      expect(() => QuiRadarPulse(maxScale: 0.5, child: _kChild), throwsA(isA<AssertionError>()));
     });
 
     test('with maxScale above 1.0, it should not throw', () {
-      expect(() => QuiPulse(maxScale: 1.001, child: _kChild), returnsNormally);
+      expect(() => QuiRadarPulse(maxScale: 1.001, child: _kChild), returnsNormally);
     });
   });
 
-  group('when rendering QuiPulse', () {
+  group('when rendering QuiRadarPulse', () {
     testWidgets('with default steps, it should display the child without error', (tester) async {
-      await tester.pumpWidget(TestApp(child: QuiPulse(child: _kChild)));
+      await tester.pumpWidget(TestApp(child: QuiRadarPulse(child: _kChild)));
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('with default steps, it should paint rings via CustomPaint', (tester) async {
-      await tester.pumpWidget(TestApp(child: QuiPulse(child: _kChild)));
-      expect(find.descendant(of: find.byType(QuiPulse), matching: find.byType(CustomPaint)), findsOneWidget);
+      await tester.pumpWidget(TestApp(child: QuiRadarPulse(child: _kChild)));
+      expect(find.descendant(of: find.byType(QuiRadarPulse), matching: find.byType(CustomPaint)), findsOneWidget);
     });
 
     testWidgets('with three custom steps, it should render without error', (tester) async {
       await tester.pumpWidget(
         TestApp(
-          child: QuiPulse(steps: const [QuiPulseStep(), QuiPulseStep(), QuiPulseStep()], child: _kChild),
+          child: QuiRadarPulse(steps: const [QuiRadarPulseStep(), QuiRadarPulseStep(), QuiRadarPulseStep()], child: _kChild),
         ),
       );
       expect(tester.takeException(), isNull);
@@ -55,7 +55,7 @@ void main() {
         TestApp(
           child: MediaQuery(
             data: const MediaQueryData(disableAnimations: true),
-            child: QuiPulse(child: _kChild),
+            child: QuiRadarPulse(child: _kChild),
           ),
         ),
       );
@@ -67,11 +67,11 @@ void main() {
         TestApp(
           child: MediaQuery(
             data: const MediaQueryData(disableAnimations: true),
-            child: QuiPulse(child: _kChild),
+            child: QuiRadarPulse(child: _kChild),
           ),
         ),
       );
-      expect(find.descendant(of: find.byType(QuiPulse), matching: find.byType(CustomPaint)), findsOneWidget);
+      expect(find.descendant(of: find.byType(QuiRadarPulse), matching: find.byType(CustomPaint)), findsOneWidget);
     });
 
     testWidgets('when a custom step color is provided, it should render without error', (tester) async {
@@ -80,10 +80,10 @@ void main() {
         TestApp(
           child: MediaQuery(
             data: const MediaQueryData(disableAnimations: true),
-            child: QuiPulse(
+            child: QuiRadarPulse(
               steps: const [
-                QuiPulseStep(color: customColor),
-                QuiPulseStep(),
+                QuiRadarPulseStep(color: customColor),
+                QuiRadarPulseStep(),
               ],
               child: _kChild,
             ),
@@ -99,10 +99,10 @@ void main() {
         TestApp(
           child: MediaQuery(
             data: const MediaQueryData(disableAnimations: true),
-            child: QuiPulse(
+            child: QuiRadarPulse(
               steps: const [
-                QuiPulseStep(borderRadius: customRadius),
-                QuiPulseStep(),
+                QuiRadarPulseStep(borderRadius: customRadius),
+                QuiRadarPulseStep(),
               ],
               child: _kChild,
             ),
@@ -113,25 +113,25 @@ void main() {
     });
   });
 
-  group('when constructing QuiPulseStep', () {
+  group('when constructing QuiRadarPulseStep', () {
     test('with alpha below 0, it should throw AssertionError', () {
-      expect(() => QuiPulseStep(alpha: -0.1), throwsA(isA<AssertionError>()));
+      expect(() => QuiRadarPulseStep(alpha: -0.1), throwsA(isA<AssertionError>()));
     });
 
     test('with alpha above 1, it should throw AssertionError', () {
-      expect(() => QuiPulseStep(alpha: 1.1), throwsA(isA<AssertionError>()));
+      expect(() => QuiRadarPulseStep(alpha: 1.1), throwsA(isA<AssertionError>()));
     });
 
     test('with alpha equal to 0, it should not throw', () {
-      expect(() => const QuiPulseStep(alpha: 0), returnsNormally);
+      expect(() => const QuiRadarPulseStep(alpha: 0), returnsNormally);
     });
 
     test('with alpha equal to 1, it should not throw', () {
-      expect(() => const QuiPulseStep(alpha: 1), returnsNormally);
+      expect(() => const QuiRadarPulseStep(alpha: 1), returnsNormally);
     });
 
     test('with alpha inside range, it should not throw', () {
-      expect(() => const QuiPulseStep(alpha: 0.6), returnsNormally);
+      expect(() => const QuiRadarPulseStep(alpha: 0.6), returnsNormally);
     });
 
     testWidgets('with a custom alpha, it should render without error', (tester) async {
@@ -139,7 +139,7 @@ void main() {
         TestApp(
           child: MediaQuery(
             data: const MediaQueryData(disableAnimations: true),
-            child: QuiPulse(steps: const [QuiPulseStep(alpha: 0.6), QuiPulseStep(alpha: 0.2)], child: _kChild),
+            child: QuiRadarPulse(steps: const [QuiRadarPulseStep(alpha: 0.6), QuiRadarPulseStep(alpha: 0.2)], child: _kChild),
           ),
         ),
       );
@@ -151,7 +151,7 @@ void main() {
         TestApp(
           child: MediaQuery(
             data: const MediaQueryData(disableAnimations: true),
-            child: QuiPulse(steps: const [QuiPulseStep(alpha: 0), QuiPulseStep(alpha: 0)], child: _kChild),
+            child: QuiRadarPulse(steps: const [QuiRadarPulseStep(alpha: 0), QuiRadarPulseStep(alpha: 0)], child: _kChild),
           ),
         ),
       );
@@ -159,18 +159,18 @@ void main() {
     });
   });
 
-  group('when animating QuiPulse', () {
+  group('when animating QuiRadarPulse', () {
     testWidgets('at the start, it should have an active animation controller', (tester) async {
-      await tester.pumpWidget(TestApp(child: QuiPulse(child: _kChild)));
+      await tester.pumpWidget(TestApp(child: QuiRadarPulse(child: _kChild)));
       await tester.pump(Duration.zero);
 
-      expect(find.descendant(of: find.byType(QuiPulse), matching: find.byType(AnimatedBuilder)), findsOneWidget);
+      expect(find.descendant(of: find.byType(QuiRadarPulse), matching: find.byType(AnimatedBuilder)), findsOneWidget);
     });
 
     testWidgets('after half a cycle, it should still render without error', (tester) async {
       await tester.pumpWidget(
         TestApp(
-          child: QuiPulse(duration: const Duration(milliseconds: 1600), child: _kChild),
+          child: QuiRadarPulse(duration: const Duration(milliseconds: 1600), child: _kChild),
         ),
       );
       await tester.pump(const Duration(milliseconds: 800));
@@ -179,10 +179,10 @@ void main() {
     });
 
     testWidgets('when duration is updated via didUpdateWidget, it should not throw', (tester) async {
-      await tester.pumpWidget(TestApp(child: QuiPulse(child: _kChild)));
+      await tester.pumpWidget(TestApp(child: QuiRadarPulse(child: _kChild)));
       await tester.pumpWidget(
         TestApp(
-          child: QuiPulse(duration: const Duration(milliseconds: 2000), child: _kChild),
+          child: QuiRadarPulse(duration: const Duration(milliseconds: 2000), child: _kChild),
         ),
       );
       await tester.pump();

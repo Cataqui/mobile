@@ -1,7 +1,7 @@
-part of 'qui_pulse.dart';
+part of 'qui_radar_pulse.dart';
 
-class _PulseRingPainter extends CustomPainter {
-  const _PulseRingPainter({
+class _RadarPulseRingPainter extends CustomPainter {
+  const _RadarPulseRingPainter({
     required this.steps,
     required this.progress,
     required this.animated,
@@ -9,7 +9,7 @@ class _PulseRingPainter extends CustomPainter {
     required this.primary,
   });
 
-  final List<QuiPulseStep> steps;
+  final List<QuiRadarPulseStep> steps;
   final double progress;
   final bool animated;
   final double maxScale;
@@ -57,7 +57,7 @@ class _PulseRingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PulseRingPainter oldDelegate) {
+  bool shouldRepaint(covariant _RadarPulseRingPainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.maxScale != maxScale ||
         oldDelegate.primary != primary ||
