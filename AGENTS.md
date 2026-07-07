@@ -164,9 +164,30 @@ Every class must follow a consistent top-to-bottom method ordering so that relat
    - `didUpdateWidget()` (State only)
    - `dispose()` (State only)
    - `build()` / `build(BuildContext)` (always the last override)
-6. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
-7. **Private helper functions** — `_doSomething()` methods that return non-Widget values.
-8. **Public helper functions** — public instance methods that return non-Widget values (rare).
+ 6. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
+ 7. **Private helper functions** — `_doSomething()` methods that return non-Widget values.
+ 8. **Public helper functions** — public instance methods that return non-Widget values (rare).
+
+#### State Classes
+
+For `State<T>` subclasses the ordering above is adjusted so
+private helpers are discovered before the lifecycle methods they
+serve:
+
+1. **Static public members**
+2. **Static private members**
+3. **Instance public fields** (must be `@visibleForTesting`; otherwise keep `private`)
+4. **Instance private fields**
+5. **Private helper functions** — `_doSomething()` methods that return non‑Widget values, ordered from most generic to most specific.
+6. **Overrides** — `@override` methods in this exact order:
+   - `initState()`
+   - `didChangeDependencies()`
+   - `didUpdateWidget()`
+   - `dispose()`
+   - lifecycle observer overrides (e.g. `didChangeAppLifecycleState`)
+   - `build()` / `build(BuildContext)` — always the last override
+7. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
+8. **Public helper functions** — do **not** exist in a `State` class.
 
 ### Universal Extensions (One Per Type)
 

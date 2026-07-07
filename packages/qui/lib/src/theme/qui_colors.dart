@@ -155,7 +155,7 @@ class QuiColors {
           skeletonShimmerGlow == other.skeletonShimmerGlow;
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     primary,
     background,
     surface,
@@ -176,7 +176,7 @@ class QuiColors {
     shimmerTextGlow,
     skeleton,
     skeletonShimmerGlow,
-  );
+  ]);
 
   /// Returns a copy of this [QuiColors] with the given fields replaced.
   QuiColors copyWith({
