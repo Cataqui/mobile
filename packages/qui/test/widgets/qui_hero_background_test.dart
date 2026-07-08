@@ -185,6 +185,22 @@ void main() {
         expect(events, equals(['source-start', 'source-end']));
       },
     );
+
+    testWidgets(
+      'when pushing to a destination background hero and settling, it should invoke the destination onReceived callback',
+      (tester) async {
+        final receivedEvents = <String>[];
+
+        await tester.pumpWidget(
+          _QuiHeroBackgroundLifecycleTestApp(events: [], receivedEvents: receivedEvents),
+        );
+        await tester.tap(find.text(_QuiHeroBackgroundLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+
+        expect(receivedEvents, equals(['destination-received']));
+      },
+    );
+
   });
 }
 
@@ -200,12 +216,13 @@ class _QuiHeroKeyedExtension extends QuiHeroExtension {
 }
 
 class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
-  const _QuiHeroBackgroundLifecycleTestApp({required this.events});
+  const _QuiHeroBackgroundLifecycleTestApp({required this.events, this.receivedEvents});
 
   static const sourceText = 'Open background hero';
   static const destinationText = 'Close background hero';
 
   final List<String> events;
+  final List<String>? receivedEvents;
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +236,10 @@ class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push<void>(
                     QuiHeroPage(
-                      builder: (_) => _QuiHeroBackgroundLifecycleDestination(events: events),
+                      builder: (_) => _QuiHeroBackgroundLifecycleDestination(
+                        events: events,
+                        receivedEvents: receivedEvents,
+                      ),
                     ).createRoute(context),
                   );
                 },
@@ -230,6 +250,8 @@ class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
                   onStart: () => events.add('source-start'),
                   onEnd: () => events.add('source-end'),
+                  onReceived:
+                      receivedEvents != null ? () => receivedEvents!.add('source-received') : null,
                   child: const Center(child: Text(sourceText)),
                 ),
               ),
@@ -242,9 +264,10 @@ class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
 }
 
 class _QuiHeroBackgroundLifecycleDestination extends StatelessWidget {
-  const _QuiHeroBackgroundLifecycleDestination({required this.events});
+  const _QuiHeroBackgroundLifecycleDestination({required this.events, this.receivedEvents});
 
   final List<String> events;
+  final List<String>? receivedEvents;
 
   @override
   Widget build(BuildContext context) {
@@ -257,6 +280,8 @@ class _QuiHeroBackgroundLifecycleDestination extends StatelessWidget {
           decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(24)),
           onStart: () => events.add('destination-start'),
           onEnd: () => events.add('destination-end'),
+          onReceived:
+              receivedEvents != null ? () => receivedEvents!.add('destination-received') : null,
           child: const Center(child: Text(_QuiHeroBackgroundLifecycleTestApp.destinationText)),
         ),
       ),

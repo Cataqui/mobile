@@ -6,14 +6,6 @@ import 'package:qui/qui.dart';
 
 void main() {
   group('QuiHeroPage', () {
-    test('defaultTransitionDuration should be 560ms', () {
-      expect(QuiHeroPage.defaultTransitionDuration, equals(const Duration(milliseconds: 560)));
-    });
-
-    test('defaultReverseTransitionDuration should be 430ms', () {
-      expect(QuiHeroPage.defaultReverseTransitionDuration, equals(const Duration(milliseconds: 430)));
-    });
-
     testWidgets('when creating a route from QuiHeroPage, it should return a QuiHeroPageRoute', (tester) async {
       QuiHeroPageRoute? capturedRoute;
 
@@ -93,8 +85,8 @@ class _PageTestApp extends StatelessWidget {
                 onPressed: () {
                   final page = QuiHeroPage(
                     builder: (_) => const SizedBox(),
-                    transitionDuration: customTransitionDuration ?? QuiHeroPage.defaultTransitionDuration,
-                    reverseTransitionDuration: customReverseTransitionDuration ?? QuiHeroPage.defaultReverseTransitionDuration,
+                    transitionDuration: customTransitionDuration ?? const Duration(milliseconds: 560),
+                    reverseTransitionDuration: customReverseTransitionDuration ?? const Duration(milliseconds: 430),
                   );
                   final createdRoute = page.createRoute(context) as QuiHeroPageRoute;
                   onRouteCreated?.call(createdRoute);

@@ -33,6 +33,7 @@ final class QuiHeroText extends QuiHero {
     Object? tag,
     super.onStart,
     super.onEnd,
+    super.onReceived,
     super.key,
     this.style,
     this.textAlign = TextAlign.left,
@@ -53,7 +54,7 @@ final class QuiHeroText extends QuiHero {
       padding = flight.padding,
       switchThreshold = flight.switchThreshold,
       _flight = flight,
-      super(tag: QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle, onStart: null, onEnd: null);
+      super(tag: QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle, onStart: null, onEnd: null, onReceived: null);
 
   QuiHeroText buildWithResolvedStyle(BuildContext context) {
     return QuiHeroText(
@@ -67,6 +68,7 @@ final class QuiHeroText extends QuiHero {
       switchThreshold: switchThreshold,
       onStart: onStart,
       onEnd: onEnd,
+      onReceived: onReceived,
       key: key,
     );
   }

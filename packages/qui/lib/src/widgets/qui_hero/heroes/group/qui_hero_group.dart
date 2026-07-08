@@ -66,7 +66,7 @@ final class QuiHeroGroup extends QuiHero {
   /// explicit [tag] when multiple groups coexist on the same route.
   ///
   /// See [QuiHeroGroup] for pairing rules and nesting constraints.
-  const QuiHeroGroup({required this.heroes, Object? tag, super.onStart, super.onEnd, super.key})
+  const QuiHeroGroup({required this.heroes, Object? tag, super.onStart, super.onEnd, super.onReceived, super.key})
     : super(tag: tag ?? QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
 
   static List<({double layoutWidth, Offset offset, Size size})>? _cachedEndChildMetrics;
@@ -335,6 +335,14 @@ final class QuiHeroGroup extends QuiHero {
   @override
   List<VoidCallback> lifecycleEndCallbacks(BuildContext context) {
     return [...super.lifecycleEndCallbacks(context), for (final hero in heroes) ...hero.lifecycleEndCallbacks(context)];
+  }
+
+  @override
+  List<VoidCallback> lifecycleReceivedCallbacks(BuildContext context) {
+    return [
+      ...super.lifecycleReceivedCallbacks(context),
+      for (final hero in heroes) ...hero.lifecycleReceivedCallbacks(context),
+    ];
   }
 
   @override

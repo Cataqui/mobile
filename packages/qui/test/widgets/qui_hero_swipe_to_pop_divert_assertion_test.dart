@@ -45,7 +45,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.drag(find.byType(CustomScrollView), const Offset(0, 80));
-        await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+        await tester.pump(const Duration(milliseconds: 430));
         await tester.pump();
 
         expect(tester.takeException(), isNull);
@@ -61,7 +61,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.drag(find.byType(CustomScrollView), const Offset(0, 5));
-        await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+        await tester.pump(const Duration(milliseconds: 430));
         await tester.pump();
 
         expect(tester.takeException(), isNull);

@@ -118,6 +118,68 @@ void main() {
       },
     );
 
+    testWidgets(
+      'when pushing to a destination text hero and settling, it should invoke the destination onReceived callback',
+      (tester) async {
+        final receivedEvents = <String>[];
+
+        await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: [], receivedEvents: receivedEvents));
+        await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+
+        expect(receivedEvents, equals(['destination-received']));
+      },
+    );
+
+    testWidgets(
+      'when popping from a destination text hero and settling, it should invoke the source onReceived callback',
+      (tester) async {
+        final receivedEvents = <String>[];
+
+        await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: [], receivedEvents: receivedEvents));
+        await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+        receivedEvents.clear();
+        await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.destinationText));
+        await tester.pumpAndSettle();
+
+        expect(receivedEvents, equals(['source-received']));
+      },
+    );
+
+    testWidgets('when pushing to a destination text hero, it should not invoke onReceived before the flight settles', (
+      tester,
+    ) async {
+      final receivedEvents = <String>[];
+
+      await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: [], receivedEvents: receivedEvents));
+      await tester.tap(find.text(_QuiHeroTextLifecycleTestApp.sourceText));
+      await tester.pump();
+      await tester.pump();
+
+      expect(receivedEvents, isEmpty);
+    });
+
+    testWidgets('when a hero is at rest with no navigation, it should not invoke onReceived', (tester) async {
+      final receivedEvents = <String>[];
+
+      await tester.pumpWidget(_QuiHeroTextLifecycleTestApp(events: [], receivedEvents: receivedEvents));
+
+      expect(receivedEvents, isEmpty);
+    });
+
+    testWidgets('when pushing and settling, it should fire onReceived before onEnd at the settle frame', (
+      tester,
+    ) async {
+      final allEvents = <String>[];
+
+      await tester.pumpWidget(_QuiHeroTextOrderingTestApp(allEvents: allEvents));
+      await tester.tap(find.text(_QuiHeroTextOrderingTestApp.sourceText));
+      await tester.pumpAndSettle();
+
+      expect(allEvents, equals(['destination-received', 'source-end']));
+    });
+
     testWidgets('when popping into a shorter text boundary, it should shorten the flight text without ellipsis', (
       tester,
     ) async {
@@ -316,13 +378,13 @@ void main() {
   });
 }
 
-class _QuiHeroTextLifecycleTestApp extends StatelessWidget {
-  const _QuiHeroTextLifecycleTestApp({required this.events});
+class _QuiHeroTextOrderingTestApp extends StatelessWidget {
+  const _QuiHeroTextOrderingTestApp({required this.allEvents});
 
-  static const sourceText = 'Source text hero';
-  static const destinationText = 'Destination text hero';
+  static const sourceText = 'Source ordering hero';
+  static const destinationText = 'Destination ordering hero';
 
-  final List<String> events;
+  final List<String> allEvents;
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +396,65 @@ class _QuiHeroTextLifecycleTestApp extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).push<void>(
-                    QuiHeroPage(builder: (_) => _QuiHeroTextLifecycleDestination(events: events)).createRoute(context),
+                    QuiHeroPage(
+                      builder: (_) => _QuiHeroTextOrderingDestination(allEvents: allEvents),
+                    ).createRoute(context),
+                  );
+                },
+                child: QuiHeroText(sourceText, tag: 'ordering-lifecycle', onEnd: () => allEvents.add('source-end')),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _QuiHeroTextOrderingDestination extends StatelessWidget {
+  const _QuiHeroTextOrderingDestination({required this.allEvents});
+
+  final List<String> allEvents;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: QuiHeroText(
+            _QuiHeroTextOrderingTestApp.destinationText,
+            tag: 'ordering-lifecycle',
+            onReceived: () => allEvents.add('destination-received'),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuiHeroTextLifecycleTestApp extends StatelessWidget {
+  const _QuiHeroTextLifecycleTestApp({required this.events, this.receivedEvents});
+
+  static const sourceText = 'Source text hero';
+  static const destinationText = 'Destination text hero';
+
+  final List<String> events;
+  final List<String>? receivedEvents;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) {
+          return Scaffold(
+            body: Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push<void>(
+                    QuiHeroPage(
+                      builder: (_) => _QuiHeroTextLifecycleDestination(events: events, receivedEvents: receivedEvents),
+                    ).createRoute(context),
                   );
                 },
                 child: QuiHeroText(
@@ -342,6 +462,7 @@ class _QuiHeroTextLifecycleTestApp extends StatelessWidget {
                   tag: 'text-lifecycle',
                   onStart: () => events.add('source-start'),
                   onEnd: () => events.add('source-end'),
+                  onReceived: receivedEvents != null ? () => receivedEvents!.add('source-received') : null,
                 ),
               ),
             ),
@@ -353,9 +474,10 @@ class _QuiHeroTextLifecycleTestApp extends StatelessWidget {
 }
 
 class _QuiHeroTextLifecycleDestination extends StatelessWidget {
-  const _QuiHeroTextLifecycleDestination({required this.events});
+  const _QuiHeroTextLifecycleDestination({required this.events, this.receivedEvents});
 
   final List<String> events;
+  final List<String>? receivedEvents;
 
   @override
   Widget build(BuildContext context) {
@@ -368,6 +490,7 @@ class _QuiHeroTextLifecycleDestination extends StatelessWidget {
             tag: 'text-lifecycle',
             onStart: () => events.add('destination-start'),
             onEnd: () => events.add('destination-end'),
+            onReceived: receivedEvents != null ? () => receivedEvents!.add('destination-received') : null,
           ),
         ),
       ),

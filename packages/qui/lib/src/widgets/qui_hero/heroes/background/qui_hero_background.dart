@@ -17,6 +17,7 @@ final class QuiHeroBackground extends QuiHero {
     this.extensions = const [],
     super.onStart,
     super.onEnd,
+    super.onReceived,
     super.key,
     this.decoration,
     this.width,
@@ -157,6 +158,7 @@ final class QuiHeroBackground extends QuiHero {
       extensions: const [],
       onStart: null,
       onEnd: null,
+      onReceived: null,
       child: lerpValue < 0.5 ? child : endBox.child,
     );
   }

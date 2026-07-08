@@ -6,6 +6,7 @@ class _QuiHeroLifecycleFlightShuttle extends StatefulWidget {
     required this.flightDirection,
     required this.onStartCallbacks,
     required this.onEndCallbacks,
+    required this.onReceivedCallbacks,
     required this.child,
   });
 
@@ -13,6 +14,7 @@ class _QuiHeroLifecycleFlightShuttle extends StatefulWidget {
   final HeroFlightDirection flightDirection;
   final List<VoidCallback> onStartCallbacks;
   final List<VoidCallback> onEndCallbacks;
+  final List<VoidCallback> onReceivedCallbacks;
   final Widget child;
 
   @override
@@ -49,6 +51,7 @@ class _QuiHeroLifecycleFlightShuttleState extends State<_QuiHeroLifecycleFlightS
     if (!_isSettledStatus(status)) return;
 
     _didCallEnd = true;
+    _callCallbacks(widget.onReceivedCallbacks);
     _callCallbacks(widget.onEndCallbacks);
   }
 

@@ -134,6 +134,45 @@ void main() {
     );
 
     testWidgets(
+      'when pushing a grouped hero and settling, it should invoke only destination group and child onReceived callbacks',
+      (tester) async {
+        final receivedEvents = <String>[];
+
+        await tester.pumpWidget(
+          _GroupedLifecycleTestApp(events: [], receivedEvents: receivedEvents),
+        );
+        await tester.tap(find.text(_GroupedLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+
+        expect(
+          receivedEvents,
+          equals(['destination-group-received', 'destination-child-received']),
+        );
+      },
+    );
+
+    testWidgets(
+      'when popping a grouped hero and settling, it should invoke only source group and child onReceived callbacks',
+      (tester) async {
+        final receivedEvents = <String>[];
+
+        await tester.pumpWidget(
+          _GroupedLifecycleTestApp(events: [], receivedEvents: receivedEvents),
+        );
+        await tester.tap(find.text(_GroupedLifecycleTestApp.sourceText));
+        await tester.pumpAndSettle();
+        receivedEvents.clear();
+        await tester.tap(find.text(_GroupedLifecycleTestApp.destinationText));
+        await tester.pumpAndSettle();
+
+        expect(
+          receivedEvents,
+          equals(['source-group-received', 'source-child-received']),
+        );
+      },
+    );
+
+    testWidgets(
       'when source and destination hero counts do not match, it should match by min length without throwing',
       (tester) async {
         await tester.pumpWidget(const _MismatchedGroupTestApp());
@@ -400,7 +439,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text(_GroupedWidthWrapTransitionTestApp.title));
         await tester.pump();
-        await tester.pump(QuiHeroPage.defaultReverseTransitionDuration - const Duration(milliseconds: 1));
+        await tester.pump(const Duration(milliseconds: 429));
 
         final flightHeight = _GroupedWidthWrapTransitionTestApp.titleHeight(tester);
 
@@ -589,12 +628,13 @@ class _MismatchedGroupTestApp extends StatelessWidget {
 }
 
 class _GroupedLifecycleTestApp extends StatelessWidget {
-  const _GroupedLifecycleTestApp({required this.events});
+  const _GroupedLifecycleTestApp({required this.events, this.receivedEvents});
 
   static const sourceText = 'Source grouped child';
   static const destinationText = 'Destination grouped child';
 
   final List<String> events;
+  final List<String>? receivedEvents;
 
   @override
   Widget build(BuildContext context) {
@@ -606,7 +646,9 @@ class _GroupedLifecycleTestApp extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).push<void>(
-                    QuiHeroPage(builder: (_) => _GroupedLifecycleDestination(events: events)).createRoute(context),
+                    QuiHeroPage(
+                      builder: (_) => _GroupedLifecycleDestination(events: events, receivedEvents: receivedEvents),
+                    ).createRoute(context),
                   );
                 },
                 child: Column(
@@ -616,11 +658,16 @@ class _GroupedLifecycleTestApp extends StatelessWidget {
                       tag: 'group-lifecycle',
                       onStart: () => events.add('source-group-start'),
                       onEnd: () => events.add('source-group-end'),
+                      onReceived:
+                          receivedEvents != null ? () => receivedEvents!.add('source-group-received') : null,
                       heroes: [
                         QuiHeroText(
                           sourceText,
                           onStart: () => events.add('source-child-start'),
                           onEnd: () => events.add('source-child-end'),
+                          onReceived: receivedEvents != null
+                              ? () => receivedEvents!.add('source-child-received')
+                              : null,
                         ),
                       ],
                     ),
@@ -636,9 +683,10 @@ class _GroupedLifecycleTestApp extends StatelessWidget {
 }
 
 class _GroupedLifecycleDestination extends StatelessWidget {
-  const _GroupedLifecycleDestination({required this.events});
+  const _GroupedLifecycleDestination({required this.events, this.receivedEvents});
 
   final List<String> events;
+  final List<String>? receivedEvents;
 
   @override
   Widget build(BuildContext context) {
@@ -653,11 +701,16 @@ class _GroupedLifecycleDestination extends StatelessWidget {
                 tag: 'group-lifecycle',
                 onStart: () => events.add('destination-group-start'),
                 onEnd: () => events.add('destination-group-end'),
+                onReceived:
+                    receivedEvents != null ? () => receivedEvents!.add('destination-group-received') : null,
                 heroes: [
                   QuiHeroText(
                     _GroupedLifecycleTestApp.destinationText,
                     onStart: () => events.add('destination-child-start'),
                     onEnd: () => events.add('destination-child-end'),
+                    onReceived: receivedEvents != null
+                        ? () => receivedEvents!.add('destination-child-received')
+                        : null,
                   ),
                 ],
               ),

@@ -69,22 +69,10 @@ class QuiHeroPage extends Page<void> {
     super.key,
   });
 
-  /// How long the forward hero transition lasts.
-  ///
-  /// Defaults to 560 ms — a duration long enough to feel smooth and
-  /// deliberate but short enough to feel responsive on mid-range devices.
-  ///
-  /// Automatically overridden to [Duration.zero] when
-  /// [MediaQuery.disableAnimationsOf] returns `true`.
+  @visibleForTesting
   static const defaultTransitionDuration = Duration(milliseconds: 560);
 
-  /// How long the reverse hero transition (pop) lasts.
-  ///
-  /// Defaults to 430 ms — shorter than the forward transition to feel snappy
-  /// on dismissal.
-  ///
-  /// Automatically overridden to [Duration.zero] when
-  /// [MediaQuery.disableAnimationsOf] returns `true`.
+  @visibleForTesting
   static const defaultReverseTransitionDuration = Duration(milliseconds: 430);
 
   /// Called by [QuiHeroPageRoute] to build the page content.

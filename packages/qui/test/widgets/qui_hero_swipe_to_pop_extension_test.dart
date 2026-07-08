@@ -49,7 +49,7 @@ void main() {
       await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
       await tester.pumpAndSettle();
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 80));
-      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+      await tester.pump(const Duration(milliseconds: 430));
       await tester.pump();
 
       expect(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey), findsOneWidget);
@@ -91,7 +91,7 @@ void main() {
       await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
       await tester.pumpAndSettle();
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 80));
-      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+      await tester.pump(const Duration(milliseconds: 430));
       await tester.pump();
 
       expect(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey), findsOneWidget);
@@ -116,7 +116,7 @@ void main() {
       await tester.tap(find.byKey(_QuiHeroSwipeToPopTestApp.openButtonKey));
       await tester.pumpAndSettle();
       await tester.fling(find.byType(CustomScrollView), const Offset(0, 80), 400);
-      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+      await tester.pump(const Duration(milliseconds: 430));
       await tester.pump();
 
       expect(find.byKey(_QuiHeroSwipeToPopTestApp.destinationKey), findsOneWidget);
