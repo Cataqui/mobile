@@ -40,6 +40,16 @@ void main() {
       expect(find.text('Hello'), findsOneWidget);
     });
 
+    testWidgets('when style.effect is a QuiSkeletonFadeEffect, it should create an animation controller', (tester) async {
+      await tester.pumpWidget(
+        _app(
+          child: const QuiSkeleton(style: QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()), child: Text('Hello')),
+        ),
+      );
+
+      expect(find.text('Hello'), findsOneWidget);
+    });
+
     testWidgets('when the platform disables animations with style.effect, it should not schedule shimmer frames', (tester) async {
       await tester.pumpWidget(
         MaterialApp(

@@ -26,6 +26,7 @@ part of 'qui_skeleton.dart';
 /// See also:
 ///  * [QuiSkeleton], the widget that consumes a [QuiSkeletonStyle].
 ///  * [QuiSkeletonShimmerEffect], a shimmer effect to be used with a [QuiSkeletonStyle].
+///  * [QuiSkeletonFadeEffect], a fade/breathing effect to be used with a [QuiSkeletonStyle].
 @immutable
 class QuiSkeletonStyle {
   /// Creates a QUI skeleton style.

@@ -19,6 +19,7 @@ part '_qui_skeleton_preview.dart';
 part '_qui_skeleton_render_object.dart';
 part '_qui_skeleton_render_object_widget.dart';
 part 'effects/qui_skeleton_effect.dart';
+part 'effects/qui_skeleton_fade_effect.dart';
 part 'effects/qui_skeleton_shimmer_effect.dart';
 part 'qui_skeleton_style.dart';
 
@@ -48,6 +49,9 @@ part 'qui_skeleton_style.dart';
 /// // Animated shimmer sweep.
 /// QuiSkeleton(style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()), child: myCardWidget);
 ///
+/// // Fade breathing pulse.
+/// QuiSkeleton(style: QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()), child: myCardWidget);
+///
 /// // Via the `.skeleton()` widget extension:
 /// myCardWidget.skeleton();
 /// myCardWidget.skeleton(style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()));
@@ -57,6 +61,7 @@ part 'qui_skeleton_style.dart';
 ///  * [QuiSkeletonStaticEffectBase], the base class for static skeleton effects.
 ///  * [QuiSkeletonAnimatedEffectBase], the base class for animated skeleton effects.
 ///  * [QuiSkeletonShimmerEffect], the built-in animated shimmer sweep effect.
+///  * [QuiSkeletonFadeEffect], the built-in fade/breathing effect.
 ///  * [QuiSkeletonStyle], the style bundle for customizing skeleton appearance.
 ///  * `WidgetExtension` (`.skeleton()`), the widget extension that wraps any
 ///    widget with [QuiSkeleton].
@@ -181,6 +186,14 @@ Widget quiSkeletonPreview() {
                 width: 340,
                 child: QuiSkeleton(
                   style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()),
+                  child: _PreviewCard(),
+                ),
+              ),
+              SizedBox(height: 24),
+              SizedBox(
+                width: 340,
+                child: QuiSkeleton(
+                  style: QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()),
                   child: _PreviewCard(),
                 ),
               ),
