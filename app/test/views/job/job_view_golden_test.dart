@@ -175,7 +175,7 @@ class JobViewGoldenTestHelpers {
 
     unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedJobCard).first)));
     await tester.pump();
-    await tester.pump(QuiHeroPage.defaultTransitionDuration);
+    await tester.pump(const Duration(milliseconds: 560));
     await tester.pumpAndSettle();
 
     final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));

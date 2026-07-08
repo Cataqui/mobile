@@ -223,7 +223,7 @@ void main() {
 
       JobRoute(jobId: feedJob.jobId, $extra: feedJob).go(tester.element(find.byType(FeedView)));
       await tester.pump();
-      await tester.pump(QuiHeroPage.defaultTransitionDuration);
+      await tester.pump(const Duration(milliseconds: 560));
       await tester.pumpAndSettle();
 
       expect(tester.widget<JobView>(find.byType(JobView)).feedJob, feedJob);
@@ -237,7 +237,7 @@ void main() {
 
       JobRoute(jobId: feedJob.jobId, $extra: feedJob).replace(tester.element(find.byType(FeedView)));
       await tester.pump();
-      await tester.pump(QuiHeroPage.defaultTransitionDuration);
+      await tester.pump(const Duration(milliseconds: 560));
       await tester.pumpAndSettle();
 
       expect(tester.widget<JobView>(find.byType(JobView)).feedJob, feedJob);

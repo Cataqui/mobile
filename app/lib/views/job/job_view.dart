@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -22,55 +20,13 @@ class JobView extends ConsumerStatefulWidget {
 }
 
 class _JobViewState extends ConsumerState<JobView> {
-  final QuiAppearController _backButtonAppearController = QuiAppearController();
-  final QuiAppearController _descriptionAppearController = QuiAppearController();
   final ScrollController _scrollController = ScrollController();
-
-  bool _hasInitiatedAppear = false;
-  Timer? _appearTimer;
 
   @override
   void dispose() {
-    _appearTimer?.cancel();
     _scrollController.dispose();
 
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_hasInitiatedAppear) return;
-    _hasInitiatedAppear = true;
-
-    final isHeroRoute = QuiHeroPageRoute.maybeOf(context) != null;
-
-    if (!isHeroRoute || MediaQuery.disableAnimationsOf(context)) {
-      _backButtonAppearController.appear();
-      _descriptionAppearController.appear();
-    } else {
-      _appearTimer = Timer(QuiHeroPage.defaultTransitionDuration, () {
-        if (mounted) {
-          _backButtonAppearController.appear();
-          _descriptionAppearController.appear();
-        }
-      });
-    }
-  }
-
-  void _popAfterHidingChrome() {
-    _backButtonAppearController.destroy();
-    _descriptionAppearController.destroy();
-
-    if (MediaQuery.disableAnimationsOf(context)) {
-      unawaited(Navigator.of(context).maybePop());
-      return;
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(Navigator.of(context).maybePop());
-    });
   }
 
   @override
@@ -89,21 +45,10 @@ class _JobViewState extends ConsumerState<JobView> {
             tag: 'job-${widget.jobId}-surface',
             decoration: BoxDecoration(color: colors.background, borderRadius: BorderRadius.circular(50)),
             edgeFade: QuiHeroEdgeFade(bottom: QuiEdgeFadeStyle(color: colors.background)),
-            onStart: () {
-              _backButtonAppearController.destroy();
-              _descriptionAppearController.destroy();
-            },
-
             extensions: [
               QuiHeroSwipeToPopExtension(
                 scrollController: _scrollController,
                 sensibility: 0.85,
-                onSwipeStateChanged: (state) {
-                  if (state == QuiHeroSwipeToPopState.idle) {
-                    _backButtonAppearController.appear();
-                    _descriptionAppearController.appear();
-                  }
-                },
               ),
             ],
             child: SafeArea(
@@ -167,17 +112,13 @@ class _JobViewState extends ConsumerState<JobView> {
                             if (feedJob != null)
                               jobState.when(
                                 data: (_) => const SizedBox.shrink(),
-                                error: (error, _) => QuiAppear(
-                                  controller: _descriptionAppearController,
-                                  destroyDuration: Duration.zero,
+                                error: (error, _) => QuiRouteSettled(
                                   child: Padding(
                                     padding: const EdgeInsets.only(top: 40),
                                     child: _buildError(context, i18n, error),
                                   ),
                                 ),
-                                loading: () => QuiAppear(
-                                  controller: _descriptionAppearController,
-                                  destroyDuration: Duration.zero,
+                                loading: () => QuiRouteSettled(
                                   child: QuiSkeleton(
                                     style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()),
                                     child: Text(
@@ -225,10 +166,8 @@ class _JobViewState extends ConsumerState<JobView> {
               alignment: AlignmentGeometry.topLeft,
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: QuiAppear(
-                  controller: _backButtonAppearController,
-                  destroyDuration: Duration.zero,
-                  child: QuiViewBackButton(onPressed: _popAfterHidingChrome),
+                child: QuiRouteSettled(
+                  child: QuiViewBackButton(onPressed: () => Navigator.of(context).maybePop()),
                 ),
               ),
             ),
@@ -274,11 +213,12 @@ class _JobViewState extends ConsumerState<JobView> {
           const SizedBox(height: 20),
           QuiSecondaryButton(
             label: i18n.job.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
-                height: 15,
-                width: 15,
-                colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-              ),
+            leadingIconBuilder: (state) => QuiIcons.instance.build(
+              (assets) => assets.arrowRotateClockwise,
+              height: 15,
+              width: 15,
+              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+            ),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),
           ),

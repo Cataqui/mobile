@@ -191,7 +191,7 @@ class JobViewTestHelpers {
     await tester.pump(const Duration(milliseconds: 900));
     unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedView))));
     await tester.pump();
-    await tester.pump(QuiHeroPage.defaultTransitionDuration);
+    await tester.pump(const Duration(milliseconds: 560));
     await tester.pumpAndSettle();
   }
 }

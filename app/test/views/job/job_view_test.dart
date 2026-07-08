@@ -163,7 +163,7 @@ void main() {
         jobState: JobViewTestHelpers.loadingState(),
         disableAnimations: false,
       );
-      await tester.pump(QuiHeroPage.defaultTransitionDuration);
+      await tester.pump(const Duration(milliseconds: 560));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pump();
 
@@ -176,15 +176,15 @@ void main() {
     testWidgets('when motion is enabled and the QUI back button is tapped, it should hide before leaving', (
       tester,
     ) async {
-      await JobViewTestHelpers.pumpJobView(
+      final feedJob = JobViewTestHelpers.feedJob();
+      await JobViewTestHelpers.pumpRoutedJobView(
         tester: tester,
-        feedJob: JobViewTestHelpers.feedJob(),
-        jobState: JobViewTestHelpers.loadingState(),
+        goRouter: goRouter,
+        feedJob: feedJob,
+        jobRepository: jobRepository,
         disableAnimations: false,
       );
-      await tester.pump(QuiHeroPage.defaultTransitionDuration);
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.pump();
+
       await tester.tap(find.byType(QuiViewBackButton));
       await tester.pump();
 
@@ -207,7 +207,7 @@ void main() {
           jobState: JobViewTestHelpers.loadedState(job: JobViewTestHelpers.job(description: description)),
           disableAnimations: false,
         );
-        await tester.pump(QuiHeroPage.defaultTransitionDuration);
+        await tester.pump(const Duration(milliseconds: 560));
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump();
         await tester.tap(find.byType(QuiViewBackButton));
@@ -291,7 +291,7 @@ void main() {
         jobRepository: jobRepository,
       );
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 120));
-      await tester.pump(QuiHeroPage.defaultReverseTransitionDuration);
+      await tester.pump(const Duration(milliseconds: 430));
       await tester.pump();
 
       expect(find.byType(JobView), findsOneWidget);
