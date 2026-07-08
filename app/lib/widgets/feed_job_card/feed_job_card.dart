@@ -33,7 +33,7 @@ class FeedJobCard extends ConsumerWidget {
         decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(38)),
         padding: const EdgeInsets.all(24),
         child: QuiSkeleton(
-          style: const QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()),
+          style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect(duration: Duration(seconds: 2))),
           enabled: skeleton,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
