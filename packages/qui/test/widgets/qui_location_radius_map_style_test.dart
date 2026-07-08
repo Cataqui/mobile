@@ -125,7 +125,7 @@ void main() {
     test('when inspecting background, it should use the approved light color', () {
       final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'background');
       final paint = layer.toJson()['paint'] as Map<String, dynamic>;
-      expect(paint['background-color'], '#f4f2ef');
+      expect(paint['background-color'], '#efefef');
     });
 
     test('when inspecting road widths at zoom 14, it should preserve road hierarchy', () {

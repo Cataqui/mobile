@@ -156,7 +156,7 @@ List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
       id: 'landuse',
       source: _openMapTilesSource,
       sourceLayer: 'landuse',
-      paint: QuiMapLibreStyleFillPaint(fillColor: '#F4F2EF', fillOpacity: 0.9),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#EFEFEF', fillOpacity: 0.9),
     ),
     const QuiMapLibreStyleLayer.fill(
       id: 'landuse_recreation',
@@ -204,7 +204,7 @@ List<QuiMapLibreStyleLayer> _buildLightLayers({required String fontStack}) {
       source: _openMapTilesSource,
       sourceLayer: 'building',
       minzoom: 13,
-      paint: QuiMapLibreStyleFillPaint(fillColor: '#F4F2EF', fillOutlineColor: '#F4F2EF', fillOpacity: 1),
+      paint: QuiMapLibreStyleFillPaint(fillColor: '#EFEFEF', fillOutlineColor: '#EFEFEF', fillOpacity: 1),
     ),
     const QuiMapLibreStyleLayer.line(
       id: 'boundary',
