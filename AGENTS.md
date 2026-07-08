@@ -118,7 +118,7 @@ widget or model that produces or consumes the data.
 
 - **Do not mark a helper `static` if its only caller is an instance method.**
   A function should only be `static` when it is called from multiple contexts
-  or has no logical tie to instance state.  If an instance method is the sole
+  or has no logical tie to instance state. If an instance method is the sole
   caller, make it an instance private method instead — this keeps the calling
   convention consistent and avoids the `static` keyword as a ceremonial
   ceremony that adds no value.
@@ -154,19 +154,19 @@ Every class must follow a consistent top-to-bottom method ordering so that relat
 
 #### Widget Classes (StatefulWidget + State, StatelessWidget, ConsumerWidget, etc.)
 
-1. **Static public members** — `static const` fields, `static` methods (including those returning Widget).
-2. **Static private members** — `static const` private fields, `static` methods (including those returning Widget).
-3. **Instance public fields** — `final`/`var` public fields (rare in widgets).
-4. **Constructor** — the widget's constructor.
+1. **Constructor** — the widget's constructor.
+2. **Static public members** — `static const` fields, `static` methods (including those returning Widget).
+3. **Static private members** — `static const` private fields, `static` methods (including those returning Widget).
+4. **Instance public fields** — `final`/`var` public fields (rare in widgets).
 5. **Overrides** — `@override` methods in this exact order:
    - `createState()` (StatefulWidget only)
    - `didChangeDependencies()` (State only)
    - `didUpdateWidget()` (State only)
    - `dispose()` (State only)
    - `build()` / `build(BuildContext)` (always the last override)
- 6. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
- 7. **Private helper functions** — `_doSomething()` methods that return non-Widget values.
- 8. **Public helper functions** — public instance methods that return non-Widget values (rare).
+6. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
+7. **Private helper functions** — `_doSomething()` methods that return non-Widget values.
+8. **Public helper functions** — public instance methods that return non-Widget values (rare).
 
 #### State Classes
 

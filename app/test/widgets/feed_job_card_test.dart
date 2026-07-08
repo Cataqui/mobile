@@ -4,6 +4,7 @@ import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
+import '../views/job/job_view_test_helpers.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
@@ -190,6 +191,46 @@ void main() {
           expect(find.text(i18n.feedJob.timeAgo.days(count: 1)), findsOneWidget);
         });
       });
+    });
+
+    group('hero keys', () {
+      test('when generating the background hero key, it should return the expected tag format', () {
+        expect(FeedJobCard.backgroundHeroKey('job_123'), 'job-job_123-surface');
+      });
+
+      test('when generating the header hero key, it should return the expected tag format', () {
+        expect(FeedJobCard.headerHeroKey('job_123'), 'job-job_123-header');
+      });
+
+      test('when generating hero keys for the same job, the background and header keys should differ', () {
+        expect(FeedJobCard.backgroundHeroKey('job_123'), isNot(FeedJobCard.headerHeroKey('job_123')));
+      });
+    });
+
+    group('cross-widget consistency', () {
+      testWidgets(
+        'when FeedJobCard and JobView reference the same job, it should use matching hero tags',
+        (tester) async {
+          const jobId = 'job_123';
+
+          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(jobId: jobId))));
+          final cardBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
+          final cardHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
+
+          await tester.pumpWidget(const SizedBox());
+
+          await JobViewTestHelpers.pumpJobView(
+            tester: tester,
+            feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
+            jobState: JobViewTestHelpers.loadingState(),
+          );
+          final viewBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
+          final viewHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
+
+          expect(viewBackgroundTag, equals(cardBackgroundTag));
+          expect(viewHeaderTag, equals(cardHeaderTag));
+        },
+      );
     });
   });
 }

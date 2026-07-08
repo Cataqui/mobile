@@ -4,6 +4,7 @@ import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
+import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -245,7 +246,21 @@ void main() {
             .ancestor(of: find.text('Separador de Mercadorias', skipOffstage: false), matching: find.byType(Hero))
             .first,
       );
-      expect(headerHero.tag, equals('job-${feedJob.jobId}-header'));
+      expect(headerHero.tag, equals(FeedJobCard.headerHeroKey(feedJob.jobId)));
+    });
+
+    testWidgets('when opened from the feed, it should render the background hero with the matching tag', (tester) async {
+      final feedJob = JobViewTestHelpers.feedJob();
+
+      await JobViewTestHelpers.pumpRoutedJobView(
+        tester: tester,
+        goRouter: goRouter,
+        feedJob: feedJob,
+        jobRepository: jobRepository,
+      );
+
+      final backgroundHero = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground).first);
+      expect(backgroundHero.tag, equals(FeedJobCard.backgroundHeroKey(feedJob.jobId)));
     });
 
     testWidgets('when dragging down from the top, it should move the job route toward the feed card', (tester) async {

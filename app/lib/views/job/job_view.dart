@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
+import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,15 +43,10 @@ class _JobViewState extends ConsumerState<JobView> {
       body: Stack(
         children: [
           QuiHeroBackground(
-            tag: 'job-${widget.jobId}-surface',
+            tag: FeedJobCard.backgroundHeroKey(widget.jobId),
             decoration: BoxDecoration(color: colors.background, borderRadius: BorderRadius.circular(50)),
             edgeFade: QuiHeroEdgeFade(bottom: QuiEdgeFadeStyle(color: colors.background)),
-            extensions: [
-              QuiHeroSwipeToPopExtension(
-                scrollController: _scrollController,
-                sensibility: 0.85,
-              ),
-            ],
+            extensions: [QuiHeroSwipeToPopExtension(scrollController: _scrollController, sensibility: 0.85)],
             child: SafeArea(
               bottom: false,
               child: CustomScrollView(
@@ -64,7 +60,7 @@ class _JobViewState extends ConsumerState<JobView> {
                         children: [
                           if (feedJob != null || jobData != null) ...[
                             QuiHeroGroup(
-                              tag: 'job-${widget.jobId}-header',
+                              tag: FeedJobCard.headerHeroKey(widget.jobId),
                               onEnd: HapticFeedback.lightImpact,
                               heroes: [
                                 QuiHeroText(
@@ -166,9 +162,7 @@ class _JobViewState extends ConsumerState<JobView> {
               alignment: AlignmentGeometry.topLeft,
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: QuiRouteSettled(
-                  child: QuiViewBackButton(onPressed: () => Navigator.of(context).maybePop()),
-                ),
+                child: QuiRouteSettled(child: QuiViewBackButton(onPressed: () => Navigator.of(context).maybePop())),
               ),
             ),
           ),

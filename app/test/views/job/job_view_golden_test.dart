@@ -22,7 +22,6 @@ import '../feed/feed_view_test_helpers.dart';
 import 'job_view_test_helpers.dart';
 
 void main() {
-  autoUpdateGoldenFiles = true;
   setUpAll(() {
     registerFallbackValue(AppLocale.ptBr);
   });

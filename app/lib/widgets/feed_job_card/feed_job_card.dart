@@ -12,6 +12,9 @@ import 'package:qui/qui.dart';
 class FeedJobCard extends ConsumerWidget {
   const FeedJobCard({required this.feedJob, super.key, this.skeleton = false});
 
+  static String backgroundHeroKey(String jobId) => 'job-$jobId-surface';
+  static String headerHeroKey(String jobId) => 'job-$jobId-header';
+
   final FeedJobDto feedJob;
   final bool skeleton;
 
@@ -28,7 +31,7 @@ class FeedJobCard extends ConsumerWidget {
         unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(context));
       },
       child: QuiHeroBackground(
-        tag: 'job-${feedJob.jobId}-surface',
+        tag: backgroundHeroKey(feedJob.jobId),
         width: double.infinity,
         decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(38)),
         padding: const EdgeInsets.all(24),
@@ -40,7 +43,7 @@ class FeedJobCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               QuiHeroGroup(
-                tag: 'job-${feedJob.jobId}-header',
+                tag: headerHeroKey(feedJob.jobId),
                 heroes: [
                   QuiHeroText(
                     feedJob.createdAt.timeAgo(
