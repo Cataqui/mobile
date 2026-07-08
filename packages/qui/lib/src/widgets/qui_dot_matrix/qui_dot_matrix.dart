@@ -9,8 +9,8 @@ import 'package:qui/qui.dart';
 part 'qui_dot_matrix_dot.dart';
 part 'qui_dot_matrix_painter.dart';
 
-/// A matrix of dots that smoothly cycle through a five‑shade palette,
-/// indicating content is loading.
+/// A matrix of dots with an organic, continuously navigating highlight
+/// that never repeats or jumps, indicating content is loading.
 ///
 /// Use [QuiDotMatrix] inside any area whose dimensions are known
 /// but whose content is not yet ready — an image slot, a card body, or a full
@@ -32,8 +32,23 @@ part 'qui_dot_matrix_painter.dart';
 /// step, so dot density is uniform regardless of [radius]. As [radius]
 /// increases, straight edges progressively shrink and quarter‑circle arcs
 /// grow, morphing continuously from a square silhouette to concentric
-/// rings. Every dot cycles through the palette independently,
-/// creating a subtle organic pulse.
+/// rings.
+///
+/// Instead of a single rigid wave, three independent Gaussian nodes
+/// drift around the matrix like living things — each with its own
+/// position, size, and intensity that evolve smoothly via deterministic
+/// noise.  Their combined influence creates shapes that emerge and
+/// dissolve organically: sometimes a single circular blob glows in one
+/// area, sometimes two nodes stretch into a worm‑like band, sometimes
+/// all three spread across the shape in a complex flowing pattern.  The
+/// motion never repeats, never jumps, and never feels algorithmic.
+///
+/// As the highlight passes over each dot, the dot subtly increases in
+/// size and becomes fully opaque, then smoothly returns
+/// to normal size and low opacity as the highlight moves on.
+/// Neighbouring dots transition together so the motion feels like a
+/// flowing spotlight.
+///
 ///
 /// ## Performance
 ///
@@ -47,11 +62,10 @@ part 'qui_dot_matrix_painter.dart';
 ///  * [QuiSkeleton] the shimmer-sweep placeholder for known-shape skeletons.
 class QuiDotMatrix extends StatefulWidget {
   /// Creates a [QuiDotMatrix] that fills the given area with cycling dots.
-  const QuiDotMatrix({super.key, this.width, this.height, this.radius = 0, this.colors, this.dotSize, this.duration, this.seed})
+  const QuiDotMatrix({super.key, this.width, this.height, this.radius = 0, this.color, this.dotSize, this.duration})
     : assert(width == null || width >= 0, 'width must be non-negative, but got $width.'),
       assert(height == null || height >= 0, 'height must be non-negative, but got $height.'),
-      assert(radius >= 0, 'radius must be non-negative, but got $radius.'),
-      assert(seed == null || seed >= 0, 'seed must be non-negative, but got $seed.');
+      assert(radius >= 0, 'radius must be non-negative, but got $radius.');
 
   /// Optional scene width in logical pixels.
   ///
@@ -69,17 +83,10 @@ class QuiDotMatrix extends StatefulWidget {
   /// side produces a pill shape.
   final double radius;
 
-  /// Palette colours for the dot cycle.
+  /// Colour for all dots.
   ///
-  /// * **`null` or empty** — a five‑shade palette is built from the
-  ///   [QuiColors.placeholder] theme token.
-  /// * **one colour** — a five‑shade palette is built from that single colour
-  ///   by blending with black and white.
-  /// * **two or more colours** — the list is used directly as the palette.
-  ///
-  /// When multiple colours are provided the scene cycles through them
-  /// smoothly per‑dot, creating a richer animated texture.
-  final List<Color>? colors;
+  /// When omitted the theme's [QuiColors.placeholder] token is used.
+  final Color? color;
 
   /// Size (radius) of each dot in logical pixels.
   ///
@@ -87,18 +94,11 @@ class QuiDotMatrix extends StatefulWidget {
   /// fewer dots; smaller values produce finer, denser dots.
   final double? dotSize;
 
-  /// Duration of one full animation cycle.
+  /// Duration of one full diagonal sweep.
   ///
-  /// Defaults to 2 seconds.  Shorter values make the colour and
-  /// scale transitions faster; longer values slow them down.
+  /// The band travels from the top‑left corner to the bottom‑right corner
+  /// over this period, then seamlessly wraps back.  Defaults to 2.5 seconds.
   final Duration? duration;
-
-  /// Seed for the deterministic random particle layout.
-  ///
-  /// Change this value to produce a different arrangement of dots.
-  /// The same [seed] always produces the same tableau for the same
-  /// width, height, radius, and dotSize.  Defaults to `420420`.
-  final int? seed;
 
   @override
   State<QuiDotMatrix> createState() => _QuiDotMatrixState();
@@ -106,16 +106,12 @@ class QuiDotMatrix extends StatefulWidget {
 
 const double _kParticleRadius = 7;
 
-const int _kParticlesSeed = 420420;
-
-const Duration _kSceneDuration = Duration(seconds: 2);
+const Duration _kDefaultDuration = Duration(milliseconds: 2500);
 
 class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   double get _pr => widget.dotSize ?? _kParticleRadius;
   late final AnimationController _controller;
   List<_QuiDotMatrixDot> _particles = [];
-  late List<Color> _palette;
-  Object? _paletteKey;
   double _previousValue = 0;
   int _loopCount = 0;
   double? _resolvedWidth;
@@ -149,20 +145,14 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
   double get _cycleT => _controller.value + _loopCount;
 
   List<_QuiDotMatrixDot> _generateParticles({required double w, required double h}) {
-    final rng = math.Random(widget.seed ?? _kParticlesSeed);
     final r = widget.radius;
 
     if (w < _pr * 2 || h < _pr * 2) return [];
 
-    return _generateContours(rng: rng, w: w, h: h, r: r);
+    return _generateContours(w: w, h: h, r: r);
   }
 
-  List<_QuiDotMatrixDot> _generateContours({
-    required math.Random rng,
-    required double w,
-    required double h,
-    required double r,
-  }) {
+  List<_QuiDotMatrixDot> _generateContours({required double w, required double h, required double r}) {
     final pr = _pr;
     final cell = pr * 2 + _effectivePadding(w: w, h: h);
     final particles = <_QuiDotMatrixDot>[];
@@ -187,9 +177,9 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
       final oy = pr + d;
 
       if (lr * math.pi / 2 >= cell / 2) {
-        _addRoundedLayerDots(particles: particles, rng: rng, ox: ox, oy: oy, lw: lw, lh: lh, lr: lr, cell: cell);
+        _addRoundedLayerDots(particles: particles, ox: ox, oy: oy, lw: lw, lh: lh, lr: lr, cell: cell);
       } else {
-        _addRectLayerDots(particles: particles, rng: rng, ox: ox, oy: oy, lw: lw, lh: lh, cell: cell);
+        _addRectLayerDots(particles: particles, ox: ox, oy: oy, lw: lw, lh: lh, cell: cell);
       }
     }
 
@@ -211,14 +201,14 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
         for (var row = 1; row < nV - 1; row++) {
           final py2 = lastOy + row * vStep;
           for (var col = 1; col < nH - 1; col++) {
-            _tryAddDot(particles: particles, rng: rng, px: lastOx + col * hStep, py: py2);
+            _tryAddDot(particles: particles, px: lastOx + col * hStep, py: py2);
           }
         }
       } else if (!hasCenter) {
-        _tryAddDot(particles: particles, rng: rng, px: px, py: py);
+        _tryAddDot(particles: particles, px: px, py: py);
       }
     } else if (!hasCenter) {
-      _tryAddDot(particles: particles, rng: rng, px: px, py: py);
+      _tryAddDot(particles: particles, px: px, py: py);
     }
 
     return particles;
@@ -226,7 +216,6 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
 
   void _addRectLayerDots({
     required List<_QuiDotMatrixDot> particles,
-    required math.Random rng,
     required double ox,
     required double oy,
     required double lw,
@@ -239,25 +228,24 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
     final vStep = lh / (nV - 1);
 
     for (var i = 0; i < nH; i++) {
-      _tryAddDot(particles: particles, rng: rng, px: ox + i * hStep, py: oy);
+      _tryAddDot(particles: particles, px: ox + i * hStep, py: oy);
     }
 
     for (var i = 0; i < nH; i++) {
-      _tryAddDot(particles: particles, rng: rng, px: ox + i * hStep, py: oy + lh);
+      _tryAddDot(particles: particles, px: ox + i * hStep, py: oy + lh);
     }
 
     for (var j = 1; j < nV - 1; j++) {
-      _tryAddDot(particles: particles, rng: rng, px: ox, py: oy + j * vStep);
+      _tryAddDot(particles: particles, px: ox, py: oy + j * vStep);
     }
 
     for (var j = 1; j < nV - 1; j++) {
-      _tryAddDot(particles: particles, rng: rng, px: ox + lw, py: oy + j * vStep);
+      _tryAddDot(particles: particles, px: ox + lw, py: oy + j * vStep);
     }
   }
 
   void _addRoundedLayerDots({
     required List<_QuiDotMatrixDot> particles,
-    required math.Random rng,
     required double ox,
     required double oy,
     required double lw,
@@ -315,7 +303,7 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
       for (final segment in segments) {
         if (remaining <= segment.length) {
           final point = segment.point(remaining);
-          _tryAddDot(particles: particles, rng: rng, px: point.dx, py: point.dy);
+          _tryAddDot(particles: particles, px: point.dx, py: point.dy);
           break;
         }
         remaining -= segment.length;
@@ -323,51 +311,25 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
     }
   }
 
-  void _tryAddDot({
-    required List<_QuiDotMatrixDot> particles,
-    required math.Random rng,
-    required double px,
-    required double py,
-  }) {
+  void _tryAddDot({required List<_QuiDotMatrixDot> particles, required double px, required double py}) {
     for (final p in particles) {
       if ((p.position.dx - px).abs() < 1 && (p.position.dy - py).abs() < 1) return;
     }
-    particles.add(_makeParticle(rng: rng, px: px, py: py, pr: _pr));
+    particles.add(_makeParticle(px: px, py: py, pr: _pr));
   }
 
   double _effectivePadding({required double w, required double h}) {
     return (math.min(w, h) / 12).clamp(10.0, 18.0);
   }
 
-  _QuiDotMatrixDot _makeParticle({
-    required math.Random rng,
-    required double px,
-    required double py,
-    required double pr,
-  }) {
-    return _QuiDotMatrixDot(
-      position: Offset(px, py),
-      radius: pr,
-      colorFreq: rng.nextDouble() * 2.5 + 0.5,
-      colorPhase: rng.nextDouble() * math.pi * 2,
-      alpha: rng.nextDouble() * 0.45 + 0.5,
-    );
-  }
-
-  List<Color> _buildPalette(Color base) {
-    return [
-      Color.lerp(base, Colors.black, 0.3)!,
-      Color.lerp(base, Colors.black, 0.25)!,
-      base,
-      Color.lerp(base, Colors.white, 0.25)!,
-      Color.lerp(base, Colors.white, 0.3)!,
-    ];
+  _QuiDotMatrixDot _makeParticle({required double px, required double py, required double pr}) {
+    return _QuiDotMatrixDot(position: Offset(px, py), radius: pr);
   }
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration ?? _kSceneDuration);
+    _controller = AnimationController(vsync: this, duration: widget.duration ?? _kDefaultDuration);
     _previousValue = _controller.value;
     _controller.addListener(_onAnimationTick);
     WidgetsBinding.instance.addObserver(this);
@@ -385,12 +347,11 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
     if (oldWidget.width != widget.width ||
         oldWidget.height != widget.height ||
         oldWidget.radius != widget.radius ||
-        oldWidget.dotSize != widget.dotSize ||
-        oldWidget.seed != widget.seed) {
+        oldWidget.dotSize != widget.dotSize) {
       _invalidateParticles();
     }
     if (oldWidget.duration != widget.duration) {
-      _controller.duration = widget.duration ?? _kSceneDuration;
+      _controller.duration = widget.duration ?? _kDefaultDuration;
     }
   }
 
@@ -422,23 +383,7 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
           _particles = _generateParticles(w: w, h: h);
         }
 
-        final baseColors = widget.colors;
-        final baseKey = baseColors == null || baseColors.isEmpty
-            ? context.qui.colors.placeholder
-            : (baseColors.length == 1 ? baseColors[0] as Object : baseColors);
-
-        if (!identical(_paletteKey, baseKey)) {
-          _paletteKey = baseKey;
-          if (baseColors == null || baseColors.isEmpty) {
-            _palette = _buildPalette(context.qui.colors.placeholder);
-          } else if (baseColors.length == 1) {
-            _palette = _buildPalette(baseColors[0]);
-          } else {
-            _palette = baseColors;
-          }
-        }
-
-        final palette = _palette;
+        final color = widget.color ?? context.qui.colors.placeholder;
         final disabled = MediaQuery.disableAnimationsOf(context);
 
         return SizedBox(
@@ -447,14 +392,14 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
           child: RepaintBoundary(
             child: disabled
                 ? CustomPaint(
-                    painter: _QuiDotMatrixPainter(particles: _particles, palette: palette, progress: 0),
+                    painter: _QuiDotMatrixPainter(particles: _particles, color: color, progress: 0.5),
                     size: Size(w, h),
                   )
                 : AnimatedBuilder(
                     animation: _controller,
                     builder: (context, _) {
                       return CustomPaint(
-                        painter: _QuiDotMatrixPainter(particles: _particles, palette: palette, progress: _cycleT),
+                        painter: _QuiDotMatrixPainter(particles: _particles, color: color, progress: _cycleT),
                         size: Size(w, h),
                       );
                     },
@@ -483,9 +428,9 @@ Widget quiDotMatrixPreview() {
             SizedBox(height: 24),
             QuiDotMatrix(width: 320, height: 80, radius: 12),
             SizedBox(height: 24),
-            QuiDotMatrix(width: 320, height: 180, radius: 16, colors: [Color(0xFF4A90D9)]),
+            QuiDotMatrix(width: 320, height: 180, radius: 16, color: Color(0xFF4A90D9)),
             SizedBox(height: 24),
-            QuiDotMatrix(width: 320, height: 180, radius: 16, colors: [Color(0xFFFF4A4B), Color(0xFFFF9500)]),
+            QuiDotMatrix(width: 320, height: 180, radius: 16, color: Color(0xFFFF4A4B)),
           ],
         ),
       ),

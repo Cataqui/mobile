@@ -25,7 +25,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _ColorFrame(
-                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, colors: [Color(0xFF4A90D9)]),
+                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, color: Color(0xFF4A90D9)),
               ),
             ),
           ),
@@ -34,7 +34,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _ColorFrame(
-                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, colors: [Color(0xFF34C759)]),
+                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, color: Color(0xFF34C759)),
               ),
             ),
           ),
@@ -43,7 +43,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _ColorFrame(
-                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, colors: [Color(0xFFFF9500)]),
+                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, color: Color(0xFFFF9500)),
               ),
             ),
           ),
@@ -52,7 +52,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _ColorFrame(
-                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, colors: [Color(0xFFFF3B30)]),
+                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, color: Color(0xFFFF3B30)),
               ),
             ),
           ),
@@ -61,7 +61,7 @@ void main() {
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: _ColorFrame(
-                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, colors: [Color(0xFFAF52DE)]),
+                child: const QuiDotMatrix(width: 240, height: 160, radius: 16, color: Color(0xFFAF52DE)),
               ),
             ),
           ),

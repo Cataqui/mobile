@@ -1,45 +1,51 @@
 part of 'qui_dot_matrix.dart';
 
+const double _kMinOpacity = 0.01;
+const double _kOneMinusMinOpacity = 1.0 - _kMinOpacity;
+const double _kBandSigma = 0.18;
+const double _kInvTwoSigmaSq = 1.0 / (2.0 * _kBandSigma * _kBandSigma);
+
 class _QuiDotMatrixPainter extends CustomPainter {
-  const _QuiDotMatrixPainter({required this.particles, required this.palette, required this.progress});
+  const _QuiDotMatrixPainter({required this.particles, required this.color, required this.progress});
 
   final List<_QuiDotMatrixDot> particles;
-
-  final List<Color> palette;
-
+  final Color color;
   final double progress;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.width <= 0 || size.height <= 0 || particles.isEmpty) return;
 
-    final cycleT = progress * math.pi * 2;
-    final colorCount = palette.length;
-    final colorCountMinusOne = colorCount - 1;
-    final colorCountMinusTwo = colorCount - 2;
-    final paint = Paint();
-
-    if (colorCount == 1) {
-      final singleColor = palette[0];
-      for (final p in particles) {
-        paint.color = singleColor.withValues(alpha: p.alpha);
-        canvas.drawCircle(p.position, p.radius, paint);
-      }
+    // ---- diagonal sweep band ----
+    final rawPos = progress % 1.0;
+    final double bandCenter;
+    if (rawPos < 0.5) {
+      bandCenter = 2.0 * rawPos * rawPos;
     } else {
-      for (final p in particles) {
-        final scaled = ((math.sin(cycleT * p.colorFreq + p.colorPhase) + 1) / 2) * colorCountMinusOne;
-        final index = scaled.floor().clamp(0, colorCountMinusTwo);
-        final frac = scaled - index;
-        paint.color = Color.lerp(palette[index], palette[index + 1], frac)!.withValues(alpha: p.alpha);
-        canvas.drawCircle(p.position, p.radius, paint);
-      }
+      final t = rawPos - 1.0;
+      bandCenter = 1.0 - 2.0 * t * t;
+    }
+
+    final invSumWH = 1.0 / (size.width + size.height);
+
+    final paint = Paint();
+    for (final pDot in particles) {
+      final t = (pDot.position.dx + pDot.position.dy) * invSumWH;
+      final rawDist = (t - bandCenter).abs();
+      final dist = rawDist < 0.5 ? rawDist : 1.0 - rawDist;
+      final activation = math.exp(-dist * dist * _kInvTwoSigmaSq);
+
+      final opacity = _kMinOpacity + _kOneMinusMinOpacity * activation;
+
+      paint.color = color.withValues(alpha: opacity);
+      canvas.drawCircle(pDot.position, pDot.radius, paint);
     }
   }
 
   @override
   bool shouldRepaint(covariant _QuiDotMatrixPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.palette != palette ||
+        oldDelegate.color != color ||
         !identical(oldDelegate.particles, particles);
   }
 }

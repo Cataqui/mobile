@@ -200,7 +200,7 @@ void main() {
                   width: 200,
                   height: 140,
                   radius: 16,
-                  colors: [Color(0xFF4A90D9)],
+                  color: Color(0xFF4A90D9),
                 ),
               ),
             ),
