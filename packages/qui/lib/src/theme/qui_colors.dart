@@ -27,6 +27,7 @@ class QuiColors {
     required this.surface,
     required this.textPrimary,
     required this.textSecondary,
+    required this.description,
     required this.borderOnBackground,
     required this.placeholder,
     required this.disabledButtonBackground,
@@ -65,6 +66,14 @@ class QuiColors {
 
   /// The muted color for secondary or supporting text.
   final Color textSecondary;
+
+  /// The color for descriptive and body text that users need to read.
+  ///
+  /// Lighter than [textPrimary] to reduce visual weight in dense paragraphs,
+  /// but darker than [textSecondary] to remain comfortably readable.  Use for
+  /// job descriptions, post bodies, explanatory text, and any long-form
+  /// content where [textPrimary] would feel too heavy.
+  final Color description;
 
   /// The border color for elements drawn directly on the background color.
   final Color borderOnBackground;
@@ -138,6 +147,7 @@ class QuiColors {
           surface == other.surface &&
           textPrimary == other.textPrimary &&
           textSecondary == other.textSecondary &&
+          description == other.description &&
           borderOnBackground == other.borderOnBackground &&
           placeholder == other.placeholder &&
           disabledButtonBackground == other.disabledButtonBackground &&
@@ -161,6 +171,7 @@ class QuiColors {
     surface,
     textPrimary,
     textSecondary,
+    description,
     borderOnBackground,
     placeholder,
     disabledButtonBackground,
@@ -185,6 +196,7 @@ class QuiColors {
     Color? surface,
     Color? textPrimary,
     Color? textSecondary,
+    Color? description,
     Color? borderOnBackground,
     Color? placeholder,
     Color? disabledButtonBackground,
@@ -207,6 +219,7 @@ class QuiColors {
       surface: surface ?? this.surface,
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
+      description: description ?? this.description,
       borderOnBackground: borderOnBackground ?? this.borderOnBackground,
       placeholder: placeholder ?? this.placeholder,
       disabledButtonBackground: disabledButtonBackground ?? this.disabledButtonBackground,
@@ -236,6 +249,7 @@ class QuiColors {
       surface: Color.lerp(a.surface, b.surface, t)!,
       textPrimary: Color.lerp(a.textPrimary, b.textPrimary, t)!,
       textSecondary: Color.lerp(a.textSecondary, b.textSecondary, t)!,
+      description: Color.lerp(a.description, b.description, t)!,
       borderOnBackground: Color.lerp(a.borderOnBackground, b.borderOnBackground, t)!,
       placeholder: Color.lerp(a.placeholder, b.placeholder, t)!,
       disabledButtonBackground: Color.lerp(a.disabledButtonBackground, b.disabledButtonBackground, t)!,
@@ -262,6 +276,7 @@ class _LightQuiColors extends QuiColors {
         surface: const Color(0xFFFFFFFF),
         textPrimary: const Color(0xFF1A1A1A),
         textSecondary: const Color(0xFFB0B0B0),
+        description: const Color(0xFF737373),
         borderOnBackground: const Color(0xFFE6E6E6),
         placeholder: const Color(0xFF9E9E9E),
         disabledButtonBackground: const Color(0xFFE1E1E1),

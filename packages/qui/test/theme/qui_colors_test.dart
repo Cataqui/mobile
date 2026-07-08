@@ -10,6 +10,7 @@ const _lerpA = QuiColors(
   surface: Color(0xFFFFFFFF),
   textPrimary: Color(0xFF1A1A1A),
   textSecondary: Color(0xFFB3B3B3),
+  description: Color(0xFF737373),
   borderOnBackground: Color(0xFF9E9E9E),
   placeholder: Color(0xFF9E9E9E),
   disabledButtonBackground: Color(0xFFE1E1E1),
@@ -33,6 +34,7 @@ const _lerpB = QuiColors(
   surface: Color(0xFF000000),
   textPrimary: Color(0xFF000000),
   textSecondary: Color(0xFF000000),
+  description: Color(0xFF000000),
   borderOnBackground: Color(0xFF000000),
   placeholder: Color(0xFF000000),
   disabledButtonBackground: Color(0xFF000000),
@@ -74,6 +76,10 @@ void main() {
 
     test('light() sets textSecondary to soft gray', () {
       expect(_lightColors.textSecondary, equals(const Color(0xFFB0B0B0)));
+    });
+
+    test('light() sets description to medium-dark gray', () {
+      expect(_lightColors.description, equals(const Color(0xFF737373)));
     });
 
     test('when light colors are created, it should set borderOnBackground to light gray', () {
@@ -142,6 +148,7 @@ void main() {
         surface: Color(0xFFFFFFFF),
         textPrimary: Color(0xFF1A1A1A),
         textSecondary: Color(0xFFB3B3B3),
+        description: Color(0xFF9E9E9E),
         borderOnBackground: Color(0xFF9E9E9E),
         placeholder: Color(0xFF9E9E9E),
         disabledButtonBackground: Color(0xFFE1E1E1),
@@ -205,6 +212,13 @@ void main() {
       final result = _lightColors.copyWith(textSecondary: custom);
 
       expect(result.textSecondary, equals(custom));
+    });
+
+    test('copyWith replaces description when provided', () {
+      const custom = Color(0xFF777777);
+      final result = _lightColors.copyWith(description: custom);
+
+      expect(result.description, equals(custom));
     });
 
     test('when copyWith receives borderOnBackground, it should replace borderOnBackground', () {
@@ -330,6 +344,12 @@ void main() {
       expect(result.textSecondary, equals(Color.lerp(_lerpA.textSecondary, _lerpB.textSecondary, 0.5)));
     });
 
+    test('lerp interpolates description at t=0.5', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(result.description, equals(Color.lerp(_lerpA.description, _lerpB.description, 0.5)));
+    });
+
     test('when lerping at t=0.5, it should interpolate borderOnBackground', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
@@ -411,7 +431,10 @@ void main() {
     test('when lerping at t=0.5, it should interpolate skeletonShimmerGlow', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
-      expect(result.skeletonShimmerGlow, equals(Color.lerp(_lerpA.skeletonShimmerGlow, _lerpB.skeletonShimmerGlow, 0.5)));
+      expect(
+        result.skeletonShimmerGlow,
+        equals(Color.lerp(_lerpA.skeletonShimmerGlow, _lerpB.skeletonShimmerGlow, 0.5)),
+      );
     });
 
     // ----------------------------------------------------------------
