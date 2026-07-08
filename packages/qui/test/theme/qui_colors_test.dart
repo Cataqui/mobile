@@ -75,7 +75,7 @@ void main() {
     });
 
     test('light() sets textSecondary to soft gray', () {
-      expect(_lightColors.textSecondary, equals(const Color(0xFFB0B0B0)));
+      expect(_lightColors.textSecondary, equals(const Color(0xFF9A9A9A)));
     });
 
     test('light() sets description to medium-dark gray', () {
