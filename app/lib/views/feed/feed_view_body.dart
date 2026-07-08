@@ -24,36 +24,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget build(BuildContext context) {
     final feedState = ref.watch(feedStateProvider);
 
-    return QuiWidgetTransition(
-      builder: (context) => feedState.when(
-        data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
-        error: (error, st) =>
-            KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
-        loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
-      ),
-      outDuration: const Duration(milliseconds: 600),
-      outTransition: (child, animation) => FadeTransition(
-        opacity: Tween<double>(begin: 1, end: 0).animate(animation),
-        child: RepaintBoundary(child: child),
-      ),
-      inDuration: const Duration(milliseconds: 600),
-      inTransition: (child, animation) {
-        final wrapped = RepaintBoundary(child: child);
-
-        return feedState.maybeWhen(
-          data: (_) => FadeTransition(
-            opacity: widget.feedInCurve.animate(animation),
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.30),
-                end: Offset.zero,
-              ).chain(widget.feedInCurve).animate(animation),
-              child: wrapped,
-            ),
-          ),
-          orElse: () => FadeTransition(opacity: widget.feedInCurve.animate(animation), child: wrapped),
-        );
-      },
+    return feedState.when(
+      data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
+      error: (error, st) => KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
+      loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
     );
   }
 
@@ -244,20 +218,41 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   }
 
   Widget _buildInitialLoading(BuildContext context) {
-    return Center(
-      child: QuiOrbit(
-        revolutionDuration: const Duration(milliseconds: 3000),
-        radius: 100,
-        items: [
-          QuiOrbitItem(child: Qui3d.brush.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.hammer.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.ladder.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.motorcycle.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.shoppingCart.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.smallTruck.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.toolBox.downsampledImage(context, width: 43), size: const Size(43, 43)),
-          QuiOrbitItem(child: Qui3d.box.downsampledImage(context, width: 43), size: const Size(43, 43)),
-        ],
+    final colors = context.qui.colors;
+
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
+        child: SizedBox.expand(
+          child: ClipRRect(
+            borderRadius: widget.cardBorderRadius,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(
+                  color: colors.mapBackground,
+                  child: const Padding(padding: EdgeInsets.all(8), child: QuiDotMatrix(radius: 0, dotSize: 1)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(9),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: FeedJobCard(
+                      feedJob: FeedJobDto.fixture().copyWith(
+                        title: 'Loading your next job',
+                        createdAt: clock.now(),
+                        descriptionSummary: 'Your next job is coming, wait a bit and it will appear...',
+                        payment: JobPaymentDto.fixture().copyWith(minAmount: 1200, type: JobPaymentType.fixed),
+                      ),
+                      skeleton: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

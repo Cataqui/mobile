@@ -46,21 +46,21 @@ void main() {
     });
 
     group('initial loading', () {
-      testWidgets('when feedState is loading, it should render the initial-loading QuiOrbit', (tester) async {
+      testWidgets('when feedState is loading, it should render the initial-loading skeleton', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
         );
-        expect(find.byType(QuiOrbit), findsOneWidget);
+        expect(find.byType(QuiSkeleton), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when feedState is loading, it should not render FeedJobCard', (tester) async {
+      testWidgets('when feedState is loading, it should render the skeleton FeedJobCard', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
         );
-        expect(find.byType(FeedJobCard), findsNothing);
+        expect(find.byType(FeedJobCard), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -114,13 +114,13 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when feedState is error, it should not render QuiOrbit', (tester) async {
+      testWidgets('when feedState is error, it should not render skeleton loading', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
         );
         await tester.pump();
-        expect(find.byType(QuiOrbit), findsNothing);
+        expect(find.byType(QuiSkeleton), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -318,126 +318,11 @@ void main() {
       });
     });
 
-    group('inTransition SlideTransition', () {
-      // Scopes the SlideTransition finder to only those inside QuiWidgetTransition
-      // to avoid false matches from MaterialPageRoute's route transition SlideTransition.
-      Finder _quiSlideTransition() =>
-          find.descendant(of: find.byType(QuiWidgetTransition), matching: find.byType(SlideTransition));
-
-      testWidgets('when feedState is data, it should wrap the entering widget in a SlideTransition', (tester) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
-        );
-        await tester.pump();
-        expect(_quiSlideTransition(), findsOneWidget);
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when feedState is loading, it should not include a SlideTransition', (tester) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
-        );
-        await tester.pump();
-        expect(_quiSlideTransition(), findsNothing);
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when feedState is error, it should not include a SlideTransition', (tester) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
-        );
-        await tester.pump();
-        expect(_quiSlideTransition(), findsNothing);
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when configured, it should retain both 600 millisecond transition durations', (tester) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
-        );
-
-        final transition = tester.widget<QuiWidgetTransition>(find.byType(QuiWidgetTransition));
-        expect(
-          (outDuration: transition.outDuration, inDuration: transition.inDuration),
-          (outDuration: const Duration(milliseconds: 600), inDuration: const Duration(milliseconds: 600)),
-        );
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when data starts entering, it should retain the 0.30 vertical slide offset', (tester) async {
-        final feedState = FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>());
-        FeedViewTestHelpers.mockHapticFeedback(tester);
-        FeedViewTestHelpers.mockPlatformViews(tester);
-        await tester.pumpWidget(FeedViewTestHelpers.buildFeedViewApp(feedState: feedState));
-        await tester.pump();
-
-        feedState.emittedValue = AsyncData(FeedViewTestHelpers.feedDataEmpty());
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 1));
-        await tester.pump(const Duration(milliseconds: 600));
-        await tester.pump();
-
-        final slide = tester.widget<SlideTransition>(_quiSlideTransition());
-        expect(slide.position.value.dy, closeTo(0.30, 0.001));
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when data is halfway through entering, it should retain the easeOutCubic slide curve', (
-        tester,
-      ) async {
-        final feedState = FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>());
-        FeedViewTestHelpers.mockHapticFeedback(tester);
-        FeedViewTestHelpers.mockPlatformViews(tester);
-        await tester.pumpWidget(FeedViewTestHelpers.buildFeedViewApp(feedState: feedState));
-        await tester.pump();
-
-        feedState.emittedValue = AsyncData(FeedViewTestHelpers.feedDataEmpty());
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 1));
-        await tester.pump(const Duration(milliseconds: 600));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 1));
-        await tester.pump(const Duration(milliseconds: 300));
-
-        final slide = tester.widget<SlideTransition>(_quiSlideTransition());
-        expect(slide.position.value.dy, closeTo(0.0375, 0.002));
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when data is halfway through entering, it should retain the easeOutCubic fade', (tester) async {
-        final feedState = FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>());
-        FeedViewTestHelpers.mockHapticFeedback(tester);
-        FeedViewTestHelpers.mockPlatformViews(tester);
-        await tester.pumpWidget(FeedViewTestHelpers.buildFeedViewApp(feedState: feedState));
-        await tester.pump();
-
-        feedState.emittedValue = AsyncData(FeedViewTestHelpers.feedDataEmpty());
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 1));
-        await tester.pump(const Duration(milliseconds: 600));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 1));
-        await tester.pump(const Duration(milliseconds: 300));
-
-        final opacityValues = tester
-            .widgetList<FadeTransition>(
-              find.descendant(of: find.byType(QuiWidgetTransition), matching: find.byType(FadeTransition)),
-            )
-            .map((fade) => fade.opacity.value);
-        expect(opacityValues, contains(closeTo(0.875, 0.002)));
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-    });
-
     group('feed state keys', () {
       // Each feed state must be wrapped in a KeyedSubtree with a unique key
-      // so QuiWidgetTransition can detect state changes and animate between
-      // them. Without distinct keys, transitions between same-type widgets
-      // (e.g., Center→Center for loading→error) would be silently skipped.
+      // so state changes are correctly detected. Without distinct keys,
+      // Flutter would reuse the same element for same-type widgets
+      // (e.g., Center→Center for loading→error).
       testWidgets(
         'when feedState is loading, it should wrap the loading widget in a KeyedSubtree with ValueKey feed_loading',
         (tester) async {
@@ -473,9 +358,8 @@ void main() {
         await tester.pump();
         // Uses 'feed_data' (same as data with jobs) because empty IS data
         // — the FeedData state, not a separate loading/error state.
-        // QuiWidgetTransition compares by (runtimeType + Key), and
-        // the empty and non-empty builders both return Padding. Without
-        // the shared KeyedSubtree, even empty→jobs would skip animation.
+        // The empty and non-empty builders both return different root
+        // widgets, so the shared key keeps the element tree stable.
         expect(find.byKey(const ValueKey('feed_data')), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });

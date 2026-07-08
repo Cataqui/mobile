@@ -10,9 +10,10 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 class FeedJobCard extends ConsumerWidget {
-  const FeedJobCard({required this.feedJob, super.key});
+  const FeedJobCard({required this.feedJob, super.key, this.skeleton = false});
 
   final FeedJobDto feedJob;
+  final bool skeleton;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,53 +23,61 @@ class FeedJobCard extends ConsumerWidget {
     return QuiTapAnimation(
       animation: QuiTapAnimationType.scale,
       fireHapticFeedback: false,
-      onPressed: (animation) async => unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(context)),
+      onPressed: (animation) async {
+        if (skeleton) return;
+        unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(context));
+      },
       child: QuiHeroBackground(
         tag: 'job-${feedJob.jobId}-surface',
         width: double.infinity,
         decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(38)),
         padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiHeroGroup(
-              tag: 'job-${feedJob.jobId}-header',
-              heroes: [
-                QuiHeroText(
-                  feedJob.createdAt.timeAgo(
-                    onNow: () => i18n.feedJob.timeAgo.now,
-                    onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
-                    onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
-                    onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
-                    onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                    fallback: OmfTimeAgoFallback.finer,
+        child: QuiSkeleton(
+          style: const QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()),
+          enabled: skeleton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              QuiHeroGroup(
+                tag: 'job-${feedJob.jobId}-header',
+                heroes: [
+                  QuiHeroText(
+                    feedJob.createdAt.timeAgo(
+                      onNow: () => i18n.feedJob.timeAgo.now,
+                      onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                      onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                      onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                      onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                      fallback: OmfTimeAgoFallback.finer,
+                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.placeholder),
+                    padding: const EdgeInsets.only(bottom: 6),
                   ),
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.placeholder),
-                  padding: const EdgeInsets.only(bottom: 6),
-                ),
-                QuiHeroText(
-                  feedJob.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  onStart: HapticFeedback.successNotification,
-                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600, fontSize: 22),
-                ),
-                QuiHeroText(
-                  feedJob.payment.formatPayment(i18n),
-                  style: TextStyle(fontSize: 25, color: colors.money, fontWeight: FontWeight.w600),
-                ),
-                QuiHeroText(
-                  feedJob.descriptionSummary,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  switchThreshold: 0.8,
-                  padding: const EdgeInsets.only(top: 4),
-                  style: TextStyle(fontSize: 16, color: colors.textSecondary, fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ],
+                  QuiHeroText(
+                    feedJob.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    onStart: HapticFeedback.successNotification,
+                    style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600, fontSize: 22),
+                  ),
+                  QuiHeroText(
+                    padding: skeleton ? const EdgeInsets.only(top: 6) : EdgeInsets.zero,
+                    feedJob.payment.formatPayment(i18n),
+                    style: TextStyle(fontSize: 25, color: colors.money, fontWeight: FontWeight.w600),
+                  ),
+                  QuiHeroText(
+                    padding: skeleton ? const EdgeInsets.only(top: 6) : const EdgeInsets.only(top: 4),
+                    feedJob.descriptionSummary,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    switchThreshold: 0.8,
+                    style: TextStyle(fontSize: 16, color: colors.textSecondary, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
