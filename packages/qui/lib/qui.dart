@@ -42,11 +42,18 @@ export 'src/widgets/qui_orbit/qui_orbit.dart' show QuiOrbit, QuiOrbitDirection, 
 export 'src/widgets/qui_primary_button.dart'
     show QuiPrimaryButton, QuiPrimaryButtonFit, QuiPrimaryButtonIconBuilder, QuiPrimaryButtonIconState;
 export 'src/widgets/qui_radar_pulse/qui_radar_pulse.dart' show QuiRadarPulse, QuiRadarPulseStep;
+export 'src/widgets/qui_route_settled/qui_route_settled.dart' show QuiRouteSettled;
 export 'src/widgets/qui_search_bar_button.dart' show QuiSearchBarButton;
 export 'src/widgets/qui_secondary_button.dart'
     show QuiSecondaryButton, QuiSecondaryButtonFit, QuiSecondaryButtonIconBuilder, QuiSecondaryButtonIconState;
 export 'src/widgets/qui_skeleton/qui_skeleton.dart'
-    show QuiSkeleton, QuiSkeletonAnimatedEffectBase, QuiSkeletonFadeEffect, QuiSkeletonShimmerEffect, QuiSkeletonStaticEffectBase, QuiSkeletonStyle;
+    show
+        QuiSkeleton,
+        QuiSkeletonAnimatedEffectBase,
+        QuiSkeletonFadeEffect,
+        QuiSkeletonShimmerEffect,
+        QuiSkeletonStaticEffectBase,
+        QuiSkeletonStyle;
 export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
     show
         QuiSwipeDeck,
