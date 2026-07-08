@@ -79,7 +79,7 @@ void main() {
     });
 
     test('light() sets description to medium-dark gray', () {
-      expect(_lightColors.description, equals(const Color(0xFF737373)));
+      expect(_lightColors.description, equals(const Color(0xFF9A9A9A)));
     });
 
     test('when light colors are created, it should set borderOnBackground to light gray', () {
@@ -148,7 +148,7 @@ void main() {
         surface: Color(0xFFFFFFFF),
         textPrimary: Color(0xFF1A1A1A),
         textSecondary: Color(0xFFB3B3B3),
-        description: Color(0xFF9E9E9E),
+        description: Color(0xFF9A9A9A),
         borderOnBackground: Color(0xFF9E9E9E),
         placeholder: Color(0xFF9E9E9E),
         disabledButtonBackground: Color(0xFFE1E1E1),
