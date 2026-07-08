@@ -64,6 +64,23 @@ void main() {
     );
 
     goldenTest(
+      'when the title is very long, it should clamp to 4 lines with ellipsis',
+      fileName: 'job_view_long_title',
+      builder: () => withClock(
+        JobViewGoldenTestHelpers.fixedClock(),
+        () => JobViewGoldenTestHelpers.scenario(
+          feedJob: JobViewTestHelpers.feedJob(
+            title:
+                'Preciso de um ajudante muito experiente para descarregar um '
+                'caminhão pesado amanhã cedo no centro da cidade perto da '
+                'estação',
+          ),
+          jobState: JobViewTestHelpers.loadedState(),
+        ),
+      ),
+    );
+
+    goldenTest(
       'when deep-linked and loading, it should show header skeletons and description skeleton',
       fileName: 'job_view_deep_link_loading',
       builder: () => withClock(

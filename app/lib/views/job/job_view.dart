@@ -81,6 +81,8 @@ class _JobViewState extends ConsumerState<JobView> {
                                 ),
                                 QuiHeroText(
                                   feedJob?.title ?? jobData!.job.title,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 34,
                                     fontWeight: FontWeight.w600,
