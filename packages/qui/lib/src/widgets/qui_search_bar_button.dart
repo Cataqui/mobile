@@ -58,7 +58,7 @@ class QuiSearchBarButton extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    QuiIcons.magnifierGlass.svg(
+                    QuiIcons.instance.build((assets) => assets.magnifierGlass,
                       width: 18,
                       height: 18,
                       colorFilter: ColorFilter.mode(context.qui.colors.textPrimary, BlendMode.srcIn),

@@ -50,7 +50,7 @@ class QuiOfflineErrorState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.wifiExclamation.image(height: 140),
+          Qui3d.instance.build(context, (assets) => assets.wifiExclamation, height: 140),
           const SizedBox(height: 20),
           Text(
             title,
@@ -72,7 +72,7 @@ class QuiOfflineErrorState extends StatelessWidget {
             const SizedBox(height: 20),
             QuiSecondaryButton(
               label: retry!.label,
-              leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
+              leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
                 height: 15,
                 width: 15,
                 colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),

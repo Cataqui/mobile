@@ -137,7 +137,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Qui3d.workItemsMess.downsampledImage(context, height: 150, width: 150),
+            Qui3d.instance.build(context, (assets) => assets.workItemsMess, height: 150, width: 150),
             const SizedBox(height: 40),
             Text(
               i18n.feed.loadingMore.error.title,
@@ -156,7 +156,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             const SizedBox(height: 20),
             QuiPrimaryButton(
               label: i18n.feed.loadingMore.error.retryButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
+              leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
                 height: 15,
                 width: 15,
                 colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
@@ -182,7 +182,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Qui3d.emptyCitySaoPaulo.downsampledImage(context, height: 150, colorBlendMode: BlendMode.hue),
+            Qui3d.instance.build(context, (assets) => assets.emptyCitySaoPaulo, height: 150, colorBlendMode: BlendMode.hue),
             const SizedBox(height: 20),
             Text(
               i18n.feed.empty.title,
@@ -201,7 +201,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             const SizedBox(height: 40),
             QuiSecondaryButton(
               label: i18n.feed.empty.adjustAreaButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.wrench.svg(
+              leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.wrench,
                 height: 15,
                 width: 15,
                 colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
@@ -276,7 +276,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.locationPinRestingCracked.downsampledImage(context, height: 140),
+          Qui3d.instance.build(context, (assets) => assets.locationPinRestingCracked, height: 140),
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,
@@ -295,13 +295,13 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           const SizedBox(height: 20),
           QuiPrimaryButton(
             label: i18n.feed.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
-              height: 15,
-              width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-            ),
-            leadingIconSpacing: 10,
-            onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
+            leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
+                height: 15,
+                width: 15,
+                colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+              ),
+              leadingIconSpacing: 10,
+              onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
           ),
         ],
       ),

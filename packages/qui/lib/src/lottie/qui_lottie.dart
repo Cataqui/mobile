@@ -1,36 +1,58 @@
+import 'package:flutter/widgets.dart';
+import 'package:lottie/lottie.dart';
 import 'package:qui/gen/assets.gen.dart';
 
 /// QUI-design-system accessor for bundled Lottie animations.
 ///
-/// Provides a [lotties] getter for the generated asset accessors and an
-/// [animate] flag that controls whether the animation plays.  The default
-/// production instance is [QuiLottie.shared] (a lazy singleton).  Use a
-/// separate [QuiLottie] instance (e.g., `QuiLottie(animate: false)`) in tests
-/// to prevent infinite-loop Lottie tickers from blocking `pumpAndSettle`.
+/// Provides a [build] method that renders a selected animation as a
+/// [LottieBuilder]. The [animate] flag controls whether the animation plays
+/// (default `true`). The default production instance is [QuiLottie.instance].
+/// Use a separate [QuiLottie] instance (e.g., `QuiLottie(animate: false)`) in
+/// tests to prevent infinite-loop Lottie tickers from blocking `pumpAndSettle`.
 ///
 /// ```dart
-/// // Production (non-DI context):
-/// QuiLottie.shared.lotties.loadingSlime.lottie(width: 80, height: 80);
+/// // Non-DI context:
+/// QuiLottie.instance.build((assets) => assets.loadingSlime, width: 80, height: 80);
 ///
 /// // DI-provided (app-level, via Riverpod):
-/// ref.watch(quiLottieProvider).lotties.loadingSlime.lottie(animate: quiLottie.animate, width: 150, height: 150);
+/// ref.watch(quiLottieProvider).build((assets) => assets.loadingSlime, width: 150, height: 150);
 /// ```
 class QuiLottie {
   /// Creates a [QuiLottie] instance with the given [animate] flag.
   ///
   /// When [animate] is `false`, the Lottie widget renders its first frame
-  /// statically (no animation ticker is started).  This is used in tests.
-  QuiLottie({this.animate = true});
+  /// statically (no animation ticker is started). This is used in tests.
+  const QuiLottie({this.animate = true});
 
   /// Whether the Lottie animation should play when rendered.
   final bool animate;
 
-  /// The generated Lottie asset accessors (e.g., `.loadingSlime`).
-  $AssetsLottieGen get lotties => Assets.lottie;
-
-  /// The default lazy singleton [QuiLottie] instance (animate: `true`).
+  /// Builds the animation selected by [selector] as a [LottieBuilder].
   ///
-  /// Use this in contexts where Riverpod DI is not available (e.g., widgets
-  /// inside the `qui` package itself).
-  static final QuiLottie shared = QuiLottie();
+  /// The [selector] receives the full set of generated Lottie accessors
+  /// so you can pick one via autocomplete.
+  LottieBuilder build(
+    LottieGenImage Function($AssetsLottieGen assets) selector, {
+    double? width,
+    double? height,
+    BoxFit? fit,
+    AlignmentGeometry? alignment,
+    bool? repeat,
+    bool? reverse,
+  }) {
+    return selector(Assets.lottie).lottie(
+      animate: animate,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      reverse: reverse,
+    );
+  }
+
+  /// The default singleton [QuiLottie] instance.
+  ///
+  /// Use in contexts where DI is not required.
+  static const QuiLottie instance = QuiLottie();
 }

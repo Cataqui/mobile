@@ -95,18 +95,18 @@ class FeedViewTestHelpers {
 
   static Future<void> precacheFeedStateImages(BuildContext context) async {
     await Future.wait([
-      precacheImage(Qui3d.brush.provider(), context),
-      precacheImage(Qui3d.hammer.provider(), context),
-      precacheImage(Qui3d.ladder.provider(), context),
-      precacheImage(Qui3d.motorcycle.provider(), context),
-      precacheImage(Qui3d.shoppingCart.provider(), context),
-      precacheImage(Qui3d.smallTruck.provider(), context),
-      precacheImage(Qui3d.toolBox.provider(), context),
-      precacheImage(Qui3d.box.provider(), context),
-      precacheImage(Qui3d.locationPinRestingCracked.provider(), context),
-      precacheImage(Qui3d.emptyCitySaoPaulo.provider(), context),
-      precacheImage(Qui3d.workItemsMess.provider(), context),
-      precacheImage(Qui3d.wifiExclamation.provider(), context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.brush).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.hammer).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.ladder).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.motorcycle).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.shoppingCart).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.smallTruck).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.toolBox).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.box).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.locationPinRestingCracked).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.emptyCitySaoPaulo).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.workItemsMess).image, context),
+      precacheImage(Qui3d.instance.build(context, (assets) => assets.wifiExclamation).image, context),
     ]);
   }
 

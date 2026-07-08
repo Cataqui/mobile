@@ -17,44 +17,39 @@ Widget _buildApp(void Function(BuildContext) captureContext) {
   );
 }
 
-extension on BuildContext {
-  Image imageForTest() => Qui3d.box.downsampledImage(this);
-}
-
 void main() {
-  group('when downsampledImage is called', () {
+  group('when Qui3d.build is called', () {
     testWidgets(
       'with width, it should set cacheWidth to width times devicePixelRatio',
       (tester) async {
         late BuildContext ctx;
         await tester.pumpWidget(_buildApp((c) => ctx = c));
 
-        final image = Qui3d.box.downsampledImage(ctx, width: 100);
+        final image = Qui3d.instance.build(
+          ctx,
+          (assets) => assets.box,
+          width: 100,
+        );
 
         expect((image.image as ResizeImage).width, (100 * _testDpr).ceil());
       },
     );
 
     testWidgets(
-      'with width and height, it should set cacheWidth to width times devicePixelRatio',
+      'with width and height, it should set cacheWidth and cacheHeight to '
+      'width and height times devicePixelRatio',
       (tester) async {
         late BuildContext ctx;
         await tester.pumpWidget(_buildApp((c) => ctx = c));
 
-        final image = Qui3d.box.downsampledImage(ctx, width: 100, height: 150);
+        final image = Qui3d.instance.build(
+          ctx,
+          (assets) => assets.box,
+          width: 100,
+          height: 150,
+        );
 
         expect((image.image as ResizeImage).width, (100 * _testDpr).ceil());
-      },
-    );
-
-    testWidgets(
-      'with width and height, it should set cacheHeight to height times devicePixelRatio',
-      (tester) async {
-        late BuildContext ctx;
-        await tester.pumpWidget(_buildApp((c) => ctx = c));
-
-        final image = Qui3d.box.downsampledImage(ctx, width: 100, height: 150);
-
         expect((image.image as ResizeImage).height, (150 * _testDpr).ceil());
       },
     );
@@ -65,7 +60,11 @@ void main() {
         late BuildContext ctx;
         await tester.pumpWidget(_buildApp((c) => ctx = c));
 
-        final image = Qui3d.box.downsampledImage(ctx, width: 100);
+        final image = Qui3d.instance.build(
+          ctx,
+          (assets) => assets.box,
+          width: 100,
+        );
 
         expect((image.image as ResizeImage).height, isNull);
       },
@@ -77,7 +76,11 @@ void main() {
         late BuildContext ctx;
         await tester.pumpWidget(_buildApp((c) => ctx = c));
 
-        final image = Qui3d.box.downsampledImage(ctx, height: 100);
+        final image = Qui3d.instance.build(
+          ctx,
+          (assets) => assets.box,
+          height: 100,
+        );
 
         expect((image.image as ResizeImage).width, isNull);
       },
@@ -89,7 +92,7 @@ void main() {
         late BuildContext ctx;
         await tester.pumpWidget(_buildApp((c) => ctx = c));
 
-        final image = Qui3d.box.downsampledImage(ctx);
+        final image = Qui3d.instance.build(ctx, (assets) => assets.box);
 
         expect(image.image, isNot(isA<ResizeImage>()));
       },
@@ -102,8 +105,9 @@ void main() {
         await tester.pumpWidget(_buildApp((c) => ctx = c));
 
         const testColor = Colors.red;
-        final image = Qui3d.box.downsampledImage(
+        final image = Qui3d.instance.build(
           ctx,
+          (assets) => assets.box,
           color: testColor,
           width: 50,
         );
@@ -118,21 +122,13 @@ void main() {
         late BuildContext ctx;
         await tester.pumpWidget(_buildApp((c) => ctx = c));
 
-        final image = Qui3d.box.downsampledImage(ctx, width: 75);
+        final image = Qui3d.instance.build(
+          ctx,
+          (assets) => assets.box,
+          width: 75,
+        );
 
         expect(image.width, 75);
-      },
-    );
-  });
-
-  group('when the extension type compiles', () {
-    testWidgets(
-      'it should be usable via the barrel import',
-      (tester) async {
-        late BuildContext ctx;
-        await tester.pumpWidget(_buildApp((c) => ctx = c));
-
-        expect(ctx.imageForTest(), isA<Image>());
       },
     );
   });

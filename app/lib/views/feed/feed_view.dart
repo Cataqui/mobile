@@ -72,14 +72,14 @@ class _FeedViewState extends ConsumerState<FeedView> {
                     //     alignment: AlignmentGeometry.topStart,
                     //     child: QuiTextButton(
                     //       text: 'São Paulo',
-                    //       leadingIconBuilder: (state) => QuiIcons.mapPin.svg(
-                    //         colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
+                    //     leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.mapPin,
+                    //       colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
                     //         height: 14,
                     //         width: 14,
                     //       ),
                     //       leadingIconSpacing: 10,
                     //       trailingIconSpacing: 10,
-                    //       trailingIconBuilder: (state) => QuiIcons.chevronDown.svg(
+                    //       trailingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.chevronDown,
                     //         colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
                     //         height: 8,
                     //       ),
