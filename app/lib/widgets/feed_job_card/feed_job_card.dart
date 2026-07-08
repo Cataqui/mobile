@@ -34,6 +34,7 @@ class FeedJobCard extends ConsumerWidget {
         tag: backgroundHeroKey(feedJob.jobId),
         width: double.infinity,
         decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(38)),
+        edgeFade: const QuiHeroEdgeFade(switchThreshold: 1),
         padding: const EdgeInsets.all(24),
         child: QuiSkeleton(
           style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect(duration: Duration(seconds: 2))),

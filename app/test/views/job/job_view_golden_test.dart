@@ -120,6 +120,23 @@ void main() {
     );
 
     goldenTest(
+      'when scrolled to the bottom of a very long description, it should show bottom padding before the edge fade',
+      fileName: 'job_view_long_description',
+      builder: () => withClock(
+        JobViewGoldenTestHelpers.fixedClock(),
+        () => JobViewGoldenTestHelpers.scenario(
+          feedJob: JobViewTestHelpers.feedJob(),
+          jobState: JobViewTestHelpers.loadedState(
+            job: JobViewTestHelpers.job(
+              description: JobViewGoldenTestHelpers.veryLongDescription,
+            ),
+          ),
+        ),
+      ),
+      pumpBeforeTest: JobViewGoldenTestHelpers.scrollToBottom,
+    );
+
+    goldenTest(
       'when dragging down from the top, it should show the card shrinking back toward the feed',
       fileName: 'job_view_mid_drag_close',
       builder: () => withClock(JobViewGoldenTestHelpers.fixedClock(), JobViewGoldenTestHelpers.routedScenario),
@@ -131,6 +148,24 @@ void main() {
 
 class JobViewGoldenTestHelpers {
   JobViewGoldenTestHelpers._();
+
+  static String get veryLongDescription {
+    final paragraphs = List.generate(
+      30,
+      (i) => '${i + 1}. Este é um parágrafo muito longo da descrição da '
+          'oportunidade para garantir que o conteúdo ultrapasse o tamanho '
+          'da tela e seja necessário rolar para baixo. Esta vaga exige '
+          'disponibilidade imediata e bastante disposição para o trabalho.',
+    );
+    return paragraphs.join('\n\n');
+  }
+
+  static Future<void> scrollToBottom(WidgetTester tester) async {
+    await tester.pump();
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -10000));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+  }
 
   static Clock fixedClock() {
     return Clock(() => DateTime(2026, 6, 30, 11));

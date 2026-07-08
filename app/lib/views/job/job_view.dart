@@ -45,16 +45,16 @@ class _JobViewState extends ConsumerState<JobView> {
           QuiHeroBackground(
             tag: FeedJobCard.backgroundHeroKey(widget.jobId),
             decoration: BoxDecoration(color: colors.background, borderRadius: BorderRadius.circular(50)),
-            edgeFade: QuiHeroEdgeFade(bottom: QuiEdgeFadeStyle(color: colors.background)),
+            edgeFade: QuiHeroEdgeFade.vertical,
             extensions: [QuiHeroSwipeToPopExtension(scrollController: _scrollController, sensibility: 0.85)],
-            child: SafeArea(
-              bottom: false,
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SafeArea(
+                    bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20).copyWith(top: 90),
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20).copyWith(top: 90, bottom: 100),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -155,8 +155,8 @@ class _JobViewState extends ConsumerState<JobView> {
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           SafeArea(
