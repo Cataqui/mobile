@@ -92,7 +92,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                 QuiHeroText(
                                   (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
                                   style: TextStyle(fontSize: 30, color: colors.money, fontWeight: FontWeight.w600),
-                                  padding: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.only(bottom: 12),
                                 ),
                                 if (jobData != null)
                                   QuiHeroText(
@@ -100,8 +100,8 @@ class _JobViewState extends ConsumerState<JobView> {
                                     switchThreshold: 0.97,
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: colors.textSecondary,
-                                      fontWeight: FontWeight.w600,
+                                      color: colors.description,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                               ],
