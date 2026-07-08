@@ -47,5 +47,66 @@ void main() {
 
       expect(a, equals(b));
     });
+
+    test('when using the default switchThreshold, lerp should preserve the current full-flight timing', () {
+      const source = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 0));
+      const destination = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 100));
+
+      final result = QuiHeroEdgeFade.lerp(source, destination, 0.5);
+
+      expect(result.top!.height, equals(50.0));
+    });
+
+    test('when switchThreshold is 0.1, lerp should reach halfway at 5 percent of the flight', () {
+      const source = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 0), switchThreshold: 0.1);
+      const destination = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 100));
+
+      final result = QuiHeroEdgeFade.lerp(source, destination, 0.05);
+
+      expect(result.top!.height, equals(50.0));
+    });
+
+    test('when switchThreshold is 0.1, lerp should reach the destination at 10 percent of the flight', () {
+      const source = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 0), switchThreshold: 0.1);
+      const destination = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 100));
+
+      final result = QuiHeroEdgeFade.lerp(source, destination, 0.1);
+
+      expect(result.top!.height, equals(100.0));
+    });
+
+    test('when endpoints have different switchThreshold values, lerp should use the source threshold', () {
+      const source = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 0), switchThreshold: 0.1);
+      const destination = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 100), switchThreshold: 0.9);
+
+      final result = QuiHeroEdgeFade.lerp(source, destination, 0.1);
+
+      expect(result.top!.height, equals(100.0));
+    });
+
+    test('when switchThreshold is zero, lerp should switch to the destination immediately', () {
+      const source = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 0), switchThreshold: 0);
+      const destination = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 100));
+
+      final result = QuiHeroEdgeFade.lerp(source, destination, 0);
+
+      expect(result.top!.height, equals(100.0));
+    });
+
+    test('when creating with switchThreshold below zero, it should throw an assertion error', () {
+      expect(() => QuiHeroEdgeFade(switchThreshold: -0.1), throwsA(isA<AssertionError>()));
+    });
+
+    test('when creating with switchThreshold above one, it should throw an assertion error', () {
+      expect(() => QuiHeroEdgeFade(switchThreshold: 1.1), throwsA(isA<AssertionError>()));
+    });
+
+    test('when copying with a switchThreshold, it should update the threshold', () {
+      const original = QuiHeroEdgeFade(top: QuiEdgeFadeStyle(height: 100));
+
+      final updated = original.copyWith(switchThreshold: 0.1);
+
+      expect(updated.switchThreshold, equals(0.1));
+    });
   });
 }

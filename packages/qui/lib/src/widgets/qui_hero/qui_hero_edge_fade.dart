@@ -1,6 +1,6 @@
 part of 'qui_hero.dart';
 
-/// The top and bottom edge-fade configuration for a [QuiHero.background].
+/// The top and bottom edge-fade configuration for a [QuiHeroBackground].
 ///
 /// Each side accepts a [QuiEdgeFadeStyle]. When a side is `null`, no fade is
 /// rendered on that edge at rest. During a hero flight, an absent side on one
@@ -13,13 +13,22 @@ part of 'qui_hero.dart';
 @immutable
 class QuiHeroEdgeFade {
   /// Creates a QUI hero edge-fade configuration.
-  const QuiHeroEdgeFade({this.top, this.bottom});
+  const QuiHeroEdgeFade({this.top, this.bottom, this.switchThreshold = 1.0})
+    : assert(switchThreshold >= 0.0 && switchThreshold <= 1.0, 'switchThreshold must be between 0.0 and 1.0.');
 
   /// Style for the top edge fade. `null` means no top fade at rest.
   final QuiEdgeFadeStyle? top;
 
   /// Style for the bottom edge fade. `null` means no bottom fade at rest.
   final QuiEdgeFadeStyle? bottom;
+
+  /// The flight progress threshold at which the fade reaches its destination style.
+  ///
+  /// The threshold belongs to the source side of the flight, matching
+  /// [QuiHeroText.switchThreshold]. A value of `0.1` makes the fade interpolate
+  /// from source to destination during the first 10% of the flight, then keep
+  /// the destination style for the remaining flight.
+  final double switchThreshold;
 
   /// Convenience constant enabling both vertical edges with default
   /// (runtime-resolved) styles — mirrors [QuiEdgeFade]'s out-of-the-box look
@@ -45,6 +54,7 @@ class QuiHeroEdgeFade {
     return QuiHeroEdgeFade(
       top: top?.resolve(context) ?? QuiEdgeFadeStyle(color: resolvedColor, height: 0),
       bottom: bottom?.resolve(context) ?? QuiEdgeFadeStyle(color: resolvedColor, height: 0),
+      switchThreshold: switchThreshold,
     );
   }
 
@@ -52,18 +62,37 @@ class QuiHeroEdgeFade {
   /// lerped; callers should render a side only when its lerped `height > 0`.
   // ignore: prefer_constructors_over_static_methods
   static QuiHeroEdgeFade lerp(QuiHeroEdgeFade a, QuiHeroEdgeFade b, double t) {
+    final thresholdProgress = _switchThresholdProgress(lerpValue: t, switchThreshold: a.switchThreshold);
+
     return QuiHeroEdgeFade(
-      top: QuiEdgeFadeStyle.lerp(a.top, b.top, t),
-      bottom: QuiEdgeFadeStyle.lerp(a.bottom, b.bottom, t),
+      top: QuiEdgeFadeStyle.lerp(a.top, b.top, thresholdProgress),
+      bottom: QuiEdgeFadeStyle.lerp(a.bottom, b.bottom, thresholdProgress),
+      switchThreshold: a.switchThreshold,
     );
   }
 
-  QuiHeroEdgeFade copyWith({QuiEdgeFadeStyle? top, QuiEdgeFadeStyle? bottom}) =>
-      QuiHeroEdgeFade(top: top ?? this.top, bottom: bottom ?? this.bottom);
+  static double _switchThresholdProgress({required double lerpValue, required double switchThreshold}) {
+    if (switchThreshold <= 0) return 1;
+
+    return (lerpValue / switchThreshold).clamp(0.0, 1.0);
+  }
+
+  /// A copy of this edge-fade configuration with selected fields replaced.
+  QuiHeroEdgeFade copyWith({QuiEdgeFadeStyle? top, QuiEdgeFadeStyle? bottom, double? switchThreshold}) {
+    return QuiHeroEdgeFade(
+      top: top ?? this.top,
+      bottom: bottom ?? this.bottom,
+      switchThreshold: switchThreshold ?? this.switchThreshold,
+    );
+  }
 
   @override
-  bool operator ==(Object other) => other is QuiHeroEdgeFade && other.top == top && other.bottom == bottom;
+  bool operator ==(Object other) =>
+      other is QuiHeroEdgeFade &&
+      other.top == top &&
+      other.bottom == bottom &&
+      other.switchThreshold == switchThreshold;
 
   @override
-  int get hashCode => Object.hash(top, bottom);
+  int get hashCode => Object.hash(top, bottom, switchThreshold);
 }

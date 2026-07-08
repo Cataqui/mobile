@@ -85,21 +85,27 @@ final class QuiHeroBackground extends QuiHero {
     final fromRadius = fromHero.borderRadius;
     final toRadius = toHero.borderRadius;
 
-    final beginFade = flightDirection == HeroFlightDirection.push ? fromHeroChild : toHeroChild;
-    final endFade = flightDirection == HeroFlightDirection.push ? toHeroChild : fromHeroChild;
-    final beginRadius = flightDirection == HeroFlightDirection.push ? fromRadius : toRadius;
-    final endRadius = flightDirection == HeroFlightDirection.push ? toRadius : fromRadius;
+    final sourceFade = fromHeroChild;
+    final destinationFade = toHeroChild;
+    final sourceRadius = fromRadius;
+    final destinationRadius = toRadius;
 
-    final resolvedBegin = beginFade?.resolve(flightContext) ?? const QuiHeroEdgeFade().resolve(flightContext);
-    final resolvedEnd = endFade?.resolve(flightContext) ?? const QuiHeroEdgeFade().resolve(flightContext);
+    final resolvedSource = sourceFade?.resolve(flightContext) ?? const QuiHeroEdgeFade().resolve(flightContext);
+    final resolvedDestination =
+        destinationFade?.resolve(flightContext) ?? const QuiHeroEdgeFade().resolve(flightContext);
 
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) {
-          final t = Curves.easeOutCubic.transform(animation.value);
-          final lerpedFade = QuiHeroEdgeFade.lerp(resolvedBegin, resolvedEnd, t);
-          final lerpedRadius = BorderRadiusGeometry.lerp(beginRadius, endRadius, t) as BorderRadius?;
+          final animationValue = flightDirection == HeroFlightDirection.push ? animation.value : 1 - animation.value;
+          final edgeFadeProgress = resolvedSource.switchThreshold >= 1.0
+              ? Curves.easeOutCubic.transform(animationValue)
+              : animationValue;
+          final radiusProgress = Curves.easeOutCubic.transform(animationValue);
+          final lerpedFade = QuiHeroEdgeFade.lerp(resolvedSource, resolvedDestination, edgeFadeProgress);
+          final lerpedRadius =
+              BorderRadiusGeometry.lerp(sourceRadius, destinationRadius, radiusProgress) as BorderRadius?;
           return IgnorePointer(
             child: QuiHeroBackgroundEdgeFade(edgeFade: lerpedFade, borderRadius: lerpedRadius),
           );
