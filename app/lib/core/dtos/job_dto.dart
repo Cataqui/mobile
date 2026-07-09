@@ -1,5 +1,5 @@
 import 'package:cataqui_app/core/dtos/job_category_dto.dart';
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
+import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
 import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
@@ -15,7 +15,7 @@ abstract class JobDto with _$JobDto {
     @JsonKey(name: 'job_id') required String jobId,
     required String title,
     required String description,
-    required JobContactDto contact,
+    @JsonKey(name: 'contact_reference') required JobContactReferenceDto contactReference,
     required JobLocationDto location,
     required JobCategoryDto category,
     required JobPaymentDto payment,
@@ -34,7 +34,10 @@ abstract class JobDto with _$JobDto {
         'Mock job for staging QA. Need one person to help unload '
         'boxes from a small truck for about two hours near Centro. This is test '
         'data and should not be treated as a real opportunity.',
-    contact: const JobContactDto(phoneNumber: '+5511999999999', contactMethod: JobContactMethod.whatsapp),
+    contactReference: const JobContactReferenceDto(
+      contactId: 'cm3x-contact-1',
+      contactMethod: JobContactMethod.whatsapp,
+    ),
     location: JobLocationDto(
       neighborhood: 'Centro',
       city: 'São Paulo',
