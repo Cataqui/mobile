@@ -28,9 +28,10 @@ void main() {
     });
 
     test('when parsing a feed job location, it should map the map config version', () {
-      final location = FeedJobLocationDto.fixture().copyWith(
-        mapConfig: MapConfigDto.fixture().copyWith(mapVersion: '2.3.1'),
-      );
+      final location = FeedJobLocationDto.fromJson({
+        ...FeedJobLocationDto.fixture().toJson(),
+        'map_config': MapConfigDto.fixture().copyWith(mapVersion: '2.3.1').toJson(),
+      });
 
       expect(location.mapConfig.mapVersion, '2.3.1');
     });
