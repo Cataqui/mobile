@@ -1,4 +1,3 @@
-import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job/job_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -19,8 +18,7 @@ class JobState extends _$JobState {
 
   Future<JobData> _fetchJob() async {
     final jobRepository = ref.read(jobRepositoryProvider);
-    final locale = ref.read(appStateProvider).currentLocale;
-    final envelope = await jobRepository.getJob(jobId: jobId, locale: locale);
+    final envelope = await jobRepository.getJob(jobId: jobId);
 
     return JobData(job: envelope.data);
   }

@@ -1,7 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,9 +13,8 @@ void main() {
 
   setUp(() {
     repository = MockJobRepository();
-    registerFallbackValue(AppLocale.ptBr);
     when(
-      () => repository.getJob(jobId: any(named: 'jobId'), locale: any(named: 'locale')),
+      () => repository.getJob(jobId: any(named: 'jobId')),
     ).thenAnswer((_) async => _envelope());
   });
 
@@ -34,15 +32,7 @@ void main() {
 
       await container.read(jobStateProvider('custom-job-id').future);
 
-      verify(() => repository.getJob(jobId: 'custom-job-id', locale: any(named: 'locale'))).called(1);
-    });
-
-    test('when the provider is first read, it should pass the current locale to the repository', () async {
-      final container = _container(repository: repository);
-
-      await container.read(jobStateProvider('dfa0eb67-7b9b-4df5-9112-b92e7a8a7502').future);
-
-      verify(() => repository.getJob(jobId: any(named: 'jobId'), locale: AppLocale.ptBr)).called(1);
+      verify(() => repository.getJob(jobId: 'custom-job-id')).called(1);
     });
 
     test('when retry is called, it should fetch the job again', () async {
@@ -50,7 +40,7 @@ void main() {
       await container.read(jobStateProvider('retry-test-id').future);
       final secondJob = JobDto.fixture().copyWith(jobId: 'second-fetch-job');
       when(
-        () => repository.getJob(jobId: any(named: 'jobId'), locale: any(named: 'locale')),
+        () => repository.getJob(jobId: any(named: 'jobId')),
       ).thenAnswer((_) async => _envelope(job: secondJob));
 
       await container.read(jobStateProvider('retry-test-id').notifier).retry();
@@ -62,7 +52,7 @@ void main() {
       final container = _container(repository: repository);
       await container.read(jobStateProvider('retry-fail-id').future);
       when(
-        () => repository.getJob(jobId: any(named: 'jobId'), locale: any(named: 'locale')),
+        () => repository.getJob(jobId: any(named: 'jobId')),
       ).thenThrow(StateError('retry failed'));
 
       await container.read(jobStateProvider('retry-fail-id').notifier).retry();
@@ -72,9 +62,8 @@ void main() {
 
     test('when the initial fetch fails, it should expose an AsyncError', () async {
       final failingRepository = MockJobRepository();
-      registerFallbackValue(AppLocale.ptBr);
       when(
-        () => failingRepository.getJob(jobId: any(named: 'jobId'), locale: any(named: 'locale')),
+        () => failingRepository.getJob(jobId: any(named: 'jobId')),
       ).thenThrow(StateError('initial fetch failed'));
       final container = _container(repository: failingRepository);
 

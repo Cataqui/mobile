@@ -24,17 +24,13 @@ void main() {
 
   setUpAll(() async {
     i18n = await AppLocale.ptBr.build();
-    registerFallbackValue(AppLocale.ptBr);
   });
 
   setUp(() {
     goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
     jobRepository = MockJobRepository();
     when(
-      () => jobRepository.getJob(
-        jobId: any(named: 'jobId'),
-        locale: any(named: 'locale'),
-      ),
+      () => jobRepository.getJob(jobId: any(named: 'jobId')),
     ).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(
         data: JobViewTestHelpers.job(),
@@ -318,10 +314,7 @@ void main() {
         final feedJob = JobViewTestHelpers.feedJob();
         final description = List<String>.filled(80, 'Linha de descrição longa.').join('\n');
         when(
-          () => jobRepository.getJob(
-            jobId: any(named: 'jobId'),
-            locale: any(named: 'locale'),
-          ),
+          () => jobRepository.getJob(jobId: any(named: 'jobId')),
         ).thenAnswer(
           (_) async => ApiEnvelopeDto<JobDto>(
             data: JobViewTestHelpers.job(description: description),

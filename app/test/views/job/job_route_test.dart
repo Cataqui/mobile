@@ -2,7 +2,6 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
@@ -29,12 +28,7 @@ class JobRouteTestHelpers {
     FeedViewTestHelpers.mockPlatformViews(tester);
     FeedViewTestHelpers.mockMapChannels();
     final jobRepository = MockJobRepository();
-    when(
-      () => jobRepository.getJob(
-        jobId: any(named: 'jobId'),
-        locale: any(named: 'locale'),
-      ),
-    ).thenAnswer(
+    when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(
         data: JobViewTestHelpers.job(),
         requestId: 'test-request-id',
@@ -73,10 +67,6 @@ class JobRouteTestHelpers {
 }
 
 void main() {
-  setUpAll(() {
-    registerFallbackValue(AppLocale.ptBr);
-  });
-
   group('JobRoute.location', () {
     test('when the job id is plain ascii, it should build the /job/<id> location', () {
       expect(JobRoute(jobId: 'job_123').location, '/job/job_123');
@@ -96,12 +86,7 @@ void main() {
 
     setUp(() {
       jobRepository = MockJobRepository();
-      when(
-        () => jobRepository.getJob(
-          jobId: any(named: 'jobId'),
-          locale: any(named: 'locale'),
-        ),
-      ).thenAnswer(
+      when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
         (_) async => ApiEnvelopeDto<JobDto>(
           data: JobViewTestHelpers.job(),
           requestId: 'test-request-id',
@@ -171,21 +156,19 @@ void main() {
       expect(find.byType(JobView), findsOneWidget);
     });
 
-    testWidgets(
-      'when deep-linking to /job/:jobId with no extra, it should set the correct jobId on the JobView',
-      (tester) async {
-        await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
-        expect(tester.widget<JobView>(find.byType(JobView)).jobId, 'abc');
-      },
-    );
+    testWidgets('when deep-linking to /job/:jobId with no extra, it should set the correct jobId on the JobView', (
+      tester,
+    ) async {
+      await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
+      expect(tester.widget<JobView>(find.byType(JobView)).jobId, 'abc');
+    });
 
-    testWidgets(
-      'when deep-linking to /job/:jobId with no extra, it should set feedJob to null on the JobView',
-      (tester) async {
-        await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
-        expect(tester.widget<JobView>(find.byType(JobView)).feedJob, isNull);
-      },
-    );
+    testWidgets('when deep-linking to /job/:jobId with no extra, it should set feedJob to null on the JobView', (
+      tester,
+    ) async {
+      await JobRouteTestHelpers.pumpDeepLinkedJobRoute(tester, jobId: 'abc');
+      expect(tester.widget<JobView>(find.byType(JobView)).feedJob, isNull);
+    });
 
     testWidgets(
       'when deep-linking to /job/:jobId with no extra, it should mount the JobView under a NoTransitionPage',
@@ -202,12 +185,7 @@ void main() {
 
     setUp(() {
       jobRepository = MockJobRepository();
-      when(
-        () => jobRepository.getJob(
-          jobId: any(named: 'jobId'),
-          locale: any(named: 'locale'),
-        ),
-      ).thenAnswer(
+      when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
         (_) async => ApiEnvelopeDto<JobDto>(
           data: JobViewTestHelpers.job(),
           requestId: 'test-request-id',

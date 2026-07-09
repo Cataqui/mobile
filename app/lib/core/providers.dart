@@ -29,6 +29,7 @@ AppConfig appConfig(Ref ref) {
 @Riverpod(keepAlive: true)
 Dio cataquiDio(Ref ref) {
   final appConfig = ref.read(appConfigProvider);
+  final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
 
   final dio = Dio(
     BaseOptions(
@@ -36,9 +37,10 @@ Dio cataquiDio(Ref ref) {
       connectTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 30),
-      headers: const <String, String>{
+      headers: <String, String>{
         Headers.acceptHeader: Headers.jsonContentType,
         Headers.contentTypeHeader: Headers.jsonContentType,
+        'accept-language': locale.languageTag,
       },
     ),
   );

@@ -22,10 +22,6 @@ import '../feed/feed_view_test_helpers.dart';
 import 'job_view_test_helpers.dart';
 
 void main() {
-  setUpAll(() {
-    registerFallbackValue(AppLocale.ptBr);
-  });
-
   group('JobView Golden Tests', () {
     goldenTest(
       'when the full job is loading, it should show the immediate header and description spinner',
@@ -189,10 +185,7 @@ class JobViewGoldenTestHelpers {
     final jobRepository = MockJobRepository();
 
     when(
-      () => jobRepository.getJob(
-        jobId: any(named: 'jobId'),
-        locale: any(named: 'locale'),
-      ),
+      () => jobRepository.getJob(jobId: any(named: 'jobId')),
     ).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(
         data: JobViewTestHelpers.job(),
