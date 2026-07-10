@@ -44,7 +44,7 @@ class _JobViewState extends ConsumerState<JobView> {
         children: [
           QuiHeroBackground(
             tag: FeedJobCard.backgroundHeroKey(widget.jobId),
-            decoration: BoxDecoration(color: colors.background, borderRadius: BorderRadius.circular(50)),
+            decoration: BoxDecoration(color: colors.background),
             edgeFade: QuiHeroEdgeFade.vertical,
             extensions: [QuiHeroSwipeToPopExtension(scrollController: _scrollController, sensibility: 0.85)],
             child: CustomScrollView(
