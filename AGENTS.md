@@ -144,10 +144,10 @@ Every class must follow a consistent top-to-bottom method ordering so that relat
 
 #### General Classes (Non-Widgets)
 
-1. **Static public members** — `static` fields and methods usable by external callers.
-2. **Static private members** — `static` helpers scoped to the class.
-3. **Instance public fields** — `final`/`var` public fields and variables.
-4. **Instance private fields** — `final`/`var` private fields and variables.
+1. **Constructor fields** — `final` instance fields initialized via `this.xxx` in the constructor. List public fields first, then private fields. These are the class's primary inputs.
+2. **Static public members** — `static` fields and methods usable by external callers.
+3. **Static private members** — `static` helpers scoped to the class.
+4. **Instance fields (non-constructor)** — `final`/`var` fields with inline initializers (`final name = defaultValue`). These are secondary state, not primary inputs.
 5. **Instance public methods** — public instance methods (including getters and setters) that do not override a superclass member.
 6. **Instance private methods** — private instance methods (including getters and setters) that do not override a superclass member.
 7. **Overrides** — `@override` methods (lifecycle, operator overloads, interface implementations).
