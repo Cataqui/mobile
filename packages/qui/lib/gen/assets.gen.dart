@@ -29,6 +29,10 @@ class $AssetsIconsGen {
   SvgGenImage get chevronDown =>
       const SvgGenImage('assets/icons/chevron_down.svg');
 
+  /// File path: assets/icons/circle_block.svg
+  SvgGenImage get circleBlock =>
+      const SvgGenImage('assets/icons/circle_block.svg');
+
   /// File path: assets/icons/clock.svg
   SvgGenImage get clock => const SvgGenImage('assets/icons/clock.svg');
 
@@ -56,6 +60,7 @@ class $AssetsIconsGen {
     arrowLeft,
     arrowRotateClockwise,
     chevronDown,
+    circleBlock,
     clock,
     cross,
     magnifierGlass,
