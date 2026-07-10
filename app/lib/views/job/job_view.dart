@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
+import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:flutter/material.dart';
@@ -168,6 +169,23 @@ class _JobViewState extends ConsumerState<JobView> {
               ),
             ),
           ),
+          if (jobData != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Center(
+                    child: QuiRouteSettled(
+                      child: JobContactButton(jobId: widget.jobId, contactReference: jobData.job.contactReference),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -213,7 +231,7 @@ class _JobViewState extends ConsumerState<JobView> {
               (assets) => assets.arrowRotateClockwise,
               height: 15,
               width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+              colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
             ),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),

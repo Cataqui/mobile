@@ -1,6 +1,6 @@
 import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:dio/dio.dart';

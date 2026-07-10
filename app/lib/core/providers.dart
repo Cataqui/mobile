@@ -16,10 +16,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
 
-final translationProvider = Provider<Translations>((ref) {
+@Riverpod(keepAlive: true)
+Translations translation(Ref ref) {
   final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
   return locale.buildSync();
-});
+}
 
 @Riverpod(keepAlive: true)
 AppConfig appConfig(Ref ref) {
@@ -70,6 +71,17 @@ JobRepository jobRepository(Ref ref) {
   return JobRepository(dio: ref.watch(cataquiDioProvider));
 }
 
-final quiLottieProvider = Provider<QuiLottie>((ref) {
-  return QuiLottie(animate: true);
-});
+@Riverpod(keepAlive: true)
+QuiLottie quiLottie(Ref ref) {
+  return QuiLottie.instance;
+}
+
+@riverpod
+OmfWhatsapp omfWhatsapp(Ref ref) {
+  return OmfWhatsapp();
+}
+
+@riverpod
+OmfTelephony omfTelephony(Ref ref) {
+  return OmfTelephony();
+}
