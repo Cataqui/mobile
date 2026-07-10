@@ -25,6 +25,7 @@ export 'src/theme/qui_typography.dart' show QuiTypography;
 export 'src/three_d/qui_3d.dart' show Qui3d;
 export 'src/widgets/qui_appear.dart' show QuiAppear, QuiAppearAnimationType, QuiAppearController;
 export 'src/widgets/qui_buttons_bar.dart' show QuiButtonsBar, QuiButtonsBarFit, QuiButtonsBarOrientation;
+export 'src/widgets/qui_dot_loading_indicator/qui_dot_loading_indicator.dart' show QuiDotLoadingIndicator;
 export 'src/widgets/qui_dot_matrix/qui_dot_matrix.dart' show QuiDotMatrix;
 export 'src/widgets/qui_edge_fade/qui_edge_fade.dart' show QuiEdgeFade, QuiEdgeFadePosition, QuiEdgeFadeStyle;
 export 'src/widgets/qui_hero/heroes/background/qui_hero_background.dart' show QuiHeroBackground;
