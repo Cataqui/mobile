@@ -189,3 +189,30 @@ expect(result, equals('A Combinar'));
 ### Exception: Parameterized Template Fragments
 
 Some translation values are parameterized templates (e.g. `paymentRangeUpTo`, `"Até {value}{period}"`). A test that checks for a fragment of the template (like `'Até'`) where no standalone translation key exists may remain hardcoded with a clarifying comment. Resolving this properly requires adding a new key to the JSON (a source-side change).
+
+## 10. Package Mocks — Verify the Call, Trust the Package
+
+When testing code that delegates to a package/library (e.g. `OmfWhatsapp.launchChat`,
+`OmfTelephony.call`, `url_launcher.launchUrl`), the test's responsibility is only
+to verify that the package method was called with the correct arguments. **Do not**
+re-test the package's own behavior (URI construction, platform channel communication,
+return values).
+
+```dart
+// Mock the package class in test/mocks.dart
+class MockOmfWhatsapp extends Mock implements OmfWhatsapp {}
+
+// In the test, inject via provider override:
+when(() => whatsapp.launchChat(number: any(named: 'number')))
+    .thenAnswer((_) async => true);
+
+// Then verify the call:
+verify(() => whatsapp.launchChat(number: '+5511999999999')).called(1);
+```
+
+- The stub must return a realistic default (`thenAnswer((_) async => true)` for
+  `Future<bool>` methods) so the calling code's control flow can complete.
+- `verify` checks the arguments passed to the package method — nothing more.
+- Use `verifyNever` to confirm a method was NOT called in error/failure paths.
+- Always define package mock classes in `test/mocks.dart`, not inline in test
+  files.
