@@ -117,7 +117,7 @@ void main() {
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
 
-        expect(text.style!.color, equals(const Color(0xFF00DD55)));
+        expect(text.style!.color, equals(QuiColors.light().money));
       });
 
       testWidgets('when created, the description should use 15.7px font size', (tester) async {
