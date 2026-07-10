@@ -42,6 +42,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/map_pin.svg
   SvgGenImage get mapPin => const SvgGenImage('assets/icons/map_pin.svg');
 
+  /// File path: assets/icons/phone.svg
+  SvgGenImage get phone => const SvgGenImage('assets/icons/phone.svg');
+
   /// File path: assets/icons/whatsapp.svg
   SvgGenImage get whatsapp => const SvgGenImage('assets/icons/whatsapp.svg');
 
@@ -57,6 +60,7 @@ class $AssetsIconsGen {
     cross,
     magnifierGlass,
     mapPin,
+    phone,
     whatsapp,
     wrench,
   ];
