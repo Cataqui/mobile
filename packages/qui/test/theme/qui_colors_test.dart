@@ -19,7 +19,7 @@ const _lerpA = QuiColors(
   searchBarButtonShadow: Color(0x1A000000),
   viewBackButtonBackground: Color(0xFFFAFAFA),
   viewBackButtonShadow: Color(0x1A000000),
-  money: Color(0xFF00DD55),
+  money: Color(0xFF00D757),
   mapBackground: Color(0xFFF4F2EF),
   ghost: Color(0xFFCDCDCD),
   shimmerTextBase: Color(0xFFB3B3B3),
@@ -131,7 +131,7 @@ void main() {
     });
 
     test('light() sets money to green', () {
-      expect(_lightColors.money, equals(const Color(0xFF00DD55)));
+      expect(_lightColors.money, equals(const Color(0xFF00D757)));
     });
 
     test('light(primary:) overrides primary color', () {
@@ -157,7 +157,7 @@ void main() {
         searchBarButtonShadow: Color(0x1A000000),
         viewBackButtonBackground: Color(0xFFFAFAFA),
         viewBackButtonShadow: Color(0x1A000000),
-        money: Color(0xFF00DD55),
+        money: Color(0xFF00D757),
         mapBackground: Color(0xFFF4F2EF),
         ghost: Color(0xFFCDCDCD),
         shimmerTextBase: Color(0xFFB3B3B3),

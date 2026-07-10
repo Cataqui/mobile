@@ -285,7 +285,7 @@ class _LightQuiColors extends QuiColors {
         searchBarButtonShadow: const Color(0x1A000000),
         viewBackButtonBackground: const Color(0xFFFAFAFA),
         viewBackButtonShadow: const Color(0x1A000000),
-        money: const Color(0xFF00DD55),
+        money: const Color(0xFF00D757),
         mapBackground: const Color(0xFFEFEFEF),
         ghost: const Color(0xFFCDCDCD),
         shimmerTextBase: const Color(0xFFB3B3B3),
