@@ -1,9 +1,9 @@
 import 'package:cataqui_app/core/dtos/job_category_dto.dart';
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
-import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'job_dto.freezed.dart';

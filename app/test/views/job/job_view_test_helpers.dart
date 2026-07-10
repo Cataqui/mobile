@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -104,7 +104,12 @@ class JobViewTestHelpers {
     );
   }
 
-  static Widget buildApp({required FakeJobState jobState, String? jobId, FeedJobDto? feedJob, bool disableAnimations = true}) {
+  static Widget buildApp({
+    required FakeJobState jobState,
+    String? jobId,
+    FeedJobDto? feedJob,
+    bool disableAnimations = true,
+  }) {
     final resolvedJobId = jobId ?? feedJob!.jobId;
     final mediaQueryData = const MediaQueryData(
       size: Size(390, 844),
@@ -115,7 +120,7 @@ class JobViewTestHelpers {
     return ProviderScope(
       overrides: [
         jobStateProvider(resolvedJobId).overrideWith(() => jobState),
-        quiLottieProvider.overrideWithValue(QuiLottie(animate: false)),
+        quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
       ],
       child: MaterialApp(
         theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
@@ -144,7 +149,7 @@ class JobViewTestHelpers {
         goRouterProvider.overrideWithValue(goRouter),
         feedStateProvider.overrideWith(feedState),
         jobRepositoryProvider.overrideWithValue(jobRepository),
-        quiLottieProvider.overrideWithValue(QuiLottie(animate: false)),
+        quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
       ],
       child: MaterialApp.router(
         theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
@@ -164,7 +169,9 @@ class JobViewTestHelpers {
     bool disableAnimations = true,
   }) async {
     final resolvedJobId = jobId ?? feedJob!.jobId;
-    await tester.pumpWidget(buildApp(jobId: resolvedJobId, feedJob: feedJob, jobState: jobState, disableAnimations: disableAnimations));
+    await tester.pumpWidget(
+      buildApp(jobId: resolvedJobId, feedJob: feedJob, jobState: jobState, disableAnimations: disableAnimations),
+    );
     await tester.pump();
   }
 

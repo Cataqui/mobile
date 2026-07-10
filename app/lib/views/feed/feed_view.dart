@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
