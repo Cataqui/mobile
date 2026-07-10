@@ -83,6 +83,52 @@ void main() {
     );
 
     goldenTest(
+      'when rendering alignment variants with expand, it should match the approved goldens',
+      fileName: 'qui_primary_button_alignment',
+      builder: () => GoldenTestGroup(
+        scenarioConstraints: const BoxConstraints(maxWidth: 300),
+        children: [
+          GoldenTestScenario(
+            name: 'left',
+            child: SizedBox(
+              width: 300,
+              child: QuiPrimaryButton(
+                label: 'Esquerda',
+                fit: QuiPrimaryButtonFit.expand,
+                alignment: QuiPrimaryButtonAlignment.left,
+                onPressed: () {},
+              ),
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'center',
+            child: SizedBox(
+              width: 300,
+              child: QuiPrimaryButton(
+                label: 'Centro',
+                fit: QuiPrimaryButtonFit.expand,
+                alignment: QuiPrimaryButtonAlignment.center,
+                onPressed: () {},
+              ),
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'right',
+            child: SizedBox(
+              width: 300,
+              child: QuiPrimaryButton(
+                label: 'Direita',
+                fit: QuiPrimaryButtonFit.expand,
+                alignment: QuiPrimaryButtonAlignment.right,
+                onPressed: () {},
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    goldenTest(
       'when pressing the button, it should match the approved golden',
       fileName: 'qui_primary_button_pressed',
       whilePerforming: (tester) async {

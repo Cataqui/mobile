@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
@@ -30,6 +29,7 @@ class QuiPrimaryButton extends StatelessWidget {
     this.disabledBackgroundColor,
     this.foregroundColor,
     this.disabledForegroundColor,
+    this.alignment = QuiPrimaryButtonAlignment.center,
     this.fit = QuiPrimaryButtonFit.fit,
   });
 
@@ -72,6 +72,15 @@ class QuiPrimaryButton extends StatelessWidget {
   ///
   /// Defaults to `context.qui.colors.disabledButtonForeground`.
   final Color? disabledForegroundColor;
+
+  /// Controls the horizontal alignment of the label and icons within the
+  /// button bounds.
+  ///
+  /// Only has a visible effect when [fit] is [QuiPrimaryButtonFit.expand],
+  /// since a shrink-wrapped button is exactly as wide as its content.
+  ///
+  /// Defaults to [QuiPrimaryButtonAlignment.center].
+  final QuiPrimaryButtonAlignment alignment;
 
   /// Controls the width sizing behavior.
   ///
@@ -132,7 +141,7 @@ class QuiPrimaryButton extends StatelessWidget {
       width: fit == QuiPrimaryButtonFit.expand ? double.infinity : null,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(color: resolvedBackground, borderRadius: BorderRadius.circular(9999)),
-      child: fit == QuiPrimaryButtonFit.expand ? Center(child: content) : content,
+      child: fit == QuiPrimaryButtonFit.expand ? _alignedContent(content) : content,
     );
 
     return Semantics(
@@ -149,6 +158,17 @@ class QuiPrimaryButton extends StatelessWidget {
         child: button,
       ),
     );
+  }
+
+  Widget _alignedContent(Widget content) {
+    switch (alignment) {
+      case QuiPrimaryButtonAlignment.left:
+        return Align(alignment: Alignment.centerLeft, child: content);
+      case QuiPrimaryButtonAlignment.center:
+        return Center(child: content);
+      case QuiPrimaryButtonAlignment.right:
+        return Align(alignment: Alignment.centerRight, child: content);
+    }
   }
 }
 

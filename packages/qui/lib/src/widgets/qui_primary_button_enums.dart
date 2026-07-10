@@ -8,3 +8,16 @@ enum QuiPrimaryButtonFit {
   /// The button expands to fill the available horizontal width.
   expand,
 }
+
+/// Controls the horizontal alignment of [QuiPrimaryButton]'s foreground
+/// content (label and icons).
+enum QuiPrimaryButtonAlignment {
+  /// Aligns content to the left edge of the button.
+  left,
+
+  /// Centers content horizontally within the button.
+  center,
+
+  /// Aligns content to the right edge of the button.
+  right,
+}
