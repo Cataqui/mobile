@@ -36,6 +36,7 @@ class QuiColors {
     required this.searchBarButtonShadow,
     required this.viewBackButtonBackground,
     required this.viewBackButtonShadow,
+    required this.neutralButtonBackground,
     required this.money,
     required this.mapBackground,
     required this.ghost,
@@ -108,6 +109,10 @@ class QuiColors {
   /// The solid fill color of the map canvas in its loaded state.
   final Color mapBackground;
 
+  /// The neutral background color for buttons that should not carry brand
+  /// accent — white in light theme, black (or dark grey) in dark theme.
+  final Color neutralButtonBackground;
+
   /// The color used for representing ghost elements, such as placeholders,
   /// loading states, something blocked, skeletons etc.
   final Color ghost;
@@ -158,6 +163,7 @@ class QuiColors {
           viewBackButtonShadow == other.viewBackButtonShadow &&
           money == other.money &&
           mapBackground == other.mapBackground &&
+          neutralButtonBackground == other.neutralButtonBackground &&
           ghost == other.ghost &&
           shimmerTextBase == other.shimmerTextBase &&
           shimmerTextGlow == other.shimmerTextGlow &&
@@ -182,6 +188,7 @@ class QuiColors {
     viewBackButtonShadow,
     money,
     mapBackground,
+    neutralButtonBackground,
     ghost,
     shimmerTextBase,
     shimmerTextGlow,
@@ -207,6 +214,7 @@ class QuiColors {
     Color? backButtonShadow,
     Color? money,
     Color? mapBackground,
+    Color? neutralButtonBackground,
     Color? ghost,
     Color? shimmerTextBase,
     Color? shimmerTextGlow,
@@ -230,6 +238,7 @@ class QuiColors {
       viewBackButtonShadow: backButtonShadow ?? viewBackButtonShadow,
       money: money ?? this.money,
       mapBackground: mapBackground ?? this.mapBackground,
+      neutralButtonBackground: neutralButtonBackground ?? this.neutralButtonBackground,
       ghost: ghost ?? this.ghost,
       shimmerTextBase: shimmerTextBase ?? this.shimmerTextBase,
       shimmerTextGlow: shimmerTextGlow ?? this.shimmerTextGlow,
@@ -260,6 +269,7 @@ class QuiColors {
       viewBackButtonShadow: Color.lerp(a.viewBackButtonShadow, b.viewBackButtonShadow, t)!,
       money: Color.lerp(a.money, b.money, t)!,
       mapBackground: Color.lerp(a.mapBackground, b.mapBackground, t)!,
+      neutralButtonBackground: Color.lerp(a.neutralButtonBackground, b.neutralButtonBackground, t)!,
       ghost: Color.lerp(a.ghost, b.ghost, t)!,
       shimmerTextBase: Color.lerp(a.shimmerTextBase, b.shimmerTextBase, t)!,
       shimmerTextGlow: Color.lerp(a.shimmerTextGlow, b.shimmerTextGlow, t)!,
@@ -287,6 +297,7 @@ class _LightQuiColors extends QuiColors {
         viewBackButtonShadow: const Color(0x1A000000),
         money: const Color(0xFF00D757),
         mapBackground: const Color(0xFFEFEFEF),
+        neutralButtonBackground: const Color(0xFF000000),
         ghost: const Color(0xFFCDCDCD),
         shimmerTextBase: const Color(0xFFB3B3B3),
         shimmerTextGlow: const Color(0xFFE0E0E0),

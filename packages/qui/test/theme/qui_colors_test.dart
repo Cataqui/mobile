@@ -21,6 +21,7 @@ const _lerpA = QuiColors(
   viewBackButtonShadow: Color(0x1A000000),
   money: Color(0xFF00D757),
   mapBackground: Color(0xFFF4F2EF),
+  neutralButtonBackground: Color(0xFF000000),
   ghost: Color(0xFFCDCDCD),
   shimmerTextBase: Color(0xFFB3B3B3),
   shimmerTextGlow: Color(0xFFE0E0E0),
@@ -45,6 +46,7 @@ const _lerpB = QuiColors(
   viewBackButtonShadow: Color(0xFF000000),
   money: Color(0xFF000000),
   mapBackground: Color(0xFF000000),
+  neutralButtonBackground: Color(0xFF000000),
   ghost: Color(0xFF000000),
   shimmerTextBase: Color(0xFF000000),
   shimmerTextGlow: Color(0xFF000000),
@@ -134,6 +136,10 @@ void main() {
       expect(_lightColors.money, equals(const Color(0xFF00D757)));
     });
 
+    test('when light colors are created, it should set neutralButtonBackground to black', () {
+      expect(_lightColors.neutralButtonBackground, equals(const Color(0xFF000000)));
+    });
+
     test('light(primary:) overrides primary color', () {
       const custom = Color(0xFF0984E3);
       const colors = QuiColors.light(primary: custom);
@@ -159,6 +165,7 @@ void main() {
         viewBackButtonShadow: Color(0x1A000000),
         money: Color(0xFF00D757),
         mapBackground: Color(0xFFF4F2EF),
+        neutralButtonBackground: Color(0xFF000000),
         ghost: Color(0xFFCDCDCD),
         shimmerTextBase: Color(0xFFB3B3B3),
         shimmerTextGlow: Color(0xFFE0E0E0),
@@ -282,6 +289,13 @@ void main() {
       final result = _lightColors.copyWith(money: custom);
 
       expect(result.money, equals(custom));
+    });
+
+    test('when copyWith receives neutralButtonBackground, it should replace neutralButtonBackground', () {
+      const custom = Color(0xFFEEEEEE);
+      final result = _lightColors.copyWith(neutralButtonBackground: custom);
+
+      expect(result.neutralButtonBackground, equals(custom));
     });
 
     test('when copyWith receives skeleton, it should replace skeleton', () {
@@ -422,6 +436,15 @@ void main() {
       expect(result.money, equals(Color.lerp(_lerpA.money, _lerpB.money, 0.5)));
     });
 
+    test('when lerping at t=0.5, it should interpolate neutralButtonBackground', () {
+      final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
+
+      expect(
+        result.neutralButtonBackground,
+        equals(Color.lerp(_lerpA.neutralButtonBackground, _lerpB.neutralButtonBackground, 0.5)),
+      );
+    });
+
     test('when lerping at t=0.5, it should interpolate skeleton', () {
       final result = QuiColors.lerp(_lerpA, _lerpB, 0.5);
 
@@ -514,6 +537,20 @@ void main() {
     test('when skeletonShimmerGlow differs, it should have a distinct hash code', () {
       const a = _lightColors;
       final b = _lightColors.copyWith(skeletonShimmerGlow: const Color(0xFF000000));
+
+      expect(a.hashCode, isNot(equals(b.hashCode)));
+    });
+
+    test('when neutralButtonBackground differs, it should return false for equality', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(neutralButtonBackground: const Color(0xFFEEEEEE));
+
+      expect(a == b, isFalse);
+    });
+
+    test('when neutralButtonBackground differs, it should have a distinct hash code', () {
+      const a = _lightColors;
+      final b = _lightColors.copyWith(neutralButtonBackground: const Color(0xFFEEEEEE));
 
       expect(a.hashCode, isNot(equals(b.hashCode)));
     });
