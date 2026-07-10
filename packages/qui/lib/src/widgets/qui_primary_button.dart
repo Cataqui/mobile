@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:qui/src/enums/qui_button_alignment.dart';
+import 'package:qui/src/enums/qui_button_fit.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
 
-part 'qui_primary_button_enums.dart';
 part 'qui_primary_button_types.dart';
 
 /// A primary action button for the QUI design system.
@@ -29,8 +30,8 @@ class QuiPrimaryButton extends StatelessWidget {
     this.disabledBackgroundColor,
     this.foregroundColor,
     this.disabledForegroundColor,
-    this.alignment = QuiPrimaryButtonAlignment.center,
-    this.fit = QuiPrimaryButtonFit.fit,
+    this.alignment = QuiButtonAlignment.center,
+    this.fit = QuiButtonFit.fit,
   });
 
   /// Visible button label.
@@ -76,17 +77,17 @@ class QuiPrimaryButton extends StatelessWidget {
   /// Controls the horizontal alignment of the label and icons within the
   /// button bounds.
   ///
-  /// Only has a visible effect when [fit] is [QuiPrimaryButtonFit.expand],
+  /// Only has a visible effect when [fit] is [QuiButtonFit.expand],
   /// since a shrink-wrapped button is exactly as wide as its content.
   ///
-  /// Defaults to [QuiPrimaryButtonAlignment.center].
-  final QuiPrimaryButtonAlignment alignment;
+  /// Defaults to [QuiButtonAlignment.center].
+  final QuiButtonAlignment alignment;
 
   /// Controls the width sizing behavior.
   ///
-  /// [QuiPrimaryButtonFit.fit] shrink-wraps the button to its content.
-  /// [QuiPrimaryButtonFit.expand] fills the available horizontal width.
-  final QuiPrimaryButtonFit fit;
+  /// [QuiButtonFit.fit] shrink-wraps the button to its content.
+  /// [QuiButtonFit.expand] fills the available horizontal width.
+  final QuiButtonFit fit;
 
   bool get _isEnabled => onPressed != null;
 
@@ -138,10 +139,10 @@ class QuiPrimaryButton extends StatelessWidget {
 
     final button = Container(
       key: const Key('qui_primary_button_container'),
-      width: fit == QuiPrimaryButtonFit.expand ? double.infinity : null,
+      width: fit == QuiButtonFit.expand ? double.infinity : null,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(color: resolvedBackground, borderRadius: BorderRadius.circular(9999)),
-      child: fit == QuiPrimaryButtonFit.expand ? _alignedContent(content) : content,
+      child: fit == QuiButtonFit.expand ? _alignedContent(content) : content,
     );
 
     return Semantics(
@@ -162,11 +163,11 @@ class QuiPrimaryButton extends StatelessWidget {
 
   Widget _alignedContent(Widget content) {
     switch (alignment) {
-      case QuiPrimaryButtonAlignment.left:
+      case QuiButtonAlignment.left:
         return Align(alignment: Alignment.centerLeft, child: content);
-      case QuiPrimaryButtonAlignment.center:
+      case QuiButtonAlignment.center:
         return Center(child: content);
-      case QuiPrimaryButtonAlignment.right:
+      case QuiButtonAlignment.right:
         return Align(alignment: Alignment.centerRight, child: content);
     }
   }
@@ -212,7 +213,7 @@ Widget quiPrimaryButtonPreview() {
             const SizedBox(height: 20),
             SizedBox(
               width: 300,
-              child: QuiPrimaryButton(label: 'Expandido', fit: QuiPrimaryButtonFit.expand, onPressed: () {}),
+              child: QuiPrimaryButton(label: 'Expandido', fit: QuiButtonFit.expand, onPressed: () {}),
             ),
             const SizedBox(height: 20),
             QuiPrimaryButton(

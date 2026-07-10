@@ -5,6 +5,7 @@ import 'package:qui/qui.dart';
 
 void main() {
   group('QuiSecondaryButton Golden Tests', () {
+    autoUpdateGoldenFiles = true;
     goldenTest(
       'when rendering visual states, it should match the approved goldens',
       fileName: 'qui_secondary_button_states',
@@ -51,7 +52,53 @@ void main() {
             name: 'expand',
             child: const SizedBox(
               width: 300,
-              child: QuiSecondaryButton(label: 'Expandido', fit: QuiSecondaryButtonFit.expand, onPressed: null),
+              child: QuiSecondaryButton(label: 'Expandido', fit: QuiButtonFit.expand, onPressed: null),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    goldenTest(
+      'when rendering alignment variants with expand, it should match the approved goldens',
+      fileName: 'qui_secondary_button_alignment',
+      builder: () => GoldenTestGroup(
+        scenarioConstraints: const BoxConstraints(maxWidth: 300),
+        children: [
+          GoldenTestScenario(
+            name: 'left',
+            child: SizedBox(
+              width: 300,
+              child: QuiSecondaryButton(
+                label: 'Esquerda',
+                fit: QuiButtonFit.expand,
+                alignment: QuiButtonAlignment.left,
+                onPressed: () {},
+              ),
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'center',
+            child: SizedBox(
+              width: 300,
+              child: QuiSecondaryButton(
+                label: 'Centro',
+                fit: QuiButtonFit.expand,
+                alignment: QuiButtonAlignment.center,
+                onPressed: () {},
+              ),
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'right',
+            child: SizedBox(
+              width: 300,
+              child: QuiSecondaryButton(
+                label: 'Direita',
+                fit: QuiButtonFit.expand,
+                alignment: QuiButtonAlignment.right,
+                onPressed: () {},
+              ),
             ),
           ),
         ],

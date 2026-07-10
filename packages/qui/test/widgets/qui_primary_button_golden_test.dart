@@ -75,7 +75,7 @@ void main() {
             name: 'expand',
             child: const SizedBox(
               width: 300,
-              child: QuiPrimaryButton(label: 'Expandido', fit: QuiPrimaryButtonFit.expand, onPressed: null),
+              child: QuiPrimaryButton(label: 'Expandido', fit: QuiButtonFit.expand, onPressed: null),
             ),
           ),
         ],
@@ -94,8 +94,8 @@ void main() {
               width: 300,
               child: QuiPrimaryButton(
                 label: 'Esquerda',
-                fit: QuiPrimaryButtonFit.expand,
-                alignment: QuiPrimaryButtonAlignment.left,
+                fit: QuiButtonFit.expand,
+                alignment: QuiButtonAlignment.left,
                 onPressed: () {},
               ),
             ),
@@ -106,8 +106,8 @@ void main() {
               width: 300,
               child: QuiPrimaryButton(
                 label: 'Centro',
-                fit: QuiPrimaryButtonFit.expand,
-                alignment: QuiPrimaryButtonAlignment.center,
+                fit: QuiButtonFit.expand,
+                alignment: QuiButtonAlignment.center,
                 onPressed: () {},
               ),
             ),
@@ -118,8 +118,8 @@ void main() {
               width: 300,
               child: QuiPrimaryButton(
                 label: 'Direita',
-                fit: QuiPrimaryButtonFit.expand,
-                alignment: QuiPrimaryButtonAlignment.right,
+                fit: QuiButtonFit.expand,
+                alignment: QuiButtonAlignment.right,
                 onPressed: () {},
               ),
             ),

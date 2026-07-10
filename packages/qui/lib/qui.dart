@@ -1,6 +1,8 @@
 /// Cataquí UI — reusable design system components for the Cataqui platform.
 library;
 
+export 'src/enums/qui_button_alignment.dart' show QuiButtonAlignment;
+export 'src/enums/qui_button_fit.dart' show QuiButtonFit;
 export 'src/extensions/widget_extension.dart' show WidgetExtension;
 export 'src/icons/qui_icons.dart' show QuiIcons;
 export 'src/lottie/qui_lottie.dart' show QuiLottie;
@@ -40,12 +42,12 @@ export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show Q
 export 'src/widgets/qui_offline_error_state.dart' show QuiOfflineErrorState, QuiOfflineErrorStateRetry;
 export 'src/widgets/qui_orbit/qui_orbit.dart' show QuiOrbit, QuiOrbitDirection, QuiOrbitItem;
 export 'src/widgets/qui_primary_button.dart'
-    show QuiPrimaryButton, QuiPrimaryButtonFit, QuiPrimaryButtonIconBuilder, QuiPrimaryButtonIconState;
+    show QuiPrimaryButton, QuiPrimaryButtonIconBuilder, QuiPrimaryButtonIconState;
 export 'src/widgets/qui_radar_pulse/qui_radar_pulse.dart' show QuiRadarPulse, QuiRadarPulseStep;
 export 'src/widgets/qui_route_settled/qui_route_settled.dart' show QuiRouteSettled;
 export 'src/widgets/qui_search_bar_button.dart' show QuiSearchBarButton;
 export 'src/widgets/qui_secondary_button.dart'
-    show QuiSecondaryButton, QuiSecondaryButtonFit, QuiSecondaryButtonIconBuilder, QuiSecondaryButtonIconState;
+    show QuiSecondaryButton, QuiSecondaryButtonIconBuilder, QuiSecondaryButtonIconState;
 export 'src/widgets/qui_skeleton/qui_skeleton.dart'
     show
         QuiSkeleton,

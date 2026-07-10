@@ -256,7 +256,7 @@ void main() {
         const TestApp(
           child: SizedBox(
             width: 300,
-            child: QuiSecondaryButton(label: 'Expandir', fit: QuiSecondaryButtonFit.expand, onPressed: null),
+            child: QuiSecondaryButton(label: 'Expandir', fit: QuiButtonFit.expand, onPressed: null),
           ),
         ),
       );
@@ -267,7 +267,7 @@ void main() {
     testWidgets('when fit is fit, it should size to content', (tester) async {
       await tester.pumpWidget(
         const TestApp(
-          child: QuiSecondaryButton(label: 'Encaixar', fit: QuiSecondaryButtonFit.fit, onPressed: null),
+          child: QuiSecondaryButton(label: 'Encaixar', fit: QuiButtonFit.fit, onPressed: null),
         ),
       );
 

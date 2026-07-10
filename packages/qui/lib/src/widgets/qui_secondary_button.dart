@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
+import 'package:qui/src/enums/qui_button_alignment.dart';
+import 'package:qui/src/enums/qui_button_fit.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
 
-part 'qui_secondary_button_enums.dart';
 part 'qui_secondary_button_types.dart';
 
 /// A pill-shaped secondary action button for the QUI design system.
@@ -30,7 +31,8 @@ class QuiSecondaryButton extends StatelessWidget {
     this.disabledBackgroundColor,
     this.foregroundColor,
     this.disabledForegroundColor,
-    this.fit = QuiSecondaryButtonFit.fit,
+    this.alignment = QuiButtonAlignment.center,
+    this.fit = QuiButtonFit.fit,
   });
 
   /// Visible button label.
@@ -73,11 +75,20 @@ class QuiSecondaryButton extends StatelessWidget {
   /// Defaults to `context.qui.colors.disabledButtonForeground`.
   final Color? disabledForegroundColor;
 
+  /// Controls the horizontal alignment of the label and icons within the
+  /// button bounds.
+  ///
+  /// Only has a visible effect when [fit] is [QuiButtonFit.expand],
+  /// since a shrink-wrapped button is exactly as wide as its content.
+  ///
+  /// Defaults to [QuiButtonAlignment.center].
+  final QuiButtonAlignment alignment;
+
   /// Controls the width sizing behavior.
   ///
-  /// [QuiSecondaryButtonFit.fit] shrink-wraps the button to its content.
-  /// [QuiSecondaryButtonFit.expand] fills the available horizontal width.
-  final QuiSecondaryButtonFit fit;
+  /// [QuiButtonFit.fit] shrink-wraps the button to its content.
+  /// [QuiButtonFit.expand] fills the available horizontal width.
+  final QuiButtonFit fit;
 
   bool get _isEnabled => onPressed != null;
 
@@ -132,10 +143,10 @@ class QuiSecondaryButton extends StatelessWidget {
 
     final button = Container(
       key: const Key('qui_secondary_button_container'),
-      width: fit == QuiSecondaryButtonFit.expand ? double.infinity : null,
+      width: fit == QuiButtonFit.expand ? double.infinity : null,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
       decoration: BoxDecoration(color: resolvedBackground, borderRadius: BorderRadius.circular(9999)),
-      child: fit == QuiSecondaryButtonFit.expand ? Center(child: content) : content,
+      child: fit == QuiButtonFit.expand ? _alignedContent(content) : content,
     );
 
     return Semantics(
@@ -152,6 +163,17 @@ class QuiSecondaryButton extends StatelessWidget {
         child: button,
       ),
     );
+  }
+
+  Widget _alignedContent(Widget content) {
+    switch (alignment) {
+      case QuiButtonAlignment.left:
+        return Align(alignment: Alignment.centerLeft, child: content);
+      case QuiButtonAlignment.center:
+        return Center(child: content);
+      case QuiButtonAlignment.right:
+        return Align(alignment: Alignment.centerRight, child: content);
+    }
   }
 }
 
@@ -195,7 +217,7 @@ Widget quiSecondaryButtonPreview() {
             const SizedBox(height: 20),
             SizedBox(
               width: 300,
-              child: QuiSecondaryButton(label: 'Expandido', fit: QuiSecondaryButtonFit.expand, onPressed: () {}),
+              child: QuiSecondaryButton(label: 'Expandido', fit: QuiButtonFit.expand, onPressed: () {}),
             ),
           ],
         ),
