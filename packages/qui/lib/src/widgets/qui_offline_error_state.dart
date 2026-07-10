@@ -75,7 +75,7 @@ class QuiOfflineErrorState extends StatelessWidget {
               leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
                 height: 15,
                 width: 15,
-                colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
+                colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
               ),
               leadingIconSpacing: 10,
               onPressed: retry!.onRetry,

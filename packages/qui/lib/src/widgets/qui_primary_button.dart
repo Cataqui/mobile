@@ -98,7 +98,7 @@ class QuiPrimaryButton extends StatelessWidget {
 
     Widget content = Text(label, style: labelStyle);
 
-    final iconState = QuiPrimaryButtonIconState(isEnabled: isEnabled, recommendedIconColor: resolvedForeground);
+    final iconState = QuiPrimaryButtonIconState(isEnabled: isEnabled, foregroundColor: resolvedForeground);
 
     final hasLeading = leadingIconBuilder != null;
     final hasTrailing = trailingIconBuilder != null;
@@ -168,26 +168,26 @@ Widget quiPrimaryButtonPreview() {
             const SizedBox(height: 20),
             QuiPrimaryButton(
               label: 'Buscar',
-              leadingIconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: 20),
+              leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
               onPressed: () {},
             ),
             const SizedBox(height: 20),
             QuiPrimaryButton(
               label: 'Continuar',
-              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.recommendedIconColor, size: 20),
+              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
               onPressed: () {},
             ),
             const SizedBox(height: 20),
             QuiPrimaryButton(
               label: 'Filtrar',
-              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.recommendedIconColor, size: 20),
-              trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.recommendedIconColor, size: 20),
+              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
+              trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
               onPressed: () {},
             ),
             const SizedBox(height: 20),
             QuiPrimaryButton(
               label: 'Indisponivel',
-              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: 20),
+              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
             ),
             const SizedBox(height: 20),
             SizedBox(

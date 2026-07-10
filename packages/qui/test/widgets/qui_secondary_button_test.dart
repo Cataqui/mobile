@@ -79,8 +79,8 @@ void main() {
       expect(padding.padding, equals(const EdgeInsets.only(left: 12)));
     });
 
-    testWidgets('when enabled, it should pass the recommended icon color to leadingIconBuilder', (tester) async {
-      Color? recommendedIconColor;
+    testWidgets('when enabled, it should pass the foreground color to leadingIconBuilder', (tester) async {
+      Color? foregroundColor;
 
       await tester.pumpWidget(
         TestApp(
@@ -88,7 +88,7 @@ void main() {
             label: 'Buscar',
             foregroundColor: const Color(0xFFFF4A4B),
             leadingIconBuilder: (state) {
-              recommendedIconColor = state.recommendedIconColor;
+              foregroundColor = state.foregroundColor;
               return const Icon(Icons.search);
             },
             onPressed: () {},
@@ -96,7 +96,7 @@ void main() {
         ),
       );
 
-      expect(recommendedIconColor, equals(const Color(0xFFFF4A4B)));
+      expect(foregroundColor, equals(const Color(0xFFFF4A4B)));
     });
 
     testWidgets('when disabled, it should pass disabled state to leadingIconBuilder', (tester) async {
@@ -118,21 +118,21 @@ void main() {
     });
 
     testWidgets('when disabled, it should pass disabled foreground color to leadingIconBuilder', (tester) async {
-      Color? recommendedIconColor;
+      Color? foregroundColor;
 
       await tester.pumpWidget(
         TestApp(
           child: QuiSecondaryButton(
             label: 'Indisponivel',
             leadingIconBuilder: (state) {
-              recommendedIconColor = state.recommendedIconColor;
+              foregroundColor = state.foregroundColor;
               return const Icon(Icons.lock);
             },
           ),
         ),
       );
 
-      expect(recommendedIconColor, equals(const Color(0xFF8E8E8E)));
+      expect(foregroundColor, equals(const Color(0xFF8E8E8E)));
     });
 
     testWidgets('when both icons are provided, it should render three children in the row', (tester) async {

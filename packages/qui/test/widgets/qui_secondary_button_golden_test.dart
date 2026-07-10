@@ -19,7 +19,7 @@ void main() {
             name: 'leading icon',
             child: QuiSecondaryButton(
               label: 'Buscar',
-              leadingIconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: 20),
+              leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
               onPressed: () {},
             ),
           ),
@@ -27,7 +27,7 @@ void main() {
             name: 'trailing icon',
             child: QuiSecondaryButton(
               label: 'Continuar',
-              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.recommendedIconColor, size: 20),
+              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
               onPressed: () {},
             ),
           ),
@@ -35,8 +35,8 @@ void main() {
             name: 'both icons',
             child: QuiSecondaryButton(
               label: 'Filtrar',
-              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.recommendedIconColor, size: 20),
-              trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.recommendedIconColor, size: 20),
+              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
+              trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
               onPressed: () {},
             ),
           ),
@@ -44,7 +44,7 @@ void main() {
             name: 'disabled',
             child: QuiSecondaryButton(
               label: 'Indisponivel',
-              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: 20),
+              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
             ),
           ),
           GoldenTestScenario(

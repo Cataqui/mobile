@@ -7,11 +7,11 @@ typedef QuiSecondaryButtonIconBuilder = Widget Function(QuiSecondaryButtonIconSt
 @immutable
 class QuiSecondaryButtonIconState {
   /// Creates a secondary button icon state snapshot.
-  const QuiSecondaryButtonIconState({required this.isEnabled, required this.recommendedIconColor});
+  const QuiSecondaryButtonIconState({required this.isEnabled, required this.foregroundColor});
 
   /// Whether the button can currently be pressed.
   final bool isEnabled;
 
-  /// Recommended foreground color for the icon.
-  final Color recommendedIconColor;
+  /// Foreground color derived from the button state.
+  final Color foregroundColor;
 }

@@ -71,7 +71,8 @@ class QuiViewBackButton extends StatelessWidget {
                 child: SizedBox.square(
                   key: const Key('qui_view_back_button_icon_box'),
                   dimension: 22,
-                  child: QuiIcons.instance.build((assets) => assets.arrowLeft,
+                  child: QuiIcons.instance.build(
+                    (assets) => assets.arrowLeft,
                     width: 22,
                     height: 22,
                     colorFilter: ColorFilter.mode(context.qui.colors.textPrimary, BlendMode.srcIn),
