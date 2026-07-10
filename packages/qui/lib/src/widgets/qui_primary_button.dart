@@ -13,6 +13,10 @@ part 'qui_primary_button_types.dart';
 
 /// A primary action button for the QUI design system.
 ///
+/// When [onPressed] returns a [Future], the button briefly shows a
+/// loading indicator while that future is still pending. Synchronous callbacks
+/// keep the button feeling instant and do not enter the loading state.
+///
 /// ```dart
 /// QuiPrimaryButton(
 ///   label: 'Ver oportunidades',
@@ -21,6 +25,19 @@ part 'qui_primary_button_types.dart';
 /// ```
 class QuiPrimaryButton extends StatefulWidget {
   /// Creates a QUI primary button.
+  ///
+  /// Use this when you want a primary action that can remain instant for
+  /// synchronous callbacks and automatically show the loading
+  /// indicator while an async callback is still pending.
+  ///
+  /// ```dart
+  /// QuiPrimaryButton(
+  ///   label: 'Salvar agora',
+  ///   onPressed: () async {
+  ///     await Future<void>.delayed(const Duration(seconds: 2));
+  ///   },
+  /// )
+  /// ```
   const QuiPrimaryButton({
     required this.label,
     super.key,
@@ -43,9 +60,10 @@ class QuiPrimaryButton extends StatefulWidget {
 
   /// Called when the button is pressed.
   ///
-  /// If the callback returns a [Future], the button shows a loading indicator
-  /// while that future is pending. Synchronous callbacks keep the current
-  /// immediate feedback and do not enter the loading state.
+  /// If the callback returns a [Future], the button swaps its label for the
+  /// loading indicator while that future is pending. Synchronous
+  /// callbacks keep the current immediate feedback and do not enter the
+  /// loading state.
   ///
   /// When null, the button renders disabled and ignores pointer input.
   final FutureOr<void> Function()? onPressed;
