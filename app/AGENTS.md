@@ -59,6 +59,35 @@ Feature state/data classes are the exception — the `@riverpod` notifier and it
 data class must live at the same level as their view for easier finding and
 management.
 
+### Provider Style — Always Use Code Generation
+
+All providers in `providers.dart` **must** use the `@riverpod` annotation syntax
+(top-level function with `Ref ref` parameter), not `final xxxProvider = Provider<...>`:
+
+```dart
+@Riverpod(keepAlive: true)  // shared singleton — survives navigation
+AppConfig appConfig(Ref ref) {
+  return AppConfig(environment: Env.environment, cataquiApiUrl: Env.cataquiApiUrl);
+}
+
+@riverpod                      // auto-dispose — scoped to consumer lifecycle
+OmfWhatsapp omfWhatsapp(Ref ref) {
+  return OmfWhatsapp();
+}
+```
+
+- `@Riverpod(keepAlive: true)` when the provider holds app-wide shared state
+  (config, repositories, singleton services, Dio, GoRouter, translations).
+- `@riverpod` (auto-dispose) when the instance is cheap to recreate and has no
+  lasting state (utilities like `OmfWhatsapp`, `OmfTelephony`).
+
+The function name without the `Provider` suffix determines the generated
+provider name: `appConfig(Ref ref)` → `appConfigProvider`. Do NOT use
+`final xxxProvider = ...` variable syntax.
+
+Use uppercase `@Riverpod` only when passing arguments like `keepAlive: true`.
+Use lowercase `@riverpod` for the plain auto-dispose form.
+
 ### Feature State/Data Conventions
 
 Feature-level Riverpod notifiers follow a two-class naming convention:
