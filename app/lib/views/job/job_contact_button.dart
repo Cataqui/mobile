@@ -13,6 +13,8 @@ class JobContactButton extends ConsumerWidget {
   final String jobId;
   final JobContactReferenceDto contactReference;
 
+  static double get estimatedButtonHeight => _buttonPadding.vertical + _iconSize;
+
   static const EdgeInsets _buttonPadding = EdgeInsets.symmetric(horizontal: 24, vertical: 18);
   static const double _iconSize = 20;
 

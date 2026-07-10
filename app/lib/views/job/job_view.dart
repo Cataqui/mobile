@@ -22,6 +22,7 @@ class JobView extends ConsumerStatefulWidget {
 }
 
 class _JobViewState extends ConsumerState<JobView> {
+  static const double _contactButtonBottomSpacing = 10;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -55,7 +56,14 @@ class _JobViewState extends ConsumerState<JobView> {
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20).copyWith(top: 90, bottom: 100),
+                      padding: (const EdgeInsets.symmetric(horizontal: 28)).copyWith(
+                        top: 90,
+                        bottom:
+                            JobContactButton.estimatedButtonHeight +
+                            _contactButtonBottomSpacing +
+                            MediaQuery.of(context).padding.bottom +
+                            40,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -177,7 +185,7 @@ class _JobViewState extends ConsumerState<JobView> {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: _contactButtonBottomSpacing),
                   child: Center(
                     child: QuiRouteSettled(
                       child: JobContactButton(jobId: widget.jobId, contactReference: jobData.job.contactReference),
