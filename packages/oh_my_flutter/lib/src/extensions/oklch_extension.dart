@@ -2,7 +2,7 @@ import 'dart:ui' show ColorSpace;
 
 import 'package:flutter/material.dart';
 
-import '../oklch.dart';
+import '../oklch/oklch.dart';
 
 /// Extension on [Oklch] to convert back to a Flutter [Color].
 extension OklchExtension on Oklch {

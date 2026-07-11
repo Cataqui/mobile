@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../oklch.dart';
+import '../oklch/oklch.dart';
 
 /// Shared helpers for Flutter [Color] values.
 extension ColorExtension on Color {
