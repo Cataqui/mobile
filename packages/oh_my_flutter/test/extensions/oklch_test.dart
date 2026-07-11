@@ -1,238 +1,235 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
-/// Asserts that [actual] is within [tolerance] of [expected] per RGB channel.
-void _expectColorClose(Color actual, Color expected, {int tolerance = 5}) {
-  final dr = ((actual.r - expected.r) * 255).abs();
-  final dg = ((actual.g - expected.g) * 255).abs();
-  final db = ((actual.b - expected.b) * 255).abs();
-  expect(dr, lessThanOrEqualTo(tolerance),
-      reason: 'R: expected ${expected.r.toStringAsFixed(3)}, got ${actual.r.toStringAsFixed(3)}');
-  expect(dg, lessThanOrEqualTo(tolerance),
-      reason: 'G: expected ${expected.g.toStringAsFixed(3)}, got ${actual.g.toStringAsFixed(3)}');
-  expect(db, lessThanOrEqualTo(tolerance),
-      reason: 'B: expected ${expected.b.toStringAsFixed(3)}, got ${actual.b.toStringAsFixed(3)}');
-}
-
 void main() {
   group('Oklch', () {
-    // ----------------------------------------------------------------
-    // Round-trip fidelity — sRGB → OKLCH → sRGB
-    // ----------------------------------------------------------------
-    group('round-trip fidelity', () {
-      // A diverse set of colors across the sRGB gamut
-      final roundTripCases = [
-        const Color(0xFFFF4A4B), // Cataquí brand red
-        const Color(0xFF0090FF), // Info blue
-        const Color(0xFF00D757), // Success green
-        const Color(0xFFFFB224), // Warning amber
-        const Color(0xFFE5484D), // Error red
-        const Color(0xFF00A2C7), // Cyan
-        const Color(0xFF6E56CF), // Violet
-        const Color(0xFF12A594), // Teal
-        const Color(0xFFF76B15), // Orange
-        const Color(0xFFD6409F), // Pink
-        const Color(0xFFE0C500), // Yellow
-        const Color(0xFF000000), // Pure black
-        const Color(0xFFFFFFFF), // Pure white
-        const Color(0xFF808080), // Mid gray
-        const Color(0xFFFF0000), // Pure red
-        const Color(0xFF00FF00), // Pure green
-        const Color(0xFF0000FF), // Pure blue
-        const Color(0xFFFFFF00), // Pure yellow
-        const Color(0xFFFF00FF), // Pure magenta
-        const Color(0xFF00FFFF), // Pure cyan
-        const Color(0xFF123456), // Random dark
-        const Color(0xFFABCDEF), // Random light
-        const Color(0xFF1A1A1A), // Near black
-        const Color(0xFFF5F5F5), // Near white
-        const Color(0xFF8B4513), // Saddle brown
-        const Color(0xFF2E8B57), // Sea green
-        const Color(0xFF4B0082), // Indigo
-        const Color(0xFFFFD700), // Gold
-        const Color(0xFFC0C0C0), // Silver
-        const Color(0xFF800080), // Purple
+    group('fromColor', () {
+      test('when converting floating-point sRGB, it should retain the reference lightness', () {
+        const color = Color.from(alpha: 1, red: 0.1234, green: 0.5678, blue: 0.9012);
+        expect(Oklch.fromColor(color).l, closeTo(0.6383767509, 0.0000001));
+      });
+
+      test('when converting floating-point sRGB, it should retain the reference chroma', () {
+        const color = Color.from(alpha: 1, red: 0.1234, green: 0.5678, blue: 0.9012);
+        expect(Oklch.fromColor(color).c, closeTo(0.1586962734, 0.0000001));
+      });
+
+      test('when converting floating-point sRGB, it should retain the reference hue', () {
+        const color = Color.from(alpha: 1, red: 0.1234, green: 0.5678, blue: 0.9012);
+        expect(Oklch.fromColor(color).h, closeTo(247.4806996, 0.0001));
+      });
+
+      test('when converting pure red, it should match the reference OKLCH values', () {
+        final result = Oklch.fromColor(const Color(0xFFFF0000));
+        expect(
+          (result.l, result.c, result.h),
+          isA<(double, double, double)>()
+              .having((value) => value.$1, 'lightness', closeTo(0.6279553606, 0.0000001))
+              .having((value) => value.$2, 'chroma', closeTo(0.2576833077, 0.0000001))
+              .having((value) => value.$3, 'hue', closeTo(29.2338852, 0.0001)),
+        );
+      });
+
+      test('when converting pure green, it should match the reference OKLCH values', () {
+        final result = Oklch.fromColor(const Color(0xFF00FF00));
+        expect(
+          (result.l, result.c, result.h),
+          isA<(double, double, double)>()
+              .having((value) => value.$1, 'lightness', closeTo(0.8664396115, 0.0000001))
+              .having((value) => value.$2, 'chroma', closeTo(0.2948272403, 0.0000001))
+              .having((value) => value.$3, 'hue', closeTo(142.4953389, 0.0001)),
+        );
+      });
+
+      test('when converting pure blue, it should match the reference OKLCH values', () {
+        final result = Oklch.fromColor(const Color(0xFF0000FF));
+        expect(
+          (result.l, result.c, result.h),
+          isA<(double, double, double)>()
+              .having((value) => value.$1, 'lightness', closeTo(0.4520137184, 0.0000001))
+              .having((value) => value.$2, 'chroma', closeTo(0.3132143717, 0.0000001))
+              .having((value) => value.$3, 'hue', closeTo(264.0520206, 0.0001)),
+        );
+      });
+
+      test('when converting the Cataqui brand color, it should match its reference OKLCH values', () {
+        final result = Oklch.fromColor(const Color(0xFFFF4A4B));
+        expect(
+          (result.l, result.c, result.h),
+          isA<(double, double, double)>()
+              .having((value) => value.$1, 'lightness', closeTo(0.6698468799, 0.0000001))
+              .having((value) => value.$2, 'chroma', closeTo(0.2173998691, 0.0000001))
+              .having((value) => value.$3, 'hue', closeTo(24.9934213, 0.0001)),
+        );
+      });
+
+      test('when converting an achromatic color, it should canonicalize hue to zero', () {
+        expect(Oklch.fromColor(const Color(0xFF808080)).h, 0);
+      });
+
+      test('when converting a transparent color, it should intentionally ignore alpha', () {
+        final transparent = Oklch.fromColor(const Color(0x00123456));
+        final opaque = Oklch.fromColor(const Color(0xFF123456));
+        expect(transparent, opaque);
+      });
+
+      test('when converting Display P3, it should match native P3 reference values', () {
+        const displayP3 = Color.from(alpha: 1, red: 0.8, green: 0.2, blue: 0.1, colorSpace: ColorSpace.displayP3);
+        final result = Oklch.fromColor(displayP3);
+        expect(
+          (result.l, result.c, result.h),
+          isA<(double, double, double)>()
+              .having((value) => value.$1, 'lightness', closeTo(0.5719844701, 0.0000001))
+              .having((value) => value.$2, 'chroma', closeTo(0.2268995804, 0.0000001))
+              .having((value) => value.$3, 'hue', closeTo(31.3556842, 0.0001)),
+        );
+      });
+
+      test('when converting Display P3 red, it should retain chroma outside sRGB', () {
+        const displayP3Red = Color.from(alpha: 1, red: 1, green: 0, blue: 0, colorSpace: ColorSpace.displayP3);
+        expect(Oklch.fromColor(displayP3Red).c, closeTo(0.2994852922, 0.0000001));
+      });
+    });
+
+    group('toColor', () {
+      final roundTripColors = <Color>[
+        const Color(0xFFFF4A4B),
+        const Color(0xFF0090FF),
+        const Color(0xFF00D757),
+        const Color(0xFFFFB224),
+        const Color(0xFF6E56CF),
+        const Color(0xFF12A594),
+        const Color(0xFF000000),
+        const Color(0xFFFFFFFF),
+        const Color(0xFF808080),
+        const Color(0xFF123456),
+        const Color(0xFFABCDEF),
       ];
 
-      for (final color in roundTripCases) {
-        final hex = '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}';
-        test('when round-tripping $hex, it should return a visually identical color', () {
-          final oklch = Oklch.fromColor(color);
-          final result = oklch.toColor();
-          _expectColorClose(result, color);
+      for (final color in roundTripColors) {
+        final hexadecimal = color.toARGB32().toRadixString(16).padLeft(8, '0');
+        test('when round-tripping #$hexadecimal, it should preserve the sRGB color', () {
+          expect(Oklch.fromColor(color).toColor(), isSameColorAs(color));
         });
       }
-    });
 
-    // ----------------------------------------------------------------
-    // Known OKLCH → sRGB reference values
-    // ----------------------------------------------------------------
-    group('known reference values', () {
-      test('when converting OKLCH(0, 0, 0), it should return pure black', () {
-        final color = Oklch.toColor(0, 0, 0);
-        expect(color.toARGB32(), 0xFF000000);
+      test('when converting an in-gamut color, it should retain floating-point precision', () {
+        final color = Oklch.toColor(0.65, 0.1, 120);
+        expect(color.r * 255, isNot(closeTo((color.r * 255).round(), 0.0000001)));
       });
 
-      test('when converting OKLCH(1, 0, 0), it should return pure white', () {
-        final color = Oklch.toColor(1, 0, 0);
-        expect(color.toARGB32(), 0xFFFFFFFF);
+      test('when mapping an out-of-gamut color, it should preserve its requested lightness', () {
+        final mapped = Oklch.fromColor(Oklch.toColor(0.5, 0.4, 28));
+        expect(mapped.l, closeTo(0.5, 0.02));
       });
 
-      test('when converting OKLCH(0.5, 0, 0), it should return mid gray', () {
-        final color = Oklch.toColor(0.5, 0, 0);
-        expect(color.r, closeTo(color.g, 0.01));
-        expect(color.g, closeTo(color.b, 0.01));
+      test('when mapping an out-of-gamut color, it should preserve its requested hue', () {
+        final mapped = Oklch.fromColor(Oklch.toColor(0.5, 0.4, 28));
+        expect(mapped.h, closeTo(28, 3));
       });
 
-      test('when converting OKLCH(0.5, 0.1, 0), it should have a reddish tint', () {
-        final color = Oklch.toColor(0.5, 0.1, 0);
-        expect(color.r, greaterThan(color.g));
-        expect(color.r, greaterThan(color.b));
+      test('when mapping an out-of-gamut color, it should reduce chroma', () {
+        final mapped = Oklch.fromColor(Oklch.toColor(0.5, 0.4, 28));
+        expect(mapped.c, lessThan(0.4));
       });
 
-      test('when converting OKLCH(0.5, 0.1, 0), it should have a reddish tint', () {
-        final color = Oklch.toColor(0.5, 0.1, 0);
-        expect(color.r, greaterThan(color.g));
-        expect(color.r, greaterThan(color.b));
+      test('when lightness is below zero with nonzero chroma, it should return black', () {
+        expect(Oklch.toColor(-0.5, 0.4, 28), isSameColorAs(const Color(0xFF000000)));
       });
 
-      test('when converting OKLCH(0.5, 0.1, 180), it should have a cyan tint', () {
-        final color = Oklch.toColor(0.5, 0.1, 180);
-        expect(color.g, greaterThan(color.r));
-        expect(color.b, greaterThan(color.r));
+      test('when lightness is above one with nonzero chroma, it should return white', () {
+        expect(Oklch.toColor(1.5, 0.4, 28), isSameColorAs(const Color(0xFFFFFFFF)));
       });
 
-      test('when converting OKLCH(0.5, 0.1, 270), it should have a blue tint', () {
-        final color = Oklch.toColor(0.5, 0.1, 270);
-        expect(color.b, greaterThan(color.r));
-        expect(color.b, greaterThan(color.g));
-      });
-    });
-
-    // ----------------------------------------------------------------
-    // Gamut clipping
-    // ----------------------------------------------------------------
-    group('gamut clipping', () {
-      test('when converting a high-chroma out-of-gamut color, it should not crash', () {
-        // Chroma 0.4 is beyond sRGB gamut for most hues
-        final color = Oklch.toColor(0.5, 0.4, 28);
-        expect(color, isA<Color>());
+      test('when chroma is negative, it should convert it as zero chroma', () {
+        expect(Oklch.toColor(0.5, -0.2, 28), isSameColorAs(Oklch.toColor(0.5, 0, 28)));
       });
 
-      test('when converting an extreme out-of-gamut color, it should produce a valid sRGB color', () {
-        final color = Oklch.toColor(0.5, 0.5, 180);
-        expect(color.r, inInclusiveRange(0.0, 1.0));
-        expect(color.g, inInclusiveRange(0.0, 1.0));
-        expect(color.b, inInclusiveRange(0.0, 1.0));
+      test('when hue exceeds one turn, it should normalize the angle', () {
+        expect(Oklch.toColor(0.5, 0.1, 388), isSameColorAs(Oklch.toColor(0.5, 0.1, 28)));
       });
 
-      test('when converting a very dark high-chroma color, it should produce a valid sRGB color', () {
-        final color = Oklch.toColor(0.1, 0.3, 28);
-        expect(color.r, inInclusiveRange(0.0, 1.0));
-        expect(color.g, inInclusiveRange(0.0, 1.0));
-        expect(color.b, inInclusiveRange(0.0, 1.0));
-      });
-    });
-
-    // ----------------------------------------------------------------
-    // Boundary values
-    // ----------------------------------------------------------------
-    group('boundary values', () {
-      test('when converting with hue 0, it should produce a valid color', () {
-        final color = Oklch.toColor(0.5, 0.15, 0);
-        expect(color, isA<Color>());
+      test('when hue is negative, it should normalize the angle', () {
+        expect(Oklch.toColor(0.5, 0.1, -332), isSameColorAs(Oklch.toColor(0.5, 0.1, 28)));
       });
 
-      test('when converting with hue 360, it should produce the same as hue 0', () {
-        final a = Oklch.toColor(0.5, 0.15, 0);
-        final b = Oklch.toColor(0.5, 0.15, 360);
-        expect(b.toARGB32(), a.toARGB32());
+      test('when lightness is not finite, it should throw an argument error', () {
+        expect(() => Oklch.toColor(double.nan, 0.1, 28), throwsArgumentError);
       });
 
-      test('when converting with chroma 0, it should produce a gray regardless of hue', () {
-        final a = Oklch.toColor(0.5, 0, 0);
-        final b = Oklch.toColor(0.5, 0, 180);
-        expect(b.toARGB32(), a.toARGB32());
+      test('when chroma is not finite, it should throw an argument error', () {
+        expect(() => Oklch.toColor(0.5, double.infinity, 28), throwsArgumentError);
       });
 
-      test('when converting with lightness 0 and chroma 0, it should produce black', () {
-        final a = Oklch.toColor(0, 0, 0);
-        expect(a.toARGB32(), 0xFF000000);
+      test('when hue is not finite, it should throw an argument error', () {
+        expect(() => Oklch.toColor(0.5, 0.1, double.negativeInfinity), throwsArgumentError);
       });
 
-      test('when converting with lightness 1 and chroma 0, it should produce white', () {
-        final a = Oklch.toColor(1, 0, 0);
-        expect(a.toARGB32(), 0xFFFFFFFF);
+      test('when converting OKLCH to sRGB, it should return an opaque color', () {
+        expect(Oklch.toColor(0.5, 0.1, 28).a, 1);
+      });
+
+      test('when converting OKLCH to sRGB, it should label the result as sRGB', () {
+        expect(Oklch.toColor(0.5, 0.1, 28).colorSpace, ColorSpace.sRGB);
+      });
+
+      test('when round-tripping Display P3, it should preserve the native P3 color', () {
+        const displayP3 = Color.from(alpha: 1, red: 0.8, green: 0.2, blue: 0.1, colorSpace: ColorSpace.displayP3);
+        final result = Oklch.fromColor(displayP3).toColor(colorSpace: ColorSpace.displayP3);
+        expect(result, isSameColorAs(displayP3));
+      });
+
+      test('when targeting Display P3, it should label the result as Display P3', () {
+        expect(Oklch.toColor(0.5, 0.1, 28, colorSpace: ColorSpace.displayP3).colorSpace, ColorSpace.displayP3);
+      });
+
+      test('when a color fits Display P3 but not sRGB, P3 should preserve more chroma', () {
+        const displayP3Red = Color.from(alpha: 1, red: 1, green: 0, blue: 0, colorSpace: ColorSpace.displayP3);
+        final oklch = Oklch.fromColor(displayP3Red);
+        final p3Chroma = Oklch.fromColor(oklch.toColor(colorSpace: ColorSpace.displayP3)).c;
+        final srgbChroma = Oklch.fromColor(oklch.toColor()).c;
+        expect(p3Chroma, greaterThan(srgbChroma));
+      });
+
+      test('when a color exceeds both bounded gamuts, P3 should map to a wider boundary', () {
+        const oklch = Oklch(0.7, 0.5, 140);
+        final p3Chroma = Oklch.fromColor(oklch.toColor(colorSpace: ColorSpace.displayP3)).c;
+        final srgbChroma = Oklch.fromColor(oklch.toColor()).c;
+        expect(p3Chroma, greaterThan(srgbChroma));
+      });
+
+      test('when targeting extended sRGB, it should preserve channels outside the bounded gamut', () {
+        final extended = Oklch.toColor(0.7, 0.5, 140, colorSpace: ColorSpace.extendedSRGB);
+        expect([
+          extended.r,
+          extended.g,
+          extended.b,
+        ], contains(predicate<double>((channel) => channel < 0 || channel > 1)));
+      });
+
+      test('when targeting extended sRGB, it should label the result as extended sRGB', () {
+        expect(Oklch.toColor(0.7, 0.5, 140, colorSpace: ColorSpace.extendedSRGB).colorSpace, ColorSpace.extendedSRGB);
       });
     });
 
-    // ----------------------------------------------------------------
-    // fromColor — edge cases
-    // ----------------------------------------------------------------
-    group('fromColor edge cases', () {
-      test('when converting pure black, it should have zero lightness', () {
-        final oklch = Oklch.fromColor(const Color(0xFF000000));
-        expect(oklch.l, closeTo(0, 0.001));
+    group('value semantics', () {
+      test('when two OKLCH values have equal components, they should be equal', () {
+        expect(const Oklch(0.65, 0.23, 28), const Oklch(0.65, 0.23, 28));
       });
 
-      test('when converting pure white, it should have full lightness', () {
-        final oklch = Oklch.fromColor(const Color(0xFFFFFFFF));
-        expect(oklch.l, closeTo(1.0, 0.001));
+      test('when two OKLCH values differ, they should not be equal', () {
+        expect(const Oklch(0.65, 0.23, 28), isNot(const Oklch(0.55, 0.22, 230)));
       });
 
-      test('when converting a gray, it should have near-zero chroma', () {
-        final oklch = Oklch.fromColor(const Color(0xFF808080));
-        expect(oklch.c, lessThan(0.01));
+      test('when two OKLCH values are equal, they should have equal hash codes', () {
+        expect(const Oklch(0.65, 0.23, 28).hashCode, const Oklch(0.65, 0.23, 28).hashCode);
       });
 
-      test('when converting pure red, it should have a hue near 25', () {
-        final oklch = Oklch.fromColor(const Color(0xFFFF0000));
-        expect(oklch.h, closeTo(25, 5));
-      });
-
-      test('when converting pure green, it should have a hue near 140', () {
-        final oklch = Oklch.fromColor(const Color(0xFF00FF00));
-        expect(oklch.h, closeTo(140, 5));
-      });
-
-      test('when converting pure blue, it should have a hue near 265', () {
-        final oklch = Oklch.fromColor(const Color(0xFF0000FF));
-        expect(oklch.h, closeTo(265, 5));
-      });
-    });
-
-    // ----------------------------------------------------------------
-    // toColor (extension)
-    // ----------------------------------------------------------------
-    group('toColor (extension)', () {
-      test('when calling toColor on an Oklch, it should return the same as the static method', () {
-        final oklch = Oklch(0.65, 0.23, 28);
-        final direct = Oklch.toColor(0.65, 0.23, 28);
-        expect(oklch.toColor().toARGB32(), direct.toARGB32());
-      });
-    });
-
-    // ----------------------------------------------------------------
-    // Equality
-    // ----------------------------------------------------------------
-    group('equality', () {
-      test('when two Oklch have the same values, they should be equal', () {
-        const a = Oklch(0.65, 0.23, 28);
-        const b = Oklch(0.65, 0.23, 28);
-        expect(a, equals(b));
-      });
-
-      test('when two Oklch have different values, they should not be equal', () {
-        const a = Oklch(0.65, 0.23, 28);
-        const b = Oklch(0.55, 0.22, 230);
-        expect(a, isNot(equals(b)));
-      });
-
-      test('when two Oklch have the same values, their hash codes should be equal', () {
-        const a = Oklch(0.65, 0.23, 28);
-        const b = Oklch(0.65, 0.23, 28);
-        expect(a.hashCode, equals(b.hashCode));
+      test('when using the extension, it should match the static conversion', () {
+        const oklch = Oklch(0.65, 0.23, 28);
+        expect(oklch.toColor(), isSameColorAs(Oklch.toColor(0.65, 0.23, 28)));
       });
     });
   });

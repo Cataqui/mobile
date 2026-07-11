@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ColorSpace;
 
 import 'package:flutter/material.dart';
 
@@ -20,7 +21,9 @@ part '_oklch_converter.dart';
 /// ```
 @immutable
 final class Oklch {
-  /// Creates an OKLCH color.
+  /// Creates an opaque OKLCH color.
+  ///
+  /// Alpha is intentionally outside this value type's scope.
   const Oklch(this.l, this.c, this.h);
 
   /// Lightness in [0, 1].
@@ -32,14 +35,22 @@ final class Oklch {
   /// Hue in degrees [0, 360).
   final double h;
 
-  /// Converts an sRGB [Color] to an [Oklch].
+  /// Converts a [Color] to an opaque [Oklch].
+  ///
+  /// sRGB, extended-sRGB, and Display P3 inputs use their native colorimetry.
+  /// Floating-point precision is retained, alpha is ignored, and achromatic
+  /// hues are represented as zero degrees.
   static Oklch fromColor(Color color) => _OklchConverter.fromColor(color);
 
-  /// Converts OKLCH (L, C, H) to an sRGB [Color].
+  /// Converts OKLCH (L, C, H) to a [Color] in [colorSpace].
   ///
-  /// Applies gamut clipping via chroma reduction if the color falls outside
-  /// the sRGB gamut.
-  static Color toColor(double l, double c, double h) => _OklchConverter.toColor(l, c, h);
+  /// Lightness is clamped to `[0, 1]`, negative chroma becomes zero, and hue
+  /// is normalized to `[0, 360)`. Non-finite components throw [ArgumentError].
+  /// Colors outside bounded sRGB or Display P3 are perceptually gamut-mapped
+  /// using constant lightness and hue with CSS Color 4 OKLCH chroma reduction.
+  /// Extended-sRGB output remains unbounded. The default output is sRGB.
+  static Color toColor(double l, double c, double h, {ColorSpace colorSpace = ColorSpace.sRGB}) =>
+      _OklchConverter.toColor(l, c, h, colorSpace: colorSpace);
 
   @override
   bool operator ==(Object other) {

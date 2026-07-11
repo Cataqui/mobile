@@ -27,6 +27,6 @@ extension ColorExtension on Color {
         '${(b * 255).round().toRadixString(16).padLeft(2, '0')}';
   }
 
-  /// Converts this sRGB [Color] to an [Oklch] representation.
+  /// Converts this color to [Oklch] using its native color space.
   Oklch toOklch() => Oklch.fromColor(this);
 }
