@@ -18,6 +18,7 @@ export 'src/theme/map_style/qui_map_style_symbol_layout.dart' show QuiMapLibreSt
 export 'src/theme/map_style/qui_map_style_symbol_paint.dart' show QuiMapLibreStyleSymbolPaint;
 export 'src/theme/map_style/qui_map_style_value.dart' show QuiMapLibreStyleValue, QuiMapLibreStyleZoomStop;
 export 'src/theme/qui_colors.dart' show QuiColors;
+export 'src/theme/qui_palette/qui_palette.dart' show QuiPalette;
 export 'src/theme/qui_theme.dart' show QuiTheme;
 export 'src/theme/qui_theme_context.dart' show QuiThemeContext;
 export 'src/theme/qui_theme_data.dart' show QuiThemeData;
