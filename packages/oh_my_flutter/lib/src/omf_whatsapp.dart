@@ -82,8 +82,12 @@ class OmfWhatsapp {
     final params = <String, String>{'phone': digits};
     if (message != null && message.isNotEmpty) params['text'] = message;
 
-    final launched = await _launcher(Uri(scheme: 'whatsapp', host: 'send', queryParameters: params));
-    if (launched) return true;
+    try {
+      final launched = await _launcher(Uri(scheme: 'whatsapp', host: 'send', queryParameters: params));
+      if (launched) return true;
+    } catch (_) {
+      // No activity found to handle the whatsapp:// intent.
+    }
 
     return _launcher(_buildWaMeUri(digits: digits, message: message));
   }

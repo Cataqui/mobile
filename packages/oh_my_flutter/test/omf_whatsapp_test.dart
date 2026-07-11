@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
@@ -243,6 +244,26 @@ void main() {
             'it should return the fallback launch result', () async {
           final result = await whatsapp.launchChat(number: '551198887777');
 
+          expect(result, isTrue);
+        });
+
+        test('when the native scheme throws a PlatformException, '
+            'it should fall back to https://wa.me', () async {
+          final whatsapp = OmfWhatsapp.test(
+            launcher: (Uri uri) async {
+              capturedUris.add(uri);
+              if (capturedUris.length == 1) {
+                throw PlatformException(code: 'ACTIVITY_NOT_FOUND', message: 'No Activity found');
+              }
+              return true;
+            },
+          );
+
+          final result = await whatsapp.launchChat(number: '551198887777');
+
+          expect(capturedUris, hasLength(2));
+          expect(capturedUris[0].toString(), 'whatsapp://send?phone=551198887777');
+          expect(capturedUris[1].toString(), 'https://wa.me/551198887777');
           expect(result, isTrue);
         });
 
