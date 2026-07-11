@@ -308,6 +308,12 @@ coverage in shared catch-all test files; place tests in a path that mirrors the
 source owner, for example `lib/src/extensions/color_extension.dart` maps to
 `test/extensions/color_extension_test.dart`.
 
+**Hard rule:** Tests for a given source file must always live in the test file
+that mirrors it. e.g Never place tests for `color_extension.dart` in
+`omf_oklch_test.dart` or any other file. If a source file adds a new public
+method, the test for that method goes in the existing corresponding test file —
+never in a different file.
+
 ### DTO Fixture Tests Must Override Under Test
 
 When a test uses `XxxDto.fixture()` and asserts on a specific field, it **must**
