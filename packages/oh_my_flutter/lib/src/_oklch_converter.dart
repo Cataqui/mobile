@@ -1,9 +1,9 @@
-part of 'omf_oklch.dart';
+part of 'oklch.dart';
 
 final class _OklchConverter {
   _OklchConverter._();
 
-  static OmfOklch fromColor(Color color) {
+  static Oklch fromColor(Color color) {
     final r = _toLinear((color.r * 255).round());
     final g = _toLinear((color.g * 255).round());
     final b = _toLinear((color.b * 255).round());
@@ -23,7 +23,7 @@ final class _OklchConverter {
     final C = math.sqrt(a * a + b_ * b_);
     final H = math.atan2(b_, a) * 180 / math.pi;
 
-    return OmfOklch(L, C, (H + 360) % 360);
+    return Oklch(L, C, (H + 360) % 360);
   }
 
   static Color toColor(double l, double c, double h) {

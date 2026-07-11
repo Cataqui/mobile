@@ -83,11 +83,11 @@ class JobContactButton extends ConsumerWidget {
 
       switch (contactReference.contactMethod) {
         case JobContactMethod.whatsapp:
-          final whatsapp = ref.read(omfWhatsappProvider);
+          final whatsapp = ref.read(whatsappProvider);
           await whatsapp.launchChat(number: identifier);
 
         case JobContactMethod.phoneCall:
-          final telephony = ref.read(omfTelephonyProvider);
+          final telephony = ref.read(telephonyProvider);
           await telephony.call(number: identifier);
 
         case JobContactMethod.unknown:

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 void main() {
-  group('OmfDateTimeExtension', () {
+  group('DateTimeExtension', () {
     // All tests pin time to this fixed instant.
     final fixedNow = DateTime.utc(2026, 7, 6, 12, 0, 0);
 
@@ -406,7 +406,7 @@ void main() {
             onHoursAgo: null, // matched, missing
             onMinutesAgo: (c) => 'm:$c',
             onNow: () => 'now',
-            fallback: OmfTimeAgoFallback.finer,
+            fallback: TimeAgoFallback.finer,
             onMillisecondsAgo: null,
             onSecondsAgo: null,
           );
@@ -425,7 +425,7 @@ void main() {
             onSecondsAgo: null,
             onMillisecondsAgo: (c) => 'ms:$c',
             onNow: () => 'now',
-            fallback: OmfTimeAgoFallback.finer,
+            fallback: TimeAgoFallback.finer,
           );
 
           expect(result, 'ms:7200000');
@@ -440,7 +440,7 @@ void main() {
           final result = past.timeAgo(
             onDaysAgo: null, // matched, missing
             onNow: () => 'now',
-            fallback: OmfTimeAgoFallback.finer,
+            fallback: TimeAgoFallback.finer,
           );
 
           expect(result, 'now');
@@ -455,7 +455,7 @@ void main() {
             onMillisecondsAgo: null,
             onNow: null,
             onMiss: () => 'miss',
-            fallback: OmfTimeAgoFallback.finer,
+            fallback: TimeAgoFallback.finer,
           );
 
           expect(result, 'miss');
@@ -471,7 +471,7 @@ void main() {
               onMillisecondsAgo: null,
               onNow: null,
               // no onMiss
-              fallback: OmfTimeAgoFallback.finer,
+              fallback: TimeAgoFallback.finer,
             ),
             throwsArgumentError,
           );
@@ -490,7 +490,7 @@ void main() {
           final result = past.timeAgo(
             onHoursAgo: null, // matched, missing
             onDaysAgo: (c) => 'd:$c',
-            fallback: OmfTimeAgoFallback.coarser,
+            fallback: TimeAgoFallback.coarser,
           );
 
           expect(result, 'd:2');
@@ -506,7 +506,7 @@ void main() {
             onDaysAgo: null,
             onMonthsAgo: null,
             onYearsAgo: (c) => 'y:$c',
-            fallback: OmfTimeAgoFallback.coarser,
+            fallback: TimeAgoFallback.coarser,
           );
 
           expect(result, 'y:0');
@@ -521,7 +521,7 @@ void main() {
             onHoursAgo: null,
             onNow: () => 'now',
             onMiss: () => 'miss',
-            fallback: OmfTimeAgoFallback.coarser,
+            fallback: TimeAgoFallback.coarser,
           );
 
           expect(result, 'miss');
@@ -536,7 +536,7 @@ void main() {
               onHoursAgo: null,
               onNow: () => 'now',
               // no coarser callbacks, no onMiss
-              fallback: OmfTimeAgoFallback.coarser,
+              fallback: TimeAgoFallback.coarser,
             ),
             throwsArgumentError,
           );
@@ -556,7 +556,7 @@ void main() {
             onHoursAgo: null,
             onMinutesAgo: (c) => 'm:$c',
             onDaysAgo: (_) => 'd',
-            fallback: OmfTimeAgoFallback.bidirectional,
+            fallback: TimeAgoFallback.bidirectional,
             onNow: null,
             onSecondsAgo: null,
             onMillisecondsAgo: null,
@@ -575,7 +575,7 @@ void main() {
           final result = past.timeAgo(
             onHoursAgo: null,
             onDaysAgo: (c) => 'd:$c',
-            fallback: OmfTimeAgoFallback.bidirectional,
+            fallback: TimeAgoFallback.bidirectional,
             onMinutesAgo: null,
             onSecondsAgo: null,
             onMillisecondsAgo: null,
@@ -595,7 +595,7 @@ void main() {
           final result = past.timeAgo(
             onHoursAgo: null,
             onNow: () => 'now',
-            fallback: OmfTimeAgoFallback.bidirectional,
+            fallback: TimeAgoFallback.bidirectional,
           );
 
           expect(result, 'now');
@@ -611,7 +611,7 @@ void main() {
             onHoursAgo: null,
             onDaysAgo: (c) => 'd:$c',
             onNow: () => 'now',
-            fallback: OmfTimeAgoFallback.bidirectional,
+            fallback: TimeAgoFallback.bidirectional,
           );
 
           expect(result, 'd:2');
@@ -624,7 +624,7 @@ void main() {
           final result = past.timeAgo(
             onHoursAgo: null,
             onMiss: () => 'miss',
-            fallback: OmfTimeAgoFallback.bidirectional,
+            fallback: TimeAgoFallback.bidirectional,
           );
 
           expect(result, 'miss');
@@ -637,7 +637,7 @@ void main() {
           expect(
             () => past.timeAgo<String>(
               onHoursAgo: null,
-              fallback: OmfTimeAgoFallback.bidirectional,
+              fallback: TimeAgoFallback.bidirectional,
             ),
             throwsArgumentError,
           );

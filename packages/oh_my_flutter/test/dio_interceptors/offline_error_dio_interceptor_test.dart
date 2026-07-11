@@ -44,7 +44,7 @@ void main() {
 
     dioWithInterceptor = Dio()
       ..httpClientAdapter = _ThrowingAdapter(exception)
-      ..interceptors.add(OmfOfflineErrorDioInterceptor.test(internetConnection: mockConnection));
+      ..interceptors.add(OfflineErrorDioInterceptor.test(internetConnection: mockConnection));
   }
 
   group('OfflineErrorDioInterceptor', () {
@@ -59,7 +59,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
 
@@ -69,7 +69,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
 
@@ -79,7 +79,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
 
@@ -89,7 +89,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
 
@@ -99,7 +99,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
 
@@ -109,7 +109,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
 
@@ -120,7 +120,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
 
@@ -131,7 +131,7 @@ void main() {
 
         await expectLater(
           dioWithInterceptor.get<void>('/jobs'),
-          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OmfOfflineConnectionDioException>())),
+          throwsA(isA<DioException>().having((e) => e.error, 'error', isA<OfflineConnectionDioException>())),
         );
       });
     });
@@ -211,13 +211,13 @@ void main() {
 
       final dio = Dio()
         ..httpClientAdapter = _ThrowingAdapter(originalError)
-        ..interceptors.add(OmfOfflineErrorDioInterceptor.test(internetConnection: mockConnection));
+        ..interceptors.add(OfflineErrorDioInterceptor.test(internetConnection: mockConnection));
 
       try {
         await dio.get<void>('/jobs');
         fail('expected exception to be thrown');
       } on DioException catch (e) {
-        expect(e.error, isA<OmfOfflineConnectionDioException>().having((o) => o.cause, 'cause', same(originalError)));
+        expect(e.error, isA<OfflineConnectionDioException>().having((o) => o.cause, 'cause', same(originalError)));
       }
     });
   });

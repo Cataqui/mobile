@@ -1,14 +1,14 @@
-part of 'omf_date_time_extension.dart';
+part of 'date_time_extension.dart';
 
-/// Selects how [OmfDateTimeExtension.timeAgo] walks when the matched bucket's
+/// Selects how [DateTimeExtension.timeAgo] walks when the matched bucket's
 /// callback is missing.
 ///
-/// - [OmfTimeAgoFallback.none] (default): no walk; the terminal case fires
+/// - [TimeAgoFallback.none] (default): no walk; the terminal case fires
 ///   (onMiss if supplied, else an [ArgumentError]).
-/// - [OmfTimeAgoFallback.finer]: walk toward finer units, then onNow last.
-/// - [OmfTimeAgoFallback.coarser]: walk toward coarser units only.
-/// - [OmfTimeAgoFallback.bidirectional]: finer first, then coarser, then onNow.
-enum OmfTimeAgoFallback {
+/// - [TimeAgoFallback.finer]: walk toward finer units, then onNow last.
+/// - [TimeAgoFallback.coarser]: walk toward coarser units only.
+/// - [TimeAgoFallback.bidirectional]: finer first, then coarser, then onNow.
+enum TimeAgoFallback {
   /// No walk is performed. When the matched bucket's callback is missing, the
   /// terminal case fires immediately — `onMiss` if supplied, else an
   /// [ArgumentError].

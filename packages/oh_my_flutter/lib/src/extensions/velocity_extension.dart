@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 
 /// Shared swipe helpers for Flutter [Velocity] values.
-extension OmfVelocityExtension on Velocity {
+extension VelocityExtension on Velocity {
   /// Whether this velocity represents a fast downward swipe.
   ///
   /// [minVelocity] is the minimum primary-axis speed in logical pixels per

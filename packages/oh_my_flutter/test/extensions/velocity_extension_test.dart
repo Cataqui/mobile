@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 void main() {
-  group('OmfVelocityExtension', () {
+  group('VelocityExtension', () {
     test('when the velocity moves down faster than the minimum, it should detect a down swipe', () {
       const velocity = Velocity(pixelsPerSecond: Offset(0, 701));
 

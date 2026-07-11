@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:meta/meta.dart';
 
-import '../exceptions/omf_offline_connection_dio_exception.dart';
+import '../exceptions/offline_connection_dio_exception.dart';
 
 /// A [Interceptor] that wraps connection-type [DioException]s into a
-/// [DioException] whose [DioException.error] is an [OmfOfflineConnectionDioException]
+/// [DioException] whose [DioException.error] is an [OfflineConnectionDioException]
 /// whenever a real connectivity check confirms the device is offline.
 ///
 /// ```dart
@@ -20,19 +20,19 @@ import '../exceptions/omf_offline_connection_dio_exception.dart';
 ///   }
 /// }
 /// ```
-class OmfOfflineErrorDioInterceptor extends Interceptor {
-  /// Creates an [OmfOfflineErrorDioInterceptor] that probes real connectivity
-  factory OmfOfflineErrorDioInterceptor() {
-    return OmfOfflineErrorDioInterceptor._(InternetConnection.createInstance());
+class OfflineErrorDioInterceptor extends Interceptor {
+  /// Creates an [OfflineErrorDioInterceptor] that probes real connectivity
+  factory OfflineErrorDioInterceptor() {
+    return OfflineErrorDioInterceptor._(InternetConnection.createInstance());
   }
 
-  const OmfOfflineErrorDioInterceptor._(this._internetConnection);
+  const OfflineErrorDioInterceptor._(this._internetConnection);
 
-  /// Creates an [OmfOfflineErrorDioInterceptor] with a controllable
+  /// Creates an [OfflineErrorDioInterceptor] with a controllable
   /// [internetConnection] for testing.
   @visibleForTesting
-  factory OmfOfflineErrorDioInterceptor.test({required InternetConnection internetConnection}) {
-    return OmfOfflineErrorDioInterceptor._(internetConnection);
+  factory OfflineErrorDioInterceptor.test({required InternetConnection internetConnection}) {
+    return OfflineErrorDioInterceptor._(internetConnection);
   }
 
   final InternetConnection _internetConnection;
@@ -83,7 +83,7 @@ class OmfOfflineErrorDioInterceptor extends Interceptor {
       requestOptions: err.requestOptions,
       response: err.response,
       type: err.type,
-      error: OmfOfflineConnectionDioException(
+      error: OfflineConnectionDioException(
         message: 'No internet connection available to complete the request.',
         cause: err,
       ),

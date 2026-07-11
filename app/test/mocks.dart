@@ -10,6 +10,6 @@ class MockFeedRepository extends Mock implements FeedRepository {}
 
 class MockJobRepository extends Mock implements JobRepository {}
 
-class MockOmfWhatsapp extends Mock implements OmfWhatsapp {}
+class MockWhatsapp extends Mock implements Whatsapp {}
 
-class MockOmfTelephony extends Mock implements OmfTelephony {}
+class MockTelephony extends Mock implements Telephony {}

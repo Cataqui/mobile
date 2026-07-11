@@ -10,23 +10,9 @@ It is **not** a domain-specific package (that belongs elsewhere, e.g. Cataquí
 models or API clients). It is general-purpose: any Flutter project could benefit
 from importing it.
 
-## Omf Prefix Rule
+## Naming Convention
 
-Every **public class, mixin, enum, extension, or typedef** exported by this
-package **must** be prefixed with `Omf`.
-
-**Rationale:** A consumer importing multiple packages should immediately know
-which namespace a symbol belongs to. The `Omf` prefix (short for
-**O**h_**M**y_**F**lutter) makes the origin unmistakable at the call site
-without requiring the developer to check the import statement.
-
-```dart
-// Good — clearly from oh_my_flutter
-class OmfOfflineErrorDioInterceptor extends Interceptor { ... }
-
-// Bad — ambiguous origin
-class OfflineErrorDioInterceptor extends Interceptor { ... }
-```
-
-This rule applies to everything in the barrel export (`lib/oh_my_flutter.dart`).
-Internal (`src/`) classes that are **not** exported are exempt from this rule.
+Classes, extensions, and enums in this package do **not** use a prefix. They are
+named as if they were part of the Flutter/Dart SDK itself — clean, direct, and
+unambiguous. The package name `oh_my_flutter` is the namespace; the import
+statement tells the reader where a symbol comes from.

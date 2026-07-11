@@ -97,9 +97,9 @@ void main() {
         expect(oklch.h, closeTo(265, 5));
       });
 
-      test('when calling toOklch on a color, it should return the same as OmfOklch.fromColor', () {
+      test('when calling toOklch on a color, it should return the same as Oklch.fromColor', () {
         const color = Color(0xFFFF4A4B);
-        expect(color.toOklch(), OmfOklch.fromColor(color));
+        expect(color.toOklch(), Oklch.fromColor(color));
       });
     });
   });

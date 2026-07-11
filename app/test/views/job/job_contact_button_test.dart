@@ -17,14 +17,14 @@ Widget _buildApp({
   required JobContactReferenceDto contactReference,
   required Translations i18n,
   required MockJobRepository repository,
-  required MockOmfWhatsapp whatsapp,
-  required MockOmfTelephony telephony,
+  required MockWhatsapp whatsapp,
+  required MockTelephony telephony,
 }) {
   return ProviderScope(
     overrides: [
       jobRepositoryProvider.overrideWithValue(repository),
-      omfWhatsappProvider.overrideWithValue(whatsapp),
-      omfTelephonyProvider.overrideWithValue(telephony),
+      whatsappProvider.overrideWithValue(whatsapp),
+      telephonyProvider.overrideWithValue(telephony),
       translationProvider.overrideWithValue(i18n),
       quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
     ],
@@ -52,13 +52,13 @@ void main() {
 
   group('JobContactButton', () {
     late MockJobRepository repository;
-    late MockOmfWhatsapp whatsapp;
-    late MockOmfTelephony telephony;
+    late MockWhatsapp whatsapp;
+    late MockTelephony telephony;
 
     setUp(() {
       repository = MockJobRepository();
-      whatsapp = MockOmfWhatsapp();
-      telephony = MockOmfTelephony();
+      whatsapp = MockWhatsapp();
+      telephony = MockTelephony();
     });
 
     group('when contact method is whatsapp', () {

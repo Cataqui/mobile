@@ -2,10 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 void main() {
-  group('OmfTelephony', () {
+  group('Telephony', () {
     late Uri capturedUri;
     late Future<bool> Function(Uri) fakeLauncher;
-    late OmfTelephony telephony;
+    late Telephony telephony;
 
     setUp(() {
       capturedUri = Uri.parse('about:blank');
@@ -13,7 +13,7 @@ void main() {
         capturedUri = uri;
         return true;
       };
-      telephony = OmfTelephony.test(launcher: fakeLauncher);
+      telephony = Telephony.test(launcher: fakeLauncher);
     });
 
     group('when sanitizing the phone number', () {
@@ -187,7 +187,7 @@ void main() {
         'when the launcher returns false, '
         'it should return false',
         () async {
-          telephony = OmfTelephony.test(launcher: (_) async => false);
+          telephony = Telephony.test(launcher: (_) async => false);
 
           final result = await telephony.call(number: '+551198887777');
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../omf_oklch.dart';
+import '../oklch.dart';
 
 /// Shared helpers for Flutter [Color] values.
 extension ColorExtension on Color {
@@ -27,6 +27,6 @@ extension ColorExtension on Color {
         '${(b * 255).round().toRadixString(16).padLeft(2, '0')}';
   }
 
-  /// Converts this sRGB [Color] to an [OmfOklch] representation.
-  OmfOklch toOklch() => OmfOklch.fromColor(this);
+  /// Converts this sRGB [Color] to an [Oklch] representation.
+  Oklch toOklch() => Oklch.fromColor(this);
 }

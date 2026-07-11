@@ -19,9 +19,9 @@ part '_oklch_converter.dart';
 /// final color = oklch.toColor();
 /// ```
 @immutable
-final class OmfOklch {
+final class Oklch {
   /// Creates an OKLCH color.
-  const OmfOklch(this.l, this.c, this.h);
+  const Oklch(this.l, this.c, this.h);
 
   /// Lightness in [0, 1].
   final double l;
@@ -32,8 +32,8 @@ final class OmfOklch {
   /// Hue in degrees [0, 360).
   final double h;
 
-  /// Converts an sRGB [Color] to an [OmfOklch].
-  static OmfOklch fromColor(Color color) => _OklchConverter.fromColor(color);
+  /// Converts an sRGB [Color] to an [Oklch].
+  static Oklch fromColor(Color color) => _OklchConverter.fromColor(color);
 
   /// Converts OKLCH (L, C, H) to an sRGB [Color].
   ///
@@ -44,7 +44,7 @@ final class OmfOklch {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! OmfOklch) return false;
+    if (other is! Oklch) return false;
     return l == other.l && c == other.c && h == other.h;
   }
 
@@ -52,5 +52,5 @@ final class OmfOklch {
   int get hashCode => Object.hash(l, c, h);
 
   @override
-  String toString() => 'OmfOklch($l, $c, $h)';
+  String toString() => 'Oklch($l, $c, $h)';
 }

@@ -1,9 +1,9 @@
 import 'package:clock/clock.dart';
 
-part 'omf_date_time_extension_enums.dart';
+part 'date_time_extension_enums.dart';
 
 /// Shared helpers for [DateTime] values.
-extension OmfDateTimeExtension on DateTime {
+extension DateTimeExtension on DateTime {
   /// Returns a "time ago" value for this [DateTime] relative to now.
   ///
   /// The result type `T` is inferred from the callbacks you pass — pass
@@ -21,12 +21,12 @@ extension OmfDateTimeExtension on DateTime {
   /// returned.
   ///
   /// If the matched bucket's callback is null, [fallback] decides what happens:
-  /// - [OmfTimeAgoFallback.none] (default) → no walk; go to the terminal case.
-  /// - [OmfTimeAgoFallback.finer] → walks toward finer count-buckets, then
+  /// - [TimeAgoFallback.none] (default) → no walk; go to the terminal case.
+  /// - [TimeAgoFallback.finer] → walks toward finer count-buckets, then
   ///   [onNow] as a last resort; first supplied callback fires.
-  /// - [OmfTimeAgoFallback.coarser] → walks toward coarser count-buckets only;
+  /// - [TimeAgoFallback.coarser] → walks toward coarser count-buckets only;
   ///   [onNow] is not reachable in this mode.
-  /// - [OmfTimeAgoFallback.bidirectional] → finer count-buckets first, then
+  /// - [TimeAgoFallback.bidirectional] → finer count-buckets first, then
   ///   coarser count-buckets, then [onNow] last.
   ///
   /// Terminal case (matched missing under `none`, OR a non-`none` walk
@@ -54,7 +54,7 @@ extension OmfDateTimeExtension on DateTime {
     T Function(int count)? onMonthsAgo,
     T Function(int count)? onYearsAgo,
     T Function()? onMiss,
-    OmfTimeAgoFallback fallback = OmfTimeAgoFallback.none,
+    TimeAgoFallback fallback = TimeAgoFallback.none,
   }) {
     final now = clock.now();
     final elapsed = now.difference(this);
@@ -93,16 +93,16 @@ extension OmfDateTimeExtension on DateTime {
     if (matchedResult != null) return matchedResult;
 
     final candidates = switch (fallback) {
-      OmfTimeAgoFallback.none => <_TimeAgoBucket>[],
-      OmfTimeAgoFallback.finer => [
+      TimeAgoFallback.none => <_TimeAgoBucket>[],
+      TimeAgoFallback.finer => [
         for (var i = matchedBucket.index + 1; i <= _TimeAgoBucket.now.index; i++)
           _TimeAgoBucket.values[i],
       ],
-      OmfTimeAgoFallback.coarser => [
+      TimeAgoFallback.coarser => [
         for (var i = matchedBucket.index - 1; i >= 0; i--)
           _TimeAgoBucket.values[i],
       ],
-      OmfTimeAgoFallback.bidirectional => [
+      TimeAgoFallback.bidirectional => [
         for (var i = matchedBucket.index + 1; i <= _TimeAgoBucket.milliseconds.index; i++)
           _TimeAgoBucket.values[i],
         for (var i = matchedBucket.index - 1; i >= 0; i--)

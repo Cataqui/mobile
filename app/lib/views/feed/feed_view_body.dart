@@ -122,7 +122,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     final paginationError = ref.read(feedStateProvider).value?.paginationError;
     final i18n = ref.watch(translationProvider);
 
-    if (paginationError.isOmfOfflineConnectionDioException) {
+    if (paginationError.isOfflineConnectionDioException) {
       return QuiOfflineErrorState(
         title: i18n.feed.loadingMore.offline.title,
         description: i18n.feed.loadingMore.offline.description,
@@ -260,7 +260,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildInitialError(BuildContext context, Object error) {
     final i18n = ref.watch(translationProvider);
 
-    if (error.isOmfOfflineConnectionDioException) {
+    if (error.isOfflineConnectionDioException) {
       return QuiOfflineErrorState(
         title: i18n.feed.offline.title,
         description: i18n.feed.offline.description,

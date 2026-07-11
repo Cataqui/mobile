@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 void main() {
-  group('OmfWhatsapp', () {
+  group('Whatsapp', () {
     group('when on web (isWeb: true)', () {
       late List<Uri> capturedUris;
       late Future<bool> Function(Uri) fakeLauncher;
-      late OmfWhatsapp whatsapp;
+      late Whatsapp whatsapp;
 
       setUp(() {
         capturedUris = [];
@@ -16,7 +16,7 @@ void main() {
           return true;
         };
 
-        whatsapp = OmfWhatsapp.test(launcher: fakeLauncher, isWeb: true);
+        whatsapp = Whatsapp.test(launcher: fakeLauncher, isWeb: true);
       });
 
       group('when sanitizing the phone number', () {
@@ -136,7 +136,7 @@ void main() {
 
         test('when the launcher returns false, '
             'it should return false', () async {
-          whatsapp = OmfWhatsapp.test(launcher: (_) async => false, isWeb: true);
+          whatsapp = Whatsapp.test(launcher: (_) async => false, isWeb: true);
 
           final result = await whatsapp.launchChat(number: '551198887777');
 
@@ -148,11 +148,11 @@ void main() {
     group('when on mobile (isWeb: false)', () {
       group('when WhatsApp is available', () {
         late List<Uri> capturedUris;
-        late OmfWhatsapp whatsapp;
+        late Whatsapp whatsapp;
 
         setUp(() {
           capturedUris = [];
-          whatsapp = OmfWhatsapp.test(
+          whatsapp = Whatsapp.test(
             launcher: (Uri uri) async {
               capturedUris.add(uri);
               return true;
@@ -219,11 +219,11 @@ void main() {
 
       group('when WhatsApp app is unavailable', () {
         late List<Uri> capturedUris;
-        late OmfWhatsapp whatsapp;
+        late Whatsapp whatsapp;
 
         setUp(() {
           capturedUris = [];
-          whatsapp = OmfWhatsapp.test(
+          whatsapp = Whatsapp.test(
             launcher: (Uri uri) async {
               capturedUris.add(uri);
               return capturedUris.length == 2;
@@ -249,7 +249,7 @@ void main() {
 
         test('when the native scheme throws a PlatformException, '
             'it should fall back to https://wa.me', () async {
-          final whatsapp = OmfWhatsapp.test(
+          final whatsapp = Whatsapp.test(
             launcher: (Uri uri) async {
               capturedUris.add(uri);
               if (capturedUris.length == 1) {
@@ -269,7 +269,7 @@ void main() {
 
         test('when both native and fallback fail, '
             'it should return false', () async {
-          whatsapp = OmfWhatsapp.test(launcher: (_) async => false);
+          whatsapp = Whatsapp.test(launcher: (_) async => false);
 
           final result = await whatsapp.launchChat(number: '551198887777');
 
@@ -289,14 +289,14 @@ void main() {
       group('when validating the number', () {
         test('when the number is an empty string, '
             'it should throw an ArgumentError', () async {
-          final whatsapp = OmfWhatsapp.test(launcher: (_) async => true);
+          final whatsapp = Whatsapp.test(launcher: (_) async => true);
 
           expect(() => whatsapp.launchChat(number: ''), throwsArgumentError);
         });
 
         test('when the number contains only non-digit characters, '
             'it should throw an ArgumentError', () async {
-          final whatsapp = OmfWhatsapp.test(launcher: (_) async => true);
+          final whatsapp = Whatsapp.test(launcher: (_) async => true);
 
           expect(() => whatsapp.launchChat(number: '+-- () '), throwsArgumentError);
         });

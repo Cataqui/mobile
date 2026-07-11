@@ -16,7 +16,7 @@ void _expectColorClose(Color actual, Color expected, {int tolerance = 5}) {
 }
 
 void main() {
-  group('OmfOklch', () {
+  group('Oklch', () {
     // ----------------------------------------------------------------
     // Round-trip fidelity — sRGB → OKLCH → sRGB
     // ----------------------------------------------------------------
@@ -58,7 +58,7 @@ void main() {
       for (final color in roundTripCases) {
         final hex = '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}';
         test('when round-tripping $hex, it should return a visually identical color', () {
-          final oklch = OmfOklch.fromColor(color);
+          final oklch = Oklch.fromColor(color);
           final result = oklch.toColor();
           _expectColorClose(result, color);
         });
@@ -70,41 +70,41 @@ void main() {
     // ----------------------------------------------------------------
     group('known reference values', () {
       test('when converting OKLCH(0, 0, 0), it should return pure black', () {
-        final color = OmfOklch.toColor(0, 0, 0);
+        final color = Oklch.toColor(0, 0, 0);
         expect(color.toARGB32(), 0xFF000000);
       });
 
       test('when converting OKLCH(1, 0, 0), it should return pure white', () {
-        final color = OmfOklch.toColor(1, 0, 0);
+        final color = Oklch.toColor(1, 0, 0);
         expect(color.toARGB32(), 0xFFFFFFFF);
       });
 
       test('when converting OKLCH(0.5, 0, 0), it should return mid gray', () {
-        final color = OmfOklch.toColor(0.5, 0, 0);
+        final color = Oklch.toColor(0.5, 0, 0);
         expect(color.r, closeTo(color.g, 0.01));
         expect(color.g, closeTo(color.b, 0.01));
       });
 
       test('when converting OKLCH(0.5, 0.1, 0), it should have a reddish tint', () {
-        final color = OmfOklch.toColor(0.5, 0.1, 0);
+        final color = Oklch.toColor(0.5, 0.1, 0);
         expect(color.r, greaterThan(color.g));
         expect(color.r, greaterThan(color.b));
       });
 
       test('when converting OKLCH(0.5, 0.1, 0), it should have a reddish tint', () {
-        final color = OmfOklch.toColor(0.5, 0.1, 0);
+        final color = Oklch.toColor(0.5, 0.1, 0);
         expect(color.r, greaterThan(color.g));
         expect(color.r, greaterThan(color.b));
       });
 
       test('when converting OKLCH(0.5, 0.1, 180), it should have a cyan tint', () {
-        final color = OmfOklch.toColor(0.5, 0.1, 180);
+        final color = Oklch.toColor(0.5, 0.1, 180);
         expect(color.g, greaterThan(color.r));
         expect(color.b, greaterThan(color.r));
       });
 
       test('when converting OKLCH(0.5, 0.1, 270), it should have a blue tint', () {
-        final color = OmfOklch.toColor(0.5, 0.1, 270);
+        final color = Oklch.toColor(0.5, 0.1, 270);
         expect(color.b, greaterThan(color.r));
         expect(color.b, greaterThan(color.g));
       });
@@ -116,19 +116,19 @@ void main() {
     group('gamut clipping', () {
       test('when converting a high-chroma out-of-gamut color, it should not crash', () {
         // Chroma 0.4 is beyond sRGB gamut for most hues
-        final color = OmfOklch.toColor(0.5, 0.4, 28);
+        final color = Oklch.toColor(0.5, 0.4, 28);
         expect(color, isA<Color>());
       });
 
       test('when converting an extreme out-of-gamut color, it should produce a valid sRGB color', () {
-        final color = OmfOklch.toColor(0.5, 0.5, 180);
+        final color = Oklch.toColor(0.5, 0.5, 180);
         expect(color.r, inInclusiveRange(0.0, 1.0));
         expect(color.g, inInclusiveRange(0.0, 1.0));
         expect(color.b, inInclusiveRange(0.0, 1.0));
       });
 
       test('when converting a very dark high-chroma color, it should produce a valid sRGB color', () {
-        final color = OmfOklch.toColor(0.1, 0.3, 28);
+        final color = Oklch.toColor(0.1, 0.3, 28);
         expect(color.r, inInclusiveRange(0.0, 1.0));
         expect(color.g, inInclusiveRange(0.0, 1.0));
         expect(color.b, inInclusiveRange(0.0, 1.0));
@@ -140,29 +140,29 @@ void main() {
     // ----------------------------------------------------------------
     group('boundary values', () {
       test('when converting with hue 0, it should produce a valid color', () {
-        final color = OmfOklch.toColor(0.5, 0.15, 0);
+        final color = Oklch.toColor(0.5, 0.15, 0);
         expect(color, isA<Color>());
       });
 
       test('when converting with hue 360, it should produce the same as hue 0', () {
-        final a = OmfOklch.toColor(0.5, 0.15, 0);
-        final b = OmfOklch.toColor(0.5, 0.15, 360);
+        final a = Oklch.toColor(0.5, 0.15, 0);
+        final b = Oklch.toColor(0.5, 0.15, 360);
         expect(b.toARGB32(), a.toARGB32());
       });
 
       test('when converting with chroma 0, it should produce a gray regardless of hue', () {
-        final a = OmfOklch.toColor(0.5, 0, 0);
-        final b = OmfOklch.toColor(0.5, 0, 180);
+        final a = Oklch.toColor(0.5, 0, 0);
+        final b = Oklch.toColor(0.5, 0, 180);
         expect(b.toARGB32(), a.toARGB32());
       });
 
       test('when converting with lightness 0 and chroma 0, it should produce black', () {
-        final a = OmfOklch.toColor(0, 0, 0);
+        final a = Oklch.toColor(0, 0, 0);
         expect(a.toARGB32(), 0xFF000000);
       });
 
       test('when converting with lightness 1 and chroma 0, it should produce white', () {
-        final a = OmfOklch.toColor(1, 0, 0);
+        final a = Oklch.toColor(1, 0, 0);
         expect(a.toARGB32(), 0xFFFFFFFF);
       });
     });
@@ -172,32 +172,32 @@ void main() {
     // ----------------------------------------------------------------
     group('fromColor edge cases', () {
       test('when converting pure black, it should have zero lightness', () {
-        final oklch = OmfOklch.fromColor(const Color(0xFF000000));
+        final oklch = Oklch.fromColor(const Color(0xFF000000));
         expect(oklch.l, closeTo(0, 0.001));
       });
 
       test('when converting pure white, it should have full lightness', () {
-        final oklch = OmfOklch.fromColor(const Color(0xFFFFFFFF));
+        final oklch = Oklch.fromColor(const Color(0xFFFFFFFF));
         expect(oklch.l, closeTo(1.0, 0.001));
       });
 
       test('when converting a gray, it should have near-zero chroma', () {
-        final oklch = OmfOklch.fromColor(const Color(0xFF808080));
+        final oklch = Oklch.fromColor(const Color(0xFF808080));
         expect(oklch.c, lessThan(0.01));
       });
 
       test('when converting pure red, it should have a hue near 25', () {
-        final oklch = OmfOklch.fromColor(const Color(0xFFFF0000));
+        final oklch = Oklch.fromColor(const Color(0xFFFF0000));
         expect(oklch.h, closeTo(25, 5));
       });
 
       test('when converting pure green, it should have a hue near 140', () {
-        final oklch = OmfOklch.fromColor(const Color(0xFF00FF00));
+        final oklch = Oklch.fromColor(const Color(0xFF00FF00));
         expect(oklch.h, closeTo(140, 5));
       });
 
       test('when converting pure blue, it should have a hue near 265', () {
-        final oklch = OmfOklch.fromColor(const Color(0xFF0000FF));
+        final oklch = Oklch.fromColor(const Color(0xFF0000FF));
         expect(oklch.h, closeTo(265, 5));
       });
     });
@@ -206,9 +206,9 @@ void main() {
     // toColor (extension)
     // ----------------------------------------------------------------
     group('toColor (extension)', () {
-      test('when calling toColor on an OmfOklch, it should return the same as the static method', () {
-        final oklch = OmfOklch(0.65, 0.23, 28);
-        final direct = OmfOklch.toColor(0.65, 0.23, 28);
+      test('when calling toColor on an Oklch, it should return the same as the static method', () {
+        final oklch = Oklch(0.65, 0.23, 28);
+        final direct = Oklch.toColor(0.65, 0.23, 28);
         expect(oklch.toColor().toARGB32(), direct.toARGB32());
       });
     });
@@ -217,21 +217,21 @@ void main() {
     // Equality
     // ----------------------------------------------------------------
     group('equality', () {
-      test('when two OmfOklch have the same values, they should be equal', () {
-        const a = OmfOklch(0.65, 0.23, 28);
-        const b = OmfOklch(0.65, 0.23, 28);
+      test('when two Oklch have the same values, they should be equal', () {
+        const a = Oklch(0.65, 0.23, 28);
+        const b = Oklch(0.65, 0.23, 28);
         expect(a, equals(b));
       });
 
-      test('when two OmfOklch have different values, they should not be equal', () {
-        const a = OmfOklch(0.65, 0.23, 28);
-        const b = OmfOklch(0.55, 0.22, 230);
+      test('when two Oklch have different values, they should not be equal', () {
+        const a = Oklch(0.65, 0.23, 28);
+        const b = Oklch(0.55, 0.22, 230);
         expect(a, isNot(equals(b)));
       });
 
-      test('when two OmfOklch have the same values, their hash codes should be equal', () {
-        const a = OmfOklch(0.65, 0.23, 28);
-        const b = OmfOklch(0.65, 0.23, 28);
+      test('when two Oklch have the same values, their hash codes should be equal', () {
+        const a = Oklch(0.65, 0.23, 28);
+        const b = Oklch(0.65, 0.23, 28);
         expect(a.hashCode, equals(b.hashCode));
       });
     });

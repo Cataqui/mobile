@@ -196,7 +196,7 @@ class FeedViewTestHelpers {
   static DioException offlineDioException() {
     return DioException(
       requestOptions: RequestOptions(path: '/feed'),
-      error: const OmfOfflineConnectionDioException(message: 'No internet connection'),
+      error: const OfflineConnectionDioException(message: 'No internet connection'),
     );
   }
 

@@ -49,7 +49,7 @@ Dio cataquiDio(Ref ref) {
   if (appConfig.isDevelopment) {
     dio.interceptors.addAll([
       LogInterceptor(requestBody: true, responseBody: true, logPrint: (object) => debugPrint(object.toString())),
-      OmfOfflineErrorDioInterceptor(),
+      OfflineErrorDioInterceptor(),
     ]);
   }
 
@@ -77,11 +77,11 @@ QuiLottie quiLottie(Ref ref) {
 }
 
 @riverpod
-OmfWhatsapp omfWhatsapp(Ref ref) {
-  return OmfWhatsapp();
+Whatsapp whatsapp(Ref ref) {
+  return Whatsapp();
 }
 
 @riverpod
-OmfTelephony omfTelephony(Ref ref) {
-  return OmfTelephony();
+Telephony telephony(Ref ref) {
+  return Telephony();
 }

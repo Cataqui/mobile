@@ -4,28 +4,28 @@ import 'package:url_launcher/url_launcher.dart';
 /// Interact with phone numbers via the device's telephony capabilities.
 ///
 /// ```dart
-/// final telephony = OmfTelephony();
+/// final telephony = Telephony();
 /// await telephony.call(number: '+55 11 98888-7777');
 /// ```
 ///
 /// The default constructor wires [launchUrl] from `url_launcher`. Use
-/// [OmfTelephony.test] to inject a controllable launcher in tests.
-class OmfTelephony {
-  /// Creates an [OmfTelephony] that delegates to the platform's URI
+/// [Telephony.test] to inject a controllable launcher in tests.
+class Telephony {
+  /// Creates an [Telephony] that delegates to the platform's URI
   /// launcher ([launchUrl] via `url_launcher`).
-  factory OmfTelephony() {
-    return OmfTelephony._(launchUrl);
+  factory Telephony() {
+    return Telephony._(launchUrl);
   }
 
-  OmfTelephony._(this._launcher);
+  Telephony._(this._launcher);
 
-  /// Creates an [OmfTelephony] with a controllable [launcher] for testing.
+  /// Creates an [Telephony] with a controllable [launcher] for testing.
   ///
   /// The [launcher] callback receives the computed telephony URI and must
   /// return `true` when the OS accepted the launch.
   @visibleForTesting
-  factory OmfTelephony.test({required Future<bool> Function(Uri uri) launcher}) {
-    return OmfTelephony._(launcher);
+  factory Telephony.test({required Future<bool> Function(Uri uri) launcher}) {
+    return Telephony._(launcher);
   }
 
   final Future<bool> Function(Uri uri) _launcher;

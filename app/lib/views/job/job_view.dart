@@ -79,7 +79,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                     onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
                                     onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
                                     onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                                    fallback: OmfTimeAgoFallback.finer,
+                                    fallback: TimeAgoFallback.finer,
                                   ),
                                   style: TextStyle(
                                     fontSize: 16,
@@ -200,7 +200,7 @@ class _JobViewState extends ConsumerState<JobView> {
   }
 
   Widget _buildError(BuildContext context, Translations i18n, Object error) {
-    if (error.isOmfOfflineConnectionDioException) {
+    if (error.isOfflineConnectionDioException) {
       return QuiOfflineErrorState(
         title: i18n.feed.offline.title,
         description: i18n.feed.offline.description,

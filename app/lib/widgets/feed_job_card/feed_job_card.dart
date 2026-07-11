@@ -53,7 +53,7 @@ class FeedJobCard extends ConsumerWidget {
                       onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
                       onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
                       onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                      fallback: OmfTimeAgoFallback.finer,
+                      fallback: TimeAgoFallback.finer,
                     ),
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.placeholder),
                     padding: const EdgeInsets.only(bottom: 6),

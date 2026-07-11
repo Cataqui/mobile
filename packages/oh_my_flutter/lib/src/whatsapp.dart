@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 /// Interact with WhatsApp.
 ///
 /// ```dart
-/// final whatsapp = OmfWhatsapp();
+/// final whatsapp = Whatsapp();
 ///
 /// await whatsapp.launchChat(
 ///   number: '+55 11 98888-7777',
@@ -14,25 +14,25 @@ import 'package:url_launcher/url_launcher.dart';
 /// ```
 ///
 /// The default constructor wires [launchUrl] from `url_launcher`. Use
-/// [OmfWhatsapp.test] to inject a controllable launcher in tests.
-class OmfWhatsapp {
-  /// Creates an [OmfWhatsapp] that delegates to the platform's deeplink
+/// [Whatsapp.test] to inject a controllable launcher in tests.
+class Whatsapp {
+  /// Creates an [Whatsapp] that delegates to the platform's deeplink
   /// launcher ([launchUrl] via `url_launcher`).
-  factory OmfWhatsapp() {
-    return OmfWhatsapp._(launchUrl, isWeb: kIsWeb);
+  factory Whatsapp() {
+    return Whatsapp._(launchUrl, isWeb: kIsWeb);
   }
 
-  OmfWhatsapp._(this._launcher, {this._isWeb = false});
+  Whatsapp._(this._launcher, {this._isWeb = false});
 
-  /// Creates an [OmfWhatsapp] with a controllable params for testing.
+  /// Creates an [Whatsapp] with a controllable params for testing.
   ///
   /// The [launcher] callback receives the computed WhatsApp URI and must
   /// return `true` when the OS accepted the launch.
   ///
   /// Set [isWeb] to `true` to simulate the web platform path
   @visibleForTesting
-  factory OmfWhatsapp.test({required Future<bool> Function(Uri uri) launcher, bool isWeb = false}) {
-    return OmfWhatsapp._(launcher, isWeb: isWeb);
+  factory Whatsapp.test({required Future<bool> Function(Uri uri) launcher, bool isWeb = false}) {
+    return Whatsapp._(launcher, isWeb: isWeb);
   }
 
   final Future<bool> Function(Uri uri) _launcher;
