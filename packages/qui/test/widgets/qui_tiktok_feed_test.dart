@@ -1298,7 +1298,7 @@ void main() {
       );
     });
 
-    testWidgets('the loading indicator SizedBox width should match the shared size constant', (tester) async {
+    testWidgets('the loading indicator Container width should match the shared size constant', (tester) async {
       await _pumpFeed(tester, items: const ['first'], onLoadMore: () => Completer<void>().future);
       await tester.pump();
 
@@ -1311,12 +1311,12 @@ void main() {
         await tester.pump(const Duration(milliseconds: 16));
       }
 
-      final sizedBox = tester.widget<SizedBox>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
+      final container = tester.widget<Container>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
 
-      expect(sizedBox.width, 100);
+      expect(container.constraints!.maxWidth, 100);
     });
 
-    testWidgets('the loading indicator SizedBox height should match the shared size constant', (tester) async {
+    testWidgets('the loading indicator Container height should match the shared size constant', (tester) async {
       await _pumpFeed(tester, items: const ['first'], onLoadMore: () => Completer<void>().future);
       await tester.pump();
 
@@ -1329,9 +1329,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 16));
       }
 
-      final sizedBox = tester.widget<SizedBox>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
+      final container = tester.widget<Container>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
 
-      expect(sizedBox.height, 100);
+      expect(container.constraints!.maxHeight, 100);
     });
 
     testWidgets('when swiping up again immediately after entering await, it should stay in await mode', (tester) async {
