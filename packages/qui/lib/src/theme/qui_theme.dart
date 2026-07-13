@@ -26,7 +26,7 @@ abstract final class QuiTheme {
     final palette = QuiPalette(primaryColor: primaryColor);
     final colorScheme = QuiColorScheme.light(palette: palette, onPrimary: onPrimary);
 
-    return _build(QuiThemeData(colorScheme: colorScheme));
+    return _build(QuiThemeData(colorScheme: colorScheme, palette: palette));
   }
 
   static ThemeData _build(QuiThemeData quiData) {

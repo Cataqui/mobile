@@ -256,6 +256,7 @@ void main() {
       return QuiThemeData(
         colorScheme: QuiColorScheme.light(palette: palette, onPrimary: const Color(0xFF1E1615)),
         typography: typography ?? const QuiTypography(),
+        palette: palette,
       );
     }
 
