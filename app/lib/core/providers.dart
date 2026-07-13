@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'providers.g.dart';
 
@@ -24,6 +25,11 @@ Translations translation(Ref ref) {
 @Riverpod(keepAlive: true)
 AppConfig appConfig(Ref ref) {
   return AppConfig(environment: Env.environment, cataquiApiUrl: Env.cataquiApiUrl);
+}
+
+@Riverpod(keepAlive: true)
+SharedPreferencesAsync sharedPreferencesAsync(Ref ref) {
+  return SharedPreferencesAsync();
 }
 
 @Riverpod(keepAlive: true)

@@ -29,6 +29,7 @@ dependencies:
   qui:
     path: ../packages/qui
   riverpod_annotation: ^4.0.2
+  shared_preferences: ^2.5.5
   slang: ^4.16.0
   slang_flutter: ^4.16.0
 
