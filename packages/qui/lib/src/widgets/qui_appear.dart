@@ -10,11 +10,22 @@ part 'qui_appear_enums.dart';
 /// Use a [QuiAppearController] to control when the widget appears or
 /// disappears. The widget does not animate automatically.
 ///
+/// ## Unmount behavior
+///
+/// By default ([unmount] is `false`), `destroy` fades [child] to opacity 0
+/// but keeps it mounted in the widget tree. Set [unmount] to `true` to
+/// remove [child] from the widget tree once the destroy animation completes.
+/// The child's element subtree is genuinely disposed — its `State.dispose`
+/// runs, its render object is detached, and its `BuildContext` becomes
+/// invalid. Calling `appear()` after an unmount creates a fresh element
+/// subtree and fades it back in.
+///
 /// ```dart
 /// final _controller = QuiAppearController();
 ///
 /// QuiAppear(
 ///   controller: _controller,
+///   unmount: true,
 ///   child: const Text('Hello'),
 /// )
 /// ```
@@ -26,6 +37,7 @@ class QuiAppear extends StatefulWidget {
     this.animation = QuiAppearAnimationType.fade,
     this.appearDuration = const Duration(milliseconds: 300),
     this.destroyDuration = const Duration(milliseconds: 300),
+    this.unmount = false,
     super.key,
   });
 
@@ -44,6 +56,18 @@ class QuiAppear extends StatefulWidget {
   /// How long the destroy (disappear) animation takes.
   final Duration destroyDuration;
 
+  /// Whether `destroy` removes [child] from the widget tree once the
+  /// destroy animation completes.
+  ///
+  /// When `true`, the child's element subtree is disposed (its
+  /// `State.dispose` runs, its render object is detached). Calling
+  /// `appear()` after an unmount re-mounts the child
+  /// and plays the appear animation.
+  ///
+  /// When `false` (the default), [child] stays mounted at opacity 0
+  /// after `destroy` completes.
+  final bool unmount;
+
   @override
   State<QuiAppear> createState() => _QuiAppearState();
 }
@@ -52,6 +76,7 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
   late final AnimationController _controller;
   double? _pendingTargetValue;
   bool _initComplete = false;
+  bool _unmounted = false;
 
   @override
   void initState() {
@@ -61,6 +86,7 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
       reverseDuration: widget.destroyDuration,
       vsync: this,
     );
+    _controller.addStatusListener(_onAnimationStatus);
     widget.controller._register(_onControllerTrigger);
   }
 
@@ -90,19 +116,39 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
     if (oldWidget.destroyDuration != widget.destroyDuration) {
       _controller.reverseDuration = widget.destroyDuration;
     }
+    if (!oldWidget.unmount && widget.unmount && _controller.value == 0) {
+      setState(() => _unmounted = true);
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeStatusListener(_onAnimationStatus);
     widget.controller._unregister();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onAnimationStatus(AnimationStatus status) {
+    if (!widget.unmount) return;
+    if (status == AnimationStatus.dismissed) {
+      setState(() => _unmounted = true);
+    }
   }
 
   void _onControllerTrigger(double targetValue) {
     if (!mounted) return;
     if (!_initComplete) {
       _pendingTargetValue = targetValue;
+      return;
+    }
+    if (targetValue == 1.0 && _unmounted) {
+      setState(() => _unmounted = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        // ignore: prefer_int_literals — `1` is an int literal, not a double
+        _runAppearance(1.0);
+      });
       return;
     }
     _runAppearance(targetValue);
@@ -120,6 +166,7 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    if (_unmounted) return const SizedBox.shrink();
     return switch (widget.animation) {
       QuiAppearAnimationType.fade => FadeTransition(opacity: _controller, child: widget.child),
     };

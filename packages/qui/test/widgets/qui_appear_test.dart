@@ -173,5 +173,106 @@ void main() {
       final fade = _fadeWithinQuiAppear(tester);
       expect(fade.opacity.value, 0);
     });
+
+    testWidgets('when unmount is true and destroy completes, it should remove the child from the tree', (tester) async {
+      final controller = QuiAppearController();
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(controller: controller, unmount: true, child: const Text('Hello')),
+        ),
+      );
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      controller.destroy();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hello'), findsNothing);
+    });
+
+    testWidgets('when unmount is false and destroy completes, it should keep the child in the tree', (tester) async {
+      final controller = QuiAppearController();
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(controller: controller, child: const Text('Hello')),
+        ),
+      );
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      controller.destroy();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hello'), findsOneWidget);
+    });
+
+    testWidgets('when unmount is true and appear is called after destroy, it should re-mount the child and animate opacity to 1',
+        (tester) async {
+      final controller = QuiAppearController();
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(controller: controller, unmount: true, child: const Text('Hello')),
+        ),
+      );
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      controller.destroy();
+      await tester.pumpAndSettle();
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hello'), findsOneWidget);
+      final fade = _fadeWithinQuiAppear(tester);
+      expect(fade.opacity.value, 1);
+    });
+
+    testWidgets('when unmount is true and disableAnimations is true, destroy should remove the child immediately',
+        (tester) async {
+      final controller = QuiAppearController();
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: TestApp(
+            child: QuiAppear(controller: controller, unmount: true, child: const Text('Hello')),
+          ),
+        ),
+      );
+
+      controller.appear();
+      await tester.pump();
+
+      controller.destroy();
+      await tester.pump();
+
+      expect(find.text('Hello'), findsNothing);
+    });
+
+    testWidgets('when unmount is true and the widget is disposed during destroy, it should not throw', (tester) async {
+      final controller = QuiAppearController();
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(controller: controller, unmount: true, child: const Text('Hello')),
+        ),
+      );
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      controller.destroy();
+      await tester.pumpWidget(const TestApp(child: SizedBox.shrink()));
+
+      controller.appear();
+      controller.destroy();
+    });
   });
 }
