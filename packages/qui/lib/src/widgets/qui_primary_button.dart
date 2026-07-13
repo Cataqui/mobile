@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/enums/qui_button_alignment.dart';
 import 'package:qui/src/enums/qui_button_fit.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_dot_loading_indicator/qui_dot_loading_indicator.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
@@ -82,22 +80,23 @@ class QuiPrimaryButton extends StatefulWidget {
 
   /// Filled background color when enabled.
   ///
-  /// Defaults to `context.qui.colors.primary`.
+  /// Defaults to `context.qui.colorScheme.buttons.primary.background`.
   final Color? backgroundColor;
 
   /// Filled background color when disabled.
   ///
-  /// Defaults to `context.qui.colors.disabledButtonBackground`.
+  /// Defaults to `context.qui.colorScheme.buttons.primary.backgroundDisabled`.
   final Color? disabledBackgroundColor;
 
   /// Label and recommended icon color when enabled.
   ///
-  /// Defaults to [Colors.white].
+  /// Defaults to `context.qui.colorScheme.buttons.primary.foreground`, which is
+  /// contrast-matched to the configured primary color.
   final Color? foregroundColor;
 
   /// Label and recommended icon color when disabled.
   ///
-  /// Defaults to `context.qui.colors.disabledButtonForeground`.
+  /// Defaults to `context.qui.colorScheme.buttons.primary.foregroundDisabled`.
   final Color? disabledForegroundColor;
 
   /// Controls the horizontal alignment of the label and icons within the
@@ -125,6 +124,8 @@ class QuiPrimaryButton extends StatefulWidget {
 }
 
 class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerProviderStateMixin {
+  bool _isHovered = false;
+  bool _isPressed = false;
   static const Duration _loadingDelay = Duration(milliseconds: 50);
   static const Duration _contentTransitionDuration = Duration(milliseconds: 300);
   static const TextStyle _baseLabelStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
@@ -255,18 +256,22 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
     final isEnabled = _isEnabled;
     final isInteractive = _isInteractive;
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
 
-    final resolvedBackground = isEnabled
-        ? widget.backgroundColor ?? colors.primary
-        : widget.disabledBackgroundColor ?? colors.disabledButtonBackground;
+    final resolvedBackground = switch ((isEnabled, widget.backgroundColor, _isPressed, _isHovered)) {
+      (false, _, _, _) => widget.disabledBackgroundColor ?? colorScheme.buttons.primary.backgroundDisabled,
+      (true, final Color custom, _, _) => custom,
+      (true, null, true, _) => colorScheme.buttons.primary.backgroundHover,
+      (true, null, false, true) => colorScheme.buttons.primary.backgroundHover,
+      _ => colorScheme.buttons.primary.background,
+    };
 
     final resolvedForeground = isEnabled
-        ? widget.foregroundColor ?? Colors.white
-        : widget.disabledForegroundColor ?? colors.disabledButtonForeground;
+        ? widget.foregroundColor ?? colorScheme.buttons.primary.foreground
+        : widget.disabledForegroundColor ?? colorScheme.buttons.primary.foregroundDisabled;
 
     final labelStyle = _baseLabelStyle.copyWith(color: resolvedForeground);
 
@@ -298,14 +303,19 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
           )
         : decorated;
 
-    return Semantics(
-      button: true,
-      enabled: isInteractive,
-      onTap: isInteractive ? () => unawaited(_handlePressed(Future<void>.value())) : null,
-      child: QuiTapAnimation(
-        onPressed: isInteractive ? _handlePressed : null,
-        animation: QuiTapAnimationType.scaleFade,
-        child: button,
+    return MouseRegion(
+      onEnter: isInteractive ? (_) => setState(() => _isHovered = true) : null,
+      onExit: isInteractive ? (_) => setState(() => _isHovered = false) : null,
+      child: Semantics(
+        button: true,
+        enabled: isInteractive,
+        onTap: isInteractive ? () => unawaited(_handlePressed(Future<void>.value())) : null,
+        child: QuiTapAnimation(
+          onPressed: isInteractive ? _handlePressed : null,
+          onPressChanged: isInteractive ? (pressed) => setState(() => _isPressed = pressed) : null,
+          animation: QuiTapAnimationType.scale,
+          child: button,
+        ),
       ),
     );
   }
@@ -383,69 +393,4 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
         return Align(alignment: Alignment.centerRight, heightFactor: 1, child: content);
     }
   }
-}
-
-/// Preview of the [QuiPrimaryButton] widget.
-@Preview(name: 'QuiPrimaryButton', group: 'Buttons')
-Widget quiPrimaryButtonPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
-            const SizedBox(height: 20),
-            QuiPrimaryButton(
-              label: 'Buscar',
-              leadingIconBuilder: (QuiPrimaryButtonIconState state) =>
-                  Icon(Icons.search, color: state.foregroundColor, size: 20),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiPrimaryButton(
-              label: 'Continuar',
-              trailingIconBuilder: (QuiPrimaryButtonIconState state) =>
-                  Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiPrimaryButton(
-              label: 'Filtrar',
-              leadingIconBuilder: (QuiPrimaryButtonIconState state) =>
-                  Icon(Icons.tune, color: state.foregroundColor, size: 20),
-              trailingIconBuilder: (QuiPrimaryButtonIconState state) =>
-                  Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiPrimaryButton(
-              label: 'Indisponivel',
-              leadingIconBuilder: (QuiPrimaryButtonIconState state) =>
-                  Icon(Icons.lock, color: state.foregroundColor, size: 20),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 300,
-              child: QuiPrimaryButton(label: 'Expandido', fit: QuiButtonFit.expand, onPressed: () {}),
-            ),
-            const SizedBox(height: 20),
-            QuiPrimaryButton(label: 'Enviar', onPressed: () => Future<void>.delayed(const Duration(seconds: 2))),
-            const SizedBox(height: 20),
-            QuiPrimaryButton(
-              label: 'Mapa',
-              backgroundColor: const Color(0xFF00A676),
-              foregroundColor: Colors.white,
-              leadingIconBuilder: (QuiPrimaryButtonIconState state) =>
-                  const Icon(Icons.location_on, size: 20, color: Color(0xFF00A676)),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

@@ -15,7 +15,7 @@ void main() {
       final box = tester.widget<DecoratedBox>(find.byType(DecoratedBox));
       final decoration = box.decoration as BoxDecoration;
       final gradient = decoration.gradient! as LinearGradient;
-      expect(gradient.colors.first, equals(const Color(0xFFFFFFFF)));
+      expect(gradient.colors.first, equals(Colors.white));
     });
 
     testWidgets('when style has explicit color, it should use that color for the gradient', (tester) async {

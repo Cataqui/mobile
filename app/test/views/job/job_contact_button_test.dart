@@ -29,7 +29,7 @@ Widget _buildApp({
       quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
     ],
     child: MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+      theme: QuiTheme.light(),
       home: Scaffold(
         body: Center(
           child: JobContactButton(

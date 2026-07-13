@@ -123,7 +123,7 @@ class JobViewTestHelpers {
         quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
       ],
       child: MaterialApp(
-        theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+        theme: QuiTheme.light(),
         home: MediaQuery(
           data: mediaQueryData,
           child: JobView(jobId: resolvedJobId, feedJob: feedJob),
@@ -152,7 +152,7 @@ class JobViewTestHelpers {
         quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
       ],
       child: MaterialApp.router(
-        theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+        theme: QuiTheme.light(),
         routerConfig: goRouter,
         builder: (context, child) {
           return MediaQuery(data: mediaQueryData, child: child ?? const SizedBox.shrink());

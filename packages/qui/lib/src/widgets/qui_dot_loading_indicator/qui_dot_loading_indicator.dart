@@ -3,8 +3,6 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 part 'qui_dot_loading_indicator_painter.dart';
@@ -117,7 +115,7 @@ class _QuiDotLoadingIndicatorState extends State<QuiDotLoadingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color ?? context.qui.colors.primary;
+    final color = widget.color ?? context.qui.colorScheme.colors.primary.solid;
     final disabled = MediaQuery.disableAnimationsOf(context);
     final size = _indicatorSize;
 
@@ -137,28 +135,4 @@ class _QuiDotLoadingIndicatorState extends State<QuiDotLoadingIndicator>
       ),
     );
   }
-}
-
-/// Preview of the [QuiDotLoadingIndicator] widget.
-@Preview(name: 'QuiDotLoadingIndicator', group: 'Loading')
-Widget quiDotLoadingIndicatorPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Color(0xFFF6F4F1),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiDotLoadingIndicator(),
-            SizedBox(height: 28),
-            QuiDotLoadingIndicator(dotRadius: 6),
-            SizedBox(height: 28),
-            QuiDotLoadingIndicator(color: Color(0xFF1F1F1F), dotRadius: 5),
-          ],
-        ),
-      ),
-    ),
-  );
 }

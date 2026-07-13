@@ -1,8 +1,6 @@
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 
 part 'qui_edge_fade_enums.dart';
 part 'qui_edge_fade_style.dart';
@@ -86,23 +84,4 @@ class QuiEdgeFade extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Preview of the [QuiEdgeFade] widget.
-@Preview(name: 'QuiEdgeFade', group: 'Overlay')
-Widget quiEdgeFadePreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Color(0xFFE8E8E8),
-      body: Stack(
-        children: [
-          Center(child: Text('Content under the fades')),
-          Positioned(top: 0, left: 0, right: 0, child: QuiEdgeFade(position: QuiEdgeFadePosition.top)),
-          Positioned(bottom: 0, left: 0, right: 0, child: QuiEdgeFade(position: QuiEdgeFadePosition.bottom)),
-        ],
-      ),
-    ),
-  );
 }

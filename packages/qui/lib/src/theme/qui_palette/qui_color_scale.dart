@@ -9,7 +9,7 @@ part of 'qui_palette.dart';
 /// Access a token with its one-based step number:
 ///
 /// ```dart
-/// final palette = QuiPalette(primaryColor: const Color(0xFFFF4A4B));
+/// final palette = QuiPalette();
 /// final solid = palette.primary;
 /// final subtleBackground = palette.primary[2];
 /// final highContrastText = palette.primary[12];

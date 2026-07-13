@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
-import 'package:qui/src/widgets/qui_icon_button.dart';
 
 part 'qui_buttons_bar_enums.dart';
 
@@ -191,7 +187,10 @@ class _QuiButtonsBarState extends State<QuiButtonsBar> with SingleTickerProvider
         final Widget content = Container(
           key: const Key('qui_buttons_bar_container'),
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: context.qui.colors.background, borderRadius: BorderRadius.circular(9999)),
+          decoration: BoxDecoration(
+            color: context.qui.colorScheme.background,
+            borderRadius: BorderRadius.circular(9999),
+          ),
           child: Align(
             widthFactor: 1,
             heightFactor: 1,
@@ -282,32 +281,4 @@ class _QuiButtonsBarState extends State<QuiButtonsBar> with SingleTickerProvider
       },
     );
   }
-}
-
-/// Preview of the [QuiButtonsBar] widget.
-@Preview(name: 'QuiButtonsBar', group: 'Buttons')
-Widget quiButtonsBarPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: const Color(0xFFE8E2D7),
-      body: Center(
-        child: QuiButtonsBar(
-          items: [
-            QuiIconButton(
-              backgroundColor: const Color(0xFFE92D2F),
-              iconBuilder: (state) => Icon(Icons.close, color: state.recommendedIconColor, size: state.iconSize),
-              onPressed: () {},
-            ),
-            QuiIconButton(
-              backgroundColor: const Color(0xFF2ED94F),
-              iconBuilder: (state) => Icon(Icons.phone, color: state.recommendedIconColor, size: state.iconSize),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

@@ -17,7 +17,7 @@ void main() {
         const TestApp(child: QuiEdgeFade(position: QuiEdgeFadePosition.top)),
       );
 
-      expect(_gradientOf(tester).colors.first, equals(const Color(0xFFFFFFFF)));
+      expect(_gradientOf(tester).colors.first, equals(Colors.white));
     });
 
     testWidgets('when color is provided, it should use the provided color as the gradient base', (tester) async {

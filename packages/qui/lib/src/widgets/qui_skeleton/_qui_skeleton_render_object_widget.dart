@@ -2,14 +2,14 @@ part of 'qui_skeleton.dart';
 
 class _QuiSkeletonRenderObjectWidget extends SingleChildRenderObjectWidget {
   const _QuiSkeletonRenderObjectWidget({
-    required this.colors,
+    required this.colorScheme,
     required this.style,
     required this.boneColor,
     required this.effectAnimation,
     required super.child,
   });
 
-  final QuiColors colors;
+  final QuiColorScheme colorScheme;
   final QuiSkeletonStyle? style;
   final Color boneColor;
   final Animation<double>? effectAnimation;
@@ -17,7 +17,7 @@ class _QuiSkeletonRenderObjectWidget extends SingleChildRenderObjectWidget {
   @override
   _RenderQuiSkeleton createRenderObject(BuildContext context) {
     return _RenderQuiSkeleton(
-      colors: colors,
+      colorScheme: colorScheme,
       style: style,
       boneColor: boneColor,
       effectAnimation: effectAnimation,
@@ -28,7 +28,7 @@ class _QuiSkeletonRenderObjectWidget extends SingleChildRenderObjectWidget {
   void updateRenderObject(BuildContext context, RenderObject renderObject) {
     if (renderObject is _RenderQuiSkeleton) {
       renderObject
-        ..colors = colors
+        ..colorScheme = colorScheme
         ..style = style
         ..boneColor = boneColor
         ..effectAnimation = effectAnimation;

@@ -1,9 +1,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:qui/qui.dart' show QuiHeroExtension, QuiHeroPage, QuiHeroSwipeToPopExtension;
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_data.dart';
 import 'package:qui/src/widgets/qui_edge_fade/qui_edge_fade.dart'
     show QuiEdgeFade, QuiEdgeFadePosition, QuiEdgeFadeStyle;
@@ -367,49 +365,4 @@ abstract class QuiHero extends StatelessWidget {
       child: buildLifecycleEndpoint(context),
     );
   }
-}
-
-@Preview(name: 'QuiHero', group: 'Hero')
-Widget quiHeroPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Color(0xFFFFFFFF),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 260,
-              height: 100,
-              child: QuiHeroBackground(
-                tag: 'preview-box',
-                extensions: [],
-                decoration: BoxDecoration(
-                  color: Color(0xFFFF4A4B),
-                  borderRadius: BorderRadius.all(Radius.circular(24)),
-                ),
-                child: Center(
-                  child: Text(
-                    'Preview Text',
-                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 24),
-            SizedBox(
-              width: 260,
-              child: QuiHeroText(
-                'Preview Title',
-                tag: 'preview-text',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

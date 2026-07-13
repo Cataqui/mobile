@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/gen/fonts.gen.dart';
-import 'package:qui/src/theme/qui_colors.dart';
+import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
+import 'package:qui/src/theme/qui_palette/qui_palette.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_data.dart';
 import 'package:qui/src/theme/qui_typography.dart';
@@ -251,25 +252,27 @@ void main() {
 
   group('QuiThemeData', () {
     QuiThemeData _themeData({Color primary = _brandColor, QuiTypography? typography}) {
+      final palette = QuiPalette(primaryColor: primary);
       return QuiThemeData(
-        colors: QuiColors.light(primary: primary),
+        colorScheme: QuiColorScheme.light(palette: palette, onPrimary: const Color(0xFF1E1615)),
         typography: typography ?? const QuiTypography(),
       );
     }
 
-    test('copyWith preserves colors when no arguments provided', () {
+    test('copyWith preserves colorScheme when no arguments provided', () {
       final original = _themeData();
       final result = original.copyWith();
 
-      expect(result.colors, equals(original.colors));
+      expect(result.colorScheme, equals(original.colorScheme));
     });
 
-    test('copyWith replaces colors when provided', () {
+    test('copyWith replaces colorScheme when provided', () {
       final original = _themeData();
-      const custom = QuiColors.light(primary: Color(0xFF0984E3));
-      final result = original.copyWith(colors: custom);
+      final otherPalette = QuiPalette(primaryColor: const Color(0xFF0984E3));
+      final custom = QuiColorScheme.light(palette: otherPalette, onPrimary: const Color(0xFFFFFFFF));
+      final result = original.copyWith(colorScheme: custom);
 
-      expect(result.colors, equals(custom));
+      expect(result.colorScheme, equals(custom));
     });
 
     test('copyWith preserves typography when not provided', () {
@@ -290,12 +293,14 @@ void main() {
     test('lerp interpolates background between two themes', () {
       final a = _themeData();
       final b = _themeData();
-      // Override background by copying colors
-      final bColors = b.colors.copyWith(background: const Color(0xFF000000));
-      final bAlt = b.copyWith(colors: bColors);
+      final bColorScheme = QuiColorScheme.light().copyWith(background: const Color(0xFF000000));
+      final bAlt = b.copyWith(colorScheme: bColorScheme);
       final result = a.lerp(bAlt, 0.5);
 
-      expect(result.colors.background, equals(const Color.from(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)));
+      expect(
+        result.colorScheme.background,
+        equals(Color.lerp(a.colorScheme.background, bAlt.colorScheme.background, 0.5)),
+      );
     });
 
     test('lerp interpolates primaryColor between two themes', () {
@@ -303,7 +308,7 @@ void main() {
       final b = _themeData(primary: const Color(0xFF000000));
       final result = a.lerp(b, 0.5);
 
-      expect(result.colors.primary, isNot(equals(a.colors.primary)));
+      expect(result.colorScheme.colors.primary, isNot(equals(a.colorScheme.colors.primary)));
     });
 
     test('lerp uses source typography when t < 0.5', () {
@@ -325,50 +330,67 @@ void main() {
 
   group('QuiTheme', () {
     test('light theme registers QuiThemeData extension', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
       final data = theme.extension<QuiThemeData>();
 
       expect(data, isNotNull);
     });
 
-    test('light theme sets scaffoldBackgroundColor to white', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+    test('light theme sets scaffoldBackgroundColor to neutral-1', () {
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final palette = QuiPalette(primaryColor: _brandColor);
 
-      expect(theme.scaffoldBackgroundColor, equals(const Color(0xFFFFFFFF)));
+      expect(theme.scaffoldBackgroundColor, equals(Colors.white));
     });
 
     test('light theme enables Material 3', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
 
       expect(theme.useMaterial3, isTrue);
     });
 
-    test('light theme generates ColorScheme from primaryColor seed', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+    test('when light theme is created, it should map the exact QUI primary pair into Material', () {
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
 
-      expect(theme.colorScheme, isNotNull);
+      expect(theme.colorScheme.primary, equals(quiColors.colors.primary.solid));
+      expect(theme.colorScheme.onPrimary, equals(quiColors.colors.primary.onSolid));
     });
 
-    test('light theme colorScheme.primary is derived from seedColor', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+    test('when light theme is created, it should map exact surface and outline roles into Material', () {
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
 
-      expect(theme.colorScheme.primary, isNotNull);
+      expect(theme.colorScheme.surface, equals(quiColors.background));
+      expect(theme.colorScheme.onSurface, equals(quiColors.text.primary));
+      expect(theme.colorScheme.outline, equals(quiColors.border.standard));
+      expect(theme.colorScheme.outlineVariant, equals(quiColors.border.subtle));
+    });
+
+    test('when light theme is created, it should map exact secondary and error pairs into Material', () {
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
+
+      expect(theme.colorScheme.secondary, equals(quiColors.colors.teal.solid));
+      expect(theme.colorScheme.onSecondary, equals(quiColors.colors.teal.onSolid));
+      expect(theme.colorScheme.error, equals(quiColors.error.solid));
+      expect(theme.colorScheme.onError, equals(quiColors.error.onSolid));
     });
 
     test('light theme applies Inter font family to textTheme bodyMedium', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
 
       expect(theme.textTheme.bodyMedium?.fontFamily, equals(FontFamily.inter));
     });
 
     test('light theme textTheme bodyMedium has w400 weight', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
 
       expect(theme.textTheme.bodyMedium?.fontWeight, equals(FontWeight.w400));
     });
 
     test('light theme applies proportional letter spacing to bodyMedium', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor);
+      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
       const expected = 14 * -0.02;
 
       expect(theme.textTheme.bodyMedium?.letterSpacing, equals(expected));
@@ -379,7 +401,7 @@ void main() {
     testWidgets('extension retrieves QuiThemeData from BuildContext', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(primaryColor: _brandColor),
+          theme: QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615)),
           home: Builder(
             builder: (context) {
               final data = Theme.of(context).extension<QuiThemeData>();

@@ -1,10 +1,9 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
-import '../views/job/job_view_test_helpers.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
 import '../utils/test_app.dart';
+import '../views/job/job_view_test_helpers.dart';
 
 FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionSummary}) {
   return FeedJobDto(
@@ -111,13 +111,13 @@ void main() {
         expect(text.style!.fontSize, equals(25));
       });
 
-      testWidgets('when created, the payment should use money color', (tester) async {
+      testWidgets('when created, the payment should use the accessible pay text color', (tester) async {
         await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
 
-        expect(text.style!.color, equals(QuiColors.light().money));
+        expect(text.style!.color, equals(QuiColorScheme.light().text.profit));
       });
 
       testWidgets('when created, the description should use 15.7px font size', (tester) async {
@@ -133,7 +133,10 @@ void main() {
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
-        expect(text.style!.color, equals(const QuiColors.light().textSecondary));
+        expect(
+          text.style!.color,
+          equals(QuiColorScheme.light().text.secondary),
+        );
       });
 
       testWidgets('when created, the title should be limited to 2 lines', (tester) async {
@@ -208,29 +211,28 @@ void main() {
     });
 
     group('cross-widget consistency', () {
-      testWidgets(
-        'when FeedJobCard and JobView reference the same job, it should use matching hero tags',
-        (tester) async {
-          const jobId = 'job_123';
+      testWidgets('when FeedJobCard and JobView reference the same job, it should use matching hero tags', (
+        tester,
+      ) async {
+        const jobId = 'job_123';
 
-          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(jobId: jobId))));
-          final cardBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
-          final cardHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(jobId: jobId))));
+        final cardBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
+        final cardHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
 
-          await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(const SizedBox());
 
-          await JobViewTestHelpers.pumpJobView(
-            tester: tester,
-            feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
-            jobState: JobViewTestHelpers.loadingState(),
-          );
-          final viewBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
-          final viewHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
+        await JobViewTestHelpers.pumpJobView(
+          tester: tester,
+          feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
+          jobState: JobViewTestHelpers.loadingState(),
+        );
+        final viewBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
+        final viewHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
 
-          expect(viewBackgroundTag, equals(cardBackgroundTag));
-          expect(viewHeaderTag, equals(cardHeaderTag));
-        },
-      );
+        expect(viewBackgroundTag, equals(cardBackgroundTag));
+        expect(viewHeaderTag, equals(cardHeaderTag));
+      });
     });
   });
 }

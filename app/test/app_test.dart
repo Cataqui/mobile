@@ -26,6 +26,16 @@ class _CataquiAppTestHelpers {
 
 void main() {
   group('CataquiApp', () {
+    testWidgets('when the app rebuilds, it should reuse the precomputed theme', (tester) async {
+      await _CataquiAppTestHelpers.pumpCataquiApp(tester);
+      final firstTheme = tester.widget<MaterialApp>(find.byType(MaterialApp)).theme;
+
+      await _CataquiAppTestHelpers.pumpCataquiApp(tester);
+      final rebuiltTheme = tester.widget<MaterialApp>(find.byType(MaterialApp)).theme;
+
+      expect(identical(rebuiltTheme, firstTheme), isTrue);
+    });
+
     group('system chrome', () {
       testWidgets('when built, it should set the status bar color to transparent', (tester) async {
         await _CataquiAppTestHelpers.pumpCataquiApp(tester);

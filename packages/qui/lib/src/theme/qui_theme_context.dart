@@ -6,7 +6,7 @@ import 'qui_theme_data.dart';
 ///
 /// ```dart
 /// Container(
-///   color: context.qui.backgroundColor,
+///   color: context.qui.colorScheme.background,
 /// )
 /// ```
 extension QuiThemeContext on BuildContext {

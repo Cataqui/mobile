@@ -20,7 +20,7 @@ class FeedJobCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
     final i18n = ref.watch(translationProvider);
 
     return QuiTapAnimation(
@@ -33,7 +33,7 @@ class FeedJobCard extends ConsumerWidget {
       child: QuiHeroBackground(
         tag: backgroundHeroKey(feedJob.jobId),
         width: double.infinity,
-        decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(38)),
+        decoration: BoxDecoration(color: colorScheme.background, borderRadius: BorderRadius.circular(38)),
         edgeFade: const QuiHeroEdgeFade(switchThreshold: 1),
         padding: const EdgeInsets.all(24),
         child: QuiSkeleton(
@@ -55,7 +55,7 @@ class FeedJobCard extends ConsumerWidget {
                       onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
                       fallback: TimeAgoFallback.finer,
                     ),
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.placeholder),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colorScheme.text.tertiary),
                     padding: const EdgeInsets.only(bottom: 6),
                   ),
                   QuiHeroText(
@@ -63,12 +63,12 @@ class FeedJobCard extends ConsumerWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     onStart: HapticFeedback.successNotification,
-                    style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600, fontSize: 22),
+                    style: TextStyle(color: colorScheme.text.primary, fontWeight: FontWeight.w600, fontSize: 22),
                   ),
                   QuiHeroText(
                     padding: skeleton ? const EdgeInsets.only(top: 6) : EdgeInsets.zero,
                     feedJob.payment.formatPayment(i18n),
-                    style: TextStyle(fontSize: 25, color: colors.money, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 25, color: colorScheme.text.profit, fontWeight: FontWeight.w600),
                   ),
                   QuiHeroText(
                     padding: skeleton ? const EdgeInsets.only(top: 6) : const EdgeInsets.only(top: 4),
@@ -76,7 +76,7 @@ class FeedJobCard extends ConsumerWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     switchThreshold: 0.8,
-                    style: TextStyle(fontSize: 16, color: colors.textSecondary, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 16, color: colorScheme.text.secondary, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),

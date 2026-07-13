@@ -28,17 +28,17 @@ part of 'package:qui/src/widgets/qui_skeleton/qui_skeleton.dart';
 class QuiSkeletonShimmerEffect extends QuiSkeletonAnimatedEffectBase {
   /// Creates a shimmer skeleton effect.
   ///
-  /// [color] overrides the theme's `skeletonShimmerGlow` token when non-null.
+  /// [color] overrides the theme's `skeleton.shimmerGlow` token when non-null.
   /// This overrides ONLY the highlight — the resting bone color is driven by
-  /// the resolved [QuiSkeletonStyle.color] (or the theme's `skeleton` token
+  /// the resolved [QuiSkeletonStyle.color] (or the theme's `skeleton.bone` token
   /// when the style's color is null). [angle] is in radians, where `0.0`
   /// sweeps left-to-right horizontally.
   const QuiSkeletonShimmerEffect({this.color, this.angle = 0.0});
 
   /// The highlight color of the shimmer band.
   ///
-  /// When `null`, the effect falls back to the theme's `skeletonShimmerGlow`
-  /// token at paint time (see [QuiColors.skeletonShimmerGlow]).
+  /// When `null`, the effect falls back to the theme's `skeleton.shimmerGlow`
+  /// token at paint time.
   final Color? color;
 
   /// The sweep angle in radians, where `0.0` is horizontal left-to-right.
@@ -50,11 +50,11 @@ class QuiSkeletonShimmerEffect extends QuiSkeletonAnimatedEffectBase {
   Paint buildPaint({
     required Rect bounds,
     required double t,
-    required QuiColors colors,
+    required QuiColorScheme colorScheme,
     required QuiSkeletonStyle style,
   }) {
-    final boneColor = style.color ?? colors.skeleton;
-    final glow = color ?? colors.skeletonShimmerGlow;
+    final boneColor = style.color ?? colorScheme.skeleton.bone;
+    final glow = color ?? colorScheme.skeleton.shimmerGlow;
     final gradientColors = <Color>[boneColor, glow, boneColor];
     const stops = <double>[0.1, 0.3, 0.4];
 

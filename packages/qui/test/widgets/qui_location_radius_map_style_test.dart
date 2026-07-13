@@ -1,6 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/map_style/qui_map_style.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_layer.dart';
+import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
+import 'package:qui/src/theme/qui_palette/qui_palette.dart';
+
+final _light = QuiColorScheme.light();
 
 void main() {
   // ── Permanent: Property-based tests ─────────────────────────────────────
@@ -58,18 +64,41 @@ void main() {
       final layerIds = style.layers.map((l) => l.toJson()['id'] as String).toSet();
       expect(
         layerIds,
-        containsAll(<String>['background', 'landcover', 'landuse', 'landuse_recreation', 'water', 'building']),
+        containsAll(<String>[
+          'background',
+          'landcover',
+          'landuse',
+          'landuse_business',
+          'landuse_recreation',
+          'water',
+          'building',
+        ]),
       );
     });
 
     test('when inspecting layers, it should retain all 26 approved layers', () {
-      expect(style.layers, hasLength(25));
+      expect(style.layers, hasLength(26));
     });
 
-    test('when inspecting recreation landuse, it should use the approved park green color', () {
+    test('when inspecting recreation landuse, it should use the map recreation color', () {
       final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_recreation');
       final paint = layer.toJson()['paint'] as Map<String, dynamic>;
-      expect(paint['fill-color'], '#D2F3BF');
+      expect(paint['fill-color'], _light.map.landuseRecreation.toHex());
+    });
+
+    test('when inspecting business landuse, it should use the map business color', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
+      final paint = layer.toJson()['paint'] as Map<String, dynamic>;
+      expect(paint['fill-color'], _light.map.landuseBusiness.toHex());
+    });
+
+    test('when inspecting business landuse, it should include commercial classes', () {
+      final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'landuse_business');
+      expect(layer.toJson()['filter'], [
+        'any',
+        ['==', 'class', 'commercial'],
+        ['==', 'class', 'retail'],
+      ]);
     });
 
     test('when inspecting recreation landuse, it should use the approved park opacity', () {
@@ -125,7 +154,7 @@ void main() {
     test('when inspecting background, it should use the approved light color', () {
       final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'background');
       final paint = layer.toJson()['paint'] as Map<String, dynamic>;
-      expect(paint['background-color'], '#efefef');
+      expect(paint['background-color'], _light.map.background.toHex());
     });
 
     test('when inspecting road widths at zoom 14, it should preserve road hierarchy', () {
@@ -141,10 +170,10 @@ void main() {
       expect(motorwayWidth > minorWidth, isTrue);
     });
 
-    test('when inspecting normal streets, it should use approved visible white color', () {
+    test('when inspecting normal streets, it should use the map road color', () {
       final layer = style.layers.firstWhere((l) => l.toJson()['id'] == 'road_minor');
       final paint = layer.toJson()['paint'] as Map<String, dynamic>;
-      expect(paint['line-color'], '#ffffff');
+      expect(paint['line-color'], _light.map.road.toHex());
     });
 
     test('when inspecting normal streets, it should keep them narrower than important roads', () {
@@ -177,16 +206,16 @@ void main() {
       expect(_textSizeAtZoom(style, 'road_major_label', 14), 10);
     });
 
-    test('when inspecting city labels, it should use the approved darker color', () {
-      expect(_textColor(style, 'place_city_label'), '#555657');
+    test('when inspecting city labels, it should use the map city label color', () {
+      expect(_textColor(style, 'place_city_label'), _light.map.cityLabel.toHex());
     });
 
-    test('when inspecting megacity labels, it should use the approved darker color', () {
-      expect(_textColor(style, 'place_megacity_label'), '#555657');
+    test('when inspecting megacity labels, it should use the map city label color', () {
+      expect(_textColor(style, 'place_megacity_label'), _light.map.cityLabel.toHex());
     });
 
-    test('when inspecting region labels, it should use the approved middle color', () {
-      expect(_textColor(style, 'place_region_label'), '#68696a');
+    test('when inspecting region labels, it should use the map neighborhood label color', () {
+      expect(_textColor(style, 'place_region_label'), _light.map.neighborhoodLabel.toHex());
     });
 
     test('when inspecting text colors, it should make regions darker than major roads', () {

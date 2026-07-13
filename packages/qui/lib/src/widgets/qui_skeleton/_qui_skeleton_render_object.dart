@@ -2,7 +2,7 @@ part of 'qui_skeleton.dart';
 
 class _RenderQuiSkeleton extends RenderProxyBox {
   _RenderQuiSkeleton({
-    required this._colors,
+    required this._colorScheme,
     required this._style,
     required this._boneColor,
     required this._effectAnimation,
@@ -13,21 +13,22 @@ class _RenderQuiSkeleton extends RenderProxyBox {
   final Paint _solidSkeletonPaint = Paint();
   final _QuiSkeletonLeafRegistry _leafRegistry = _QuiSkeletonLeafRegistry();
 
-  QuiColors _colors;
+  QuiColorScheme _colorScheme;
   QuiSkeletonStyle? _style;
   Color _boneColor;
   Animation<double>? _effectAnimation;
 
-  QuiColors get colors => _colors;
+  QuiColorScheme get colorScheme => _colorScheme;
   QuiSkeletonStyle? get style => _style;
   Color get boneColor => _boneColor;
   QuiSkeletonEffect? get effect => _style?.effect;
   Radius? get textRadius => _style?.textRadius;
   Animation<double>? get effectAnimation => _effectAnimation;
 
-  set colors(QuiColors value) {
-    if (value == _colors) return;
-    _colors = value;
+  set colorScheme(QuiColorScheme value) {
+    if (value == _colorScheme) return;
+    _colorScheme = value;
+
     markNeedsPaint();
   }
 
@@ -104,6 +105,6 @@ class _RenderQuiSkeleton extends RenderProxyBox {
     if (effect == null) return _solidSkeletonPaint;
 
     final t = _effectAnimation?.value ?? 0.0;
-    return effect.buildPaint(bounds: bounds, t: t, colors: _colors, style: _style!);
+    return effect.buildPaint(bounds: bounds, t: t, colorScheme: _colorScheme, style: _style!);
   }
 }

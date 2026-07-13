@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
@@ -29,7 +29,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
 
   @override
   Widget build(BuildContext context) {
-    final designColors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
 
     return Scaffold(
       body: Stack(
@@ -49,7 +49,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
             right: 0,
             child: QuiEdgeFade(
               position: QuiEdgeFadePosition.top,
-              style: QuiEdgeFadeStyle(color: designColors.background),
+              style: QuiEdgeFadeStyle(color: colorScheme.background),
             ),
           ),
           Positioned(
@@ -58,7 +58,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
             right: 0,
             child: QuiEdgeFade(
               position: QuiEdgeFadePosition.bottom,
-              style: QuiEdgeFadeStyle(color: designColors.background),
+              style: QuiEdgeFadeStyle(color: colorScheme.background),
             ),
           ),
           const Positioned.fill(
@@ -72,14 +72,16 @@ class _FeedViewState extends ConsumerState<FeedView> {
                     //     alignment: AlignmentGeometry.topStart,
                     //     child: QuiTextButton(
                     //       text: 'São Paulo',
-                    //     leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.mapPin,
-                    //       colorFilter: ColorFilter.mode(designColors.primary, BlendMode.srcIn),
+                    //       leadingIconBuilder: (state) => QuiIcons.instance.build(
+                    //         (assets) => assets.mapPin,
+                    //         colorFilter: ColorFilter.mode(colorScheme.colors.primary.solid, BlendMode.srcIn),
                     //         height: 14,
                     //         width: 14,
                     //       ),
                     //       leadingIconSpacing: 10,
                     //       trailingIconSpacing: 10,
-                    //       trailingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.chevronDown,
+                    //       trailingIconBuilder: (state) => QuiIcons.instance.build(
+                    //         (assets) => assets.chevronDown,
                     //         colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
                     //         height: 8,
                     //       ),
@@ -91,7 +93,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
                     //   alignment: AlignmentGeometry.bottomCenter,
                     //   child: Padding(
                     //     padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
-                    //     child: QuiSearchBarButton(placeholder: i18n.feed.searchPlaceholder),
+                    //     child: const QuiSearchBarButton(placeholder: 'Buscar oportunidades'),
                     //   ),
                     // ),
                   ],

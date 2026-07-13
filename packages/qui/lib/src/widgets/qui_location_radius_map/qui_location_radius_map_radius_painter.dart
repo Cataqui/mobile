@@ -44,17 +44,6 @@ class _QuiLocationRadiusMapRadiusPainter extends CustomPainter implements QuiLoc
     );
 
     canvas.drawCircle(center, radius, Paint()..color = frame.fillColor);
-
-    if (frame.borderWidth <= 0) return;
-
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = frame.borderColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = frame.borderWidth,
-    );
   }
 
   Offset _projectLocation({
@@ -104,8 +93,6 @@ class _QuiLocationRadiusMapRadiusFrame {
     required this.cameraTarget,
     required this.zoom,
     required this.fillColor,
-    required this.borderColor,
-    required this.borderWidth,
   });
 
   final bool isVisible;
@@ -117,6 +104,4 @@ class _QuiLocationRadiusMapRadiusFrame {
   final LatLng cameraTarget;
   final double zoom;
   final Color fillColor;
-  final Color borderColor;
-  final double borderWidth;
 }

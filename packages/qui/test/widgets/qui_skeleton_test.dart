@@ -11,7 +11,7 @@ RenderObject _findSkeletonRenderObject(WidgetTester tester) {
 MaterialApp _app({required Widget child, Key? key}) {
   return MaterialApp(
     key: key,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+    theme: QuiTheme.light(),
     home: Scaffold(body: child),
   );
 }
@@ -53,7 +53,7 @@ void main() {
     testWidgets('when the platform disables animations with style.effect, it should not schedule shimmer frames', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+          theme: QuiTheme.light(),
           home: const MediaQuery(
             data: MediaQueryData(disableAnimations: true),
             child: Scaffold(
@@ -122,11 +122,11 @@ void main() {
       await tester.pumpWidget(_app(child: const QuiSkeleton(child: Text('Hello'))));
       final ro = _findSkeletonRenderObject(tester) as dynamic;
 
-      expect(ro.colors.skeleton, isNot(isNull));
-      expect(ro.colors.skeletonShimmerGlow, isNot(isNull));
+      expect(ro.colorScheme.skeleton.bone, isNot(isNull));
+      expect(ro.colorScheme.skeleton.shimmerGlow, isNot(isNull));
       expect(ro.effect, isNull);
       expect(ro.textRadius, isNull);
-      expect(ro.boneColor, equals(ro.colors.skeleton));
+      expect(ro.boneColor, equals(ro.colorScheme.skeleton.bone));
       expect(ro.effectAnimation, isNull);
     });
 
@@ -331,9 +331,13 @@ void main() {
 
   group('QuiSkeleton theme colors', () {
     testWidgets('when the theme provides custom skeleton colors, the render object should use them', (tester) async {
-      final customColors = const QuiColors.light().copyWith(
-        skeleton: const Color(0xFF111111),
-        skeletonShimmerGlow: const Color(0xFF222222),
+      final customColorScheme = QuiColorScheme.light().copyWith(
+        skeleton: const QuiSkeletonColorScheme(
+          bone: Color(0xFF111111),
+          shimmerGlow: Color(0xFF222222),
+          skeletonText: Color(0xFFB3B3B3),
+          skeletonTextGlow: Color(0xFFE0E0E0),
+        ),
       );
 
       await tester.pumpWidget(
@@ -341,35 +345,42 @@ void main() {
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF4A4B)),
-            extensions: [QuiThemeData(colors: customColors)],
+            extensions: [QuiThemeData(colorScheme: customColorScheme)],
           ),
           home: const Scaffold(body: QuiSkeleton(child: Text('Hello'))),
         ),
       );
 
       final ro = _findSkeletonRenderObject(tester) as dynamic;
-      expect(ro.colors.skeleton, equals(const Color(0xFF111111)));
-      expect(ro.colors.skeletonShimmerGlow, equals(const Color(0xFF222222)));
+      expect(ro.colorScheme.skeleton.bone, equals(const Color(0xFF111111)));
+      expect(ro.colorScheme.skeleton.shimmerGlow, equals(const Color(0xFF222222)));
     });
 
-    testWidgets('when the theme provides custom skeletonShimmerGlow, the colors object should carry it', (
+    testWidgets('when the theme provides custom skeletonShimmerGlow, the colorScheme object should carry it', (
       tester,
     ) async {
-      final customColors = const QuiColors.light().copyWith(skeletonShimmerGlow: const Color(0xFF444444));
+      final customColorScheme = QuiColorScheme.light().copyWith(
+        skeleton: const QuiSkeletonColorScheme(
+          bone: Color(0xFFEFEFEF),
+          shimmerGlow: Color(0xFF444444),
+          skeletonText: Color(0xFFB3B3B3),
+          skeletonTextGlow: Color(0xFFE0E0E0),
+        ),
+      );
 
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF4A4B)),
-            extensions: [QuiThemeData(colors: customColors)],
+            extensions: [QuiThemeData(colorScheme: customColorScheme)],
           ),
           home: const Scaffold(body: QuiSkeleton(child: Text('Hello'))),
         ),
       );
 
       final ro = _findSkeletonRenderObject(tester) as dynamic;
-      expect(ro.colors.skeletonShimmerGlow, equals(const Color(0xFF444444)));
+      expect(ro.colorScheme.skeleton.shimmerGlow, equals(const Color(0xFF444444)));
     });
   });
 

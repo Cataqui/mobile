@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 import '../test_app.dart';
 
+final _colorScheme = QuiColorScheme.light();
+
 void main() {
   group('QuiIconButton', () {
     testWidgets('when tapped, it should call onPressed', (tester) async {
@@ -59,7 +61,7 @@ void main() {
         ),
       );
 
-      expect(_labelStyle(tester).color, equals(const Color(0xFF1A1A1A)));
+      expect(_labelStyle(tester).color, equals(_colorScheme.text.primary));
     });
 
     testWidgets('when label style is not provided, it should use label medium size', (tester) async {
@@ -117,7 +119,7 @@ void main() {
         ),
       );
 
-      expect(_labelStyle(tester).color, equals(const Color(0xFF1A1A1A)));
+      expect(_labelStyle(tester).color, equals(_colorScheme.text.primary));
     });
 
     testWidgets('when disabled, it should use the disabled background color', (tester) async {
@@ -127,7 +129,7 @@ void main() {
         ),
       );
 
-      expect(_circleColor(tester), equals(const Color(0xFFE1E1E1)));
+      expect(_circleColor(tester), equals(_colorScheme.buttons.primary.backgroundDisabled));
     });
 
     testWidgets('when disabled background color is customized, it should use the provided color', (tester) async {
@@ -248,7 +250,7 @@ void main() {
         ),
       );
 
-      expect(resolvedForegroundColor, equals(Color.lerp(const Color(0xFFE1E1E1), Colors.black, 0.28)));
+      expect(resolvedForegroundColor, equals(Color.lerp(_colorScheme.buttons.primary.backgroundDisabled, Colors.black, 0.28)));
     });
 
     testWidgets('when disabled background is customized, it should pass a darker custom color to iconBuilder', (

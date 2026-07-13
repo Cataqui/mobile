@@ -5,10 +5,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/lottie/qui_lottie.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 part 'qui_tiktok_feed_cached_card.dart';
@@ -16,7 +14,6 @@ part 'qui_tiktok_feed_controller.dart';
 part 'qui_tiktok_feed_enums.dart';
 part 'qui_tiktok_feed_flow_delegate.dart';
 part 'qui_tiktok_feed_loading_indicator.dart';
-part 'qui_tiktok_feed_preview.dart';
 part 'qui_tiktok_feed_types.dart';
 part 'qui_tiktok_feed_window.dart';
 
@@ -1115,50 +1112,4 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
 
     return loadMoreErrorBuilder(context, _retryLoadMore);
   }
-}
-
-@Preview(name: 'QuiTikTokFeed', group: 'Decks')
-Widget quiTikTokFeedPreview() {
-  const previewOpportunities = [
-    _PreviewOpportunity(
-      title: 'Garcom para hoje',
-      place: 'Pinheiros',
-      pay: r'R$ 180',
-      time: '18h - 23h',
-      color: Color(0xFFFF4A4B),
-    ),
-    _PreviewOpportunity(
-      title: 'Ajuda em evento',
-      place: 'Vila Madalena',
-      pay: r'R$ 240',
-      time: 'Sabado',
-      color: Color(0xFF00A896),
-    ),
-    _PreviewOpportunity(
-      title: 'Entrega rapida',
-      place: 'Bela Vista',
-      pay: r'R$ 65',
-      time: 'Agora',
-      color: Color(0xFF3D5A80),
-    ),
-  ];
-
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: const Color(0xFFF6F4F1),
-      body: SafeArea(
-        child: QuiTikTokFeed<_PreviewOpportunity>(
-          items: (count: previewOpportunities.length, provider: (int i) => previewOpportunities[i], keyBuilder: null),
-          builder: (context, opportunity, index) {
-            return _PreviewOpportunityCard(opportunity: opportunity);
-          },
-          endBuilder: (context) {
-            return const Center(child: Text('Sem oportunidades por aqui'));
-          },
-        ),
-      ),
-    ),
-  );
 }

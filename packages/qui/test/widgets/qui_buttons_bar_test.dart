@@ -8,7 +8,7 @@ void main() {
     testWidgets('when rendered, it should use theme background color', (tester) async {
       await tester.pumpWidget(const TestApp(child: _TestButtonsBar()));
 
-      expect(_barDecoration(tester).color, equals(const Color(0xFFFFFFFF)));
+      expect(_barDecoration(tester).color, equals(Colors.white));
     });
 
     testWidgets('when rendered, it should apply item padding', (tester) async {

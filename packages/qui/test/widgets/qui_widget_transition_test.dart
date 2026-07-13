@@ -636,7 +636,7 @@ class _HarnessApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+      theme: QuiTheme.light(),
       home: MediaQuery(
         data: const MediaQueryData(size: Size(400, 600)).copyWith(
           disableAnimations: disableAnimations,

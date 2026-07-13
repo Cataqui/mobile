@@ -34,6 +34,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildFeedContent(BuildContext context, FeedData feedData) {
     if (feedData.isEmpty) return _buildEnd(context);
 
+    final colorScheme = context.qui.colorScheme;
+
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -72,7 +74,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                   ValueListenableBuilder<int>(
                     valueListenable: _mapMountLimitNotifier,
                     builder: (context, mapMountLimit, _) {
-                      if (index > mapMountLimit) return ColoredBox(color: context.qui.colors.mapBackground);
+                      if (index > mapMountLimit) return ColoredBox(color: colorScheme.background);
 
                       const mapRadiusOffsetMultiplier = 1000;
                       const mapRadiusReferenceHeight = 100;
@@ -92,7 +94,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                         tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
                         zoom: 12.8,
                         offset: mapRadiusOffset,
-                        radiusStyle: RadiusStyle(color: Colors.blue.withValues(alpha: 0.2)),
+                        radiusStyle: (color: context.qui.colorScheme.map.locationRadius),
                         onMapLoad: () {
                           final next = index + 1;
                           if (_mapMountLimitNotifier.value < next) {
@@ -141,7 +143,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             const SizedBox(height: 40),
             Text(
               i18n.feed.loadingMore.error.title,
-              style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
@@ -149,14 +151,19 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               widthFactor: 0.7,
               child: Text(
                 i18n.feed.loadingMore.error.description,
-                style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: context.qui.colorScheme.text.secondary,
+                  fontWeight: FontWeight.w500,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 20),
             QuiPrimaryButton(
               label: i18n.feed.loadingMore.error.retryButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
+              leadingIconBuilder: (state) => QuiIcons.instance.build(
+                (assets) => assets.arrowRotateClockwise,
                 height: 15,
                 width: 15,
                 colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
@@ -182,11 +189,16 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Qui3d.instance.build(context, (assets) => assets.emptyCitySaoPaulo, height: 150, colorBlendMode: BlendMode.hue),
+            Qui3d.instance.build(
+              context,
+              (assets) => assets.emptyCitySaoPaulo,
+              height: 150,
+              colorBlendMode: BlendMode.hue,
+            ),
             const SizedBox(height: 20),
             Text(
               i18n.feed.empty.title,
-              style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
@@ -194,14 +206,19 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               widthFactor: 0.7,
               child: Text(
                 i18n.feed.empty.description,
-                style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: context.qui.colorScheme.text.secondary,
+                  fontWeight: FontWeight.w500,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 40),
             QuiSecondaryButton(
               label: i18n.feed.empty.adjustAreaButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.wrench,
+              leadingIconBuilder: (state) => QuiIcons.instance.build(
+                (assets) => assets.wrench,
                 height: 15,
                 width: 15,
                 colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
@@ -218,7 +235,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   }
 
   Widget _buildInitialLoading(BuildContext context) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
 
     return SafeArea(
       bottom: false,
@@ -231,7 +248,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               fit: StackFit.expand,
               children: [
                 ColoredBox(
-                  color: colors.mapBackground,
+                  color: colorScheme.map.background,
                   child: const Padding(padding: EdgeInsets.all(8), child: QuiDotMatrix(radius: 0, dotSize: 1)),
                 ),
                 Padding(
@@ -280,7 +297,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -288,20 +305,25 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             widthFactor: 0.7,
             child: Text(
               i18n.feed.error.description,
-              style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 16,
+                color: context.qui.colorScheme.text.secondary,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 20),
           QuiPrimaryButton(
             label: i18n.feed.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
-                height: 15,
-                width: 15,
-                colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
-              ),
-              leadingIconSpacing: 10,
-              onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
+            leadingIconBuilder: (state) => QuiIcons.instance.build(
+              (assets) => assets.arrowRotateClockwise,
+              height: 15,
+              width: 15,
+              colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+            ),
+            leadingIconSpacing: 10,
+            onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
           ),
         ],
       ),

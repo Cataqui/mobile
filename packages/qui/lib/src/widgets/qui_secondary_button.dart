@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-
 import 'package:qui/src/enums/qui_button_alignment.dart';
 import 'package:qui/src/enums/qui_button_fit.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
 
@@ -94,16 +91,16 @@ class QuiSecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
     final isEnabled = _isEnabled;
 
     final resolvedBackground = isEnabled
-        ? backgroundColor ?? colors.primary.withValues(alpha: 0.1)
-        : disabledBackgroundColor ?? colors.disabledButtonBackground;
+        ? backgroundColor ?? colorScheme.buttons.secondary.background
+        : disabledBackgroundColor ?? colorScheme.buttons.secondary.backgroundDisabled;
 
-    final resolvedForeground = isEnabled
-        ? foregroundColor ?? colors.primary
-        : disabledForegroundColor ?? colors.disabledButtonForeground;
+    final resolvedForeground = _isEnabled
+        ? foregroundColor ?? colorScheme.buttons.secondary.foreground
+        : disabledForegroundColor ?? colorScheme.buttons.secondary.foregroundDisabled;
 
     final labelStyle = context.qui.typography.bodyLarge.copyWith(
       fontWeight: FontWeight.w600,
@@ -144,7 +141,7 @@ class QuiSecondaryButton extends StatelessWidget {
     final button = Container(
       key: const Key('qui_secondary_button_container'),
       width: fit == QuiButtonFit.expand ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
       decoration: BoxDecoration(color: resolvedBackground, borderRadius: BorderRadius.circular(9999)),
       child: fit == QuiButtonFit.expand ? _alignedContent(content) : content,
     );
@@ -159,7 +156,7 @@ class QuiSecondaryButton extends StatelessWidget {
                 onPressed!();
               }
             : null,
-        animation: QuiTapAnimationType.scaleFade,
+        animation: QuiTapAnimationType.scale,
         child: button,
       ),
     );
@@ -175,53 +172,4 @@ class QuiSecondaryButton extends StatelessWidget {
         return Align(alignment: Alignment.centerRight, child: content);
     }
   }
-}
-
-/// Preview of the [QuiSecondaryButton] widget.
-@Preview(name: 'QuiSecondaryButton', group: 'Buttons')
-Widget quiSecondaryButtonPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiSecondaryButton(label: 'Ver oportunidades', onPressed: () {}),
-            const SizedBox(height: 20),
-            QuiSecondaryButton(
-              label: 'Buscar',
-              leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiSecondaryButton(
-              label: 'Continuar',
-              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiSecondaryButton(
-              label: 'Filtrar',
-              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
-              trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiSecondaryButton(
-              label: 'Indisponivel',
-              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 300,
-              child: QuiSecondaryButton(label: 'Expandido', fit: QuiButtonFit.expand, onPressed: () {}),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

@@ -5,44 +5,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
+final _colorScheme = QuiColorScheme.light();
+
 void main() {
   group('QuiSkeletonShimmerEffect', () {
-    test('when color is null, the gradient middle color equals colors.skeletonShimmerGlow', () {
+    test('when color is null, the gradient middle color equals colorScheme.skeleton.shimmerGlow', () {
       const effect = QuiSkeletonShimmerEffect();
-      const colors = QuiColors.light();
-      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colors: colors, style: const QuiSkeletonStyle());
+      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colorScheme: _colorScheme, style: const QuiSkeletonStyle());
 
       expect(paint.shader, isA<ui.Gradient>());
     });
 
     test('when color is set, it should override the theme color', () {
       const effect = QuiSkeletonShimmerEffect(color: Color(0xFFFF0000));
-      const colors = QuiColors.light();
-      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colors: colors, style: const QuiSkeletonStyle());
+      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colorScheme: _colorScheme, style: const QuiSkeletonStyle());
 
       expect(paint.shader, isA<ui.Gradient>());
     });
 
     test('when angle is zero, the gradient is horizontal', () {
       const effect = QuiSkeletonShimmerEffect();
-      const colors = QuiColors.light();
-      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colors: colors, style: const QuiSkeletonStyle());
+      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colorScheme: _colorScheme, style: const QuiSkeletonStyle());
 
       expect(paint.shader, isA<ui.Gradient>());
     });
 
     test('when angle is pi/2, the gradient is vertical', () {
       const effect = QuiSkeletonShimmerEffect(angle: math.pi / 2);
-      const colors = QuiColors.light();
-      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colors: colors, style: const QuiSkeletonStyle());
+      final paint = effect.buildPaint(bounds: const Rect.fromLTWH(0, 0, 100, 50), t: 0, colorScheme: _colorScheme, style: const QuiSkeletonStyle());
 
       expect(paint.shader, isA<ui.Gradient>());
     });
 
     test('when bounds are empty, buildPaint should not throw', () {
       const effect = QuiSkeletonShimmerEffect();
-      const colors = QuiColors.light();
-      final paint = effect.buildPaint(bounds: Rect.zero, t: 0, colors: colors, style: const QuiSkeletonStyle());
+      final paint = effect.buildPaint(bounds: Rect.zero, t: 0, colorScheme: _colorScheme, style: const QuiSkeletonStyle());
 
       expect(paint.shader, isA<ui.Gradient>());
     });

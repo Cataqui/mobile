@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 import '../test_app.dart';
 
+final _colorScheme = QuiColorScheme.light();
+
 void main() {
   group('QuiSecondaryButton', () {
     testWidgets('when tapped, it should call onPressed', (tester) async {
@@ -20,7 +22,7 @@ void main() {
       expect(tapCount, equals(1));
     });
 
-    testWidgets('when enabled, it should wrap in QuiTapAnimation with scaleFade animation', (tester) async {
+    testWidgets('when enabled, it should wrap in QuiTapAnimation with scale animation', (tester) async {
       await tester.pumpWidget(
         TestApp(
           child: QuiSecondaryButton(label: 'Ver oportunidades', onPressed: () {}),
@@ -32,7 +34,7 @@ void main() {
       );
 
       expect(animation.onPressed, isNotNull);
-      expect(animation.animation, equals(QuiTapAnimationType.scaleFade));
+      expect(animation.animation, equals(QuiTapAnimationType.scale));
     });
 
     testWidgets('when disabled, it should expose disabled semantics', (tester) async {
@@ -132,7 +134,7 @@ void main() {
         ),
       );
 
-      expect(foregroundColor, equals(const Color(0xFF8E8E8E)));
+      expect(foregroundColor, equals(_colorScheme.buttons.secondary.foregroundDisabled));
     });
 
     testWidgets('when both icons are provided, it should render three children in the row', (tester) async {
@@ -181,14 +183,14 @@ void main() {
       expect(find.byIcon(Icons.arrow_drop_down), findsOneWidget);
     });
 
-    testWidgets('when background is not customized, it should use primary with 0.1 opacity', (tester) async {
+    testWidgets('when background is not customized, it should use secondary button background', (tester) async {
       await tester.pumpWidget(
         TestApp(
           child: QuiSecondaryButton(label: 'Ver oportunidades', onPressed: () {}),
         ),
       );
 
-      expect(_containerColor(tester), equals(const Color(0xFFFF4A4B).withValues(alpha: 0.1)));
+      expect(_containerColor(tester), equals(_colorScheme.buttons.secondary.background));
     });
 
     testWidgets('when background is customized, it should use the provided color', (tester) async {
@@ -210,7 +212,7 @@ void main() {
         const TestApp(child: QuiSecondaryButton(label: 'Indisponivel')),
       );
 
-      expect(_containerColor(tester), equals(const Color(0xFFE1E1E1)));
+      expect(_containerColor(tester), equals(_colorScheme.buttons.secondary.backgroundDisabled));
     });
 
     testWidgets('when disabled background is customized, it should use the provided color', (tester) async {
@@ -233,7 +235,7 @@ void main() {
         ),
       );
 
-      expect(_labelStyle(tester).color, equals(const Color(0xFFFF4A4B)));
+      expect(_labelStyle(tester).color, equals(_colorScheme.buttons.secondary.foreground));
     });
 
     testWidgets('when foreground is customized, it should use the provided color as the label color', (tester) async {

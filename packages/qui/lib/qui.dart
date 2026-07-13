@@ -17,7 +17,21 @@ export 'src/theme/map_style/qui_map_style_source.dart' show QuiMapLibreStyleSour
 export 'src/theme/map_style/qui_map_style_symbol_layout.dart' show QuiMapLibreStyleSymbolLayout;
 export 'src/theme/map_style/qui_map_style_symbol_paint.dart' show QuiMapLibreStyleSymbolPaint;
 export 'src/theme/map_style/qui_map_style_value.dart' show QuiMapLibreStyleValue, QuiMapLibreStyleZoomStop;
-export 'src/theme/qui_colors.dart' show QuiColors;
+export 'src/theme/qui_color_scheme/qui_color_scheme.dart'
+    show
+        QuiButtonColorScheme,
+        QuiColorScheme,
+        QuiColorVariantColorScheme,
+        QuiControlsColorScheme,
+        QuiDividerColorScheme,
+        QuiFloatingButtonColorScheme,
+        QuiInverseColorScheme,
+        QuiMapColorScheme,
+        QuiOverlayColorScheme,
+        QuiScrollbarColorScheme,
+        QuiSkeletonColorScheme,
+        QuiTextColorScheme,
+        QuiToastColorScheme;
 export 'src/theme/qui_palette/qui_palette.dart' show QuiColorScale, QuiPalette;
 export 'src/theme/qui_theme.dart' show QuiTheme;
 export 'src/theme/qui_theme_context.dart' show QuiThemeContext;
@@ -40,7 +54,7 @@ export 'src/widgets/qui_hero/qui_hero_page/qui_hero_page.dart' show QuiHeroPage;
 export 'src/widgets/qui_hero/qui_hero_page/qui_hero_page_route.dart' show QuiHeroPageRoute;
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
 export 'src/widgets/qui_loading_text.dart' show QuiLoadingText;
-export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap, RadiusStyle;
+export 'src/widgets/qui_location_radius_map/qui_location_radius_map.dart' show QuiLocationRadiusMap;
 export 'src/widgets/qui_offline_error_state.dart' show QuiOfflineErrorState, QuiOfflineErrorStateRetry;
 export 'src/widgets/qui_orbit/qui_orbit.dart' show QuiOrbit, QuiOrbitDirection, QuiOrbitItem;
 export 'src/widgets/qui_primary_button.dart'

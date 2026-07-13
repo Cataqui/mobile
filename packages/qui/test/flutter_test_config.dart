@@ -17,10 +17,10 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 
   return AlchemistConfig.runWithConfig(
     config: AlchemistConfig(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+      theme: QuiTheme.light(),
       platformGoldensConfig: PlatformGoldensConfig(
         enabled: !isRunningInCi,
-        theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+        theme: QuiTheme.light(),
       ),
     ),
     run: testMain,

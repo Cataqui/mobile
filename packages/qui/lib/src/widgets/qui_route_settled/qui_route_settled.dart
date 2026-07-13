@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/widgets/qui_appear.dart' show QuiAppear, QuiAppearAnimationType, QuiAppearController;
 
 /// A visibility wrapper that fades [child] in once the enclosing route
@@ -157,18 +155,4 @@ class _QuiRouteSettledState extends State<QuiRouteSettled> {
       child: widget.child,
     );
   }
-}
-
-@Preview(name: 'QuiRouteSettled', group: 'Route')
-Widget quiRouteSettledPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: QuiRouteSettled(child: Text('Visible after settle', style: TextStyle(fontSize: 24))),
-      ),
-    ),
-  );
 }

@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
 
@@ -59,8 +56,10 @@ class _QuiTextButtonState extends State<QuiTextButton> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.qui.colors;
-    final resolvedColor = _isEnabled ? widget.color ?? colors.textPrimary : colors.placeholder;
+    final colorScheme = context.qui.colorScheme;
+    final resolvedColor = _isEnabled
+        ? widget.color ?? colorScheme.buttons.text.foreground
+        : colorScheme.buttons.text.foregroundDisabled;
 
     Widget content = Text(
       widget.text,
@@ -108,55 +107,4 @@ class _QuiTextButtonState extends State<QuiTextButton> {
       ),
     );
   }
-}
-
-/// Preview of the [QuiTextButton] widget.
-@Preview(name: 'QuiTextButton', group: 'Buttons')
-Widget quiTextButtonPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiTextButton(text: 'Ver oportunidades', onPressed: () {}),
-            const SizedBox(height: 20),
-            QuiTextButton(
-              text: 'Buscar',
-              leadingIconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: 18),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiTextButton(
-              text: 'Continuar',
-              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.recommendedIconColor, size: 18),
-              color: const Color(0xFFFF4A4B),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiTextButton(
-              text: 'Mapa',
-              leadingIconBuilder: (state) => const Icon(Icons.location_on, size: 18, color: Color(0xFF00A676)),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            QuiTextButton(
-              text: 'Indisponivel',
-              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: 18),
-            ),
-            const SizedBox(height: 20),
-            QuiTextButton(
-              text: 'Distância',
-              leadingIconBuilder: (state) => Icon(Icons.near_me, color: state.recommendedIconColor, size: 18),
-              trailingIconBuilder: (state) => Icon(Icons.info_outline, color: state.recommendedIconColor, size: 18),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

@@ -1,9 +1,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 part 'qui_radar_pulse_step.dart';
@@ -169,7 +167,7 @@ class _QuiRadarPulseState extends State<QuiRadarPulse> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.qui.colors.primary;
+    final primary = context.qui.colorScheme.colors.primary.solid;
     final disabled = MediaQuery.disableAnimationsOf(context);
 
     if (disabled) return _buildRings(primary, animated: false, progress: 0);
@@ -179,55 +177,6 @@ class _QuiRadarPulseState extends State<QuiRadarPulse> with SingleTickerProvider
       child: RepaintBoundary(child: widget.child),
       builder: (context, staticChild) =>
           _buildRings(primary, animated: true, progress: _controller.value, staticChild: staticChild),
-    );
-  }
-}
-
-@Preview(name: 'QuiRadarPulse', group: 'Pulse')
-Widget quiRadarPulsePreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: const Color(0xFFF6F4F1),
-      body: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            QuiRadarPulse(
-              child: const _PreviewDot(icon: Icons.bolt_rounded, color: Color(0xFFFF4A4B)),
-            ),
-            QuiRadarPulse(
-              steps: const [
-                QuiRadarPulseStep(color: Color(0xFFFF4A4B), borderRadius: BorderRadius.all(Radius.circular(24))),
-                QuiRadarPulseStep(color: Color(0xFF00A896)),
-              ],
-              child: const _PreviewDot(icon: Icons.restaurant_rounded, color: Color(0xFF00A896)),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class _PreviewDot extends StatelessWidget {
-  const _PreviewDot({required this.icon, required this.color});
-
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0x1F000000), blurRadius: 12, offset: Offset(0, 6))],
-      ),
-      child: Icon(icon, color: Colors.white, size: 28),
     );
   }
 }

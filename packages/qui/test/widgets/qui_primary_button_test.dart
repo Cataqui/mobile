@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 import '../test_app.dart';
 
+final _colorScheme = QuiColorScheme.light();
+
 void main() {
   group('QuiPrimaryButton', () {
     group('tap behavior', () {
@@ -46,7 +48,7 @@ void main() {
         expect(find.byType(QuiDotLoadingIndicator), findsNothing);
       });
 
-      testWidgets('when enabled, it should wrap in QuiTapAnimation with scaleFade animation', (tester) async {
+      testWidgets('when enabled, it should wrap in QuiTapAnimation with scale animation', (tester) async {
         await tester.pumpWidget(
           TestApp(
             child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
@@ -58,7 +60,7 @@ void main() {
         );
 
         expect(animation.onPressed, isNotNull);
-        expect(animation.animation, equals(QuiTapAnimationType.scaleFade));
+        expect(animation.animation, equals(QuiTapAnimationType.scale));
       });
 
       testWidgets('when disabled, it should pass null onPressed to QuiTapAnimation', (tester) async {
@@ -152,11 +154,7 @@ void main() {
       });
 
       testWidgets('when padding uses the default, it should apply symmetric 20x12', (tester) async {
-        await tester.pumpWidget(
-          const TestApp(
-            child: QuiPrimaryButton(label: 'Padrao', onPressed: null),
-          ),
-        );
+        await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Padrao', onPressed: null)));
 
         expect(_buttonPadding(tester), equals(const EdgeInsets.symmetric(horizontal: 20, vertical: 12)));
       });
@@ -173,6 +171,23 @@ void main() {
         expect(_buttonBackgroundColor(tester), equals(const Color(0xFFFF4A4B)));
       });
 
+      testWidgets('when pressed, it should render the accessible pressed token', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+          ),
+        );
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(QuiPrimaryButton)));
+        await tester.pump();
+
+        expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.backgroundHover));
+
+        await gesture.up();
+        await tester.pump();
+        expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.background));
+      });
+
       testWidgets('when background is customized, it should use the provided color', (tester) async {
         await tester.pumpWidget(
           TestApp(
@@ -186,7 +201,7 @@ void main() {
       testWidgets('when disabled, it should use the disabled background color', (tester) async {
         await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Indisponivel')));
 
-        expect(_buttonBackgroundColor(tester), equals(const Color(0xFFE1E1E1)));
+        expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.backgroundDisabled));
       });
 
       testWidgets('when disabled background is customized, it should use the provided color', (tester) async {
@@ -201,14 +216,14 @@ void main() {
     });
 
     group('foreground colors', () {
-      testWidgets('when foreground is not customized, it should use white as the label color', (tester) async {
+      testWidgets('when foreground is not customized, it should use the semantic foreground color', (tester) async {
         await tester.pumpWidget(
           TestApp(
             child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
-        expect(_labelStyle(tester).color, equals(Colors.white));
+        expect(_labelStyle(tester).color, equals(_colorScheme.buttons.primary.foreground));
       });
 
       testWidgets('when foreground is customized, it should use the provided color as the label color', (tester) async {
@@ -226,7 +241,7 @@ void main() {
         await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Indisponivel')));
 
         final style = tester.widget<Text>(find.text('Indisponivel')).style!;
-        expect(style.color, equals(const Color(0xFF8E8E8E)));
+        expect(style.color, equals(_colorScheme.buttons.primary.foregroundDisabled));
       });
     });
 
@@ -334,7 +349,7 @@ void main() {
           ),
         );
 
-        expect(foregroundColor, equals(const Color(0xFF8E8E8E)));
+        expect(foregroundColor, equals(_colorScheme.buttons.primary.foregroundDisabled));
       });
 
       testWidgets('when both icons are provided, it should render three children in the row', (tester) async {
@@ -528,9 +543,7 @@ void main() {
         expect(find.text('Rapido'), findsOneWidget);
       });
 
-      testWidgets('when rapidly tapped multiple times while pending, later taps should be ignored', (
-        tester,
-      ) async {
+      testWidgets('when rapidly tapped multiple times while pending, later taps should be ignored', (tester) async {
         final firstCompleter = Completer<void>();
         var callCount = 0;
 
@@ -606,10 +619,7 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
-              label: 'Salvar agora',
-              onPressed: () => completer.future,
-            ),
+            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
           ),
         );
 
@@ -858,9 +868,7 @@ Color? _buttonBackgroundColor(WidgetTester tester) {
 }
 
 EdgeInsetsGeometry? _buttonPadding(WidgetTester tester) {
-  return tester.widget<Padding>(
-    find.byKey(const Key('qui_primary_button_container')),
-  ).padding;
+  return tester.widget<Padding>(find.byKey(const Key('qui_primary_button_container'))).padding;
 }
 
 TextStyle _labelStyle(WidgetTester tester) {

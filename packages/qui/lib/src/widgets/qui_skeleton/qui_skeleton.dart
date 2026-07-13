@@ -7,15 +7,12 @@ import 'dart:ui' hide Image;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widget_previews.dart';
-import 'package:qui/src/theme/qui_colors.dart';
-import 'package:qui/src/theme/qui_theme.dart';
+import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
 import 'package:qui/src/theme/qui_theme_data.dart';
 
 part '_qui_skeleton_canvas.dart';
 part '_qui_skeleton_leaf_registry.dart';
 part '_qui_skeleton_painting_context.dart';
-part '_qui_skeleton_preview.dart';
 part '_qui_skeleton_render_object.dart';
 part '_qui_skeleton_render_object_widget.dart';
 part 'effects/qui_skeleton_effect.dart';
@@ -150,57 +147,19 @@ class _QuiSkeletonState extends State<QuiSkeleton> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     if (!widget.enabled) return widget.child;
 
-    final colors = Theme.of(context).extension<QuiThemeData>()!.colors;
-    final boneColor = _style.color ?? colors.skeleton;
+    final colorScheme = Theme.of(context).extension<QuiThemeData>()!.colorScheme;
+    final boneColor = _style.color ?? colorScheme.skeleton.bone;
 
     final effectiveStyle = _effectActive
         ? _style
         : QuiSkeletonStyle(color: _style.color, effect: null, textRadius: _style.textRadius);
 
     return _QuiSkeletonRenderObjectWidget(
-      colors: colors,
+      colorScheme: colorScheme,
       style: effectiveStyle,
       boneColor: boneColor,
       effectAnimation: _shouldAnimate ? _controller : null,
       child: widget.child,
     );
   }
-}
-
-@Preview(name: 'QuiSkeleton', group: 'Loading')
-Widget quiSkeletonPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Color(0xFFF6F4F1),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(width: 340, child: QuiSkeleton(child: _PreviewCard())),
-              SizedBox(height: 24),
-              SizedBox(
-                width: 340,
-                child: QuiSkeleton(
-                  style: QuiSkeletonStyle(effect: QuiSkeletonShimmerEffect()),
-                  child: _PreviewCard(),
-                ),
-              ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: 340,
-                child: QuiSkeleton(
-                  style: QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()),
-                  child: _PreviewCard(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
 }

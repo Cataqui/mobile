@@ -37,7 +37,7 @@ class QuiSkeletonStyle {
 
   /// The resting fill color of the skeleton bones.
   ///
-  /// When `null`, the theme's `skeleton` token ([QuiColors.skeleton])
+  /// When `null`, the theme's `skeleton.bone` token drives the bone color.
   /// drives the bone color. When set, this overrides the theme token for
   /// both the solid fill (no effect) and the effect's resting color
   final Color? color;

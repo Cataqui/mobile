@@ -34,7 +34,7 @@ class _JobViewState extends ConsumerState<JobView> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
     final i18n = ref.watch(translationProvider);
     final jobState = ref.watch(jobStateProvider(widget.jobId));
     final jobData = jobState.asData?.value;
@@ -46,7 +46,7 @@ class _JobViewState extends ConsumerState<JobView> {
         children: [
           QuiHeroBackground(
             tag: FeedJobCard.backgroundHeroKey(widget.jobId),
-            decoration: BoxDecoration(color: colors.background),
+            decoration: BoxDecoration(color: colorScheme.background),
             edgeFade: QuiHeroEdgeFade.vertical,
             extensions: [QuiHeroSwipeToPopExtension(scrollController: _scrollController, sensibility: 0.85)],
             child: CustomScrollView(
@@ -84,7 +84,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: colors.placeholder,
+                                    color: colorScheme.text.secondary,
                                   ),
                                   padding: const EdgeInsets.only(bottom: 6),
                                 ),
@@ -95,12 +95,16 @@ class _JobViewState extends ConsumerState<JobView> {
                                   style: TextStyle(
                                     fontSize: 34,
                                     fontWeight: FontWeight.w600,
-                                    color: colors.textPrimary,
+                                    color: colorScheme.text.primary,
                                   ),
                                 ),
                                 QuiHeroText(
                                   (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
-                                  style: TextStyle(fontSize: 30, color: colors.money, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    color: colorScheme.text.profit,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                   padding: const EdgeInsets.only(bottom: 12),
                                 ),
                                 if (jobData != null)
@@ -109,7 +113,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                     switchThreshold: 0.97,
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: colors.description,
+                                      color: colorScheme.text.secondary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -130,9 +134,9 @@ class _JobViewState extends ConsumerState<JobView> {
                                     style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()),
                                     child: Text(
                                       JobDto.fixture().description,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 18,
-                                        color: Colors.grey,
+                                        color: colorScheme.text.secondary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -149,7 +153,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                     height: 60,
                                     radius: 30,
                                     dotSize: 6,
-                                    color: context.qui.colors.primary,
+                                    color: colorScheme.colors.primary.solid,
                                   ),
                                 ),
                               ),
@@ -220,7 +224,7 @@ class _JobViewState extends ConsumerState<JobView> {
           const SizedBox(height: 20),
           Text(
             i18n.job.error.title,
-            style: TextStyle(fontSize: 20, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -228,7 +232,11 @@ class _JobViewState extends ConsumerState<JobView> {
             widthFactor: 0.8,
             child: Text(
               i18n.job.error.description,
-              style: TextStyle(fontSize: 17, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 17,
+                color: context.qui.colorScheme.text.secondary,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
           ),

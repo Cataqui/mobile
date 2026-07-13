@@ -5,17 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/map_style/qui_map_style.dart';
-import 'package:qui/src/theme/qui_colors.dart';
+import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
+import 'package:qui/src/theme/qui_palette/qui_palette.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/widgets/qui_location_radius_map/qui_location_radius_map.dart';
 
 void main() {
-  group('RadiusStyle assertions', () {
-    test('when borderWidth is negative, it should assert', () {
-      expect(() => RadiusStyle(borderWidth: -1), throwsAssertionError);
-    });
-  });
-
   group('QuiLocationRadiusMap assertions', () {
     test('when latitude is below -90, it should assert', () {
       expect(
@@ -228,7 +223,7 @@ void main() {
     testWidgets('when parent gives a height and width, it should render within bounds', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+          theme: QuiTheme.light(),
           home: SizedBox(
             height: 400,
             width: 300,
@@ -253,7 +248,7 @@ void main() {
     testWidgets('when rendered, it should wrap the radius overlay in AnimatedOpacity', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+          theme: QuiTheme.light(),
           home: SizedBox(
             height: 400,
             width: 300,
@@ -299,11 +294,11 @@ void main() {
       expect(openMapTiles['tiles'], ['https://tiles.example.com/{z}/{x}/{y}.mvt']);
     });
 
-    testWidgets('when rendered, it should retain the complete 25-layer map style', (tester) async {
+    testWidgets('when rendered, it should retain the complete 26-layer map style', (tester) async {
       await _pumpMap(tester);
 
       final layers = _mapStyle(tester)['layers'] as List<dynamic>;
-      expect(layers, hasLength(25));
+      expect(layers, hasLength(26));
     });
 
     testWidgets('when rendered, it should include a glyphs template in the MapLibre style', (tester) async {
@@ -422,7 +417,10 @@ void main() {
 
       final map = tester.widget<MapLibreMap>(find.byType(MapLibreMap));
 
-      expect(map.foregroundLoadColor, const QuiColors.light().mapBackground);
+      expect(
+        map.foregroundLoadColor,
+        QuiColorScheme.light().map.background,
+      );
     });
 
     testWidgets('when rendered, it should enable translucent texture surface on the native map', (tester) async {
@@ -439,7 +437,10 @@ void main() {
       final stack = tester.widget<Stack>(find.byType(Stack));
       final firstChild = stack.children.first;
       expect(firstChild, isA<ColoredBox>());
-      expect((firstChild as ColoredBox).color, const QuiColors.light().mapBackground);
+      expect(
+        (firstChild as ColoredBox).color,
+        QuiColorScheme.light().map.background,
+      );
     });
 
     testWidgets('when the light style is built, its background layer should use lightBackgroundColor', (tester) async {
@@ -456,7 +457,10 @@ void main() {
       final backgroundLayer = layers.first as Map<String, dynamic>;
       final paint = backgroundLayer['paint'] as Map<String, dynamic>;
 
-      expect(paint['background-color'], const QuiColors.light().mapBackground.toHex());
+      expect(
+        paint['background-color'],
+        QuiColorScheme.light().map.background.toHex(),
+      );
     });
   });
 
@@ -490,7 +494,7 @@ void main() {
     testWidgets('when offset dx is 25.6 at zoom 0 on the equator, it should shift lng by -36 deg', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+          theme: QuiTheme.light(),
           home: SizedBox(
             height: 400,
             width: 300,
@@ -518,7 +522,7 @@ void main() {
     testWidgets('when offset dy is 25.6 at zoom 0 on the equator, it should shift lat by 36 deg', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+          theme: QuiTheme.light(),
           home: SizedBox(
             height: 400,
             width: 300,
@@ -555,7 +559,7 @@ Finder _wobblePaint() {
 Future<void> _pumpMap(WidgetTester tester, {double? zoom, Offset offset = Offset.zero, VoidCallback? onMapLoad}) async {
   await tester.pumpWidget(
     MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+      theme: QuiTheme.light(),
       home: SizedBox(
         height: 400,
         width: 300,

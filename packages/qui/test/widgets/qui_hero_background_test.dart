@@ -227,7 +227,7 @@ class _QuiHeroBackgroundLifecycleTestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+      theme: QuiTheme.light(),
       home: Builder(
         builder: (context) {
           return Scaffold(

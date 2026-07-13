@@ -127,7 +127,7 @@ class FeedViewTestHelpers {
     ).copyWith(disableAnimations: disableAnimations);
 
     return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+      theme: QuiTheme.light(),
       home: MediaQuery(data: mediaQueryData, child: child),
     );
   }

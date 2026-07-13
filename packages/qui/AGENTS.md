@@ -197,17 +197,6 @@ services, infrastructure, assets, data shapes, or provider capabilities.
 - Prefer small explicit configuration over hidden fixed behavior when the value
   represents an external system contract rather than visual taste.
 
-## Preview Requirement
-
-Every widget in `qui` **must** have a `@Preview` annotation attached to a top-level preview function at the bottom of the widget's own `.dart` file. This ensures all components are visually documented and testable in the Flutter Widget Previewer.
-
-### Preview rules
-
-- Place the preview function directly in the same file as the widget (not in a separate file).
-- Use `package:flutter/widget_previews.dart` for the `@Preview` annotation.
-- Wrap the widget in a `MaterialApp` with `QuiTheme.light(primaryColor: ...)` so theme tokens resolve correctly.
-- Use `package:qui/src/theme/qui_theme.dart` (not `package:qui/qui.dart`) to avoid circular imports when the preview is colocated with the widget.
-
 ## Golden Testing
 
 Every new widget in `qui` must have a corresponding golden test file at
@@ -256,8 +245,7 @@ lib/
   widgets may use a same-named folder with one public entrypoint and focused
   `part` files for public value types, controllers, actions, and other support
   classes, following the `qui_swipe_deck` structure.
-- Every widget file includes a `@Preview` annotated preview function at the bottom.
-- Preview functions are **not** exported from the barrel file — they are only discovered by the Widget Previewer at development time.
+
 - Access bundled SVG icons via `QuiIcons` (e.g. `QuiIcons.instance.build((icons) => icons.cross, width: 16, height: 16)`), exported from the barrel. `QuiIcons` is an injectable class over `flutter_gen`'s generated `Assets.icons` — add an `.svg` to `assets/icons/` and run `melos gen:all` to surface a new accessor. Do not import `gen/assets.gen.dart` directly from widget code; use `QuiIcons`.
 - Access bundled 3D image assets via `Qui3d` (e.g. `Qui3d.instance.build(context, (threeD) => threeD.box, width: 200, height: 200)`), exported from the barrel. `Qui3d` is an injectable class over `flutter_gen`'s generated `Assets.threeD` — add an image file (e.g. `.webp`, `.png`, `.jpg`) to `assets/three_d/` and run `melos gen:all` to surface a new accessor. Do not import `gen/assets.gen.dart` directly from widget code; use `Qui3d`.
 - Private declarations (`_`-prefixed classes, methods, fields, and part files for private types) must NOT have dartdoc. Private code should be self-explanatory through naming and structure alone. dartdoc is reserved for the public API surface that consumers outside the package can see.

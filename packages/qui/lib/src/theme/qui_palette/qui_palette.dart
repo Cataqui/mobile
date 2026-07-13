@@ -8,9 +8,9 @@ part 'qui_color_scale.dart';
 
 /// The raw primitive color palette for the QUI design system.
 ///
-/// Contains 12-step color scales for [primary], [neutral], [success],
-/// [warning], [error], [info], and six accent colors ([cyan], [violet],
-/// [teal], [orange], [pink], [yellow]).
+/// Contains 12-step color scales for [primary], [neutral], [green],
+/// [amber], [red], [blue], [whatsapp], and six accent colors ([cyan],
+/// [violet], [teal], [orange], [pink], [yellow]).
 ///
 /// The [primary] and [neutral] scales are **auto-derived** from the
 /// `primaryColor` parameter using OKLCH color space generation. All other scales
@@ -33,38 +33,40 @@ class QuiPalette {
   /// using OKLCH color space generation. The color must be fully opaque, and
   /// it is preserved exactly at primary step 9. All other scales are fixed.
   ///
+  /// When [primaryColor] is omitted, the default QUI Colors are used
+  ///
   /// Throws [ArgumentError] when [primaryColor] is not fully opaque.
-  factory QuiPalette({required Color primaryColor}) {
-    if (primaryColor.a != 1) throw ArgumentError.value(primaryColor, 'primaryColor', 'must be fully opaque');
+  factory QuiPalette({Color? primaryColor}) {
+    final mainColor = primaryColor ?? _defaultBrandColor;
+    if (mainColor.a != 1) throw ArgumentError.value(mainColor, 'primaryColor', 'must be fully opaque');
 
-    final isDefault = primaryColor == _defaultBrandColor;
-    final oklch = Oklch.fromColor(primaryColor);
+    final isDefault = mainColor == _defaultBrandColor;
+    if (isDefault) return _defaultPalette;
+
+    final oklch = Oklch.fromColor(mainColor);
     final hue = oklch.h;
     final chromaScale = (oklch.c / _primaryChroma[8]).clamp(0.0, 1.0);
 
     return QuiPalette._(
-      primaryColor: primaryColor,
-      primary: isDefault
-          ? _defaultPrimaryScale
-          : _generateScale(
-              lightness: _primaryLightness,
-              chroma: _primaryChroma.map((c) => c * chromaScale).toList(),
-              hueDrift: _primaryHueDrift,
-              baseHue: hue,
-              anchor: primaryColor,
-            ),
-      neutral: isDefault
-          ? _defaultNeutralScale
-          : _generateScale(
-              lightness: _neutralLightness,
-              chroma: _neutralChroma,
-              hueDrift: _neutralHueDrift,
-              baseHue: hue,
-            ),
-      success: _successScale,
-      warning: _warningScale,
-      error: _errorScale,
-      info: _infoScale,
+      primaryColor: mainColor,
+      primary: _generateScale(
+        lightness: _primaryLightness,
+        chroma: _primaryChroma.map((c) => c * chromaScale).toList(),
+        hueDrift: _primaryHueDrift,
+        baseHue: hue,
+        anchor: mainColor,
+      ),
+      neutral: _generateScale(
+        lightness: _neutralLightness,
+        chroma: _neutralChroma,
+        hueDrift: _neutralHueDrift,
+        baseHue: hue,
+      ),
+      green: _greenScale,
+      amber: _amberScale,
+      red: _redScale,
+      blue: _blueScale,
+      whatsapp: _whatsappScale,
       cyan: _cyanScale,
       violet: _violetScale,
       teal: _tealScale,
@@ -78,10 +80,11 @@ class QuiPalette {
     required this._primaryColor,
     required this.primary,
     required this.neutral,
-    required this.success,
-    required this.warning,
-    required this.error,
-    required this.info,
+    required this.green,
+    required this.amber,
+    required this.red,
+    required this.blue,
+    required this.whatsapp,
     required this.cyan,
     required this.violet,
     required this.teal,
@@ -93,6 +96,23 @@ class QuiPalette {
   final Color _primaryColor;
 
   static const Color _defaultBrandColor = Color(0xFFFF4A4B);
+
+  static final QuiPalette _defaultPalette = QuiPalette._(
+    primaryColor: _defaultBrandColor,
+    primary: _defaultPrimaryScale,
+    neutral: _defaultNeutralScale,
+    green: _greenScale,
+    amber: _amberScale,
+    red: _redScale,
+    blue: _blueScale,
+    whatsapp: _whatsappScale,
+    cyan: _cyanScale,
+    violet: _violetScale,
+    teal: _tealScale,
+    orange: _orangeScale,
+    pink: _pinkScale,
+    yellow: _yellowScale,
+  );
 
   static final QuiColorScale _defaultPrimaryScale = QuiColorScale._(
     steps: const [
@@ -113,22 +133,22 @@ class QuiPalette {
 
   static final QuiColorScale _defaultNeutralScale = QuiColorScale._(
     steps: const [
-      Color(0xFFFEFBFA),
-      Color(0xFFF8F4F3),
-      Color(0xFFF0E9E8),
-      Color(0xFFE8DFDD),
-      Color(0xFFDFD5D3),
-      Color(0xFFD7CAC8),
-      Color(0xFFCABDBB),
-      Color(0xFF99908E),
-      Color(0xFF786F6E),
-      Color(0xFF6A615F),
-      Color(0xFF463D3C),
-      Color(0xFF1E1615),
+      Color(0xFFFDFBFB),
+      Color(0xFFF7F4F4),
+      Color(0xFFEEEAE9),
+      Color(0xFFE5E0DF),
+      Color(0xFFDCD6D5),
+      Color(0xFFD3CCCB),
+      Color(0xFFC6BFBE),
+      Color(0xFF969190),
+      Color(0xFF757070),
+      Color(0xFF676261),
+      Color(0xFF433F3E),
+      Color(0xFF1B1717),
     ],
   );
 
-  static final QuiColorScale _successScale = QuiColorScale._(
+  static final QuiColorScale _greenScale = QuiColorScale._(
     steps: const [
       Color(0xFFFAFDFA),
       Color(0xFFF4FAF5),
@@ -145,7 +165,7 @@ class QuiPalette {
     ],
   );
 
-  static final QuiColorScale _warningScale = QuiColorScale._(
+  static final QuiColorScale _amberScale = QuiColorScale._(
     steps: const [
       Color(0xFFFDFBF9),
       Color(0xFFFCF9F4),
@@ -162,7 +182,7 @@ class QuiPalette {
     ],
   );
 
-  static final QuiColorScale _errorScale = QuiColorScale._(
+  static final QuiColorScale _redScale = QuiColorScale._(
     steps: const [
       Color(0xFFFFFBFB),
       Color(0xFFFCF4F3),
@@ -179,7 +199,7 @@ class QuiPalette {
     ],
   );
 
-  static final QuiColorScale _infoScale = QuiColorScale._(
+  static final QuiColorScale _blueScale = QuiColorScale._(
     steps: const [
       Color(0xFFFAFCFF),
       Color(0xFFF3F7FC),
@@ -193,6 +213,23 @@ class QuiPalette {
       Color(0xFF007CE4),
       Color(0xFF004E8D),
       Color(0xFF001935),
+    ],
+  );
+
+  static final QuiColorScale _whatsappScale = QuiColorScale._(
+    steps: const [
+      Color(0xFFF9FDFA),
+      Color(0xFFF4FAF5),
+      Color(0xFFECF7ED),
+      Color(0xFFE2F3E5),
+      Color(0xFFD6F2DA),
+      Color(0xFFC9F0CE),
+      Color(0xFFB5EFBE),
+      Color(0xFF7FDE92),
+      Color(0xFF25D366),
+      Color(0xFF01B950),
+      Color(0xFF126E2A),
+      Color(0xFF002002),
     ],
   );
 
@@ -346,21 +383,21 @@ class QuiPalette {
   ];
 
   static const List<double> _neutralChroma = [
+    0.002,
     0.003,
     0.005,
+    0.006,
+    0.007,
     0.008,
-    0.01,
-    0.012,
-    0.015,
-    0.015,
-    0.012,
-    0.012,
-    0.012,
-    0.012,
-    0.012,
+    0.008,
+    0.007,
+    0.006,
+    0.006,
+    0.006,
+    0.006,
   ];
 
-  static const List<double> _neutralHueDrift = [2, 2, 1, 1, 0, 0, 0, 0, 0, 0, -2, -3];
+  static const List<double> _neutralHueDrift = [5, 5, 4, 4, 3, 3, 3, 3, 3, 3, 1, 0];
 
   static QuiColorScale _generateScale({
     required List<double> lightness,
@@ -392,21 +429,25 @@ class QuiPalette {
 
   /// The warm neutral scale tinted toward the palette's primary hue.
   ///
-  /// Its low chroma keeps the scale visually neutral while maintaining
-  /// cohesion with [primary].
+  /// Its sub-perceptual chroma (0.002–0.008) keeps the scale reading as warm
+  /// gray, not as a colored neutral, while maintaining cohesion with [primary].
   final QuiColorScale neutral;
 
-  /// The green scale for positive and successful states.
-  final QuiColorScale success;
+  /// The green scale for positive and greenful states.
+  final QuiColorScale green;
 
-  /// The amber scale for warnings and cautionary states.
-  final QuiColorScale warning;
+  /// The amber scale for ambers and cautionary states.
+  final QuiColorScale amber;
 
-  /// The red scale for errors, danger, and destructive states.
-  final QuiColorScale error;
+  /// The red scale for reds, danger, and destructive states.
+  final QuiColorScale red;
 
-  /// The blue scale for informational states and links.
-  final QuiColorScale info;
+  /// The blue scale for bluermational states and links.
+  final QuiColorScale blue;
+
+  /// The WhatsApp brand green scale for chat buttons, share actions, and
+  /// WhatsApp badges.
+  final QuiColorScale whatsapp;
 
   /// The cyan accent scale.
   final QuiColorScale cyan;

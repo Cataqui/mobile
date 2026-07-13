@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:qui/gen/fonts.gen.dart';
 import 'package:qui/src/icons/qui_icons.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 /// QUI search bar button that opens search through a tap action.
@@ -39,13 +37,13 @@ class QuiSearchBarButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: borderRadius,
-          boxShadow: [BoxShadow(color: context.qui.colors.searchBarButtonShadow, blurRadius: 24)],
+          boxShadow: [BoxShadow(color: context.qui.colorScheme.buttons.floating.shadow, blurRadius: 24)],
         ),
         child: Material(
-          color: context.qui.colors.searchBarButtonBackground,
+          color: context.qui.colorScheme.buttons.floating.background,
           shape: RoundedRectangleBorder(
             borderRadius: borderRadius,
-            side: BorderSide(color: context.qui.colors.background),
+            side: BorderSide(color: context.qui.colorScheme.buttons.floating.border),
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -58,10 +56,11 @@ class QuiSearchBarButton extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    QuiIcons.instance.build((assets) => assets.magnifierGlass,
+                    QuiIcons.instance.build(
+                      (assets) => assets.magnifierGlass,
                       width: 18,
                       height: 18,
-                      colorFilter: ColorFilter.mode(context.qui.colors.textPrimary, BlendMode.srcIn),
+                      colorFilter: ColorFilter.mode(context.qui.colorScheme.text.primary, BlendMode.srcIn),
                     ),
                     const SizedBox(width: 10),
                     Flexible(
@@ -70,7 +69,7 @@ class QuiSearchBarButton extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: context.qui.colors.textPrimary,
+                          color: context.qui.colorScheme.text.primary,
                           fontFamily: FontFamily.inter,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -86,26 +85,4 @@ class QuiSearchBarButton extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Preview of the [QuiSearchBarButton] widget in its resting state.
-@Preview(name: 'QuiSearchBarButton', group: 'Inputs')
-Widget quiSearchBarButtonPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            QuiSearchBarButton(placeholder: 'Search for an opportunity...'),
-            SizedBox(height: 16),
-            SizedBox(width: 280, child: QuiSearchBarButton(placeholder: 'Short')),
-          ],
-        ),
-      ),
-    ),
-  );
 }

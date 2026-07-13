@@ -49,7 +49,7 @@ class QuiHeroEdgeFade {
   /// `height: 0` and the resolved background color, so lerping to/from an
   /// absent side animates height to/from `0` rather than jumping.
   QuiHeroEdgeFade resolve(BuildContext context) {
-    final resolvedColor = Theme.of(context).extension<QuiThemeData>()?.colors.background ?? const Color(0xFFFFFFFF);
+    final resolvedColor = Theme.of(context).extension<QuiThemeData>()?.colorScheme.background ?? const Color(0xFFFFFFFF);
 
     return QuiHeroEdgeFade(
       top: top?.resolve(context) ?? QuiEdgeFadeStyle(color: resolvedColor, height: 0),

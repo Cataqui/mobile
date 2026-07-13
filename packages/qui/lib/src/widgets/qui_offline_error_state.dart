@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/icons/qui_icons.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/three_d/qui_3d.dart';
 import 'package:qui/src/widgets/qui_secondary_button.dart';
@@ -43,7 +41,7 @@ class QuiOfflineErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
 
     return Center(
       child: Column(
@@ -54,7 +52,7 @@ class QuiOfflineErrorState extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             title,
-            style: TextStyle(fontSize: 18, color: colors.textPrimary, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, color: colorScheme.text.primary, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           if (description != null) ...[
@@ -63,7 +61,7 @@ class QuiOfflineErrorState extends StatelessWidget {
               widthFactor: 0.7,
               child: Text(
                 description!,
-                style: TextStyle(fontSize: 16, color: colors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 16, color: colorScheme.text.secondary, fontWeight: FontWeight.w500),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -72,7 +70,8 @@ class QuiOfflineErrorState extends StatelessWidget {
             const SizedBox(height: 20),
             QuiSecondaryButton(
               label: retry!.label,
-              leadingIconBuilder: (state) => QuiIcons.instance.build((assets) => assets.arrowRotateClockwise,
+              leadingIconBuilder: (state) => QuiIcons.instance.build(
+                (assets) => assets.arrowRotateClockwise,
                 height: 15,
                 width: 15,
                 colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
@@ -85,23 +84,4 @@ class QuiOfflineErrorState extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Preview of the [QuiOfflineErrorState] widget.
-@Preview(name: 'QuiOfflineErrorState', group: 'Feedback')
-Widget quiOfflineErrorStatePreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: QuiOfflineErrorState(
-          title: 'Sem conexão',
-          description: 'Verifique sua internet e tente novamente.',
-          retry: (label: 'Tentar novamente', onRetry: () {}),
-        ),
-      ),
-    ),
-  );
 }

@@ -1,41 +1,70 @@
 import 'package:flutter/material.dart';
 
-import 'qui_colors.dart';
+import 'qui_color_scheme/qui_color_scheme.dart';
+import 'qui_palette/qui_palette.dart';
 import 'qui_theme_data.dart';
 import 'qui_typography.dart';
 
-/// Factory for Cataquí-branded [ThemeData] objects.
+/// Factory for QUI [ThemeData] objects.
 ///
-/// Pass the result directly to [MaterialApp]:
-///
-/// ```dart
-/// MaterialApp(
-///   theme: QuiTheme.light(primaryColor: Color(0xFFFF4A4B)),
-///   home: const HomeScreen(),
-/// )
-/// ```
+/// Material components and QUI widgets resolve from the same semantic scheme,
+/// preventing framework defaults from drifting away from package tokens.
 abstract final class QuiTheme {
-  /// A light theme with Cataquí design tokens.
+  /// Creates the fully specified light appearance from [primaryColor] and
+  /// [onPrimary].
   ///
-  /// [primaryColor] is the brand color used as the seed for Material 3's
-  /// generated [ColorScheme]. It drives the color of buttons, FABs,
-  /// switches, chips, and all other M3 components.
+  /// When omitted, [primaryColor] and [onPrimary] defaults to the default QUI colors
   ///
-  /// Registers a [QuiThemeData] extension so that `context.qui` and
-  /// `Theme.of(context).extension<QuiThemeData>()` work in every widget.
-  static ThemeData light({required Color primaryColor}) =>
-      _build(QuiThemeData(
-        colors: QuiColors.light(primary: primaryColor),
-      ));
+  /// ```dart
+  /// MaterialApp(
+  ///   theme: QuiTheme.light(),
+  ///   home: const HomeScreen(),
+  /// )
+  /// ```
+  static ThemeData light({Color? primaryColor, Color? onPrimary}) {
+    final palette = QuiPalette(primaryColor: primaryColor);
+    final colorScheme = QuiColorScheme.light(palette: palette, onPrimary: onPrimary);
+
+    return _build(QuiThemeData(colorScheme: colorScheme));
+  }
 
   static ThemeData _build(QuiThemeData quiData) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: quiData.colors.primary,
+    final quiColorScheme = quiData.colorScheme;
+
+    final colorScheme = ColorScheme(
+      brightness: Brightness.light,
+      primary: quiColorScheme.colors.primary.solid,
+      onPrimary: quiColorScheme.colors.primary.onSolid,
+      primaryContainer: quiColorScheme.colors.primary.subtle,
+      onPrimaryContainer: quiColorScheme.text.brandPrimary,
+      secondary: quiColorScheme.colors.teal.solid,
+      onSecondary: quiColorScheme.colors.teal.onSolid,
+      secondaryContainer: quiColorScheme.colors.teal.subtle,
+      onSecondaryContainer: quiColorScheme.colors.teal.text,
+      tertiary: quiColorScheme.colors.orange.solid,
+      onTertiary: quiColorScheme.colors.orange.onSolid,
+      tertiaryContainer: quiColorScheme.colors.orange.subtle,
+      onTertiaryContainer: quiColorScheme.colors.orange.text,
+      error: quiColorScheme.error.solid,
+      onError: quiColorScheme.error.onSolid,
+      errorContainer: quiColorScheme.error.subtle,
+      onErrorContainer: quiColorScheme.error.text,
+      surface: quiColorScheme.background,
+      onSurface: quiColorScheme.text.primary,
+      onSurfaceVariant: quiColorScheme.text.secondary,
+      outline: quiColorScheme.border.standard,
+      outlineVariant: quiColorScheme.border.subtle,
+      shadow: const Color(0xFF000000),
+      scrim: quiColorScheme.scrim,
+      inverseSurface: quiColorScheme.inverse.background,
+      onInverseSurface: quiColorScheme.inverse.onBackground,
+      inversePrimary: quiColorScheme.inverse.primary,
+      surfaceTint: quiColorScheme.colors.primary.solid,
     );
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: quiData.colors.background,
+      scaffoldBackgroundColor: quiData.colorScheme.background,
       textTheme: _buildTextTheme(quiData.typography),
       extensions: [quiData],
     );

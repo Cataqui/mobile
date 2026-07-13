@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
 
@@ -56,12 +54,12 @@ class QuiIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
     final isEnabled = _isEnabled;
     final resolvedLabel = label;
     final resolvedBackgroundColor = isEnabled
-        ? backgroundColor ?? colors.primary
-        : disabledBackgroundColor ?? colors.disabledButtonBackground;
+        ? backgroundColor ?? colorScheme.colors.primary.solid
+        : disabledBackgroundColor ?? colorScheme.buttons.primary.backgroundDisabled;
     final recommendedIconColor = isEnabled ? Colors.white : resolvedBackgroundColor.darken(0.28);
     final iconState = QuiIconButtonIconState(
       isEnabled: isEnabled,
@@ -107,46 +105,11 @@ class QuiIconButton extends StatelessWidget {
         Text(
           resolvedLabel,
           style: context.qui.typography.labelMedium
-              .copyWith(color: colors.textPrimary, fontWeight: FontWeight.w600)
+              .copyWith(color: colorScheme.text.primary, fontWeight: FontWeight.w600)
               .merge(labelStyle),
           textAlign: TextAlign.center,
         ),
       ],
     );
   }
-}
-
-/// Preview of the [QuiIconButton] widget.
-@Preview(name: 'QuiIconButton', group: 'Buttons')
-Widget quiIconButtonPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiIconButton(
-              label: 'Buscar',
-              iconBuilder: (state) => Icon(Icons.search, color: state.recommendedIconColor, size: state.iconSize),
-              onPressed: () {},
-            ),
-            const SizedBox(width: 24),
-            QuiIconButton(
-              backgroundColor: const Color(0xFF00A676),
-              iconBuilder: (state) => Icon(Icons.location_on, color: state.recommendedIconColor, size: state.iconSize),
-              onPressed: () {},
-            ),
-            const SizedBox(width: 24),
-            QuiIconButton(
-              label: 'Bloqueado',
-              iconBuilder: (state) => Icon(Icons.lock, color: state.recommendedIconColor, size: state.iconSize),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

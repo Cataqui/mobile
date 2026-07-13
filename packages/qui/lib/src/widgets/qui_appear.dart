@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 
 part 'qui_appear_controller.dart';
 part 'qui_appear_enums.dart';
@@ -126,30 +124,4 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
       QuiAppearAnimationType.fade => FadeTransition(opacity: _controller, child: widget.child),
     };
   }
-}
-
-@Preview(name: 'QuiAppear', group: 'Feedback')
-Widget quiAppearPreview() {
-  final controller = QuiAppearController();
-
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiAppear(
-              controller: controller,
-              child: const Text('Appearing text', style: TextStyle(fontSize: 24)),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: controller.appear, child: const Text('Appear')),
-          ],
-        ),
-      ),
-    ),
-  );
 }

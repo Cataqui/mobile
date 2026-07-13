@@ -3,7 +3,6 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:qui/qui.dart';
 
 part 'qui_dot_matrix_dot.dart';
@@ -383,7 +382,7 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
           _particles = _generateParticles(w: w, h: h);
         }
 
-        final color = widget.color ?? context.qui.colors.placeholder;
+        final color = widget.color ?? context.qui.colorScheme.colors.neutral.solid;
         final disabled = MediaQuery.disableAnimationsOf(context);
 
         return SizedBox(
@@ -409,31 +408,4 @@ class _QuiDotMatrixState extends State<QuiDotMatrix> with SingleTickerProviderSt
       },
     );
   }
-}
-
-@Preview(name: 'QuiDotMatrix', group: 'Loading')
-Widget quiDotMatrixPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Color(0xFFF6F4F1),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiDotMatrix(width: 320, height: 180, radius: 16),
-            SizedBox(height: 24),
-            QuiDotMatrix(width: 240, height: 240, radius: 120),
-            SizedBox(height: 24),
-            QuiDotMatrix(width: 320, height: 80, radius: 12),
-            SizedBox(height: 24),
-            QuiDotMatrix(width: 320, height: 180, radius: 16, color: Color(0xFF4A90D9)),
-            SizedBox(height: 24),
-            QuiDotMatrix(width: 320, height: 180, radius: 16, color: Color(0xFFFF4A4B)),
-          ],
-        ),
-      ),
-    ),
-  );
 }

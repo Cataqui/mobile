@@ -283,7 +283,7 @@ void main() {
               goRouterProvider.overrideWithValue(goRouter),
             ],
             child: MaterialApp.router(
-              theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+              theme: QuiTheme.light(),
               routerConfig: goRouter,
             ),
           ),

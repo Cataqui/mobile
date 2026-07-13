@@ -3,9 +3,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 
-import 'package:qui/src/theme/qui_theme.dart';
 
 part 'qui_orbit_enums.dart';
 part 'qui_orbit_flow_delegate.dart';
@@ -236,56 +234,5 @@ class _QuiOrbitState extends State<QuiOrbit> with SingleTickerProviderStateMixin
 
     final radius = widget.radius ?? (math.min(w, h) / 2 - maxHalfDiagonal - widget.padding);
     return radius < 0 ? 0.0 : radius;
-  }
-}
-
-@Preview(name: 'QuiOrbit', group: 'Orbits')
-Widget quiOrbitPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: const Color(0xFFF6F4F1),
-      body: Center(
-        child: SizedBox(
-          width: 360,
-          height: 360,
-          child: QuiOrbit(
-            items: const [
-              QuiOrbitItem(child: _PreviewChip(Icons.bolt_rounded, Color(0xFFFF4A4B)), size: Size(64, 64)),
-              QuiOrbitItem(child: _PreviewChip(Icons.restaurant_rounded, Color(0xFF00A896)), size: Size(64, 64)),
-              QuiOrbitItem(child: _PreviewChip(Icons.delivery_dining_rounded, Color(0xFF3D5A80)), size: Size(64, 64)),
-              QuiOrbitItem(child: _PreviewChip(Icons.cleaning_services_rounded, Color(0xFFF4A261)), size: Size(64, 64)),
-              QuiOrbitItem(child: _PreviewChip(Icons.handyman_rounded, Color(0xFF8338EC)), size: Size(64, 64)),
-              QuiOrbitItem(
-                child: _PreviewChip(Icons.local_laundry_service_rounded, Color(0xFF06A77D)),
-                size: Size(64, 64),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class _PreviewChip extends StatelessWidget {
-  const _PreviewChip(this.icon, this.color);
-
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0x1F000000), blurRadius: 12, offset: Offset(0, 6))],
-      ),
-      child: Icon(icon, color: Colors.white, size: 28),
-    );
   }
 }

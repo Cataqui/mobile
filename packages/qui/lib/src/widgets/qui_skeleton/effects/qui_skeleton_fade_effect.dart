@@ -40,11 +40,11 @@ class QuiSkeletonFadeEffect extends QuiSkeletonAnimatedEffectBase {
   ///
   /// [duration] is the time to complete one fade-in + fade-out loop, defaulting
   /// to 1000ms. [opacity] controls the alpha range the bones breathe between,
-  /// defaulting to `(start: 0.3, end: 1.0)` — a gentle pulse where the bones
+  /// defaulting to `(start: 0.4, end: 1.0)` — a gentle pulse where the bones
   /// never fully vanish.
   const QuiSkeletonFadeEffect({
     this.duration = const Duration(milliseconds: 1000),
-    this.opacity = const (start: 0.3, end: 1.0),
+    this.opacity = const (start: 0.4, end: 1.0),
   });
 
   /// The duration of one full fade-in + fade-out loop.
@@ -68,10 +68,10 @@ class QuiSkeletonFadeEffect extends QuiSkeletonAnimatedEffectBase {
   Paint buildPaint({
     required Rect bounds,
     required double t,
-    required QuiColors colors,
+    required QuiColorScheme colorScheme,
     required QuiSkeletonStyle style,
   }) {
-    final boneColor = style.color ?? colors.skeleton;
+    final boneColor = style.color ?? colorScheme.skeleton.bone;
     final phase = (1 - math.cos(t)) / 2;
     final fadeAlpha = (opacity.start + (opacity.end - opacity.start) * phase).clamp(0.0, 1.0);
     return Paint()..color = boneColor.withValues(alpha: boneColor.a * fadeAlpha);

@@ -27,22 +27,22 @@ void main() {
       'neutral': (
         palette.neutral,
         const <Color>[
-          Color(0xFFFEFBFA),
-          Color(0xFFF8F4F3),
-          Color(0xFFF0E9E8),
-          Color(0xFFE8DFDD),
-          Color(0xFFDFD5D3),
-          Color(0xFFD7CAC8),
-          Color(0xFFCABDBB),
-          Color(0xFF99908E),
-          Color(0xFF786F6E),
-          Color(0xFF6A615F),
-          Color(0xFF463D3C),
-          Color(0xFF1E1615),
+          Color(0xFFFDFBFB),
+          Color(0xFFF7F4F4),
+          Color(0xFFEEEAE9),
+          Color(0xFFE5E0DF),
+          Color(0xFFDCD6D5),
+          Color(0xFFD3CCCB),
+          Color(0xFFC6BFBE),
+          Color(0xFF969190),
+          Color(0xFF757070),
+          Color(0xFF676261),
+          Color(0xFF433F3E),
+          Color(0xFF1B1717),
         ],
       ),
       'success': (
-        palette.success,
+        palette.green,
         const <Color>[
           Color(0xFFFAFDFA),
           Color(0xFFF4FAF5),
@@ -59,7 +59,7 @@ void main() {
         ],
       ),
       'warning': (
-        palette.warning,
+        palette.amber,
         const <Color>[
           Color(0xFFFDFBF9),
           Color(0xFFFCF9F4),
@@ -76,7 +76,7 @@ void main() {
         ],
       ),
       'error': (
-        palette.error,
+        palette.red,
         const <Color>[
           Color(0xFFFFFBFB),
           Color(0xFFFCF4F3),
@@ -93,7 +93,7 @@ void main() {
         ],
       ),
       'info': (
-        palette.info,
+        palette.blue,
         const <Color>[
           Color(0xFFFAFCFF),
           Color(0xFFF3F7FC),
@@ -107,6 +107,23 @@ void main() {
           Color(0xFF007CE4),
           Color(0xFF004E8D),
           Color(0xFF001935),
+        ],
+      ),
+      'whatsapp': (
+        palette.whatsapp,
+        const <Color>[
+          Color(0xFFF9FDFA),
+          Color(0xFFF4FAF5),
+          Color(0xFFECF7ED),
+          Color(0xFFE2F3E5),
+          Color(0xFFD6F2DA),
+          Color(0xFFC9F0CE),
+          Color(0xFFB5EFBE),
+          Color(0xFF7FDE92),
+          Color(0xFF25D366),
+          Color(0xFF01B950),
+          Color(0xFF126E2A),
+          Color(0xFF002002),
         ],
       ),
       'cyan': (
@@ -244,6 +261,11 @@ void main() {
     test('when two palettes use the same primary color, they should be equal', () {
       final other = QuiPalette(primaryColor: brandColor);
       expect(palette, other);
+    });
+
+    test('when the default palette is requested repeatedly, it should reuse the precomputed instance', () {
+      final other = QuiPalette(primaryColor: brandColor);
+      expect(identical(palette, other), isTrue);
     });
 
     test('when two palettes use different primary colors, they should not be equal', () {

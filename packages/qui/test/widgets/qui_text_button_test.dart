@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 import '../test_app.dart';
 
+final _colorScheme = QuiColorScheme.light();
+
 void main() {
   group('QuiTextButton', () {
     testWidgets('when tapped, it should call onPressed', (tester) async {
@@ -115,7 +117,7 @@ void main() {
         ),
       );
 
-      expect(recommendedIconColor, equals(const Color(0xFF9E9E9E)));
+      expect(recommendedIconColor, equals(_colorScheme.buttons.text.foregroundDisabled));
     });
 
     testWidgets('when trailing icon spacing is customized, it should use the provided spacing', (tester) async {

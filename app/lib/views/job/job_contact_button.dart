@@ -21,11 +21,11 @@ class JobContactButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final i18n = ref.watch(translationProvider);
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
 
     return switch (contactReference.contactMethod) {
-      JobContactMethod.whatsapp => _buildWhatsAppButton(i18n, colors, ref),
-      JobContactMethod.phoneCall => _buildPhoneCallButton(i18n, colors, ref),
+      JobContactMethod.whatsapp => _buildWhatsAppButton(i18n, colorScheme, ref),
+      JobContactMethod.phoneCall => _buildPhoneCallButton(i18n, colorScheme, ref),
       JobContactMethod.unknown => QuiPrimaryButton(
         label: i18n.job.contactButton.unknown,
         padding: _buttonPadding,
@@ -40,11 +40,11 @@ class JobContactButton extends ConsumerWidget {
     };
   }
 
-  QuiPrimaryButton _buildWhatsAppButton(Translations i18n, QuiColors colors, WidgetRef ref) {
+  QuiPrimaryButton _buildWhatsAppButton(Translations i18n, QuiColorScheme colorScheme, WidgetRef ref) {
     return QuiPrimaryButton(
       label: i18n.job.contactButton.whatsapp,
-      backgroundColor: colors.neutralButtonBackground,
-      foregroundColor: colors.money,
+      backgroundColor: colorScheme.buttons.whatsapp.tertiary.background,
+      foregroundColor: colorScheme.buttons.whatsapp.tertiary.foreground,
       padding: _buttonPadding,
       leadingIconBuilder: (state) => QuiIcons.instance.build(
         (assets) => assets.whatsapp,
@@ -56,11 +56,11 @@ class JobContactButton extends ConsumerWidget {
     );
   }
 
-  QuiPrimaryButton _buildPhoneCallButton(Translations i18n, QuiColors colors, WidgetRef ref) {
+  QuiPrimaryButton _buildPhoneCallButton(Translations i18n, QuiColorScheme colorScheme, WidgetRef ref) {
     return QuiPrimaryButton(
       label: i18n.job.contactButton.phoneCall,
-      backgroundColor: colors.money,
-      foregroundColor: colors.textPrimary,
+      backgroundColor: colorScheme.success.solid,
+      foregroundColor: colorScheme.success.onSolid,
       padding: _buttonPadding,
       leadingIconSpacing: 12,
       leadingIconBuilder: (state) => QuiIcons.instance.build(

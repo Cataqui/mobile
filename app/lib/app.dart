@@ -28,7 +28,7 @@ class CataquiApp extends ConsumerWidget {
       child: MaterialApp.router(
         title: i18n.app.name,
         routerConfig: goRouter,
-        theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
+        theme: QuiTheme.light(),
         locale: i18n.$meta.locale.flutterLocale,
         supportedLocales: AppLocaleUtils.supportedLocales,
         localizationsDelegates: GlobalMaterialLocalizations.delegates,

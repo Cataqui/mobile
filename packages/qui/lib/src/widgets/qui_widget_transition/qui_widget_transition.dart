@@ -1,9 +1,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-import 'package:qui/src/theme/qui_theme.dart';
-import 'package:qui/src/theme/qui_theme_context.dart';
 
 part '_qui_widget_transition_entry.dart';
 part '_qui_widget_transition_key.dart';
@@ -261,116 +258,5 @@ class _QuiWidgetTransitionState extends State<QuiWidgetTransition>
     _animationController
       ..duration = widget.inDuration
       ..forward(from: 0);
-  }
-}
-
-@Preview(name: 'QuiWidgetTransition', group: 'Transitions')
-Widget quiWidgetTransitionPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const _QuiWidgetTransitionPreview(),
-  );
-}
-
-class _QuiWidgetTransitionPreview extends StatefulWidget {
-  const _QuiWidgetTransitionPreview();
-
-  @override
-  State<_QuiWidgetTransitionPreview> createState() => _QuiWidgetTransitionPreviewState();
-}
-
-class _QuiWidgetTransitionPreviewState extends State<_QuiWidgetTransitionPreview> {
-  static const _colors = [Color(0xFFFF4A4B), Color(0xFF00A896), Color(0xFF3D5A80), Color(0xFFF4A261)];
-  static const _labels = ['Vermelho', 'Verde', 'Azul', 'Laranja'];
-  var _currentIndex = 0;
-
-  Widget _buildFadeIn(Widget child, Animation<double> animation) {
-    final curved = CurveTween(curve: Curves.easeOutCubic);
-    return FadeTransition(opacity: curved.animate(animation), child: child);
-  }
-
-  Widget _buildFadeOut(Widget child, Animation<double> animation) {
-    return FadeTransition(opacity: Tween<double>(begin: 1, end: 0).animate(animation), child: child);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 260,
-              height: 260,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: QuiWidgetTransition(
-                  builder: (_) => KeyedSubtree(
-                    key: ValueKey(_currentIndex),
-                    child: ColoredBox(
-                      color: _colors[_currentIndex],
-                      child: Center(
-                        child: Text(
-                          _labels[_currentIndex],
-                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ),
-                  outDuration: const Duration(milliseconds: 400),
-                  outTransition: _buildFadeOut,
-                  inDuration: const Duration(milliseconds: 600),
-                  inTransition: _buildFadeIn,
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _PreviewButton(label: 'Anterior', onTap: () => setState(() => _currentIndex = 0)),
-                const SizedBox(width: 16),
-                _PreviewButton(label: 'Proximo', onTap: () => setState(() => _currentIndex = 1)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _PreviewButton(label: 'Azul', onTap: () => setState(() => _currentIndex = 2)),
-                const SizedBox(width: 16),
-                _PreviewButton(label: 'Laranja', onTap: () => setState(() => _currentIndex = 3)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PreviewButton extends StatelessWidget {
-  const _PreviewButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: context.qui.colors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: Text(label),
-      ),
-    );
   }
 }

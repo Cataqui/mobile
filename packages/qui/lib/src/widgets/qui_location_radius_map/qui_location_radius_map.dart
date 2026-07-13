@@ -4,14 +4,12 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:qui/src/theme/map_style/qui_map_style.dart';
-import 'package:qui/src/theme/qui_theme.dart';
+import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 part 'qui_location_radius_map_radius_painter.dart';
-part 'radius_style.dart';
 
 /// Non-interactive vector map that highlights an approximate location radius.
 ///
@@ -56,7 +54,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
     required this.radiusInMeters,
     required this.fontConfig,
     super.key,
-    this.radiusStyle = const RadiusStyle(),
+    this.radiusStyle = const (color: null),
     this.tileMinZoom = 1,
     this.tileMaxZoom = 14,
     this.zoom,
@@ -111,7 +109,7 @@ class QuiLocationRadiusMap extends StatefulWidget {
   final double radiusInMeters;
 
   /// Styling for the radius circle drawn over the map.
-  final RadiusStyle radiusStyle;
+  final ({Color? color}) radiusStyle;
 
   /// Minimum zoom supported by the tile provider.
   ///
@@ -198,29 +196,45 @@ class QuiLocationRadiusMap extends StatefulWidget {
 
 class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
-  late String _styleJson;
 
+  late String _styleJson;
+  late LatLng _wobbleFromLatLng;
+  late LatLng _wobbleToLatLng;
+  QuiMapColorScheme? _mapColorScheme;
   double? _computedZoom;
+  double? _pendingSettleZoom;
+  Completer<void>? _mapIdleCompleter;
+  Timer? _wobbleTimer;
+
   double _overlayOpacity = 0;
   double _targetPixelRadius = 0;
   bool _hasSetUpRadius = false;
   bool _hasStartedWobble = false;
   int _mapGeneration = 0;
-  Timer? _wobbleTimer;
-  late LatLng _wobbleFromLatLng;
-  late LatLng _wobbleToLatLng;
   double _wobbleFromRadius = 1;
   double _wobbleToRadius = 1;
-  double? _pendingSettleZoom;
-  Completer<void>? _mapIdleCompleter;
 
   double get _effectiveMaxZoom => math.max(widget.zoom ?? widget.tileMaxZoom.toDouble(), widget.tileMaxZoom.toDouble());
 
   @override
   void initState() {
     super.initState();
-    _styleJson = _buildStyleJson();
     _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final mapColorScheme = context.qui.colorScheme.map;
+    final oldMapColorScheme = _mapColorScheme;
+
+    _mapColorScheme = mapColorScheme;
+    _styleJson = _buildStyleJson(mapColorScheme);
+
+    if (oldMapColorScheme != null && oldMapColorScheme != mapColorScheme) {
+      _resetMapConfiguration();
+    }
   }
 
   @override
@@ -232,11 +246,12 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
     }
   }
 
-  String _buildStyleJson() {
+  String _buildStyleJson(QuiMapColorScheme mapColorScheme) {
     return jsonEncode(
       QuiMapLibreStyle.light(
         tileUrlTemplate: widget.tileUrlTemplate,
         fontConfig: widget.fontConfig,
+        colorScheme: mapColorScheme,
         tileMinZoom: widget.tileMinZoom,
         tileMaxZoom: widget.tileMaxZoom,
       ),
@@ -258,7 +273,7 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
 
   void _resetMapConfiguration() {
     _mapGeneration += 1;
-    _styleJson = _buildStyleJson();
+    _styleJson = _buildStyleJson(_mapColorScheme ?? context.qui.colorScheme.map);
     _computedZoom = null;
     _mapIdleCompleter?.complete();
     _mapIdleCompleter = null;
@@ -398,7 +413,6 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
   }
 
   _QuiLocationRadiusMapRadiusFrame _radiusFrame() {
-    final primaryColor = context.qui.colors.primary;
     final style = widget.radiusStyle;
     final effectiveZoom = widget.zoom ?? _computedZoom ?? widget.tileMinZoom.toDouble();
 
@@ -417,18 +431,16 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
       toRadius: _wobbleToRadius,
       cameraTarget: _cameraTargetForOffset(effectiveZoom),
       zoom: effectiveZoom,
-      fillColor: style.color ?? primaryColor.withValues(alpha: 0.15),
-      borderColor: style.borderColor ?? primaryColor.withValues(alpha: 0.4),
-      borderWidth: style.borderWidth,
+      fillColor: style.color ?? context.qui.colorScheme.map.locationRadius,
     );
   }
 
   Widget _buildNativeMap({required double zoom, required Object mapKey}) {
     return ColoredBox(
-      color: context.qui.colors.mapBackground,
+      color: context.qui.colorScheme.map.background,
       child: MapLibreMap(
         key: ValueKey<Object>(mapKey),
-        foregroundLoadColor: context.qui.colors.mapBackground,
+        foregroundLoadColor: context.qui.colorScheme.map.background,
         translucentTextureSurface: true,
         initialCameraPosition: CameraPosition(target: _cameraTargetForOffset(zoom), zoom: zoom),
         styleString: _styleJson,
@@ -494,63 +506,4 @@ class _QuiLocationRadiusMapState extends State<QuiLocationRadiusMap> with Single
       },
     );
   }
-}
-
-@Preview(name: 'QuiLocationRadiusMap', group: 'Maps')
-Widget quiLocationRadiusMapPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SizedBox(
-            height: 220,
-            width: double.infinity,
-            child: QuiLocationRadiusMap(
-              tileUrlTemplate: 'https://tiles.example.com/openmaptiles/{z}/{x}/{y}.mvt',
-              location: const (latitude: -23.55052, longitude: -46.633308),
-              fontConfig: (
-                fontStack: 'Inter Regular',
-                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
-              ),
-              radiusInMeters: 500,
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-@Preview(name: 'QuiLocationRadiusMap with offset', group: 'Maps')
-Widget quiLocationRadiusMapWithOffsetPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SizedBox(
-            height: 220,
-            width: double.infinity,
-            child: QuiLocationRadiusMap(
-              tileUrlTemplate: 'https://tiles.example.com/openmaptiles/{z}/{x}/{y}.mvt',
-              location: const (latitude: -23.55052, longitude: -46.633308),
-              fontConfig: (
-                fontStack: 'Inter Regular',
-                glyphUrlTemplate: 'file://packages/qui/assets/glyphs/{fontstack}/{range}.pbf',
-              ),
-              radiusInMeters: 500,
-              offset: const Offset(0, -40),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 }

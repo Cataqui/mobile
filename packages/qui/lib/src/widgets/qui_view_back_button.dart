@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:qui/src/icons/qui_icons.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 /// A back button designed specifically for full-view surfaces
@@ -52,11 +50,11 @@ class QuiViewBackButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: context.qui.colors.viewBackButtonShadow, blurRadius: 24)],
+          boxShadow: [BoxShadow(color: context.qui.colorScheme.buttons.floating.shadow, blurRadius: 24)],
         ),
         child: Material(
-          color: context.qui.colors.viewBackButtonBackground,
-          shape: shape.copyWith(side: BorderSide(color: context.qui.colors.background)),
+          color: context.qui.colorScheme.buttons.floating.background,
+          shape: shape.copyWith(side: BorderSide(color: context.qui.colorScheme.buttons.floating.border)),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () {
@@ -75,7 +73,7 @@ class QuiViewBackButton extends StatelessWidget {
                     (assets) => assets.arrowLeft,
                     width: 22,
                     height: 22,
-                    colorFilter: ColorFilter.mode(context.qui.colors.textPrimary, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(context.qui.colorScheme.text.primary, BlendMode.srcIn),
                   ),
                 ),
               ),
@@ -85,17 +83,4 @@ class QuiViewBackButton extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Preview of the [QuiViewBackButton] widget in its resting state.
-@Preview(name: 'QuiViewBackButton', group: 'Buttons')
-Widget quiViewBackButtonPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(child: QuiViewBackButton(onPressed: () {})),
-    ),
-  );
 }

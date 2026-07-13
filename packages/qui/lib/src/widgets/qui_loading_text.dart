@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
-
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:qui/gen/fonts.gen.dart';
-import 'package:qui/src/theme/qui_theme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 /// A QUI loading indicator with shimmering text.
@@ -31,8 +28,8 @@ class QuiLoadingText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.qui.colors;
-    final indicatorColor = progressIndicatorColor ?? colors.primary;
+    final colorScheme = context.qui.colorScheme;
+    final indicatorColor = progressIndicatorColor ?? colorScheme.colors.primary.solid;
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
 
     return Row(
@@ -46,42 +43,29 @@ class QuiLoadingText extends StatelessWidget {
   }
 
   Widget _buildText(BuildContext context, bool disableAnimations) {
-    final colors = context.qui.colors;
+    final colorScheme = context.qui.colorScheme;
     final textWidget = Text(
       text,
-      style: TextStyle(fontFamily: FontFamily.inter, fontSize: 16.5, fontWeight: FontWeight.w500, color: colors.shimmerTextBase),
+      style: TextStyle(
+        fontFamily: FontFamily.inter,
+        fontSize: 16.5,
+        fontWeight: FontWeight.w500,
+        color: colorScheme.skeleton.skeletonText,
+      ),
     );
 
     if (disableAnimations) return textWidget;
 
     return textWidget
         .animate(onPlay: (controller) => controller.repeat())
-        .shimmer(duration: const Duration(milliseconds: 1500), color: colors.shimmerTextGlow, padding: 0);
+        .shimmer(
+          duration: const Duration(milliseconds: 1500),
+          color: colorScheme.skeleton.skeletonTextGlow,
+          padding: 0,
+        );
   }
 
   Widget _buildIndicator(BuildContext context, Color color, bool disableAnimations) {
     return SizedBox(height: 15, width: 15, child: CircularProgressIndicator(strokeWidth: 2, color: color));
   }
-}
-
-/// Preview of the [QuiLoadingText] widget.
-@Preview(name: 'QuiLoadingText', group: 'Feedback')
-Widget quiLoadingTextPreview() {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-    home: const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QuiLoadingText(text: 'Carregando oportunidades...'),
-            SizedBox(height: 20),
-            QuiLoadingText(text: 'Buscando...', progressIndicatorColor: Color(0xFF00A676)),
-          ],
-        ),
-      ),
-    ),
-  );
 }

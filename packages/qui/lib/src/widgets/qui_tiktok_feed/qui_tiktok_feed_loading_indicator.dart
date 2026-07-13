@@ -15,7 +15,7 @@ class _QuiTikTokFeedLoadingIndicator extends StatelessWidget {
       height: indicatorSize,
       child: visible
           ? ColorFiltered(
-              colorFilter: ColorFilter.mode(context.qui.colors.primary, BlendMode.srcIn),
+              colorFilter: ColorFilter.mode(context.qui.colorScheme.colors.primary.solid, BlendMode.srcIn),
               child: QuiLottie.instance.build((assets) => assets.loadingSlime,
                 width: indicatorSize,
                 height: indicatorSize,

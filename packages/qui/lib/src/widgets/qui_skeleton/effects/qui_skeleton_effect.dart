@@ -6,7 +6,7 @@ abstract class QuiSkeletonEffect {
   Paint buildPaint({
     required Rect bounds,
     required double t,
-    required QuiColors colors,
+    required QuiColorScheme colorScheme,
     required QuiSkeletonStyle style,
   });
 }
@@ -20,8 +20,8 @@ abstract class QuiSkeletonEffect {
 ///   const MyDimmedEffect();
 ///
 ///   @override
-///   Paint buildPaint({required Rect bounds, required double t, required QuiColors colors, required QuiSkeletonStyle style}) {
-///     return Paint()..color = colors.skeleton.withValues(alpha: 0.5);
+///   Paint buildPaint({required Rect bounds, required double t, required QuiColorScheme colorScheme, required QuiSkeletonStyle style}) {
+///     return Paint()..color = colorScheme.skeleton.bone.withValues(alpha: 0.5);
 ///   }
 /// }
 /// ```
@@ -32,13 +32,13 @@ abstract class QuiSkeletonStaticEffectBase extends QuiSkeletonEffect {
   /// Builds the [Paint] used to fill skeleton bones for the current frame.
   ///
   /// Called once per paint cycle with `t = 0`. [bounds] is the skeleton's
-  /// rect in the parent canvas coordinate space. [colors] is the active
-  /// [QuiColors] theme palette.
+  /// rect in the parent canvas coordinate space. [colorScheme] is the active
+  /// [QuiColorScheme] theme palette.
   @override
   Paint buildPaint({
     required Rect bounds,
     required double t,
-    required QuiColors colors,
+    required QuiColorScheme colorScheme,
     required QuiSkeletonStyle style,
   });
 }
@@ -60,9 +60,9 @@ abstract class QuiSkeletonStaticEffectBase extends QuiSkeletonEffect {
 ///   double get upperBound => math.pi * 2;
 ///
 ///   @override
-///   Paint buildPaint({required Rect bounds, required double t, required QuiColors colors, required QuiSkeletonStyle style}) {
+///   Paint buildPaint({required Rect bounds, required double t, required QuiColorScheme colorScheme, required QuiSkeletonStyle style}) {
 ///     final alpha = (0.5 + 0.5 * math.sin(t)).clamp(0.0, 1.0);
-///     return Paint()..color = colors.skeleton.withValues(alpha: alpha);
+///     return Paint()..color = colorScheme.skeleton.bone.withValues(alpha: alpha);
 ///   }
 /// }
 /// ```
@@ -77,13 +77,13 @@ abstract class QuiSkeletonAnimatedEffectBase extends QuiSkeletonEffect {
   ///
   /// Called on every paint frame with the current animation value `t`
   /// between [lowerBound] and [upperBound]. [bounds] is the skeleton's
-  /// rect in the parent canvas coordinate space. [colors] is the active
-  /// [QuiColors] theme palette.
+  /// rect in the parent canvas coordinate space. [colorScheme] is the active
+  /// [QuiColorScheme] theme palette.
   @override
   Paint buildPaint({
     required Rect bounds,
     required double t,
-    required QuiColors colors,
+    required QuiColorScheme colorScheme,
     required QuiSkeletonStyle style,
   });
 

@@ -4,7 +4,7 @@ import 'package:qui/qui.dart';
 
 void main() {
   group('QuiColorScale', () {
-    final scale = QuiPalette(primaryColor: const Color(0xFFFF4A4B)).primary;
+    final scale = QuiPalette().primary;
 
     test('when used directly as a color, it should have the same channels as step 9', () {
       expect(scale, isSameColorAs(scale[9]));
