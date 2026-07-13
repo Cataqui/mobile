@@ -9,14 +9,18 @@ import '../test_app.dart';
 final _colorScheme = QuiColorScheme.light();
 
 void main() {
-  group('QuiPrimaryButton', () {
+  group('QuiButton', () {
     group('tap behavior', () {
       testWidgets('when tapped with a sync callback, it should invoke onPressed', (tester) async {
         var tapCount = 0;
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () => tapCount += 1),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Ver oportunidades',
+              onPressed: () => tapCount += 1,
+            ),
           ),
         );
 
@@ -27,7 +31,11 @@ void main() {
       });
 
       testWidgets('when onPressed is null, tapping should not throw', (tester) async {
-        await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Indisponivel')));
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Indisponivel'),
+          ),
+        );
 
         await tester.tap(find.text('Indisponivel'));
         await tester.pump();
@@ -38,7 +46,7 @@ void main() {
       testWidgets('when onPressed returns a non-Future value, it should not enter loading state', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Salvar agora', onPressed: () {}),
           ),
         );
 
@@ -51,12 +59,12 @@ void main() {
       testWidgets('when enabled, it should wrap in QuiTapAnimation with scale animation', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
         final animation = tester.widget<QuiTapAnimation>(
-          find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(QuiTapAnimation)),
+          find.descendant(of: find.byType(QuiButton), matching: find.byType(QuiTapAnimation)),
         );
 
         expect(animation.onPressed, isNotNull);
@@ -64,10 +72,14 @@ void main() {
       });
 
       testWidgets('when disabled, it should pass null onPressed to QuiTapAnimation', (tester) async {
-        await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Indisponivel')));
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Indisponivel'),
+          ),
+        );
 
         final animation = tester.widget<QuiTapAnimation>(
-          find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(QuiTapAnimation)),
+          find.descendant(of: find.byType(QuiButton), matching: find.byType(QuiTapAnimation)),
         );
 
         expect(animation.onPressed, isNull);
@@ -78,22 +90,26 @@ void main() {
       testWidgets('when enabled, it should expose enabled semantics', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
         final semantics = tester.widget<Semantics>(
-          find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(Semantics)),
+          find.descendant(of: find.byType(QuiButton), matching: find.byType(Semantics)),
         );
 
         expect(semantics.properties.enabled, isTrue);
       });
 
       testWidgets('when disabled, it should expose disabled semantics', (tester) async {
-        await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Indisponivel')));
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Indisponivel'),
+          ),
+        );
 
         final semantics = tester.widget<Semantics>(
-          find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(Semantics)),
+          find.descendant(of: find.byType(QuiButton), matching: find.byType(Semantics)),
         );
 
         expect(semantics.properties.enabled, isFalse);
@@ -104,11 +120,16 @@ void main() {
       testWidgets('when fit is fit, it should size to content', (tester) async {
         await tester.pumpWidget(
           const TestApp(
-            child: QuiPrimaryButton(label: 'Encaixar', fit: QuiButtonFit.fit, onPressed: null),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Encaixar',
+              fit: QuiButtonFit.fit,
+              onPressed: null,
+            ),
           ),
         );
 
-        final buttonWidth = tester.getSize(find.byKey(const Key('qui_primary_button_container'))).width;
+        final buttonWidth = tester.getSize(find.byKey(const Key('qui_button_container'))).width;
         final screenWidth = tester.getSize(find.byType(MaterialApp)).width;
         expect(buttonWidth, lessThan(screenWidth));
       });
@@ -118,12 +139,17 @@ void main() {
           const TestApp(
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(label: 'Expandir', fit: QuiButtonFit.expand, onPressed: null),
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Expandir',
+                fit: QuiButtonFit.expand,
+                onPressed: null,
+              ),
             ),
           ),
         );
 
-        expect(tester.getSize(find.byKey(const Key('qui_primary_button_container'))).width, equals(300));
+        expect(tester.getSize(find.byKey(const Key('qui_button_container'))).width, equals(300));
       });
 
       testWidgets('when fit is expand in a tall parent, it should not fill the available height', (tester) async {
@@ -131,18 +157,24 @@ void main() {
           TestApp(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 300, maxHeight: 200),
-              child: const QuiPrimaryButton(label: 'Expandir', fit: QuiButtonFit.expand, onPressed: null),
+              child: const QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Expandir',
+                fit: QuiButtonFit.expand,
+                onPressed: null,
+              ),
             ),
           ),
         );
 
-        expect(tester.getSize(find.byKey(const Key('qui_primary_button_container'))).height, lessThan(200));
+        expect(tester.getSize(find.byKey(const Key('qui_button_container'))).height, lessThan(200));
       });
 
       testWidgets('when padding is customized, it should use the provided content padding', (tester) async {
         await tester.pumpWidget(
           const TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Compacto',
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               onPressed: null,
@@ -154,7 +186,11 @@ void main() {
       });
 
       testWidgets('when padding uses the default, it should apply symmetric 20x12', (tester) async {
-        await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Padrao', onPressed: null)));
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Padrao', onPressed: null),
+          ),
+        );
 
         expect(_buttonPadding(tester), equals(const EdgeInsets.symmetric(horizontal: 20, vertical: 12)));
       });
@@ -164,34 +200,68 @@ void main() {
       testWidgets('when background is not customized, it should use the primary color', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
-        expect(_buttonBackgroundColor(tester), equals(const Color(0xFFFF4A4B)));
+        expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.background));
+      });
+
+      testWidgets('when variant is secondary, it should use the secondary background color', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.secondary, label: 'Ver oportunidades', onPressed: () {}),
+          ),
+        );
+
+        expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.secondary.background));
       });
 
       testWidgets('when pressed, it should render the accessible pressed token', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
-        final gesture = await tester.startGesture(tester.getCenter(find.byType(QuiPrimaryButton)));
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(QuiButton)));
         await tester.pump();
 
         expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.backgroundHover));
+      });
 
+      testWidgets('when released after pressing, it should restore the resting background color', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
+          ),
+        );
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(QuiButton)));
+        await tester.pump();
         await gesture.up();
         await tester.pump();
+
         expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.background));
       });
 
-      testWidgets('when background is customized, it should use the provided color', (tester) async {
+      testWidgets('when color scheme is customized, it should use the provided background color', (tester) async {
+        const customColorScheme = QuiButtonColorScheme(
+          background: Color(0xFF00A676),
+          backgroundHover: Color(0xFF00A676),
+          backgroundDisabled: Color(0xFFDDDDDD),
+          foreground: Color(0xFFFFFFFF),
+          foregroundDisabled: Color(0xFF999999),
+        );
+
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Mapa', backgroundColor: const Color(0xFF00A676), onPressed: () {}),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Mapa',
+              colorScheme: customColorScheme,
+              onPressed: () {},
+            ),
           ),
         );
 
@@ -199,15 +269,29 @@ void main() {
       });
 
       testWidgets('when disabled, it should use the disabled background color', (tester) async {
-        await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Indisponivel')));
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Indisponivel'),
+          ),
+        );
 
         expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.backgroundDisabled));
       });
 
-      testWidgets('when disabled background is customized, it should use the provided color', (tester) async {
+      testWidgets('when color scheme is customized and disabled, it should use the disabled background color', (
+        tester,
+      ) async {
+        const customColorScheme = QuiButtonColorScheme(
+          background: Color(0xFF00A676),
+          backgroundHover: Color(0xFF009966),
+          backgroundDisabled: Color(0xFFDDDDDD),
+          foreground: Color(0xFFFFFFFF),
+          foregroundDisabled: Color(0xFF999999),
+        );
+
         await tester.pumpWidget(
           const TestApp(
-            child: QuiPrimaryButton(label: 'Fechado', disabledBackgroundColor: Color(0xFFDDDDDD)),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Fechado', colorScheme: customColorScheme),
           ),
         );
 
@@ -219,17 +303,42 @@ void main() {
       testWidgets('when foreground is not customized, it should use the semantic foreground color', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
         expect(_labelStyle(tester).color, equals(_colorScheme.buttons.primary.foreground));
       });
 
-      testWidgets('when foreground is customized, it should use the provided color as the label color', (tester) async {
+      testWidgets('when variant is secondary, it should use the secondary foreground color', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar', foregroundColor: const Color(0xFF1A1A1A), onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.secondary, label: 'Ver oportunidades', onPressed: () {}),
+          ),
+        );
+
+        expect(_labelStyle(tester).color, equals(_colorScheme.buttons.secondary.foreground));
+      });
+
+      testWidgets('when color scheme is customized, it should use the provided foreground color as the label color', (
+        tester,
+      ) async {
+        const customColorScheme = QuiButtonColorScheme(
+          background: Color(0xFFFFCD00),
+          backgroundHover: Color(0xFFFFCD00),
+          backgroundDisabled: Color(0xFFDDDDDD),
+          foreground: Color(0xFF1A1A1A),
+          foregroundDisabled: Color(0xFF999999),
+        );
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar',
+              colorScheme: customColorScheme,
+              onPressed: () {},
+            ),
           ),
         );
 
@@ -238,7 +347,11 @@ void main() {
       });
 
       testWidgets('when disabled, it should use the disabled foreground color', (tester) async {
-        await tester.pumpWidget(const TestApp(child: QuiPrimaryButton(label: 'Indisponivel')));
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Indisponivel'),
+          ),
+        );
 
         final style = tester.widget<Text>(find.text('Indisponivel')).style!;
         expect(style.color, equals(_colorScheme.buttons.primary.foregroundDisabled));
@@ -249,7 +362,8 @@ void main() {
       testWidgets('when leading icon spacing is customized, it should use the provided spacing', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Buscar',
               leadingIconBuilder: (state) => const Icon(Icons.search),
               leadingIconSpacing: 10,
@@ -266,7 +380,8 @@ void main() {
       testWidgets('when trailing icon spacing is customized, it should use the provided spacing', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Continuar',
               trailingIconBuilder: (state) => const Icon(Icons.arrow_forward),
               trailingIconSpacing: 12,
@@ -283,7 +398,8 @@ void main() {
       testWidgets('when leading icon spacing is default, it should use 8px', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Buscar',
               leadingIconBuilder: (state) => const Icon(Icons.search),
               onPressed: () {},
@@ -297,13 +413,21 @@ void main() {
       });
 
       testWidgets('when enabled, it should pass the foreground color to leadingIconBuilder', (tester) async {
+        const customColorScheme = QuiButtonColorScheme(
+          background: Color(0xFFFFFFFF),
+          backgroundHover: Color(0xFFF2F2F2),
+          backgroundDisabled: Color(0xFFDDDDDD),
+          foreground: Color(0xFFFF4A4B),
+          foregroundDisabled: Color(0xFF999999),
+        );
         Color? foregroundColor;
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Buscar',
-              foregroundColor: const Color(0xFFFF4A4B),
+              colorScheme: customColorScheme,
               leadingIconBuilder: (state) {
                 foregroundColor = state.foregroundColor;
                 return const Icon(Icons.search);
@@ -321,7 +445,8 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Indisponivel',
               leadingIconBuilder: (state) {
                 isEnabled = state.isEnabled;
@@ -339,7 +464,8 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Indisponivel',
               leadingIconBuilder: (state) {
                 foregroundColor = state.foregroundColor;
@@ -355,7 +481,8 @@ void main() {
       testWidgets('when both icons are provided, it should render three children in the row', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Filtrar',
               leadingIconBuilder: (state) => const Icon(Icons.tune),
               trailingIconBuilder: (state) => const Icon(Icons.arrow_drop_down),
@@ -371,7 +498,8 @@ void main() {
       testWidgets('when both icons are provided, it should render the leading icon', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Filtrar',
               leadingIconBuilder: (state) => const Icon(Icons.tune),
               trailingIconBuilder: (state) => const Icon(Icons.arrow_drop_down),
@@ -386,7 +514,8 @@ void main() {
       testWidgets('when both icons are provided, it should render the trailing icon', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Filtrar',
               leadingIconBuilder: (state) => const Icon(Icons.tune),
               trailingIconBuilder: (state) => const Icon(Icons.arrow_drop_down),
@@ -401,7 +530,8 @@ void main() {
       testWidgets('when only trailing icon is provided, it should render the label and trailing icon', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Continuar',
               trailingIconBuilder: (state) => const Icon(Icons.arrow_forward),
               onPressed: () {},
@@ -416,7 +546,8 @@ void main() {
       testWidgets('when only leading icon is provided, it should render the label and leading icon', (tester) async {
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Voltar',
               leadingIconBuilder: (state) => const Icon(Icons.arrow_back),
               onPressed: () {},
@@ -437,7 +568,11 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
@@ -452,7 +587,11 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
@@ -469,7 +608,11 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
@@ -485,7 +628,8 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Salvar agora',
               onPressed: () {
                 tapCount += 1;
@@ -497,7 +641,7 @@ void main() {
 
         await tester.tap(find.text('Salvar agora'));
         await tester.pump(const Duration(milliseconds: 51));
-        await tester.tap(find.byKey(const Key('qui_primary_button_container')));
+        await tester.tap(find.byKey(const Key('qui_button_container')));
         await tester.pump();
         completer.complete();
         await _pumpContentRestoredState(tester);
@@ -508,13 +652,21 @@ void main() {
       testWidgets('when loading with custom foreground color, it should pass that color to the loading indicator', (
         tester,
       ) async {
+        const customColorScheme = QuiButtonColorScheme(
+          background: Color(0xFFFFFFFF),
+          backgroundHover: Color(0xFFF2F2F2),
+          backgroundDisabled: Color(0xFFDDDDDD),
+          foreground: Color(0xFF1A1A1A),
+          foregroundDisabled: Color(0xFF999999),
+        );
         final completer = Completer<void>();
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Salvar agora',
-              foregroundColor: const Color(0xFF1A1A1A),
+              colorScheme: customColorScheme,
               onPressed: () => completer.future,
             ),
           ),
@@ -531,7 +683,7 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Rapido', onPressed: () => completer.future),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Rapido', onPressed: () => completer.future),
           ),
         );
 
@@ -549,7 +701,8 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Enviar',
               onPressed: () {
                 callCount += 1;
@@ -561,7 +714,7 @@ void main() {
 
         await tester.tap(find.text('Enviar'));
         await tester.pump(const Duration(milliseconds: 20));
-        await tester.tap(find.byKey(const Key('qui_primary_button_container')));
+        await tester.tap(find.byKey(const Key('qui_button_container')));
         await tester.pump(const Duration(milliseconds: 60));
 
         firstCompleter.complete();
@@ -578,15 +731,19 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Enviar candidatura completa', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Enviar candidatura completa',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
-        final restingWidth = tester.getSize(find.byKey(const Key('qui_primary_button_container'))).width;
+        final restingWidth = tester.getSize(find.byKey(const Key('qui_button_container'))).width;
         await tester.tap(find.text('Enviar candidatura completa'));
         await _pumpLoadingState(tester);
         await tester.pump(const Duration(milliseconds: 300));
-        final loadingWidth = tester.getSize(find.byKey(const Key('qui_primary_button_container'))).width;
+        final loadingWidth = tester.getSize(find.byKey(const Key('qui_button_container'))).width;
 
         expect(loadingWidth, lessThan(restingWidth));
       });
@@ -598,7 +755,8 @@ void main() {
           TestApp(
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Enviar candidatura completa',
                 fit: QuiButtonFit.expand,
                 onPressed: () => completer.future,
@@ -611,7 +769,7 @@ void main() {
         await _pumpLoadingState(tester);
         await tester.pump(const Duration(milliseconds: 300));
 
-        expect(tester.getSize(find.byKey(const Key('qui_primary_button_container'))).width, equals(300));
+        expect(tester.getSize(find.byKey(const Key('qui_button_container'))).width, equals(300));
       });
 
       testWidgets('when loading completes, it should transition through overlay state', (tester) async {
@@ -619,7 +777,11 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
@@ -639,7 +801,8 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Ligar agora',
               leadingIconBuilder: (state) => const SizedBox.square(dimension: 24),
               onPressed: () => completer.future,
@@ -660,7 +823,8 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Ligar agora',
               leadingIconBuilder: (state) => const SizedBox.square(dimension: 24),
               onPressed: () => completer.future,
@@ -685,7 +849,11 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
@@ -713,7 +881,11 @@ void main() {
           TestApp(
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
-              child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Salvar agora',
+                onPressed: () => completer.future,
+              ),
             ),
           ),
         );
@@ -731,7 +903,11 @@ void main() {
           TestApp(
             child: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
-              child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Salvar agora',
+                onPressed: () => completer.future,
+              ),
             ),
           ),
         );
@@ -755,7 +931,11 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
@@ -775,7 +955,11 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: QuiPrimaryButton(label: 'Salvar agora', onPressed: () => completer.future),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              onPressed: () => completer.future,
+            ),
           ),
         );
 
@@ -796,7 +980,8 @@ void main() {
           TestApp(
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Esquerda',
                 fit: QuiButtonFit.expand,
                 alignment: QuiButtonAlignment.left,
@@ -806,9 +991,7 @@ void main() {
           ),
         );
 
-        final align = tester.widget<Align>(
-          find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(Align)),
-        );
+        final align = tester.widget<Align>(find.descendant(of: find.byType(QuiButton), matching: find.byType(Align)));
 
         expect(align.alignment, equals(Alignment.centerLeft));
       });
@@ -818,7 +1001,8 @@ void main() {
           TestApp(
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Direita',
                 fit: QuiButtonFit.expand,
                 alignment: QuiButtonAlignment.right,
@@ -828,9 +1012,7 @@ void main() {
           ),
         );
 
-        final align = tester.widget<Align>(
-          find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(Align)),
-        );
+        final align = tester.widget<Align>(find.descendant(of: find.byType(QuiButton), matching: find.byType(Align)));
 
         expect(align.alignment, equals(Alignment.centerRight));
       });
@@ -840,7 +1022,8 @@ void main() {
           TestApp(
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Centro',
                 fit: QuiButtonFit.expand,
                 alignment: QuiButtonAlignment.center,
@@ -850,9 +1033,7 @@ void main() {
           ),
         );
 
-        final align = tester.widget<Align>(
-          find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(Align)),
-        );
+        final align = tester.widget<Align>(find.descendant(of: find.byType(QuiButton), matching: find.byType(Align)));
 
         expect(align.alignment, equals(Alignment.center));
       });
@@ -862,13 +1043,13 @@ void main() {
 
 Color? _buttonBackgroundColor(WidgetTester tester) {
   final decorated = tester.widget<DecoratedBox>(
-    find.descendant(of: find.byType(QuiPrimaryButton), matching: find.byType(DecoratedBox)),
+    find.descendant(of: find.byType(QuiButton), matching: find.byType(DecoratedBox)),
   );
   return (decorated.decoration as BoxDecoration).color;
 }
 
 EdgeInsetsGeometry? _buttonPadding(WidgetTester tester) {
-  return tester.widget<Padding>(find.byKey(const Key('qui_primary_button_container'))).padding;
+  return tester.widget<Padding>(find.byKey(const Key('qui_button_container'))).padding;
 }
 
 TextStyle _labelStyle(WidgetTester tester) {

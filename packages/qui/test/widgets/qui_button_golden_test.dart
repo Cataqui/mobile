@@ -6,20 +6,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
 void main() {
-  group('QuiPrimaryButton Golden Tests', () {
+  group('QuiButton Golden Tests', () {
     goldenTest(
       'when rendering visual states, it should match the approved goldens',
-      fileName: 'qui_primary_button_states',
+      fileName: 'qui_button_states',
       builder: () => GoldenTestGroup(
         scenarioConstraints: const BoxConstraints(minWidth: 260),
         children: [
           GoldenTestScenario(
             name: 'resting label only',
-            child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
+          ),
+          GoldenTestScenario(
+            name: 'secondary resting label only',
+            child: QuiButton(variant: QuiButtonVariant.secondary, label: 'Ver oportunidades', onPressed: () {}),
           ),
           GoldenTestScenario(
             name: 'leading icon',
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Buscar',
               leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
               onPressed: () {},
@@ -27,7 +32,8 @@ void main() {
           ),
           GoldenTestScenario(
             name: 'trailing icon',
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Continuar',
               trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
               onPressed: () {},
@@ -35,7 +41,8 @@ void main() {
           ),
           GoldenTestScenario(
             name: 'both icons',
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Filtrar',
               leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
               trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
@@ -43,50 +50,108 @@ void main() {
             ),
           ),
           GoldenTestScenario(
-            name: 'custom background',
-            child: QuiPrimaryButton(label: 'Mapa', backgroundColor: const Color(0xFF00A676), onPressed: () {}),
+            name: 'custom color scheme background',
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Mapa',
+              colorScheme: const QuiButtonColorScheme(
+                background: Color(0xFF00A676),
+                backgroundHover: Color(0xFF009966),
+                backgroundDisabled: Color(0xFFDDDDDD),
+                foreground: Color(0xFFFFFFFF),
+                foregroundDisabled: Color(0xFF999999),
+              ),
+              onPressed: () {},
+            ),
           ),
           GoldenTestScenario(
-            name: 'custom foreground',
-            child: QuiPrimaryButton(
+            name: 'custom color scheme foreground',
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Salvar',
-              foregroundColor: const Color(0xFF1A1A1A),
-              backgroundColor: const Color(0xFFFFCD00),
+              colorScheme: const QuiButtonColorScheme(
+                background: Color(0xFFFFCD00),
+                backgroundHover: Color(0xFFE6B900),
+                backgroundDisabled: Color(0xFFDDDDDD),
+                foreground: Color(0xFF1A1A1A),
+                foregroundDisabled: Color(0xFF999999),
+              ),
               onPressed: () {},
             ),
           ),
           GoldenTestScenario(
             name: 'disabled',
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Indisponivel',
               leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
             ),
           ),
           GoldenTestScenario(
-            name: 'disabled custom background',
-            child: const QuiPrimaryButton(label: 'Fechado', disabledBackgroundColor: Color(0xFFDDDDDD)),
+            name: 'secondary disabled',
+            child: QuiButton(
+              variant: QuiButtonVariant.secondary,
+              label: 'Indisponivel',
+              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'disabled custom color scheme',
+            child: const QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Fechado',
+              colorScheme: QuiButtonColorScheme(
+                background: Color(0xFF00A676),
+                backgroundHover: Color(0xFF009966),
+                backgroundDisabled: Color(0xFFDDDDDD),
+                foreground: Color(0xFFFFFFFF),
+                foregroundDisabled: Color(0xFF999999),
+              ),
+            ),
           ),
           GoldenTestScenario(
             name: 'expand',
             child: const SizedBox(
               width: 300,
-              child: QuiPrimaryButton(label: 'Expandido', fit: QuiButtonFit.expand, onPressed: null),
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Expandido',
+                fit: QuiButtonFit.expand,
+                onPressed: null,
+              ),
             ),
           ),
           GoldenTestScenario(
             name: 'short label',
-            child: QuiPrimaryButton(label: 'OK', onPressed: () {}),
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'OK', onPressed: () {}),
           ),
           GoldenTestScenario(
             name: 'long label',
-            child: QuiPrimaryButton(label: 'Enviar candidatura completa agora', onPressed: () {}),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Enviar candidatura completa agora',
+              onPressed: () {},
+            ),
           ),
           GoldenTestScenario(
             name: 'custom padding',
-            child: const QuiPrimaryButton(
+            child: const QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Compacto',
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               onPressed: null,
+            ),
+          ),
+          GoldenTestScenario(
+            name: 'custom spacing',
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Espacado',
+              leadingIconSpacing: 14,
+              trailingIconSpacing: 18,
+              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
+              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
+              onPressed: () {},
             ),
           ),
         ],
@@ -95,7 +160,7 @@ void main() {
 
     goldenTest(
       'when rendering alignment variants with expand, it should match the approved goldens',
-      fileName: 'qui_primary_button_alignment',
+      fileName: 'qui_button_alignment',
       builder: () => GoldenTestGroup(
         scenarioConstraints: const BoxConstraints(maxWidth: 300),
         children: [
@@ -103,7 +168,8 @@ void main() {
             name: 'left',
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Esquerda',
                 fit: QuiButtonFit.expand,
                 alignment: QuiButtonAlignment.left,
@@ -115,7 +181,8 @@ void main() {
             name: 'center',
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Centro',
                 fit: QuiButtonFit.expand,
                 alignment: QuiButtonAlignment.center,
@@ -127,7 +194,8 @@ void main() {
             name: 'right',
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Direita',
                 fit: QuiButtonFit.expand,
                 alignment: QuiButtonAlignment.right,
@@ -141,7 +209,7 @@ void main() {
 
     goldenTest(
       'when pressing the button, it should match the approved golden',
-      fileName: 'qui_primary_button_pressed',
+      fileName: 'qui_button_pressed',
       whilePerforming: (tester) async {
         final gesture = await tester.startGesture(tester.getCenter(find.text('Ver oportunidades')));
         await tester.pump(const Duration(milliseconds: 120));
@@ -150,13 +218,13 @@ void main() {
       },
       builder: () => SizedBox(
         width: 220,
-        child: QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+        child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
       ),
     );
 
     goldenTest(
       'when rendering loading states with animations disabled, it should match the approved goldens',
-      fileName: 'qui_primary_button_loading',
+      fileName: 'qui_button_loading',
       whilePerforming: (tester) async {
         await tester.tap(find.text('Fit loading'));
         await tester.tap(find.text('Expand loading'));
@@ -172,13 +240,18 @@ void main() {
           children: [
             GoldenTestScenario(
               name: 'fit loading',
-              child: QuiPrimaryButton(label: 'Fit loading', onPressed: () => Completer<void>().future),
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Fit loading',
+                onPressed: () => Completer<void>().future,
+              ),
             ),
             GoldenTestScenario(
               name: 'expand loading',
               child: SizedBox(
                 width: 300,
-                child: QuiPrimaryButton(
+                child: QuiButton(
+                  variant: QuiButtonVariant.primary,
                   label: 'Expand loading',
                   fit: QuiButtonFit.expand,
                   onPressed: () => Completer<void>().future,
@@ -186,17 +259,24 @@ void main() {
               ),
             ),
             GoldenTestScenario(
-              name: 'custom foreground loading',
-              child: QuiPrimaryButton(
+              name: 'custom color scheme loading',
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Custom loading',
-                foregroundColor: const Color(0xFF1A1A1A),
-                backgroundColor: const Color(0xFFFFCD00),
+                colorScheme: const QuiButtonColorScheme(
+                  background: Color(0xFFFFCD00),
+                  backgroundHover: Color(0xFFE6B900),
+                  backgroundDisabled: Color(0xFFDDDDDD),
+                  foreground: Color(0xFF1A1A1A),
+                  foregroundDisabled: Color(0xFF999999),
+                ),
                 onPressed: () => Completer<void>().future,
               ),
             ),
             GoldenTestScenario(
               name: 'loading with icon',
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Icon loading',
                 leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
                 onPressed: () => Completer<void>().future,
@@ -209,13 +289,14 @@ void main() {
 
     goldenTest(
       'when rendering with custom dimensions, it should match the approved goldens',
-      fileName: 'qui_primary_button_custom_dimensions',
+      fileName: 'qui_button_custom_dimensions',
       builder: () => GoldenTestGroup(
         scenarioConstraints: const BoxConstraints(maxWidth: 400),
         children: [
           GoldenTestScenario(
             name: 'fit with icons',
-            child: QuiPrimaryButton(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
               label: 'Filtrar resultados',
               leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
               trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
@@ -226,7 +307,8 @@ void main() {
             name: 'expand with trailing icon',
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Continuar',
                 trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
                 fit: QuiButtonFit.expand,
@@ -238,7 +320,8 @@ void main() {
             name: 'expand disabled',
             child: SizedBox(
               width: 300,
-              child: QuiPrimaryButton(
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
                 label: 'Indisponivel',
                 fit: QuiButtonFit.expand,
                 leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
@@ -251,7 +334,7 @@ void main() {
 
     goldenTest(
       'when multiple buttons are stacked, it should match the approved goldens',
-      fileName: 'qui_primary_button_stacked',
+      fileName: 'qui_button_stacked',
       builder: () => GoldenTestGroup(
         scenarioConstraints: const BoxConstraints(maxWidth: 300),
         children: [
@@ -260,21 +343,24 @@ void main() {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                QuiPrimaryButton(label: 'Ver oportunidades', onPressed: () {}),
+                QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
                 const SizedBox(height: 12),
-                QuiPrimaryButton(
+                QuiButton(
+                  variant: QuiButtonVariant.primary,
                   label: 'Buscar',
                   leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
                   onPressed: () {},
                 ),
                 const SizedBox(height: 12),
-                QuiPrimaryButton(
+                QuiButton(
+                  variant: QuiButtonVariant.primary,
                   label: 'Continuar',
                   trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
                   onPressed: () {},
                 ),
                 const SizedBox(height: 12),
-                QuiPrimaryButton(
+                QuiButton(
+                  variant: QuiButtonVariant.primary,
                   label: 'Indisponivel',
                   leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
                 ),

@@ -3,51 +3,55 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:qui/src/enums/qui_button_alignment.dart';
 import 'package:qui/src/enums/qui_button_fit.dart';
+import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_dot_loading_indicator/qui_dot_loading_indicator.dart';
 import 'package:qui/src/widgets/qui_tap_animation.dart';
 
-part 'qui_primary_button_types.dart';
+part 'qui_button_enums.dart';
+part 'qui_button_types.dart';
 
-/// A primary action button for the QUI design system.
+/// An action button for the QUI design system.
 ///
 /// When [onPressed] returns a [Future], the button briefly shows a
 /// loading indicator while that future is still pending. Synchronous callbacks
 /// keep the button feeling instant and do not enter the loading state.
+/// The [variant] controls which [QuiButtonColorScheme] is read from the active
+/// QUI theme unless [colorScheme] is provided directly.
 ///
 /// ```dart
-/// QuiPrimaryButton(
+/// QuiButton(
+///   variant: QuiButtonVariant.primary,
 ///   label: 'Ver oportunidades',
 ///   onPressed: () {},
 /// )
 /// ```
-class QuiPrimaryButton extends StatefulWidget {
-  /// Creates a QUI primary button.
+class QuiButton extends StatefulWidget {
+  /// Creates a QUI button.
   ///
-  /// Use this when you want a primary action that can remain instant for
-  /// synchronous callbacks and automatically show the loading
-  /// indicator while an async callback is still pending.
+  /// Use [variant] to choose the themed button colors and [colorScheme] when a
+  /// caller needs to provide a complete custom style. Use [leadingIconSpacing]
+  /// and [trailingIconSpacing] to tune the icon gaps independently.
   ///
   /// ```dart
-  /// QuiPrimaryButton(
+  /// QuiButton(
+  ///   variant: QuiButtonVariant.primary,
   ///   label: 'Salvar agora',
   ///   onPressed: () async {
   ///     await Future<void>.delayed(const Duration(seconds: 2));
   ///   },
   /// )
   /// ```
-  const QuiPrimaryButton({
+  const QuiButton({
     required this.label,
+    required this.variant,
     super.key,
     this.onPressed,
     this.leadingIconBuilder,
     this.trailingIconBuilder,
     this.leadingIconSpacing = 8,
     this.trailingIconSpacing = 8,
-    this.backgroundColor,
-    this.disabledBackgroundColor,
-    this.foregroundColor,
-    this.disabledForegroundColor,
+    this.colorScheme,
     this.alignment = QuiButtonAlignment.center,
     this.fit = QuiButtonFit.fit,
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -55,6 +59,9 @@ class QuiPrimaryButton extends StatefulWidget {
 
   /// Visible button label.
   final String label;
+
+  /// Visual style variant resolved from the active QUI theme.
+  final QuiButtonVariant variant;
 
   /// Called when the button is pressed.
   ///
@@ -67,10 +74,10 @@ class QuiPrimaryButton extends StatefulWidget {
   final FutureOr<void> Function()? onPressed;
 
   /// Optional icon rendered before [label].
-  final QuiPrimaryButtonIconBuilder? leadingIconBuilder;
+  final QuiButtonIconBuilder? leadingIconBuilder;
 
   /// Optional icon rendered after [label].
-  final QuiPrimaryButtonIconBuilder? trailingIconBuilder;
+  final QuiButtonIconBuilder? trailingIconBuilder;
 
   /// Horizontal spacing between [leadingIconBuilder]'s icon and [label].
   final double leadingIconSpacing;
@@ -78,26 +85,11 @@ class QuiPrimaryButton extends StatefulWidget {
   /// Horizontal spacing between [label] and [trailingIconBuilder]'s icon.
   final double trailingIconSpacing;
 
-  /// Filled background color when enabled.
+  /// Complete color scheme used by this button.
   ///
-  /// Defaults to `context.qui.colorScheme.buttons.primary.background`.
-  final Color? backgroundColor;
-
-  /// Filled background color when disabled.
-  ///
-  /// Defaults to `context.qui.colorScheme.buttons.primary.backgroundDisabled`.
-  final Color? disabledBackgroundColor;
-
-  /// Label and recommended icon color when enabled.
-  ///
-  /// Defaults to `context.qui.colorScheme.buttons.primary.foreground`, which is
-  /// contrast-matched to the configured primary color.
-  final Color? foregroundColor;
-
-  /// Label and recommended icon color when disabled.
-  ///
-  /// Defaults to `context.qui.colorScheme.buttons.primary.foregroundDisabled`.
-  final Color? disabledForegroundColor;
+  /// When null, [variant] resolves a [QuiButtonColorScheme] from
+  /// `context.qui.colorScheme.buttons`.
+  final QuiButtonColorScheme? colorScheme;
 
   /// Controls the horizontal alignment of the label and icons within the
   /// button bounds.
@@ -116,16 +108,14 @@ class QuiPrimaryButton extends StatefulWidget {
 
   /// Insets applied inside the button around the label, icons, and loader.
   ///
-  /// Defaults to the standard QUI primary button padding.
+  /// Defaults to the standard QUI button padding.
   final EdgeInsetsGeometry padding;
 
   @override
-  State<QuiPrimaryButton> createState() => _QuiPrimaryButtonState();
+  State<QuiButton> createState() => _QuiButtonState();
 }
 
-class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerProviderStateMixin {
-  bool _isHovered = false;
-  bool _isPressed = false;
+class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMixin {
   static const Duration _loadingDelay = Duration(milliseconds: 50);
   static const Duration _contentTransitionDuration = Duration(milliseconds: 300);
   static const TextStyle _baseLabelStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
@@ -134,6 +124,8 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
   late final AnimationController _contentOpacityController;
   final GlobalKey<State<StatefulWidget>> _loadingIndicatorKey = GlobalKey();
 
+  bool _isHovered = false;
+  bool _isPressed = false;
   bool _isLoading = false;
   bool _isPendingPress = false;
   bool _showLoadingIndicator = false;
@@ -257,21 +249,19 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.qui.colorScheme;
+    final buttonColorScheme = widget.colorScheme ?? widget.variant.colorScheme(colorScheme);
     final isEnabled = _isEnabled;
     final isInteractive = _isInteractive;
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
 
-    final resolvedBackground = switch ((isEnabled, widget.backgroundColor, _isPressed, _isHovered)) {
-      (false, _, _, _) => widget.disabledBackgroundColor ?? colorScheme.buttons.primary.backgroundDisabled,
-      (true, final Color custom, _, _) => custom,
-      (true, null, true, _) => colorScheme.buttons.primary.backgroundHover,
-      (true, null, false, true) => colorScheme.buttons.primary.backgroundHover,
-      _ => colorScheme.buttons.primary.background,
+    final resolvedBackground = switch ((isEnabled, _isPressed, _isHovered)) {
+      (false, _, _) => buttonColorScheme.backgroundDisabled,
+      (true, true, _) => buttonColorScheme.backgroundHover,
+      (true, false, true) => buttonColorScheme.backgroundHover,
+      (true, false, false) => buttonColorScheme.background,
     };
 
-    final resolvedForeground = isEnabled
-        ? widget.foregroundColor ?? colorScheme.buttons.primary.foreground
-        : widget.disabledForegroundColor ?? colorScheme.buttons.primary.foregroundDisabled;
+    final resolvedForeground = isEnabled ? buttonColorScheme.foreground : buttonColorScheme.foregroundDisabled;
 
     final labelStyle = _baseLabelStyle.copyWith(color: resolvedForeground);
 
@@ -285,11 +275,7 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
 
     final innerContent = widget.fit == QuiButtonFit.expand ? _alignedContent(animatedContent) : animatedContent;
 
-    final padded = Padding(
-      key: const Key('qui_primary_button_container'),
-      padding: widget.padding,
-      child: innerContent,
-    );
+    final padded = Padding(key: const Key('qui_button_container'), padding: widget.padding, child: innerContent);
 
     final decorated = DecoratedBox(
       decoration: BoxDecoration(color: resolvedBackground, borderRadius: _pillBorderRadius),
@@ -323,7 +309,7 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
   Widget _buildContent({required bool isEnabled, required Color foregroundColor, required TextStyle labelStyle}) {
     final content = Text(widget.label, style: labelStyle);
 
-    final iconState = QuiPrimaryButtonIconState(isEnabled: isEnabled, foregroundColor: foregroundColor);
+    final buttonState = QuiButtonState(isEnabled: isEnabled, foregroundColor: foregroundColor);
 
     final hasLeading = widget.leadingIconBuilder != null;
     final hasTrailing = widget.trailingIconBuilder != null;
@@ -335,7 +321,7 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
         children.add(
           Padding(
             padding: EdgeInsets.only(right: widget.leadingIconSpacing),
-            child: widget.leadingIconBuilder!(iconState),
+            child: widget.leadingIconBuilder!(buttonState),
           ),
         );
       }
@@ -345,7 +331,7 @@ class _QuiPrimaryButtonState extends State<QuiPrimaryButton> with SingleTickerPr
         children.add(
           Padding(
             padding: EdgeInsets.only(left: widget.trailingIconSpacing),
-            child: widget.trailingIconBuilder!(iconState),
+            child: widget.trailingIconBuilder!(buttonState),
           ),
         );
       }

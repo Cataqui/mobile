@@ -160,7 +160,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               ),
             ),
             const SizedBox(height: 20),
-            QuiPrimaryButton(
+            QuiButton(
+              variant: QuiButtonVariant.primary,
               label: i18n.feed.loadingMore.error.retryButtonTitle,
               leadingIconBuilder: (state) => QuiIcons.instance.build(
                 (assets) => assets.arrowRotateClockwise,
@@ -215,7 +216,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               ),
             ),
             const SizedBox(height: 40),
-            QuiSecondaryButton(
+            QuiButton(
+              variant: QuiButtonVariant.secondary,
               label: i18n.feed.empty.adjustAreaButtonTitle,
               leadingIconBuilder: (state) => QuiIcons.instance.build(
                 (assets) => assets.wrench,
@@ -314,7 +316,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             ),
           ),
           const SizedBox(height: 20),
-          QuiPrimaryButton(
+          QuiButton(
+            variant: QuiButtonVariant.primary,
             label: i18n.feed.error.retryButtonTitle,
             leadingIconBuilder: (state) => QuiIcons.instance.build(
               (assets) => assets.arrowRotateClockwise,

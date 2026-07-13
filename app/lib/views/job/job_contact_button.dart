@@ -26,7 +26,8 @@ class JobContactButton extends ConsumerWidget {
     return switch (contactReference.contactMethod) {
       JobContactMethod.whatsapp => _buildWhatsAppButton(i18n, colorScheme, ref),
       JobContactMethod.phoneCall => _buildPhoneCallButton(i18n, colorScheme, ref),
-      JobContactMethod.unknown => QuiPrimaryButton(
+      JobContactMethod.unknown => QuiButton(
+        variant: QuiButtonVariant.primary,
         label: i18n.job.contactButton.unknown,
         padding: _buttonPadding,
         leadingIconSpacing: 10,
@@ -40,11 +41,11 @@ class JobContactButton extends ConsumerWidget {
     };
   }
 
-  QuiPrimaryButton _buildWhatsAppButton(Translations i18n, QuiColorScheme colorScheme, WidgetRef ref) {
-    return QuiPrimaryButton(
+  QuiButton _buildWhatsAppButton(Translations i18n, QuiColorScheme colorScheme, WidgetRef ref) {
+    return QuiButton(
+      variant: QuiButtonVariant.primary,
       label: i18n.job.contactButton.whatsapp,
-      backgroundColor: colorScheme.buttons.whatsapp.tertiary.background,
-      foregroundColor: colorScheme.buttons.whatsapp.tertiary.foreground,
+      colorScheme: colorScheme.buttons.whatsapp.tertiary,
       padding: _buttonPadding,
       leadingIconBuilder: (state) => QuiIcons.instance.build(
         (assets) => assets.whatsapp,
@@ -56,11 +57,11 @@ class JobContactButton extends ConsumerWidget {
     );
   }
 
-  QuiPrimaryButton _buildPhoneCallButton(Translations i18n, QuiColorScheme colorScheme, WidgetRef ref) {
-    return QuiPrimaryButton(
+  QuiButton _buildPhoneCallButton(Translations i18n, QuiColorScheme colorScheme, WidgetRef ref) {
+    return QuiButton(
+      variant: QuiButtonVariant.primary,
       label: i18n.job.contactButton.phoneCall,
-      backgroundColor: colorScheme.success.solid,
-      foregroundColor: colorScheme.success.onSolid,
+      colorScheme: colorScheme.buttons.success,
       padding: _buttonPadding,
       leadingIconSpacing: 12,
       leadingIconBuilder: (state) => QuiIcons.instance.build(

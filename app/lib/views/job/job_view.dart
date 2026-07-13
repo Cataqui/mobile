@@ -241,7 +241,8 @@ class _JobViewState extends ConsumerState<JobView> {
             ),
           ),
           const SizedBox(height: 20),
-          QuiSecondaryButton(
+          QuiButton(
+            variant: QuiButtonVariant.secondary,
             label: i18n.job.error.retryButtonTitle,
             leadingIconBuilder: (state) => QuiIcons.instance.build(
               (assets) => assets.arrowRotateClockwise,

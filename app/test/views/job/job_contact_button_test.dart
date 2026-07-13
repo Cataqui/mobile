@@ -32,10 +32,7 @@ Widget _buildApp({
       theme: QuiTheme.light(),
       home: Scaffold(
         body: Center(
-          child: JobContactButton(
-            jobId: 'test-job',
-            contactReference: contactReference,
-          ),
+          child: JobContactButton(jobId: 'test-job', contactReference: contactReference),
         ),
       ),
     ),
@@ -63,77 +60,89 @@ void main() {
 
     group('when contact method is whatsapp', () {
       testWidgets('it should render the "Enviar Mensagem" label', (tester) async {
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
+          ),
+        );
 
         expect(find.text(i18n.job.contactButton.whatsapp), findsOneWidget);
       });
 
       testWidgets('it should display the whatsapp icon', (tester) async {
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
+          ),
+        );
 
-        expect(find.byType(QuiPrimaryButton), findsOneWidget);
+        expect(find.byType(QuiButton), findsOneWidget);
       });
     });
 
     group('when contact method is phone call', () {
       testWidgets('it should render the "Ligar agora" label', (tester) async {
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.phoneCall),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.phoneCall),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
+          ),
+        );
 
         expect(find.text(i18n.job.contactButton.phoneCall), findsOneWidget);
       });
 
       testWidgets('it should display the phone icon', (tester) async {
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.phoneCall),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.phoneCall),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
+          ),
+        );
 
-        expect(find.byType(QuiPrimaryButton), findsOneWidget);
+        expect(find.byType(QuiButton), findsOneWidget);
       });
     });
 
     group('when contact method is unknown', () {
       testWidgets('it should render the "Indisponível" label', (tester) async {
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.unknown),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.unknown),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
+          ),
+        );
 
         expect(find.text(i18n.job.contactButton.unknown), findsOneWidget);
       });
 
       testWidgets('tapping the button should not trigger any action', (tester) async {
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.unknown),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(contactMethod: JobContactMethod.unknown),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
+          ),
+        );
 
         await tester.tap(find.text(i18n.job.contactButton.unknown));
         await tester.pumpAndSettle();
@@ -163,16 +172,18 @@ void main() {
 
         when(() => whatsapp.launchChat(number: any(named: 'number'))).thenAnswer((_) async => true);
 
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(
-            contactMethod: JobContactMethod.whatsapp,
-            contactId: 'test-contact',
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(
+              contactMethod: JobContactMethod.whatsapp,
+              contactId: 'test-contact',
+            ),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
           ),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        );
 
         await tester.tap(find.text(i18n.job.contactButton.whatsapp));
         await tester.pumpAndSettle();
@@ -202,16 +213,18 @@ void main() {
 
         when(() => telephony.call(number: any(named: 'number'))).thenAnswer((_) async => true);
 
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(
-            contactMethod: JobContactMethod.phoneCall,
-            contactId: 'test-contact',
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(
+              contactMethod: JobContactMethod.phoneCall,
+              contactId: 'test-contact',
+            ),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
           ),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        );
 
         await tester.tap(find.text(i18n.job.contactButton.phoneCall));
         await tester.pumpAndSettle();
@@ -229,16 +242,18 @@ void main() {
           ),
         ).thenThrow(StateError('network error'));
 
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(
-            contactMethod: JobContactMethod.whatsapp,
-            contactId: 'test-contact',
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(
+              contactMethod: JobContactMethod.whatsapp,
+              contactId: 'test-contact',
+            ),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
           ),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        );
 
         await tester.tap(find.text(i18n.job.contactButton.whatsapp));
         await tester.pumpAndSettle();
@@ -254,16 +269,18 @@ void main() {
           ),
         ).thenThrow(StateError('network error'));
 
-        await tester.pumpWidget(_buildApp(
-          contactReference: JobContactReferenceDto.fixture().copyWith(
-            contactMethod: JobContactMethod.whatsapp,
-            contactId: 'test-contact',
+        await tester.pumpWidget(
+          _buildApp(
+            contactReference: JobContactReferenceDto.fixture().copyWith(
+              contactMethod: JobContactMethod.whatsapp,
+              contactId: 'test-contact',
+            ),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
           ),
-          i18n: i18n,
-          repository: repository,
-          whatsapp: whatsapp,
-          telephony: telephony,
-        ));
+        );
 
         await tester.tap(find.text(i18n.job.contactButton.whatsapp));
         await tester.pumpAndSettle();
