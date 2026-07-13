@@ -120,7 +120,6 @@ class JobViewTestHelpers {
     return ProviderScope(
       overrides: [
         jobStateProvider(resolvedJobId).overrideWith(() => jobState),
-        quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
       ],
       child: MaterialApp(
         theme: QuiTheme.light(),
@@ -149,7 +148,6 @@ class JobViewTestHelpers {
         goRouterProvider.overrideWithValue(goRouter),
         feedStateProvider.overrideWith(feedState),
         jobRepositoryProvider.overrideWithValue(jobRepository),
-        quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
       ],
       child: MaterialApp.router(
         theme: QuiTheme.light(),

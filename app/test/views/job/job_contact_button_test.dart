@@ -26,7 +26,6 @@ Widget _buildApp({
       whatsappProvider.overrideWithValue(whatsapp),
       telephonyProvider.overrideWithValue(telephony),
       translationProvider.overrideWithValue(i18n),
-      quiLottieProvider.overrideWithValue(const QuiLottie(animate: false)),
     ],
     child: MaterialApp(
       theme: QuiTheme.light(),
