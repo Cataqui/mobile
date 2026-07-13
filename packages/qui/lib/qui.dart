@@ -1,7 +1,6 @@
 /// Cataquí UI — reusable design system components for the Cataqui platform.
 library;
 
-export 'gen/swipe_up_phone.g.dart' show SwipeUpPhone;
 export 'src/enums/qui_button_alignment.dart' show QuiButtonAlignment;
 export 'src/enums/qui_button_fit.dart' show QuiButtonFit;
 export 'src/extensions/widget_extension.dart' show WidgetExtension;
