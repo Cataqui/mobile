@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qui/gen/fonts.gen.dart';
 import 'package:qui/src/icons/qui_icons.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
@@ -70,7 +69,6 @@ class QuiSearchBarButton extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: context.qui.colorScheme.text.primary,
-                          fontFamily: FontFamily.inter,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

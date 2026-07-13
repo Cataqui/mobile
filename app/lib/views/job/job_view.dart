@@ -112,7 +112,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                     jobData.job.description,
                                     switchThreshold: 0.97,
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 17,
                                       color: colorScheme.text.secondary,
                                       fontWeight: FontWeight.w500,
                                     ),

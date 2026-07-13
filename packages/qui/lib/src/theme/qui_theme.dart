@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qui/gen/fonts.gen.dart';
 
 import 'qui_color_scheme/qui_color_scheme.dart';
 import 'qui_palette/qui_palette.dart';
@@ -64,6 +65,7 @@ abstract final class QuiTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      fontFamily: FontFamily.inter,
       scaffoldBackgroundColor: quiData.colorScheme.background,
       textTheme: _buildTextTheme(quiData.typography),
       extensions: [quiData],

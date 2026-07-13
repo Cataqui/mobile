@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:qui/gen/fonts.gen.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 
 /// A QUI loading indicator with shimmering text.
@@ -47,7 +46,6 @@ class QuiLoadingText extends StatelessWidget {
     final textWidget = Text(
       text,
       style: TextStyle(
-        fontFamily: FontFamily.inter,
         fontSize: 16.5,
         fontWeight: FontWeight.w500,
         color: colorScheme.skeleton.skeletonText,
