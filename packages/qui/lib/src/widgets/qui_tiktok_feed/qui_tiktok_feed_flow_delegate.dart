@@ -23,7 +23,7 @@ class _QuiTikTokFeedFlowDelegate extends FlowDelegate {
   final bool isAwaitMode;
   final double loadingMoreOffset;
 
-  static const double _spinnerSize = _QuiTikTokFeedLoadingIndicator.indicatorSize;
+  static const double _spinnerSize = _QuiTikTokFeedLoadingIndicator.indicatorBoxSize;
 
   @override
   BoxConstraints getConstraintsForChild(int index, BoxConstraints constraints) {

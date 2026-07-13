@@ -1,11 +1,11 @@
 /// Cataquí UI — reusable design system components for the Cataqui platform.
 library;
 
+export 'gen/swipe_up_phone.g.dart' show SwipeUpPhone;
 export 'src/enums/qui_button_alignment.dart' show QuiButtonAlignment;
 export 'src/enums/qui_button_fit.dart' show QuiButtonFit;
 export 'src/extensions/widget_extension.dart' show WidgetExtension;
 export 'src/icons/qui_icons.dart' show QuiIcons;
-export 'src/lottie/qui_lottie.dart' show QuiLottie;
 export 'src/theme/map_style/qui_map_style.dart' show QuiMapLibreStyle;
 export 'src/theme/map_style/qui_map_style_background_paint.dart' show QuiMapLibreStyleBackgroundPaint;
 export 'src/theme/map_style/qui_map_style_fill_paint.dart' show QuiMapLibreStyleFillPaint;
@@ -80,6 +80,7 @@ export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
         QuiSwipeDeckLoadMoreCallback,
         QuiSwipeDeckLoadMoreErrorBuilder,
         QuiSwipeDeckProgressCallback;
+export 'src/widgets/qui_swipe_up_hint/qui_swipe_up_hint.dart' show QuiSwipeUpHint;
 export 'src/widgets/qui_tap_animation.dart' show QuiTapAnimation, QuiTapAnimationType;
 export 'src/widgets/qui_text_button.dart' show QuiTextButton, QuiTextButtonIconBuilder, QuiTextButtonIconState;
 export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'

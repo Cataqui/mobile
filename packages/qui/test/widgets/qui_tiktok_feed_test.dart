@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lottie/lottie.dart';
 import 'package:qui/qui.dart';
 
 typedef _ItemLog<T> = ({T item, int index});
@@ -1187,7 +1186,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 16));
       }
 
-      expect(find.byType(Lottie), findsNothing);
+      expect(find.byType(QuiDotLoadingIndicator), findsNothing);
     });
 
     testWidgets(
@@ -1200,7 +1199,7 @@ void main() {
         await gesture.moveBy(const Offset(0, -200));
         await tester.pump();
 
-        expect(find.byType(Lottie), findsOneWidget);
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
 
         await gesture.up();
         await tester.pump();
@@ -1208,7 +1207,7 @@ void main() {
           await tester.pump(const Duration(milliseconds: 16));
         }
 
-        expect(find.byType(Lottie), findsOneWidget);
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
       },
     );
 
@@ -1294,7 +1293,7 @@ void main() {
       final exception = tester.takeException();
 
       expect(
-        (isLoadFailure: exception is StateError, hasSpinner: find.byType(Lottie).evaluate().isNotEmpty),
+        (isLoadFailure: exception is StateError, hasSpinner: find.byType(QuiDotLoadingIndicator).evaluate().isNotEmpty),
         (isLoadFailure: true, hasSpinner: false),
       );
     });
@@ -1314,7 +1313,7 @@ void main() {
 
       final sizedBox = tester.widget<SizedBox>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
 
-      expect(sizedBox.width, 80);
+      expect(sizedBox.width, 100);
     });
 
     testWidgets('the loading indicator SizedBox height should match the shared size constant', (tester) async {
@@ -1332,7 +1331,7 @@ void main() {
 
       final sizedBox = tester.widget<SizedBox>(find.byKey(const ValueKey('qui_tiktok_feed_loading_indicator')));
 
-      expect(sizedBox.height, 80);
+      expect(sizedBox.height, 100);
     });
 
     testWidgets('when swiping up again immediately after entering await, it should stay in await mode', (tester) async {
@@ -1357,7 +1356,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 16));
       }
 
-      expect(find.byType(Lottie), findsOneWidget);
+      expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
     });
 
     testWidgets('when pagination loading changes, it should not rebuild existing cards', (tester) async {
@@ -1463,7 +1462,7 @@ void main() {
           await tester.pump(const Duration(milliseconds: 16));
         }
 
-        expect(find.byType(Lottie), findsOneWidget);
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
       },
     );
 

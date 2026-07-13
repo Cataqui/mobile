@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qui/src/icons/qui_icons.dart';
-import 'package:qui/src/theme/qui_theme_context.dart';
-import 'package:qui/src/three_d/qui_3d.dart';
-import 'package:qui/src/widgets/qui_button/qui_button.dart';
+import 'package:qui/qui.dart';
 
 part 'qui_offline_error_state_types.dart';
 
@@ -70,6 +67,7 @@ class QuiOfflineErrorState extends StatelessWidget {
             const SizedBox(height: 20),
             QuiButton(
               variant: QuiButtonVariant.secondary,
+              fit: QuiButtonFit.fit,
               label: retry!.label,
               leadingIconBuilder: (state) => QuiIcons.instance.build(
                 (assets) => assets.arrowRotateClockwise,

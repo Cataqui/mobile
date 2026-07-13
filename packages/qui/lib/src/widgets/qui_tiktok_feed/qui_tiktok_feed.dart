@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/src/lottie/qui_lottie.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
+import 'package:qui/src/widgets/qui_dot_loading_indicator/qui_dot_loading_indicator.dart';
 
 part 'qui_tiktok_feed_cached_card.dart';
 part 'qui_tiktok_feed_controller.dart';
