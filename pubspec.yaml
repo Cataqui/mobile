@@ -7,6 +7,7 @@ workspace:
   - app
   - packages/oh_my_flutter
   - packages/qui
+  - packages/dotdart
 
 dev_dependencies:
   build_runner: ^2.15.0
