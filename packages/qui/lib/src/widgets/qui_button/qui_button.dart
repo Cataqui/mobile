@@ -262,11 +262,8 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
     };
 
     final resolvedForeground = isEnabled ? buttonColorScheme.foreground : buttonColorScheme.foregroundDisabled;
-
     final labelStyle = _baseLabelStyle.copyWith(color: resolvedForeground);
-
     final content = _buildContent(isEnabled: isEnabled, foregroundColor: resolvedForeground, labelStyle: labelStyle);
-
     final animatedContent = _buildAnimatedContent(
       content: content,
       foregroundColor: resolvedForeground,
@@ -274,9 +271,7 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
     );
 
     final innerContent = widget.fit == QuiButtonFit.expand ? _alignedContent(animatedContent) : animatedContent;
-
     final padded = Padding(key: const Key('qui_button_container'), padding: widget.padding, child: innerContent);
-
     final decorated = DecoratedBox(
       decoration: BoxDecoration(color: resolvedBackground, borderRadius: _pillBorderRadius),
       child: padded,
