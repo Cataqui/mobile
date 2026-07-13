@@ -4,7 +4,7 @@ part of 'qui_appear.dart';
 ///
 /// Call [appear] to start the appear animation or [destroy] to start the
 /// destroy (disappear) animation. The animation plays with the [QuiAppear]
-/// widget's configured [animation] and [duration].
+/// widget's configured animation and duration.
 ///
 /// ```dart
 /// final controller = QuiAppearController();

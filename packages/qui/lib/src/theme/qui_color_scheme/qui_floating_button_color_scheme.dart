@@ -1,7 +1,13 @@
 part of 'qui_color_scheme.dart';
 
+/// Button roles for floating action surfaces.
+///
+/// Floating actions have extra visual needs beyond a standard button, such as
+/// a dedicated border and shadow. This group gives consumers the complete color
+/// set needed to render a floating action consistently.
 @immutable
 class QuiFloatingButtonColorScheme {
+  /// Creates button roles for floating action surfaces.
   const QuiFloatingButtonColorScheme({
     required this.background,
     required this.backgroundHover,
@@ -12,14 +18,41 @@ class QuiFloatingButtonColorScheme {
     required this.shadow,
   });
 
+  /// {@macro qui_color_scheme_lerp}
+  factory QuiFloatingButtonColorScheme.lerp(QuiFloatingButtonColorScheme a, QuiFloatingButtonColorScheme b, double t) {
+    return QuiFloatingButtonColorScheme(
+      background: Color.lerp(a.background, b.background, t)!,
+      backgroundHover: Color.lerp(a.backgroundHover, b.backgroundHover, t)!,
+      backgroundDisabled: Color.lerp(a.backgroundDisabled, b.backgroundDisabled, t)!,
+      foreground: Color.lerp(a.foreground, b.foreground, t)!,
+      foregroundDisabled: Color.lerp(a.foregroundDisabled, b.foregroundDisabled, t)!,
+      border: Color.lerp(a.border, b.border, t)!,
+      shadow: Color.lerp(a.shadow, b.shadow, t)!,
+    );
+  }
+
+  /// Background color for the resting floating button surface.
   final Color background;
+
+  /// Background color for the hovered floating button surface.
   final Color backgroundHover;
+
+  /// Background color for the disabled floating button surface.
   final Color backgroundDisabled;
+
+  /// Foreground color for text and icons on the resting floating button surface.
   final Color foreground;
+
+  /// Foreground color for text and icons on the disabled floating button surface.
   final Color foregroundDisabled;
+
+  /// Border color that keeps the floating surface legible over variable content.
   final Color border;
+
+  /// Shadow color used to separate the floating surface from underlying content.
   final Color shadow;
 
+  /// {@macro qui_color_scheme_copy_with}
   QuiFloatingButtonColorScheme copyWith({
     Color? background,
     Color? backgroundHover,
@@ -53,29 +86,6 @@ class QuiFloatingButtonColorScheme {
           shadow == other.shadow;
 
   @override
-  int get hashCode => Object.hash(
-    background,
-    backgroundHover,
-    backgroundDisabled,
-    foreground,
-    foregroundDisabled,
-    border,
-    shadow,
-  );
-
-  static QuiFloatingButtonColorScheme lerp(
-    QuiFloatingButtonColorScheme a,
-    QuiFloatingButtonColorScheme b,
-    double t,
-  ) {
-    return QuiFloatingButtonColorScheme(
-      background: Color.lerp(a.background, b.background, t)!,
-      backgroundHover: Color.lerp(a.backgroundHover, b.backgroundHover, t)!,
-      backgroundDisabled: Color.lerp(a.backgroundDisabled, b.backgroundDisabled, t)!,
-      foreground: Color.lerp(a.foreground, b.foreground, t)!,
-      foregroundDisabled: Color.lerp(a.foregroundDisabled, b.foregroundDisabled, t)!,
-      border: Color.lerp(a.border, b.border, t)!,
-      shadow: Color.lerp(a.shadow, b.shadow, t)!,
-    );
-  }
+  int get hashCode =>
+      Object.hash(background, backgroundHover, backgroundDisabled, foreground, foregroundDisabled, border, shadow);
 }

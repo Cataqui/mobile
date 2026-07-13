@@ -1,6 +1,5 @@
 library;
 
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_background_paint.dart';

@@ -26,6 +26,11 @@ The primary consumer of a package is another developer — possibly a junior, po
 
 Every public declaration exported by the package must have a **dartdoc comment** (`///`). Follow the [Dart documentation guidelines](https://dart.dev/effective-dart/documentation):
 
+- Write dartdoc for the **package consumer first**. The primary reader is an app
+  developer using the package, not the package maintainer. Explain when and why
+  to use the API, what behavior or role it controls, and what guarantees the
+  consumer can rely on. Avoid maintainer-focused implementation narration unless
+  it directly affects correct package usage.
 - Document the **what** and **why**, not just the how.
 - Use `///` doc comments on all public APIs: classes, top-level functions, extensions, typedefs, enums, fields, and constructors.
 - Include a **code example** inside the doc comment using triple-backtick fences. This example must be valid Dart that a user could copy and paste:
