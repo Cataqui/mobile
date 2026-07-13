@@ -263,6 +263,14 @@ void _resumeOrSkipTransition() {
 }
 ```
 
+### Color Scheme: Always Use `qui` Tokens
+
+**Never hardcode color values** (`Colors.blue`, `Color(0xFF...`) in widget code, tests, or any UI layer. Always use the `qui` color system via `context.qui`:
+
+- **Semantic colors:** `context.qui.colorScheme` — use `colorScheme.background`, `colorScheme.text.primary`, `colorScheme.colors.primary.solid`, `colorScheme.border.standard`, etc.
+- **Raw palette (12-step scales):** `context.qui.palette` — use `palette.primary[9]`, `palette.neutral[12]`, etc. Only when a semantic token does not exist.
+- **Import:** `package:qui/qui.dart`
+
 ### Dart Documentation
 
 - **Public API requires Dart doc.** Every declaration visible outside its library (public classes, public members, public typedefs, top-level constants) must have a `///` doc comment explaining what it does, when to use it, and what callers must know.
