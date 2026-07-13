@@ -32,6 +32,22 @@ void main() {
         ],
       ),
     );
+
+    goldenTest(
+      'when unmount is true and destroy completes with disableAnimations, it should render nothing',
+      fileName: 'qui_appear_unmounted',
+      builder: () => GoldenTestGroup(
+        scenarioConstraints: const BoxConstraints.tightFor(width: 300, height: 200),
+        children: [
+          GoldenTestScenario(
+            name: 'unmounted after destroy',
+            child: _AppearDestroyed(
+              child: const Text('Hello World', style: TextStyle(fontSize: 20)),
+            ),
+          ),
+        ],
+      ),
+    );
   });
 }
 
@@ -60,6 +76,40 @@ class _AppearVisibleState extends State<_AppearVisible> {
       child: Material(
         child: Center(
           child: QuiAppear(controller: _controller, child: widget.child),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppearDestroyed extends StatefulWidget {
+  const _AppearDestroyed({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_AppearDestroyed> createState() => _AppearDestroyedState();
+}
+
+class _AppearDestroyedState extends State<_AppearDestroyed> {
+  final _controller = QuiAppearController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.appear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.destroy();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery(
+      data: const MediaQueryData(disableAnimations: true),
+      child: Material(
+        child: Center(
+          child: QuiAppear(controller: _controller, unmount: true, child: widget.child),
         ),
       ),
     );
