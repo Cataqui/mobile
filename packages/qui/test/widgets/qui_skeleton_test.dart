@@ -345,7 +345,7 @@ void main() {
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF4A4B)),
-            extensions: [QuiThemeData(colorScheme: customColorScheme)],
+            extensions: [QuiThemeData(colorScheme: customColorScheme, palette: QuiPalette())],
           ),
           home: const Scaffold(body: QuiSkeleton(child: Text('Hello'))),
         ),
@@ -373,7 +373,7 @@ void main() {
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF4A4B)),
-            extensions: [QuiThemeData(colorScheme: customColorScheme)],
+            extensions: [QuiThemeData(colorScheme: customColorScheme, palette: QuiPalette())],
           ),
           home: const Scaffold(body: QuiSkeleton(child: Text('Hello'))),
         ),
