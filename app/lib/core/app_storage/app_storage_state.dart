@@ -17,6 +17,8 @@ class AppStorageState extends _$AppStorageState {
   }
 
   Future<void> setSeenSwipeFeedHint({required bool value}) async {
+    if (state.value!.hasSeenSwipeFeedHint == value) return;
+
     final prefs = ref.read(sharedPreferencesAsyncProvider);
     await prefs.setBool(_seenSwipeFeedHintKey, value);
 

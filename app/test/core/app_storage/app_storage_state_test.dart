@@ -80,4 +80,27 @@ void main() {
       verify(() => prefs.setBool('seen_swipe_feed_hint', false)).called(1);
     },
   );
+
+  test(
+    'when setting the swipe feed hint flag to the same value as the current state, it should not persist and not notify watchers',
+    () async {
+      when(() => prefs.getBool(any())).thenAnswer((_) async => true);
+      when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+
+      final container = buildContainer();
+      await container.read(appStorageStateProvider.future);
+
+      var notificationCount = 0;
+      container.listen(appStorageStateProvider, (_, __) {
+        notificationCount++;
+      });
+
+      await container
+          .read(appStorageStateProvider.notifier)
+          .setSeenSwipeFeedHint(value: true);
+
+      verifyNever(() => prefs.setBool(any(), any()));
+      expect(notificationCount, equals(0));
+    },
+  );
 }
