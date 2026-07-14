@@ -185,14 +185,14 @@ void main() {
         expect(_buttonPadding(tester), equals(const EdgeInsets.symmetric(horizontal: 12, vertical: 8)));
       });
 
-      testWidgets('when padding uses the default, it should apply symmetric 20x12', (tester) async {
+      testWidgets('when padding uses the default, it should apply symmetric 24x18', (tester) async {
         await tester.pumpWidget(
           const TestApp(
             child: QuiButton(variant: QuiButtonVariant.primary, label: 'Padrao', onPressed: null),
           ),
         );
 
-        expect(_buttonPadding(tester), equals(const EdgeInsets.symmetric(horizontal: 20, vertical: 12)));
+        expect(_buttonPadding(tester), equals(const EdgeInsets.symmetric(horizontal: 24, vertical: 18)));
       });
     });
 

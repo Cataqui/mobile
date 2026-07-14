@@ -54,7 +54,7 @@ class QuiButton extends StatefulWidget {
     this.colorScheme,
     this.alignment = QuiButtonAlignment.center,
     this.fit = QuiButtonFit.fit,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
   });
 
   /// Visible button label.
