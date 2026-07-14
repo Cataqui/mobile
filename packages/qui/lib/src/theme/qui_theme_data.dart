@@ -8,7 +8,7 @@ import 'qui_typography.dart';
 /// The reusable QUI tokens registered on a Material [ThemeData].
 class QuiThemeData extends ThemeExtension<QuiThemeData> {
   /// Creates theme data from the required semantic [colorScheme] and [palette].
-  const QuiThemeData({required this.colorScheme, this.typography = const QuiTypography(), required this.palette});
+  const QuiThemeData({required this.colorScheme, required this.palette, this.typography = const QuiTypography()});
 
   /// The semantic color contract shared by QUI and Material components.
   final QuiColorScheme colorScheme;

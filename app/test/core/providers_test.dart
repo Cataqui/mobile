@@ -1,7 +1,5 @@
-import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

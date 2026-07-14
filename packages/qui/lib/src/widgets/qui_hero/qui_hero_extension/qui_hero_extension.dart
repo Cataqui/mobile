@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../heroes/background/qui_hero_background.dart';
 import '../qui_hero.dart';
 import '../qui_hero_page/qui_hero_page_route.dart';
 import 'qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
@@ -14,7 +15,7 @@ import 'qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
 /// ## Composition order
 ///
 /// When a hero receives multiple extensions via
-/// [QuiHero.background]`({... extensions: [...] })`, they are applied in declaration
+/// [QuiHeroBackground] with `extensions: [...]`, they are applied in declaration
 /// order: the **first** extension in the list becomes the **outermost** wrapper.
 ///
 /// ```dart

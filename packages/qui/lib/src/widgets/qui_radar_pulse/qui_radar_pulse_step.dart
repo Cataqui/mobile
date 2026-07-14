@@ -6,7 +6,7 @@ part of 'qui_radar_pulse.dart';
 /// pulse sequence. The number of rings equals the length of the [QuiRadarPulse.steps]
 /// list. Rings are staggered in time so a ripple effect is always visible.
 ///
-/// Any color left as `null` falls back to the current [QuiTheme] primary color
+/// Any color left as `null` falls back to the current QUI primary color
 /// with a translucent alpha that animates as the ring expands and fades.
 ///
 /// ```dart
@@ -25,14 +25,8 @@ part of 'qui_radar_pulse.dart';
 @immutable
 class QuiRadarPulseStep {
   /// Creates a pulse step.
-  const QuiRadarPulseStep({
-    this.color,
-    this.borderRadius = const BorderRadius.all(Radius.circular(9999)),
-    this.alpha,
-  }) : assert(
-         alpha == null || (alpha >= 0 && alpha <= 1),
-         'alpha must be between 0 and 1, but got $alpha.',
-       );
+  const QuiRadarPulseStep({this.color, this.borderRadius = const BorderRadius.all(Radius.circular(9999)), this.alpha})
+    : assert(alpha == null || (alpha >= 0 && alpha <= 1), 'alpha must be between 0 and 1, but got $alpha.');
 
   /// Fill color for this pulse ring.
   ///

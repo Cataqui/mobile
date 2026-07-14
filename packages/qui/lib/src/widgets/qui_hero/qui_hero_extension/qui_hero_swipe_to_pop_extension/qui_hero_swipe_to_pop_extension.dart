@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
+import '../../heroes/background/qui_hero_background.dart';
 import '../../qui_hero.dart';
 import '../../qui_hero_page/qui_hero_page.dart';
 import '../../qui_hero_page/qui_hero_page_route.dart';
@@ -15,7 +16,7 @@ part 'qui_hero_swipe_to_pop_extension_enums.dart';
 
 /// Adds swipe-to-pop behavior to a hero destination page.
 ///
-/// Pass this extension to a [QuiHero] variant — typically [QuiHero.background] —
+/// Pass this extension to a [QuiHero] variant — typically [QuiHeroBackground] —
 /// displayed on a destination opened by [QuiHeroPage]. The extension tracks
 /// downward swipe gestures and drives the route's interactive-pop API to create
 /// a natural swipe-to-dismiss experience.

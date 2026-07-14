@@ -84,7 +84,7 @@ class QuiDotMatrix extends StatefulWidget {
 
   /// Colour for all dots.
   ///
-  /// When omitted the theme's [QuiColors.placeholder] token is used.
+  /// When omitted, the theme's neutral solid color token is used.
   final Color? color;
 
   /// Size (radius) of each dot in logical pixels.
