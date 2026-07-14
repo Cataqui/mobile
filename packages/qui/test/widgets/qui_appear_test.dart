@@ -274,5 +274,119 @@ void main() {
       controller.appear();
       controller.destroy();
     });
+
+    testWidgets('when onDestroy is provided and destroy is called, it should fire immediately', (tester) async {
+      final controller = QuiAppearController();
+      var onDestroyCalled = false;
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(
+            controller: controller,
+            onDestroy: (animation) {
+              onDestroyCalled = true;
+              animationFuture = animation;
+            },
+            child: const Text('Hello'),
+          ),
+        ),
+      );
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      controller.destroy();
+
+      expect(onDestroyCalled, isTrue);
+      expect(animationFuture, isNotNull);
+    });
+
+    testWidgets('when onDestroy is provided and destroy is called, the animation future should complete when the animation finishes',
+        (tester) async {
+      final controller = QuiAppearController();
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(
+            controller: controller,
+            onDestroy: (animation) {
+              animationFuture = animation;
+            },
+            child: const Text('Hello'),
+          ),
+        ),
+      );
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      controller.destroy();
+      await tester.pumpAndSettle();
+
+      expect(animationFuture, isNotNull);
+      expect(animationFuture, completes);
+    });
+
+    testWidgets('when onDestroy is provided and destroy is called while already at 0, it should fire immediately and the animation future should complete immediately',
+        (tester) async {
+      final controller = QuiAppearController();
+      var onDestroyCalled = false;
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(
+            controller: controller,
+            onDestroy: (animation) {
+              onDestroyCalled = true;
+              animationFuture = animation;
+            },
+            child: const Text('Hello'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      controller.destroy();
+
+      expect(onDestroyCalled, isTrue);
+      expect(animationFuture, isNotNull);
+      expect(animationFuture, completes);
+    });
+
+    testWidgets('when onDestroy is provided and destroy is called with disableAnimations, it should fire immediately and the animation future should complete immediately',
+        (tester) async {
+      final controller = QuiAppearController();
+      var onDestroyCalled = false;
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: TestApp(
+            child: QuiAppear(
+              controller: controller,
+              onDestroy: (animation) {
+                onDestroyCalled = true;
+                animationFuture = animation;
+              },
+              child: const Text('Hello'),
+            ),
+          ),
+        ),
+      );
+
+      controller.appear();
+      await tester.pump();
+
+      controller.destroy();
+
+      expect(onDestroyCalled, isTrue);
+      expect(animationFuture, isNotNull);
+      expect(animationFuture, completes);
+    });
   });
 }

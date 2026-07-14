@@ -38,6 +38,7 @@ class QuiAppear extends StatefulWidget {
     this.appearDuration = const Duration(milliseconds: 300),
     this.destroyDuration = const Duration(milliseconds: 300),
     this.unmount = false,
+    this.onDestroy,
     super.key,
   });
 
@@ -68,6 +69,24 @@ class QuiAppear extends StatefulWidget {
   /// after `destroy` completes.
   final bool unmount;
 
+  /// Called when `destroy` is requested.
+  ///
+  /// Fires immediately when [QuiAppearController.destroy] is called, before
+  /// the destroy animation plays. The [animation] future completes when the
+  /// animation reaches opacity 0 (or immediately if already in the
+  /// destroyed state or when animations are disabled).
+  ///
+  /// ```dart
+  /// QuiAppear(
+  ///   controller: controller,
+  ///   onDestroy: (animation) async {
+  ///     await animation;
+  ///     // child is now hidden
+  ///   },
+  /// )
+  /// ```
+  final void Function(Future<void> animation)? onDestroy;
+
   @override
   State<QuiAppear> createState() => _QuiAppearState();
 }
@@ -77,6 +96,7 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
   double? _pendingTargetValue;
   bool _initComplete = false;
   bool _unmounted = false;
+  Completer<void>? _destroyCompleter;
 
   @override
   void initState() {
@@ -130,14 +150,23 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
   }
 
   void _onAnimationStatus(AnimationStatus status) {
-    if (!widget.unmount) return;
     if (status == AnimationStatus.dismissed) {
-      setState(() => _unmounted = true);
+      _completeDestroy();
+
+      if (widget.unmount) setState(() => _unmounted = true);
     }
   }
 
   void _onControllerTrigger(double targetValue) {
     if (!mounted) return;
+    if (targetValue == 0) {
+      _completeDestroy();
+      final completer = Completer<void>();
+      widget.onDestroy?.call(completer.future);
+      _destroyCompleter = completer;
+    } else {
+      _completeDestroy();
+    }
     if (!_initComplete) {
       _pendingTargetValue = targetValue;
       return;
@@ -156,12 +185,29 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
 
   void _runAppearance(double targetValue) {
     if (MediaQuery.disableAnimationsOf(context)) {
+      if (targetValue == 0 && _controller.value == 0) {
+        _completeDestroy();
+      }
+
       _controller.value = targetValue;
     } else if (targetValue == 1.0) {
       unawaited(_controller.forward());
     } else {
+      if (_controller.value == 0) {
+        _completeDestroy();
+      }
       unawaited(_controller.reverse());
     }
+  }
+
+  void _completeDestroy() {
+    final completer = _destroyCompleter;
+
+    if (completer != null && !completer.isCompleted) {
+      completer.complete();
+    }
+
+    _destroyCompleter = null;
   }
 
   @override
