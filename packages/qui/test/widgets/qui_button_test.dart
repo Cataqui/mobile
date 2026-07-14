@@ -217,17 +217,17 @@ void main() {
         expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.secondary.background));
       });
 
-      testWidgets('when pressed, it should render the accessible pressed token', (tester) async {
+      testWidgets('when pressed, it should keep the resting background color', (tester) async {
         await tester.pumpWidget(
           TestApp(
             child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
-        final gesture = await tester.startGesture(tester.getCenter(find.byType(QuiButton)));
+        await tester.startGesture(tester.getCenter(find.byType(QuiButton)));
         await tester.pump();
 
-        expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.backgroundHover));
+        expect(_buttonBackgroundColor(tester), equals(_colorScheme.buttons.primary.background));
       });
 
       testWidgets('when released after pressing, it should restore the resting background color', (tester) async {

@@ -256,7 +256,7 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
 
     final resolvedBackground = switch ((isEnabled, _isPressed, _isHovered)) {
       (false, _, _) => buttonColorScheme.backgroundDisabled,
-      (true, true, _) => buttonColorScheme.backgroundHover,
+      (true, true, _) => buttonColorScheme.background,
       (true, false, true) => buttonColorScheme.backgroundHover,
       (true, false, false) => buttonColorScheme.background,
     };
