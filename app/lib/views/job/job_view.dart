@@ -40,165 +40,169 @@ class _JobViewState extends ConsumerState<JobView> {
     final jobData = jobState.asData?.value;
     final feedJob = widget.feedJob;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          QuiHeroBackground(
-            tag: FeedJobCard.backgroundHeroKey(widget.jobId),
-            decoration: BoxDecoration(color: colorScheme.background),
-            edgeFade: QuiHeroEdgeFade.vertical,
-            extensions: [QuiHeroSwipeToPopExtension(scrollController: _scrollController, sensibility: 0.85)],
-            child: CustomScrollView(
-              controller: _scrollController,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: (const EdgeInsets.symmetric(horizontal: 28)).copyWith(
-                        top: 90,
-                        bottom:
-                            JobContactButton.estimatedButtonHeight +
-                            _contactButtonBottomSpacing +
-                            MediaQuery.of(context).padding.bottom +
-                            40,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (feedJob != null || jobData != null) ...[
-                            QuiHeroGroup(
-                              tag: FeedJobCard.headerHeroKey(widget.jobId),
-                              onEnd: HapticFeedback.lightImpact,
-                              heroes: [
-                                QuiHeroText(
-                                  (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
-                                    onNow: () => i18n.feedJob.timeAgo.now,
-                                    onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
-                                    onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
-                                    onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
-                                    onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                                    fallback: TimeAgoFallback.finer,
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: colorScheme.text.secondary,
-                                  ),
-                                  padding: const EdgeInsets.only(bottom: 6),
-                                ),
-                                QuiHeroText(
-                                  feedJob?.title ?? jobData!.job.title,
-                                  maxLines: 4,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.text.primary,
-                                  ),
-                                ),
-                                QuiHeroText(
-                                  (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
-                                  style: TextStyle(
-                                    fontSize: 30,
-                                    color: colorScheme.text.profit,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                ),
-                                if (jobData != null)
+    return QuiSwipeToPopSurface(
+      borderRadius: BorderRadiusGeometry.circular(34),
+      sensibility: 0.15,
+      swipeDown: true,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            QuiHeroBackground(
+              tag: FeedJobCard.backgroundHeroKey(widget.jobId),
+              decoration: BoxDecoration(color: colorScheme.background),
+              edgeFade: QuiHeroEdgeFade.vertical,
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: (const EdgeInsets.symmetric(horizontal: 28)).copyWith(
+                          top: 90,
+                          bottom:
+                              JobContactButton.estimatedButtonHeight +
+                              _contactButtonBottomSpacing +
+                              MediaQuery.of(context).padding.bottom +
+                              40,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (feedJob != null || jobData != null) ...[
+                              QuiHeroGroup(
+                                tag: FeedJobCard.headerHeroKey(widget.jobId),
+                                onEnd: HapticFeedback.lightImpact,
+                                heroes: [
                                   QuiHeroText(
-                                    jobData.job.description,
-                                    switchThreshold: 0.97,
+                                    (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
+                                      onNow: () => i18n.feedJob.timeAgo.now,
+                                      onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                                      onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                                      onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                                      onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                                      fallback: TimeAgoFallback.finer,
+                                    ),
                                     style: TextStyle(
-                                      fontSize: 17,
-                                      color: colorScheme.text.secondary,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w500,
+                                      color: colorScheme.text.secondary,
+                                    ),
+                                    padding: const EdgeInsets.only(bottom: 6),
+                                  ),
+                                  QuiHeroText(
+                                    feedJob?.title ?? jobData!.job.title,
+                                    maxLines: 4,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.text.primary,
                                     ),
                                   ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            if (feedJob != null)
-                              jobState.when(
-                                data: (_) => const SizedBox.shrink(),
-                                error: (error, _) => QuiRouteSettled(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 40),
-                                    child: _buildError(context, i18n, error),
+                                  QuiHeroText(
+                                    (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
+                                    style: TextStyle(
+                                      fontSize: 30,
+                                      color: colorScheme.text.profit,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    padding: const EdgeInsets.only(bottom: 12),
                                   ),
-                                ),
-                                loading: () => QuiRouteSettled(
-                                  child: QuiSkeleton(
-                                    style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()),
-                                    child: Text(
-                                      JobDto.fixture().description,
+                                  if (jobData != null)
+                                    QuiHeroText(
+                                      jobData.job.description,
+                                      switchThreshold: 0.97,
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 17,
                                         color: colorScheme.text.secondary,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              if (feedJob != null)
+                                jobState.when(
+                                  data: (_) => const SizedBox.shrink(),
+                                  error: (error, _) => QuiRouteSettled(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 40),
+                                      child: _buildError(context, i18n, error),
+                                    ),
+                                  ),
+                                  loading: () => QuiRouteSettled(
+                                    child: QuiSkeleton(
+                                      style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()),
+                                      child: Text(
+                                        JobDto.fixture().description,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: colorScheme.text.secondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                          ] else ...[
-                            jobState.when(
-                              loading: () => SizedBox(
-                                height: MediaQuery.of(context).size.height * 0.7,
-                                child: Center(
-                                  child: QuiDotMatrix(
-                                    width: 60,
-                                    height: 60,
-                                    radius: 30,
-                                    dotSize: 6,
-                                    color: colorScheme.colors.primary.solid,
+                            ] else ...[
+                              jobState.when(
+                                loading: () => SizedBox(
+                                  height: MediaQuery.of(context).size.height * 0.7,
+                                  child: Center(
+                                    child: QuiDotMatrix(
+                                      width: 60,
+                                      height: 60,
+                                      radius: 30,
+                                      dotSize: 6,
+                                      color: colorScheme.colors.primary.solid,
+                                    ),
                                   ),
                                 ),
+                                error: (error, _) => SizedBox(
+                                  height: MediaQuery.of(context).size.height * 0.6,
+                                  child: _buildError(context, i18n, error),
+                                ),
+                                data: (_) => const SizedBox.shrink(),
                               ),
-                              error: (error, _) => SizedBox(
-                                height: MediaQuery.of(context).size.height * 0.6,
-                                child: _buildError(context, i18n, error),
-                              ),
-                              data: (_) => const SizedBox.shrink(),
-                            ),
+                            ],
                           ],
-                        ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: AlignmentGeometry.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: QuiRouteSettled(child: QuiViewBackButton(onPressed: () => Navigator.of(context).maybePop())),
+                ),
+              ),
+            ),
+            if (jobData != null)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: _contactButtonBottomSpacing),
+                    child: Center(
+                      child: QuiRouteSettled(
+                        child: JobContactButton(jobId: widget.jobId, contactReference: jobData.job.contactReference),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          SafeArea(
-            child: Align(
-              alignment: AlignmentGeometry.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: QuiRouteSettled(child: QuiViewBackButton(onPressed: () => Navigator.of(context).maybePop())),
               ),
-            ),
-          ),
-          if (jobData != null)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: _contactButtonBottomSpacing),
-                  child: Center(
-                    child: QuiRouteSettled(
-                      child: JobContactButton(jobId: widget.jobId, contactReference: jobData.job.contactReference),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

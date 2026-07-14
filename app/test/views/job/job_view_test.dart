@@ -223,6 +223,16 @@ void main() {
       expect(find.byType(JobView), findsOneWidget);
     });
 
+    testWidgets('when opened, it should wrap the screen with the generic swipe-to-pop surface', (tester) async {
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: JobViewTestHelpers.feedJob(),
+        jobState: JobViewTestHelpers.loadingState(),
+      );
+
+      expect(find.byType(QuiSwipeToPopSurface), findsOneWidget);
+    });
+
     testWidgets('when opened from the feed, it should render the title inside the grouped header hero', (tester) async {
       final feedJob = JobViewTestHelpers.feedJob(title: 'Separador de Mercadorias');
 
@@ -257,7 +267,9 @@ void main() {
       expect(backgroundHero.tag, equals(FeedJobCard.backgroundHeroKey(feedJob.jobId)));
     });
 
-    testWidgets('when dragging down from the top, it should move the job route toward the feed card', (tester) async {
+    testWidgets('when dragging down from the top, it should preview the job route without scrubbing the hero route', (
+      tester,
+    ) async {
       final feedJob = JobViewTestHelpers.feedJob();
 
       await JobViewTestHelpers.pumpRoutedJobView(
@@ -271,7 +283,7 @@ void main() {
       await tester.pump();
 
       final route = QuiHeroPageRoute.maybeOf(tester.element(find.byType(JobView)));
-      expect(route!.transitionValue, lessThan(1));
+      expect(route!.transitionValue, equals(1));
       await gesture.up();
     });
 
@@ -336,7 +348,7 @@ void main() {
       },
     );
 
-    testWidgets('when interactive closing starts, it should hide the QUI back button and description', (tester) async {
+    testWidgets('when the swipe-to-pop preview starts, it should keep the QUI back button visible', (tester) async {
       final feedJob = JobViewTestHelpers.feedJob();
 
       await JobViewTestHelpers.pumpRoutedJobView(
@@ -354,7 +366,7 @@ void main() {
             .ancestor(of: find.byType(QuiViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
             .first,
       );
-      expect(fadeTransition.opacity.value, equals(0));
+      expect(fadeTransition.opacity.value, equals(1));
       await gesture.up();
     });
   });

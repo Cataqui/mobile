@@ -1,12 +1,13 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:qui/qui.dart' show QuiHeroExtension, QuiHeroPage, QuiHeroSwipeToPopExtension;
+import 'package:qui/qui.dart' show QuiHeroExtension, QuiHeroPage;
 import 'package:qui/src/theme/qui_theme_data.dart';
 import 'package:qui/src/widgets/qui_edge_fade/qui_edge_fade.dart'
     show QuiEdgeFade, QuiEdgeFadePosition, QuiEdgeFadeStyle;
 import 'package:qui/src/widgets/qui_hero/heroes/background/qui_hero_background.dart';
 import 'package:qui/src/widgets/qui_hero/heroes/text/qui_hero_text.dart';
+import 'package:qui/src/widgets/qui_swipe_to_pop_surface/qui_swipe_to_pop_surface.dart';
 
 import 'heroes/background/qui_hero_background.dart' show QuiHeroBackground;
 import 'heroes/group/qui_hero_group.dart' show QuiHeroGroup;
@@ -136,8 +137,6 @@ part 'qui_hero_lifecycle/_qui_hero_lifecycle_flight_shuttle.dart';
 ///    compositing and reduced-motion support.
 ///  * [QuiHeroExtension], the base class for reusable behaviors attached to
 ///    hero variants.
-///  * [QuiHeroSwipeToPopExtension], a built-in extension that adds
-///    swipe-to-pop gestures to hero destinations.
 ///  * Flutter's [Hero], the underlying widget that [QuiHero] wraps.
 abstract class QuiHero extends StatelessWidget {
   /// Creates a QUI hero with the given shared animation configuration.
@@ -287,6 +286,18 @@ abstract class QuiHero extends StatelessWidget {
     return [onReceived];
   }
 
+  /// Creates the departing endpoint used by a swipe-to-pop handoff.
+  ///
+  /// Every concrete [QuiHero] variant must decide how its endpoint data should
+  /// look when a pop starts from a [QuiSwipeToPopSurface] preview. Flutter
+  /// already measures the departing hero from the scaled route rectangle, so
+  /// implementations must adjust only the endpoint presentation that would
+  /// otherwise jump back to the full-size destination state, such as text
+  /// style, padding, `borderRadius` etc. The preview details arrive together in
+  /// `handoffState` so new preview fields can flow through this hook without
+  /// widening the signature again.
+  QuiHero buildSwipeToPopHandoffHero({required BuildContext context, required QuiSwipeToPopHandoffState handoffState});
+
   /// Builds the endpoint widget that wraps [buildFlightChild] with lifecycle
   /// callback wiring.
   ///
@@ -295,6 +306,7 @@ abstract class QuiHero extends StatelessWidget {
   /// callback lists to wire into the flight shuttle.
   Widget buildLifecycleEndpoint(BuildContext context) {
     return _QuiHeroLifecycleEndpoint(
+      hero: this,
       onStartCallbacks: lifecycleStartCallbacks(context),
       onEndCallbacks: lifecycleEndCallbacks(context),
       onReceivedCallbacks: lifecycleReceivedCallbacks(context),
@@ -320,21 +332,33 @@ abstract class QuiHero extends StatelessWidget {
     final toEndpoint = _QuiHeroLifecycleEndpoint.fromHeroContext(toHeroContext);
     final originEndpoint = fromEndpoint;
 
+    final swipeToPopHandoffState = flightDirection == HeroFlightDirection.pop
+        ? QuiSwipeToPopSurface.maybeHandoffStateOf(fromHeroContext)
+        : null;
+
+    final fromHeroChild = swipeToPopHandoffState == null
+        ? fromEndpoint.child
+        : fromEndpoint.hero
+              .buildSwipeToPopHandoffHero(context: fromHeroContext, handoffState: swipeToPopHandoffState)
+              .buildFlightChild(fromHeroContext);
+
+    final child = flightShuttleBuilder(
+      flightContext,
+      animation,
+      flightDirection,
+      fromHeroContext,
+      toHeroContext,
+      fromHeroChild,
+      toEndpoint.child,
+    );
+
     return _QuiHeroLifecycleFlightShuttle(
       animation: animation,
       flightDirection: flightDirection,
       onStartCallbacks: originEndpoint.onStartCallbacks,
       onEndCallbacks: originEndpoint.onEndCallbacks,
       onReceivedCallbacks: toEndpoint.onReceivedCallbacks,
-      child: flightShuttleBuilder(
-        flightContext,
-        animation,
-        flightDirection,
-        fromHeroContext,
-        toHeroContext,
-        fromEndpoint.child,
-        toEndpoint.child,
-      ),
+      child: child,
     );
   }
 

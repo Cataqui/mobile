@@ -11,7 +11,7 @@ import 'package:qui/src/widgets/qui_appear.dart' show QuiAppear, QuiAppearAnimat
 /// that is not part of a shared element. Works on every Flutter route type:
 /// `MaterialPageRoute`, `QuiHeroPageRoute`, `NoTransitionPage`, dialog routes,
 /// and custom `Page` subclasses. Covers push, pop, iOS swipe-back,
-/// `QuiHeroSwipeToPopExtension` swipe-to-pop, and reduced motion with no
+/// `QuiSwipeToPopSurface` swipe-to-pop, and reduced motion with no
 /// callback wiring.
 ///
 /// The widget listens to `ModalRoute.animation` and to

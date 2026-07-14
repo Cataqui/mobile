@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 import '../heroes/background/qui_hero_background.dart';
 import '../qui_hero.dart';
 import '../qui_hero_page/qui_hero_page_route.dart';
-import 'qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
 
 /// The base class for composable behaviors attached to a [QuiHero] variant.
 ///
@@ -39,24 +38,19 @@ import 'qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
 /// extensions that need to drive interactive pop or read route state.
 ///
 /// ```dart
-/// class QuiHeroSwipeToPopExtension extends QuiHeroExtension {
-///   const QuiHeroSwipeToPopExtension({required this.scrollController});
+/// class QuiHeroPaddingExtension extends QuiHeroExtension {
+///   const QuiHeroPaddingExtension({required this.padding});
 ///
-///   final ScrollController scrollController;
+///   final EdgeInsets padding;
 ///
 ///   @override
 ///   Widget wrap({required BuildContext context, required Widget child}) {
-///     return _SwipeToPopGesture(
-///       scrollController: scrollController,
-///       child: child,
-///     );
+///     return Padding(padding: padding, child: child);
 ///   }
 /// }
 /// ```
 ///
 /// See also:
-///  * [QuiHeroSwipeToPopExtension], a built-in extension that wires drag
-///    gestures to the route's interactive-pop API.
 ///  * [QuiHero], the hero widget that accepts extensions.
 abstract class QuiHeroExtension {
   /// Creates a [QuiHeroExtension].

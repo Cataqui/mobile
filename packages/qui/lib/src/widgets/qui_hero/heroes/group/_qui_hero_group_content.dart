@@ -11,6 +11,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
     this.maxAvailableHeight,
     this.beginHeight = 0,
     this.endHeight = 0,
+    this.swipeToPopHandoffScale,
   });
 
   final QuiHeroGroupLayout layout;
@@ -22,6 +23,7 @@ class _QuiHeroGroupContent extends StatelessWidget {
   final double? maxAvailableHeight;
   final double beginHeight;
   final double endHeight;
+  final double? swipeToPopHandoffScale;
 
   bool get canUsePositionedFlight {
     final beginMetrics = beginChildMetrics;

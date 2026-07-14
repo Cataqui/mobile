@@ -6,6 +6,7 @@ import 'package:qui/src/widgets/qui_hero/heroes/group/qui_hero_group.dart';
 import 'package:qui/src/widgets/qui_hero/heroes/text/qui_hero_text.dart';
 import 'package:qui/src/widgets/qui_hero/qui_hero.dart';
 import 'package:qui/src/widgets/qui_hero/qui_hero_extension/qui_hero_extension.dart';
+import 'package:qui/src/widgets/qui_swipe_to_pop_surface/qui_swipe_to_pop_surface.dart';
 
 part '_qui_hero_background_edge_fade.dart';
 part '_qui_hero_background_flight.dart';
@@ -123,7 +124,33 @@ final class QuiHeroBackground extends QuiHero {
 
   @override
   Widget buildFlightChild(BuildContext context) {
-    return QuiHeroBackgroundFlight(decoration: decoration);
+    return QuiHeroBackgroundFlight(
+      decoration: _decorationWithBorderRadius(
+        decoration: decoration,
+        borderRadius: QuiSwipeToPopSurface.maybeHandoffStateOf(context)?.borderRadius,
+      ),
+    );
+  }
+
+  @override
+  QuiHeroBackground buildSwipeToPopHandoffHero({
+    required BuildContext context,
+    required QuiSwipeToPopHandoffState handoffState,
+  }) {
+    return QuiHeroBackground(
+      tag: tag,
+      extensions: extensions,
+      onStart: onStart,
+      onEnd: onEnd,
+      onReceived: onReceived,
+      key: key,
+      decoration: _decorationWithBorderRadius(decoration: decoration, borderRadius: handoffState.borderRadius),
+      width: width,
+      height: height,
+      padding: padding,
+      edgeFade: edgeFade,
+      child: child,
+    );
   }
 
   @override
@@ -203,7 +230,10 @@ final class QuiHeroBackground extends QuiHero {
         content = QuiHeroBackgroundScope(context: boxContext, child: content);
       }
 
-      final borderRadius = decoration?.borderRadius?.resolve(Directionality.of(context));
+      final borderRadius =
+          QuiSwipeToPopSurface.maybeHandoffStateOf(context)?.borderRadius ??
+          decoration?.borderRadius?.resolve(Directionality.of(context));
+
       result = Stack(
         children: [
           Positioned.fill(child: result),
@@ -226,5 +256,16 @@ final class QuiHeroBackground extends QuiHero {
     }
 
     return result;
+  }
+
+  BoxDecoration? _decorationWithBorderRadius({
+    required BoxDecoration? decoration,
+    required BorderRadiusGeometry? borderRadius,
+  }) {
+    if (borderRadius == null) return decoration;
+    if (decoration == null) return BoxDecoration(borderRadius: borderRadius);
+    if (decoration.shape != BoxShape.rectangle) return decoration;
+
+    return decoration.copyWith(borderRadius: borderRadius);
   }
 }

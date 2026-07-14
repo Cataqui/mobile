@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import '../qui_hero.dart';
-import '../qui_hero_extension/qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart';
 import 'qui_hero_page_route.dart';
 
 /// A [Page] subclass that creates a [QuiHeroPageRoute] for hero transitions
@@ -19,9 +18,6 @@ import 'qui_hero_page_route.dart';
 ///    reports `true`, both [transitionDuration] and
 ///    [reverseTransitionDuration] are overridden to [Duration.zero],
 ///    disabling all hero animations and showing the destination immediately.
-///  * **Drag-to-close** — when paired with
-///    [QuiHeroSwipeToPopExtension]`({...})`, the route exposes an
-///    interactive-pop API that the extension drives.
 ///
 /// ## Usage
 ///
@@ -55,8 +51,6 @@ import 'qui_hero_page_route.dart';
 ///    animations and the interactive-pop API.
 ///  * [QuiHero], the hero widget that flies between the source route and
 ///    this page.
-///  * [QuiHeroSwipeToPopExtension], the extension that wires drag gestures
-///    to the route's interactive-pop API.
 class QuiHeroPage extends Page<void> {
   /// Creates a [QuiHeroPage].
   ///

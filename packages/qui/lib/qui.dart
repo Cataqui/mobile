@@ -48,8 +48,6 @@ export 'src/widgets/qui_hero/heroes/group/qui_hero_group.dart' show QuiHeroGroup
 export 'src/widgets/qui_hero/heroes/text/qui_hero_text.dart' show QuiHeroText;
 export 'src/widgets/qui_hero/qui_hero.dart' show QuiHero, QuiHeroEdgeFade;
 export 'src/widgets/qui_hero/qui_hero_extension/qui_hero_extension.dart' show QuiHeroExtension;
-export 'src/widgets/qui_hero/qui_hero_extension/qui_hero_swipe_to_pop_extension/qui_hero_swipe_to_pop_extension.dart'
-    show QuiHeroSwipeToPopExtension, QuiHeroSwipeToPopState;
 export 'src/widgets/qui_hero/qui_hero_page/qui_hero_page.dart' show QuiHeroPage;
 export 'src/widgets/qui_hero/qui_hero_page/qui_hero_page_route.dart' show QuiHeroPageRoute;
 export 'src/widgets/qui_icon_button.dart' show QuiIconButton, QuiIconButtonIconBuilder, QuiIconButtonIconState;
@@ -79,6 +77,8 @@ export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
         QuiSwipeDeckLoadMoreCallback,
         QuiSwipeDeckLoadMoreErrorBuilder,
         QuiSwipeDeckProgressCallback;
+export 'src/widgets/qui_swipe_to_pop_surface/qui_swipe_to_pop_surface.dart'
+    show QuiSwipeToPopHandoffState, QuiSwipeToPopSurface;
 export 'src/widgets/qui_swipe_up_hint/qui_swipe_up_hint.dart' show QuiSwipeUpHint;
 export 'src/widgets/qui_tap_animation.dart' show QuiTapAnimation, QuiTapAnimationType;
 export 'src/widgets/qui_text_button.dart' show QuiTextButton, QuiTextButtonIconBuilder, QuiTextButtonIconState;

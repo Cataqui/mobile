@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:qui/src/widgets/qui_hero/heroes/background/qui_hero_background.dart';
 import 'package:qui/src/widgets/qui_hero/heroes/text/qui_hero_text.dart';
 import 'package:qui/src/widgets/qui_hero/qui_hero.dart';
+import 'package:qui/src/widgets/qui_swipe_to_pop_surface/qui_swipe_to_pop_surface.dart';
 
 part '_qui_hero_group_background_flight_metrics.dart';
 part '_qui_hero_group_content.dart';
@@ -67,7 +68,18 @@ final class QuiHeroGroup extends QuiHero {
   ///
   /// See [QuiHeroGroup] for pairing rules and nesting constraints.
   const QuiHeroGroup({required this.heroes, Object? tag, super.onStart, super.onEnd, super.onReceived, super.key})
-    : super(tag: tag ?? QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
+    : _swipeToPopHandoffScale = null,
+      super(tag: tag ?? QuiHeroDefaultTag.group, flightShuttleBuilder: _buildFlightShuttle);
+
+  const QuiHeroGroup._swipeToPopHandoff({
+    required this.heroes,
+    required super.tag,
+    required this._swipeToPopHandoffScale,
+    super.onStart,
+    super.onEnd,
+    super.onReceived,
+    super.key,
+  }) : super(flightShuttleBuilder: _buildFlightShuttle);
 
   static List<({double layoutWidth, Offset offset, Size size})>? _cachedEndChildMetrics;
   static QuiHeroGroupBackgroundFlightMetrics? _cachedEndBoxMetrics;
@@ -78,6 +90,8 @@ final class QuiHeroGroup extends QuiHero {
   /// destination groups must have the same length — heroes are paired by
   /// positional index.
   final List<QuiHero> heroes;
+
+  final double? _swipeToPopHandoffScale;
 
   static Widget _buildFlightShuttle(
     BuildContext flightContext,
@@ -90,7 +104,10 @@ final class QuiHeroGroup extends QuiHero {
   ) {
     final fromGroup = fromHeroChild as _QuiHeroGroupContent;
     final toGroup = toHeroChild as _QuiHeroGroupContent;
-    final beginChildMetrics = _captureFlexChildMetrics(fromHeroContext);
+    final beginChildMetrics = _scaleChildMetrics(
+      metrics: _captureFlexChildMetrics(fromHeroContext),
+      scale: fromGroup.swipeToPopHandoffScale,
+    );
 
     final freshEndChildMetrics = _captureFlexChildMetrics(toHeroContext);
     if (freshEndChildMetrics != null) _cachedEndChildMetrics = freshEndChildMetrics;
@@ -324,6 +341,18 @@ final class QuiHeroGroup extends QuiHero {
     ];
   }
 
+  static List<({double layoutWidth, Offset offset, Size size})>? _scaleChildMetrics({
+    required List<({double layoutWidth, Offset offset, Size size})>? metrics,
+    required double? scale,
+  }) {
+    if (metrics == null || scale == null) return metrics;
+
+    return [
+      for (final metric in metrics)
+        (layoutWidth: metric.layoutWidth * scale, offset: metric.offset * scale, size: metric.size * scale),
+    ];
+  }
+
   @override
   List<VoidCallback> lifecycleStartCallbacks(BuildContext context) {
     return [
@@ -361,6 +390,25 @@ final class QuiHeroGroup extends QuiHero {
     return _QuiHeroGroupContent(
       layout: QuiHeroGroupLayout.fromContext(context),
       heroes: _resolveEndpointHeroes(context: context, heroes: heroes),
+      swipeToPopHandoffScale: _swipeToPopHandoffScale,
+    );
+  }
+
+  @override
+  QuiHeroGroup buildSwipeToPopHandoffHero({
+    required BuildContext context,
+    required QuiSwipeToPopHandoffState handoffState,
+  }) {
+    return QuiHeroGroup._swipeToPopHandoff(
+      tag: tag,
+      swipeToPopHandoffScale: handoffState.scale,
+      heroes: [
+        for (final hero in heroes) hero.buildSwipeToPopHandoffHero(context: context, handoffState: handoffState),
+      ],
+      onStart: onStart,
+      onEnd: onEnd,
+      onReceived: onReceived,
+      key: key,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:qui/src/widgets/qui_hero/heroes/group/qui_hero_group.dart';
 import 'package:qui/src/widgets/qui_hero/qui_hero.dart';
+import 'package:qui/src/widgets/qui_swipe_to_pop_surface/qui_swipe_to_pop_surface.dart';
 
 part '_qui_hero_text_flight.dart';
 part '_qui_hero_text_flight_metrics.dart';
@@ -54,7 +55,13 @@ final class QuiHeroText extends QuiHero {
       padding = flight.padding,
       switchThreshold = flight.switchThreshold,
       _flight = flight,
-      super(tag: QuiHeroDefaultTag.text, flightShuttleBuilder: _buildFlightShuttle, onStart: null, onEnd: null, onReceived: null);
+      super(
+        tag: QuiHeroDefaultTag.text,
+        flightShuttleBuilder: _buildFlightShuttle,
+        onStart: null,
+        onEnd: null,
+        onReceived: null,
+      );
 
   QuiHeroText buildWithResolvedStyle(BuildContext context) {
     return QuiHeroText(
@@ -252,11 +259,32 @@ final class QuiHeroText extends QuiHero {
   }
 
   @override
+  QuiHeroText buildSwipeToPopHandoffHero({
+    required BuildContext context,
+    required QuiSwipeToPopHandoffState handoffState,
+  }) {
+    return QuiHeroText(
+      text,
+      tag: tag,
+      style: _scaledTextStyle(context: context, scale: handoffState.scale),
+      textAlign: textAlign,
+      overflow: overflow,
+      maxLines: maxLines,
+      padding: _scaledPadding(handoffState.scale),
+      switchThreshold: switchThreshold,
+      onStart: onStart,
+      onEnd: onEnd,
+      onReceived: onReceived,
+      key: key,
+    );
+  }
+
+  @override
   QuiHeroText buildForGroupFlight({
     required QuiHero end,
     required double value,
     required HeroFlightDirection flightDirection,
-    dynamic flightMetrics,
+    QuiHeroTextFlightMetrics? flightMetrics,
   }) {
     final endText = end as QuiHeroText;
 
@@ -283,9 +311,25 @@ final class QuiHeroText extends QuiHero {
         ),
         value: value,
         flightDirection: flightDirection,
-        flightMetrics: flightMetrics as QuiHeroTextFlightMetrics?,
+        flightMetrics: flightMetrics,
       ),
     );
+  }
+
+  TextStyle _scaledTextStyle({required BuildContext context, required double scale}) {
+    final resolvedStyle = _resolvedStyle(context);
+    final fontSize = resolvedStyle.fontSize;
+
+    if (fontSize == null || fontSize <= 0) return resolvedStyle;
+
+    return resolvedStyle.copyWith(fontSize: fontSize * scale);
+  }
+
+  EdgeInsetsGeometry? _scaledPadding(double scale) {
+    final padding = this.padding;
+    if (padding == null) return null;
+
+    return EdgeInsetsGeometry.lerp(EdgeInsets.zero, padding, scale);
   }
 
   TextStyle _resolvedStyle(BuildContext context) => DefaultTextStyle.of(context).style.merge(style);

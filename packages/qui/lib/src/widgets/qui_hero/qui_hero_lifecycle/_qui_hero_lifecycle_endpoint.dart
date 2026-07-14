@@ -2,12 +2,14 @@ part of '../qui_hero.dart';
 
 class _QuiHeroLifecycleEndpoint extends StatelessWidget {
   const _QuiHeroLifecycleEndpoint({
+    required this.hero,
     required this.child,
     required this.onStartCallbacks,
     required this.onEndCallbacks,
     required this.onReceivedCallbacks,
   });
 
+  final QuiHero hero;
   final Widget child;
   final List<VoidCallback> onStartCallbacks;
   final List<VoidCallback> onEndCallbacks;
