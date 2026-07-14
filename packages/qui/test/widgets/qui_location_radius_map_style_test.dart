@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/map_style/qui_map_style.dart';
 import 'package:qui/src/theme/map_style/qui_map_style_layer.dart';
 import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
-import 'package:qui/src/theme/qui_palette/qui_palette.dart';
 
 final _light = QuiColorScheme.light();
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qui/gen/swipe_up_phone_animation.g.dart';
 import 'package:qui/qui.dart';
 
 import '../test_app.dart';
@@ -30,10 +31,7 @@ void main() {
   group('when rendering QuiSwipeUpHint', () {
     testWidgets('with default props, it should paint via CustomPaint', (tester) async {
       await tester.pumpWidget(const TestApp(child: QuiSwipeUpHint()));
-      expect(
-        find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(CustomPaint)),
-        findsOneWidget,
-      );
+      expect(find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(CustomPaint)), findsOneWidget);
     });
 
     testWidgets('with default props, it should size itself from the height prop', (tester) async {
@@ -71,23 +69,16 @@ void main() {
           child: MediaQuery(data: MediaQueryData(disableAnimations: true), child: QuiSwipeUpHint()),
         ),
       );
-      expect(
-        find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(CustomPaint)),
-        findsOneWidget,
-      );
+      expect(find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(CustomPaint)), findsOneWidget);
     });
 
     testWidgets('with a custom phoneColor, it should render without error', (tester) async {
-      await tester.pumpWidget(
-        const TestApp(child: QuiSwipeUpHint(phoneColor: Color(0xFF1F1F1F))),
-      );
+      await tester.pumpWidget(const TestApp(child: QuiSwipeUpHint(phoneColor: Color(0xFF1F1F1F))));
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('with a custom accentColor, it should render without error', (tester) async {
-      await tester.pumpWidget(
-        const TestApp(child: QuiSwipeUpHint(accentColor: Color(0xFFFF4A4B))),
-      );
+      await tester.pumpWidget(const TestApp(child: QuiSwipeUpHint(accentColor: Color(0xFFFF4A4B))));
       expect(tester.takeException(), isNull);
     });
   });
@@ -117,10 +108,7 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      expect(
-        find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(CustomPaint)),
-        findsOneWidget,
-      );
+      expect(find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(CustomPaint)), findsOneWidget);
     });
 
     testWidgets('it should pass progress 0.3 to SwipeUpPhone', (tester) async {
@@ -130,8 +118,8 @@ void main() {
         ),
       );
 
-      final swipeUpPhone = tester.widget<SwipeUpPhone>(
-        find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(SwipeUpPhone)),
+      final swipeUpPhone = tester.widget<SwipeUpPhoneAnimation>(
+        find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(SwipeUpPhoneAnimation)),
       );
 
       expect(swipeUpPhone.progress, 0.3);

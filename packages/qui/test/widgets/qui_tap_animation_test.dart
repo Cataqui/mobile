@@ -2,19 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
+
 import '../test_app.dart';
 
 final _tapAnimationFinder = find.byType(QuiTapAnimation);
 
-Finder _scaleWithinTapAnimation() => find.descendant(
-  of: _tapAnimationFinder,
-  matching: find.byType(ScaleTransition),
-);
-
-Finder _fadeWithinTapAnimation() => find.descendant(
-  of: _tapAnimationFinder,
-  matching: find.byType(FadeTransition),
-);
+Finder _scaleWithinTapAnimation() => find.descendant(of: _tapAnimationFinder, matching: find.byType(ScaleTransition));
+Finder _fadeWithinTapAnimation() => find.descendant(of: _tapAnimationFinder, matching: find.byType(FadeTransition));
 
 void main() {
   group('QuiTapAnimation', () {
@@ -23,7 +17,12 @@ void main() {
 
       await tester.pumpWidget(
         TestApp(
-          child: QuiTapAnimation(onPressed: (animation) async { tapCount += 1; }, child: const Text('Tap')),
+          child: QuiTapAnimation(
+            onPressed: (animation) async {
+              tapCount += 1;
+            },
+            child: const Text('Tap'),
+          ),
         ),
       );
 
@@ -104,13 +103,10 @@ void main() {
 
     testWidgets('when tapped down, it should call HapticFeedback.lightImpact', (tester) async {
       final hapticCalls = <MethodCall>[];
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        (call) {
-          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
-          return null;
-        },
-      );
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      });
 
       await tester.pumpWidget(
         TestApp(
@@ -130,13 +126,10 @@ void main() {
 
     testWidgets('when disabled and tapped down, it should not call HapticFeedback', (tester) async {
       final hapticCalls = <MethodCall>[];
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        (call) {
-          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
-          return null;
-        },
-      );
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      });
 
       await tester.pumpWidget(const TestApp(child: QuiTapAnimation(child: Text('Tap'))));
 
@@ -150,21 +143,14 @@ void main() {
 
     testWidgets('when fireHapticFeedback is true, it should fire haptic feedback', (tester) async {
       final hapticCalls = <MethodCall>[];
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        (call) {
-          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
-          return null;
-        },
-      );
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      });
 
       await tester.pumpWidget(
         TestApp(
-          child: QuiTapAnimation(
-            fireHapticFeedback: true,
-            onPressed: (animation) async {},
-            child: const Text('Tap'),
-          ),
+          child: QuiTapAnimation(fireHapticFeedback: true, onPressed: (animation) async {}, child: const Text('Tap')),
         ),
       );
 
@@ -180,21 +166,14 @@ void main() {
 
     testWidgets('when fireHapticFeedback is false, it should not fire haptic feedback', (tester) async {
       final hapticCalls = <MethodCall>[];
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        (call) {
-          if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
-          return null;
-        },
-      );
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) {
+        if (call.method.startsWith('HapticFeedback')) hapticCalls.add(call);
+        return null;
+      });
 
       await tester.pumpWidget(
         TestApp(
-          child: QuiTapAnimation(
-            fireHapticFeedback: false,
-            onPressed: (animation) async {},
-            child: const Text('Tap'),
-          ),
+          child: QuiTapAnimation(fireHapticFeedback: false, onPressed: (animation) async {}, child: const Text('Tap')),
         ),
       );
 
@@ -206,7 +185,9 @@ void main() {
       addTearDown(gesture.up);
     });
 
-    testWidgets('when scale animation type is used, it should render ScaleTransition without FadeTransition', (tester) async {
+    testWidgets('when scale animation type is used, it should render ScaleTransition without FadeTransition', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         TestApp(
           child: QuiTapAnimation(

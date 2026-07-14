@@ -339,8 +339,6 @@ void main() {
 
     test('light theme sets scaffoldBackgroundColor to neutral-1', () {
       final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
-      final palette = QuiPalette(primaryColor: _brandColor);
-
       expect(theme.scaffoldBackgroundColor, equals(Colors.white));
     });
 

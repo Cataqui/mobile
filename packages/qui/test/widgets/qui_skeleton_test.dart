@@ -80,7 +80,7 @@ void main() {
 
       final renderObject = _findSkeletonRenderObject(tester);
 
-      expect(renderObject.alwaysNeedsCompositing, isTrue);
+      expect(renderObject.needsCompositing, isTrue);
     });
 
     testWidgets('when the widget rebuilds with style.effect toggled, it should update the render object', (tester) async {

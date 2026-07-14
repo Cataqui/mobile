@@ -4,7 +4,6 @@ import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
@@ -15,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
 import '../feed/feed_view_test_helpers.dart';
@@ -123,9 +121,7 @@ void main() {
         () => JobViewGoldenTestHelpers.scenario(
           feedJob: JobViewTestHelpers.feedJob(),
           jobState: JobViewTestHelpers.loadedState(
-            job: JobViewTestHelpers.job(
-              description: JobViewGoldenTestHelpers.veryLongDescription,
-            ),
+            job: JobViewTestHelpers.job(description: JobViewGoldenTestHelpers.veryLongDescription),
           ),
         ),
       ),
@@ -148,7 +144,8 @@ class JobViewGoldenTestHelpers {
   static String get veryLongDescription {
     final paragraphs = List.generate(
       30,
-      (i) => '${i + 1}. Este é um parágrafo muito longo da descrição da '
+      (i) =>
+          '${i + 1}. Este é um parágrafo muito longo da descrição da '
           'oportunidade para garantir que o conteúdo ultrapasse o tamanho '
           'da tela e seja necessário rolar para baixo. Esta vaga exige '
           'disponibilidade imediata e bastante disposição para o trabalho.',
@@ -167,7 +164,7 @@ class JobViewGoldenTestHelpers {
     return Clock(() => DateTime(2026, 6, 30, 11));
   }
 
-  static Widget scenario({FeedJobDto? feedJob, String? jobId, required FakeJobState jobState}) {
+  static Widget scenario({required FakeJobState jobState, FeedJobDto? feedJob, String? jobId}) {
     final resolvedJobId = jobId ?? feedJob!.jobId;
     return SizedBox(
       width: 390,
@@ -184,9 +181,7 @@ class JobViewGoldenTestHelpers {
     final feedJob = JobViewTestHelpers.feedJob();
     final jobRepository = MockJobRepository();
 
-    when(
-      () => jobRepository.getJob(jobId: any(named: 'jobId')),
-    ).thenAnswer(
+    when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(
         data: JobViewTestHelpers.job(),
         requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',

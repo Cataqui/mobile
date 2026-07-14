@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
@@ -28,9 +27,7 @@ void main() {
   setUp(() {
     goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
     jobRepository = MockJobRepository();
-    when(
-      () => jobRepository.getJob(jobId: any(named: 'jobId')),
-    ).thenAnswer(
+    when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(
         data: JobViewTestHelpers.job(),
         requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
@@ -244,7 +241,9 @@ void main() {
       expect(headerHero.tag, equals(FeedJobCard.headerHeroKey(feedJob.jobId)));
     });
 
-    testWidgets('when opened from the feed, it should render the background hero with the matching tag', (tester) async {
+    testWidgets('when opened from the feed, it should render the background hero with the matching tag', (
+      tester,
+    ) async {
       final feedJob = JobViewTestHelpers.feedJob();
 
       await JobViewTestHelpers.pumpRoutedJobView(
@@ -312,9 +311,7 @@ void main() {
       (tester) async {
         final feedJob = JobViewTestHelpers.feedJob();
         final description = List<String>.filled(80, 'Linha de descrição longa.').join('\n');
-        when(
-          () => jobRepository.getJob(jobId: any(named: 'jobId')),
-        ).thenAnswer(
+        when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
           (_) async => ApiEnvelopeDto<JobDto>(
             data: JobViewTestHelpers.job(description: description),
             requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',

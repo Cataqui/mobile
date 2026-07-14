@@ -1,0 +1,8 @@
+analyzer:
+  exclude:
+    - "**/*.freezed.dart"
+    - "**/*.g.dart"
+  errors:
+    unused_local_variable: ignore
+    unused_import: ignore
+    invalid_use_of_protected_member: ignore
