@@ -700,6 +700,197 @@ void main() {
       expect(find.byKey(_loadMoreErrorKey), findsOneWidget);
     });
   });
+
+  group('QuiTikTokFeedController notifications', () {
+    testWidgets('when next is called via controller, it should fire nextItem notification', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller);
+      controller.addNotificationListener(logs.add);
+      final future = controller.next();
+      await tester.pumpAndSettle();
+      await future;
+
+      expect(logs.single, QuiTikTokFeedNotification.nextItem);
+    });
+
+    testWidgets('when the user swipes up to commit next, it should fire nextItem notification', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller);
+      controller.addNotificationListener(logs.add);
+      await tester.fling(find.byType(QuiTikTokFeed<String>), const Offset(0, -300), 1000);
+      await tester.pumpAndSettle();
+
+      expect(logs.single, QuiTikTokFeedNotification.nextItem);
+    });
+
+    testWidgets('when pagination auto-navigates from await, it should fire nextItem notification', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+      final loadCompleter = Completer<void>();
+
+      await _pumpFeed(tester, controller: controller, items: const ['solo'], onLoadMore: () => loadCompleter.future);
+      await tester.pump();
+      await tester.pump();
+
+      controller.addNotificationListener(logs.add);
+      await controller.next();
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      loadCompleter.complete();
+      await tester.pump();
+
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      expect(logs.single, QuiTikTokFeedNotification.nextItem);
+    });
+
+    testWidgets('when previous is called, it should NOT fire nextItem', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller, items: const ['a', 'b']);
+      controller.addNotificationListener(logs.add);
+      final nextF = controller.next();
+      await tester.pumpAndSettle();
+      await nextF;
+      logs.clear();
+      final prevF = controller.previous();
+      await tester.pumpAndSettle();
+      await prevF;
+
+      expect(logs, isEmpty);
+    });
+
+    testWidgets('when next is canceled (snap back), it should NOT fire nextItem', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller);
+      controller.addNotificationListener(logs.add);
+      final gesture = await tester.startGesture(const Offset(200, 300));
+      await gesture.moveBy(const Offset(0, -50));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(logs, isEmpty);
+    });
+
+    testWidgets('when next is called on the terminal page, it should NOT fire nextItem', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller, items: const ['last']);
+      controller.addNotificationListener(logs.add);
+      final firstNext = controller.next();
+      await tester.pumpAndSettle();
+      await firstNext;
+      logs.clear();
+      final secondNext = controller.next();
+      await tester.pumpAndSettle();
+      await secondNext;
+
+      expect(logs, isEmpty);
+    });
+
+    testWidgets('when a listener removes itself during dispatch, it should not crash', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller);
+      void selfRemoving(QuiTikTokFeedNotification n) {
+        controller.removeNotificationListener(selfRemoving);
+      }
+
+      controller.addNotificationListener(selfRemoving);
+      controller.addNotificationListener(logs.add);
+      final future = controller.next();
+      await tester.pumpAndSettle();
+      await future;
+
+      expect(logs, hasLength(1));
+    });
+
+    testWidgets('when the same listener is added twice, it should fire only once per event', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller);
+      controller.addNotificationListener(logs.add);
+      controller.addNotificationListener(logs.add);
+      final future = controller.next();
+      await tester.pumpAndSettle();
+      await future;
+
+      expect(logs, hasLength(1));
+    });
+
+    testWidgets('when removeNotificationListener is called for an unregistered listener, it should be a no-op', (
+      tester,
+    ) async {
+      final controller = QuiTikTokFeedController();
+
+      controller.removeNotificationListener((_) {});
+
+      expect(true, isTrue);
+    });
+
+    testWidgets('when the feed is disposed and reattached, listeners should still fire', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller, items: const ['a', 'b']);
+      controller.addNotificationListener(logs.add);
+      await tester.pumpWidget(const SizedBox());
+      await _pumpFeed(tester, controller: controller, items: const ['a', 'b']);
+      await tester.pumpAndSettle();
+
+      final future = controller.next();
+      await tester.pumpAndSettle();
+      await future;
+
+      expect(logs.single, QuiTikTokFeedNotification.nextItem);
+    });
+
+    testWidgets('when dispose is called, listeners should be cleared and hasClients should be false', (tester) async {
+      final controller = QuiTikTokFeedController();
+      final logs = <QuiTikTokFeedNotification>[];
+
+      await _pumpFeed(tester, controller: controller);
+      controller.addNotificationListener(logs.add);
+      controller.dispose();
+
+      expect(controller.hasClients, isFalse);
+      expect(await controller.next(), isFalse);
+      expect(await controller.previous(), isFalse);
+
+      // Re-attach and fire — listener should not fire since it was cleared.
+      await _pumpFeed(tester, controller: controller);
+      await tester.pumpAndSettle();
+      final future = controller.next();
+      await tester.pumpAndSettle();
+      await future;
+
+      expect(logs, isEmpty);
+    });
+
+    testWidgets('when dispose is called multiple times, it should not throw', (tester) async {
+      final controller = QuiTikTokFeedController();
+
+      controller.dispose();
+      controller.dispose();
+
+      expect(true, isTrue);
+    });
+  });
 }
 
 const _feedSize = Size(400, 600);
