@@ -567,6 +567,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       _dragOffsetNotifier.value = 0;
 
       widget.onNext?.call(item, itemIndex);
+      widget.controller?._notify(QuiTikTokFeedNotification.nextItem);
       _scheduleLoadMoreIfNeeded();
 
       if (widget.enableHapticFeedback) {
@@ -863,6 +864,7 @@ class _QuiTikTokFeedState<T> extends State<QuiTikTokFeed<T>>
       _loadingLiftNotifier.value = 0;
 
       widget.onNext?.call(item, itemIndex);
+      widget.controller?._notify(QuiTikTokFeedNotification.nextItem);
       _scheduleLoadMoreIfNeeded();
 
       if (widget.enableHapticFeedback) {
