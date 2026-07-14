@@ -1,4 +1,3 @@
-import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -95,9 +94,7 @@ void main() {
         notificationCount++;
       });
 
-      await container
-          .read(appStorageStateProvider.notifier)
-          .setSeenSwipeFeedHint(value: true);
+      await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
 
       verifyNever(() => prefs.setBool(any(), any()));
       expect(notificationCount, equals(0));

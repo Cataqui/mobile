@@ -14,6 +14,8 @@ import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
+import '../../mocks.dart';
+
 // FakeFeedState exists because _$FeedState (from riverpod_generator) is
 // library-private and cannot be accessed by mocktail outside feed_state.dart.
 // By extending FeedState, we inherit the correct runBuild() from _$FeedState.
@@ -132,11 +134,17 @@ class FeedViewTestHelpers {
     );
   }
 
-  static ProviderScope buildScope({required FakeFeedState feedState, required Widget child, GoRouter? goRouter}) {
+  static ProviderScope buildScope({
+    required FakeFeedState feedState,
+    required Widget child,
+    GoRouter? goRouter,
+    MockSharedPreferencesAsync? prefs,
+  }) {
     return ProviderScope(
       overrides: [
         feedStateProvider.overrideWith(() => feedState),
         if (goRouter != null) goRouterProvider.overrideWithValue(goRouter),
+        if (prefs != null) sharedPreferencesAsyncProvider.overrideWithValue(prefs),
       ],
       child: child,
     );
@@ -146,12 +154,13 @@ class FeedViewTestHelpers {
     required WidgetTester tester,
     required FakeFeedState feedState,
     GoRouter? goRouter,
+    MockSharedPreferencesAsync? prefs,
   }) async {
     mockHapticFeedback(tester);
     mockPlatformViews(tester);
     await tester.pumpWidget(
       buildApp(
-        child: buildScope(feedState: feedState, goRouter: goRouter, child: const FeedView()),
+        child: buildScope(feedState: feedState, goRouter: goRouter, prefs: prefs, child: const FeedView()),
       ),
     );
     await tester.pump(); // Microtask resolves, data arrives, exit starts
@@ -159,9 +168,13 @@ class FeedViewTestHelpers {
     await tester.pump(); // Enter starts, content renders in tree
   }
 
-  static Widget buildFeedViewApp({required FakeFeedState feedState, bool disableAnimations = false}) {
+  static Widget buildFeedViewApp({
+    required FakeFeedState feedState,
+    bool disableAnimations = false,
+    MockSharedPreferencesAsync? prefs,
+  }) {
     return buildApp(
-      child: buildScope(feedState: feedState, child: const FeedView()),
+      child: buildScope(feedState: feedState, prefs: prefs, child: const FeedView()),
       disableAnimations: disableAnimations,
     );
   }

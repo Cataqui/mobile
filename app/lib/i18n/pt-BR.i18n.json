@@ -36,6 +36,9 @@
       "title": "Sem mais oportunidades",
       "description": "Novas aparecem o tempo todo. Tente novamente mais tarde ou ajuste sua área de interesse.",
       "adjustAreaButtonTitle": "Ajustar minha área"
+    },
+    "swipeUpHint": {
+      "caption": "Arrasta pra cima e confere os trampos"
     }
   },
   "feedJob": {

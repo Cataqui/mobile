@@ -443,6 +443,10 @@ previous item instead of re-entering await` (uses internal state terms like
 approved goldens` (does not describe what the user sees)
 - This applies to **all** test types: unit, widget, golden, integration.
 
+### Prefer `pumpAndSettle` Over `pump`
+
+In widget and golden tests, use `pumpAndSettle` over `pump` unless only `pump` is needed (e.g., asserting in-progress animation state, or avoiding infinite pump loops). `pumpAndSettle` waits for all animations, timers, and microtasks to complete, producing more realistic test frames and reducing flakiness from un-settled widget states.
+
 ---
 
 ## 5. Security, Trust, & Safety Safeguards

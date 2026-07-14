@@ -17,8 +17,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:qui/qui.dart';
 
+import '../../mocks.dart';
 import '../feed/feed_view_test_helpers.dart';
 
 // FakeJobState exists because _$JobState (from riverpod_generator) is
@@ -53,6 +55,13 @@ class FakeJobState extends JobState {
 
 class JobViewTestHelpers {
   JobViewTestHelpers._();
+
+  static MockSharedPreferencesAsync _seenPrefs() {
+    final p = MockSharedPreferencesAsync();
+    when(() => p.getBool(any())).thenAnswer((_) async => true);
+    when(() => p.setBool(any(), any())).thenAnswer((_) async {});
+    return p;
+  }
 
   static FeedJobDto feedJob({String jobId = 'job_123', String title = 'Unload a truck', DateTime? createdAt}) {
     return FeedJobDto.fixture().copyWith(
@@ -148,6 +157,7 @@ class JobViewTestHelpers {
         goRouterProvider.overrideWithValue(goRouter),
         feedStateProvider.overrideWith(feedState),
         jobRepositoryProvider.overrideWithValue(jobRepository),
+        sharedPreferencesAsyncProvider.overrideWithValue(_seenPrefs()),
       ],
       child: MaterialApp.router(
         theme: QuiTheme.light(),

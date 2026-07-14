@@ -11,8 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:qui/qui.dart';
 
+import '../../mocks.dart';
 import 'feed_view_test_helpers.dart';
 
 void main() {
@@ -252,9 +254,12 @@ void main() {
 
     group('data — with jobs', () {
       testWidgets('when feedData has jobs, it should render QuiTikTokFeed', (tester) async {
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
         );
         await tester.pump();
         expect(find.byWidgetPredicate((w) => w is QuiTikTokFeed), findsOneWidget);
@@ -262,9 +267,12 @@ void main() {
       });
 
       testWidgets('when feedData has jobs, it should render FeedJobCard for the current job', (tester) async {
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
         );
         await tester.pump();
         expect(find.text('Descarregar Caminhão'), findsOneWidget);
@@ -273,19 +281,21 @@ void main() {
 
       testWidgets('when the visible job card tap action runs, it should navigate to that job detail', (tester) async {
         final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         FeedViewTestHelpers.mockHapticFeedback(tester);
         FeedViewTestHelpers.mockPlatformViews(tester);
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              feedStateProvider.overrideWith(() => FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3))),
+              feedStateProvider.overrideWith(
+                () => FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+              ),
+              sharedPreferencesAsyncProvider.overrideWithValue(prefs),
               goRouterProvider.overrideWithValue(goRouter),
             ],
-            child: MaterialApp.router(
-              theme: QuiTheme.light(),
-              routerConfig: goRouter,
-            ),
+            child: MaterialApp.router(theme: QuiTheme.light(), routerConfig: goRouter),
           ),
         );
         await tester.pump();
@@ -306,9 +316,12 @@ void main() {
 
       testWidgets('when feed cards are built, it should key them by jobId', (tester) async {
         final feedData = FeedViewTestHelpers.feedDataWithJobs(count: 3);
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: () => feedData),
+          prefs: prefs,
         );
         await tester.pump();
 
@@ -367,9 +380,12 @@ void main() {
       testWidgets('when feedData has jobs, it should wrap the data widget in a KeyedSubtree with ValueKey feed_data', (
         tester,
       ) async {
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
         );
         await tester.pump();
         // Same 'feed_data' key as the empty state — keeps the same entry
@@ -377,6 +393,95 @@ void main() {
         expect(find.byKey(const ValueKey('feed_data')), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
+    });
+
+    group('swipe-up hint overlay', () {
+      late MockSharedPreferencesAsync prefs;
+
+      setUp(() {
+        prefs = MockSharedPreferencesAsync();
+        when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+      });
+
+      testWidgets('when the user has not seen the hint, it should show the swipe-up hint overlay', (tester) async {
+        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
+        );
+
+        await tester.pump();
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the user has not seen the hint, it should not show the overlay while the feed is loading', (
+        tester,
+      ) async {
+        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
+          prefs: prefs,
+        );
+
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the feed has no jobs, it should not show the swipe-up hint overlay', (tester) async {
+        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+          prefs: prefs,
+        );
+        await tester.pump();
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the user has already seen the hint, it should not show the overlay', (tester) async {
+        when(() => prefs.getBool(any())).thenAnswer((_) async => true);
+
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
+        );
+        await tester.pump();
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets(
+        'when the user swipes up past the first job, the overlay should disappear and the seen flag should be persisted',
+        (tester) async {
+          when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+          await FeedViewTestHelpers.pumpFeedView(
+            tester: tester,
+            feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+            prefs: prefs,
+          );
+
+          await tester.pump();
+          expect(find.text(i18n.feed.swipeUpHint.caption), findsOneWidget);
+
+          await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+          await tester.pump(const Duration(milliseconds: 500));
+          await tester.pump();
+          await tester.pump();
+
+          verify(() => prefs.setBool('seen_swipe_feed_hint', true)).called(1);
+          expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+          await FeedViewTestHelpers.pumpAndCleanUp(tester);
+        },
+      );
     });
   });
 }

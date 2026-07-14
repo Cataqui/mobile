@@ -114,7 +114,7 @@ void main() {
         ),
       );
       await tester.tap(find.text(i18n.feed.error.retryButtonTitle));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(retryCount, equals(1));
     });
@@ -438,7 +438,7 @@ void main() {
         ),
       );
       await tester.tap(find.text(i18n.feed.error.retryButtonTitle));
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(retryCount, equals(1));
     });

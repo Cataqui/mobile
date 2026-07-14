@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
@@ -13,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/qui.dart';
 
+part 'feed_swipe_up_hint_overlay.dart';
 part 'feed_view_body.dart';
 
 class FeedView extends ConsumerStatefulWidget {
@@ -30,6 +33,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.qui.colorScheme;
+    final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
 
     return Scaffold(
       body: Stack(
@@ -61,46 +65,10 @@ class _FeedViewState extends ConsumerState<FeedView> {
               style: QuiEdgeFadeStyle(color: colorScheme.background),
             ),
           ),
-          const Positioned.fill(
-            child: RepaintBoundary(
-              child: SafeArea(
-                child: Stack(
-                  children: [
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-                    //   child: Align(
-                    //     alignment: AlignmentGeometry.topStart,
-                    //     child: QuiTextButton(
-                    //       text: 'São Paulo',
-                    //       leadingIconBuilder: (state) => QuiIcons.instance.build(
-                    //         (assets) => assets.mapPin,
-                    //         colorFilter: ColorFilter.mode(colorScheme.colors.primary.solid, BlendMode.srcIn),
-                    //         height: 14,
-                    //         width: 14,
-                    //       ),
-                    //       leadingIconSpacing: 10,
-                    //       trailingIconSpacing: 10,
-                    //       trailingIconBuilder: (state) => QuiIcons.instance.build(
-                    //         (assets) => assets.chevronDown,
-                    //         colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-                    //         height: 8,
-                    //       ),
-                    //       onPressed: () {},
-                    //     ),
-                    //   ),
-                    // ),
-                    // Align(
-                    //   alignment: AlignmentGeometry.bottomCenter,
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
-                    //     child: const QuiSearchBarButton(placeholder: 'Buscar oportunidades'),
-                    //   ),
-                    // ),
-                  ],
-                ),
-              ),
+          if (hasJobs)
+            Positioned.fill(
+              child: IgnorePointer(child: _FeedSwipeUpHintOverlay(feedController: _feedController)),
             ),
-          ),
         ],
       ),
     );
