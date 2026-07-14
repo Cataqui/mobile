@@ -41,6 +41,8 @@ testWidgets('when the API fails, it should show error', (tester) async {
 
 This keeps tests DRY while making deviations explicit and easy to spot.
 
+When many tests in a group need the same mock setup (e.g., a shared `setBool` stub), put it in `setUp`. Do not repeat the same `when` in every individual test — that's noise.
+
 ## 4. Helper Organization — No Top-Level Functions
 
 Helper code (fixture builders, pump helpers, app wrappers, cleanup) must not be top-level functions. Organize them in one of two ways:
