@@ -57,7 +57,7 @@ class QuiButton extends StatefulWidget {
     this.colorScheme,
     this.alignment = QuiButtonAlignment.center,
     this.fit = QuiButtonFit.fit,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
     this.isLoading = false,
   });
 
