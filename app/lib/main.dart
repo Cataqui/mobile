@@ -1,18 +1,13 @@
-import 'dart:async';
-
 import 'package:cataqui_app/app.dart';
+import 'package:cataqui_app/core/app_bootstrap.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:maplibre_gl/maplibre_gl.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  try {
-    await setOfflineMaxConcurrentRequests(maxRequestsPerHost: 8);
-  } catch (_) {
-    // Best-effort optimization — map still works with default 5 per-host.
-  }
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  await AppBootstrap.setup();
+
   runApp(const ProviderScope(child: CataquiApp()));
 }

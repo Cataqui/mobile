@@ -33,6 +33,8 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
   `.env` file, using `.env.example` as the committed template. The app reads
   `ENVIRONMENT` and `CATAQUI_API_URL` through Envied-generated Dart code.
   Regenerate code after changing `.env` values.
+- **Startup Splash:** Keep essential asynchronous startup work in
+  `AppBootstrap.setup()` so the native splash remains visible until bootstrap completes.
 
 ### Architecture & Frameworks
 

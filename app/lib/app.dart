@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/strings.g.dart';
+import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -33,6 +34,7 @@ class CataquiApp extends ConsumerWidget {
         supportedLocales: AppLocaleUtils.supportedLocales,
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         debugShowCheckedModeBanner: false,
+        builder: (context, child) => AppAnimatedSplash(child: child ?? const SizedBox.shrink()),
       ),
     );
   }

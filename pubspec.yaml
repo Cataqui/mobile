@@ -108,7 +108,7 @@ melos:
 
     generate_splash:
       description: Generate native splash screen assets
-      run: melos exec --scope=app -- fvm dart run flutter_native_splash:create
+      run: melos exec --scope=cataqui_app -- fvm dart run vector_graphics_compiler -i assets/splash/animated_splash_icon.svg -o assets/splash/animated_splash_icon.svg.vec && melos exec --scope=cataqui_app -- fvm dart run flutter_native_splash:create
 
     i18n:configure:
       description: Sync native locale configs (iOS/Android) with translation files

@@ -59,6 +59,9 @@ melos gen:all
 # Code generation (interactive package selection)
 melos gen
 
+# Regenerate the iOS and Android native splash resources
+melos generate_splash
+
 # Update approved visual goldens after intentional UI changes
 melos goldens:update         # asks which package/app
 melos goldens:update:all     # updates all packages/apps
@@ -69,6 +72,7 @@ melos goldens:update:all     # updates all packages/apps
 This project uses [dart_husky](https://pub.dev/packages/dart_husky) to enforce code quality and commit conventions.
 
 **Hooks run automatically on every commit:**
+
 - `pre-commit` — runs `melos analyze` (static analysis across all packages) and tests only on packages with staged files (via `preset: melos` with `staged_only: true`). The commit is blocked if either fails.
 - `commit-msg` — validates commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format.
 
@@ -94,19 +98,19 @@ All commits must follow the Conventional Commits format:
 <type>(<optional scope>): <subject>
 ```
 
-| Type       | When to use                                      |
-| ---------- | ------------------------------------------------ |
-| `feat`     | A new feature                                    |
-| `fix`      | A bug fix                                        |
-| `chore`    | Maintenance, deps, tooling                       |
-| `docs`     | Documentation only                               |
-| `style`    | Formatting, whitespace                           |
-| `refactor` | Code change, no feature or fix                   |
-| `test`     | Adding or fixing tests                           |
-| `build`    | Build system changes                             |
-| `ci`       | CI configuration                                 |
-| `perf`     | Performance improvement                          |
-| `revert`   | Revert a previous commit                         |
+| Type       | When to use                                                         |
+| ---------- | ------------------------------------------------------------------- |
+| `feat`     | A new feature                                                       |
+| `fix`      | A bug fix                                                           |
+| `chore`    | Maintenance, deps, tooling                                          |
+| `docs`     | Documentation only                                                  |
+| `style`    | Formatting, whitespace                                              |
+| `refactor` | Code change, no feature or fix                                      |
+| `test`     | Adding or fixing tests                                              |
+| `build`    | Build system changes                                                |
+| `ci`       | CI configuration                                                    |
+| `perf`     | Performance improvement                                             |
+| `revert`   | Revert a previous commit                                            |
 | `agent`    | Agent-related files (`AGENTS.md`, `.agents/`, `.opencode/`, skills) |
 
 **Examples:**
