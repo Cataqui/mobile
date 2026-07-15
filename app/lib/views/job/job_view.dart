@@ -180,7 +180,12 @@ class _JobViewState extends ConsumerState<JobView> {
                 alignment: AlignmentGeometry.topLeft,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: QuiRouteSettled(child: QuiViewBackButton(onPressed: () => Navigator.of(context).maybePop(), semanticLabel: i18n.navigation.back)),
+                  child: QuiRouteSettled(
+                    child: QuiViewBackButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      semanticLabel: i18n.navigation.back,
+                    ),
+                  ),
                 ),
               ),
             ),
