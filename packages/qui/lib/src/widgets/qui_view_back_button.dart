@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:qui/src/icons/qui_icons.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
+
+import 'qui_tap/qui_tap.dart';
 
 /// A back button designed specifically for full-view surfaces
 /// (screens that occupy the entire viewport).
@@ -56,12 +57,9 @@ class QuiViewBackButton extends StatelessWidget {
           color: context.qui.colorScheme.buttons.floating.background,
           shape: shape.copyWith(side: BorderSide(color: context.qui.colorScheme.buttons.floating.border)),
           clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              onPressed();
-            },
-            customBorder: shape,
+          child: QuiTap(
+            onPressed: (animation) async => onPressed(),
+            animation: QuiTapAnimationType.none,
             child: SizedBox.square(
               key: const Key('qui_view_back_button_tap_target'),
               dimension: 53,
