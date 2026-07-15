@@ -9,60 +9,53 @@ part of 'qui_color_scheme.dart';
 class QuiToastColorScheme {
   /// Creates toast-specific roles for transient messaging surfaces.
   const QuiToastColorScheme({
-    required this.background,
-    required this.foreground,
-    required this.successAccent,
-    required this.errorAccent,
-    required this.warningAccent,
-    required this.infoAccent,
+    required this.success,
+    required this.error,
+    required this.warning,
+    required this.info,
+    required this.neutral,
   });
 
   /// {@macro qui_color_scheme_lerp}
   factory QuiToastColorScheme.lerp(QuiToastColorScheme a, QuiToastColorScheme b, double t) {
     return QuiToastColorScheme(
-      background: Color.lerp(a.background, b.background, t)!,
-      foreground: Color.lerp(a.foreground, b.foreground, t)!,
-      successAccent: Color.lerp(a.successAccent, b.successAccent, t)!,
-      errorAccent: Color.lerp(a.errorAccent, b.errorAccent, t)!,
-      warningAccent: Color.lerp(a.warningAccent, b.warningAccent, t)!,
-      infoAccent: Color.lerp(a.infoAccent, b.infoAccent, t)!,
+      success: QuiToastVariantColorScheme.lerp(a.success, b.success, t),
+      error: QuiToastVariantColorScheme.lerp(a.error, b.error, t),
+      warning: QuiToastVariantColorScheme.lerp(a.warning, b.warning, t),
+      info: QuiToastVariantColorScheme.lerp(a.info, b.info, t),
+      neutral: QuiToastVariantColorScheme.lerp(a.neutral, b.neutral, t),
     );
   }
 
-  /// Container background color for toast surfaces.
-  final Color background;
+  /// Color roles for success toasts (positive confirmation, task complete).
+  final QuiToastVariantColorScheme success;
 
-  /// Readable foreground color placed on the toast background.
-  final Color foreground;
+  /// Color roles for error toasts (failure, destructive action).
+  final QuiToastVariantColorScheme error;
 
-  /// Accent color used when the toast communicates success.
-  final Color successAccent;
+  /// Color roles for warning toasts (caution, attention needed).
+  final QuiToastVariantColorScheme warning;
 
-  /// Accent color used when the toast communicates an error.
-  final Color errorAccent;
+  /// Color roles for informational toasts (neutral status, tips).
+  final QuiToastVariantColorScheme info;
 
-  /// Accent color used when the toast communicates a warning.
-  final Color warningAccent;
-
-  /// Accent color used when the toast communicates information.
-  final Color infoAccent;
+  /// Color roles for neutral toasts (non-status, general messaging).
+  final QuiToastVariantColorScheme neutral;
 
   /// {@macro qui_color_scheme_copy_with}
   QuiToastColorScheme copyWith({
-    Color? background,
-    Color? foreground,
-    Color? successAccent,
-    Color? errorAccent,
-    Color? warningAccent,
-    Color? infoAccent,
+    QuiToastVariantColorScheme? success,
+    QuiToastVariantColorScheme? error,
+    QuiToastVariantColorScheme? warning,
+    QuiToastVariantColorScheme? info,
+    QuiToastVariantColorScheme? neutral,
   }) {
     return QuiToastColorScheme(
-      background: background ?? this.background,
-      foreground: foreground ?? this.foreground,
-      successAccent: successAccent ?? this.successAccent,
-      errorAccent: errorAccent ?? this.errorAccent,
-      warningAccent: warningAccent ?? this.warningAccent,
-      infoAccent: infoAccent ?? this.infoAccent,
+      success: success ?? this.success,
+      error: error ?? this.error,
+      warning: warning ?? this.warning,
+      info: info ?? this.info,
+      neutral: neutral ?? this.neutral,
     );
   }
 
@@ -70,13 +63,57 @@ class QuiToastColorScheme {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is QuiToastColorScheme &&
-          background == other.background &&
-          foreground == other.foreground &&
-          successAccent == other.successAccent &&
-          errorAccent == other.errorAccent &&
-          warningAccent == other.warningAccent &&
-          infoAccent == other.infoAccent;
+          success == other.success &&
+          error == other.error &&
+          warning == other.warning &&
+          info == other.info &&
+          neutral == other.neutral;
 
   @override
-  int get hashCode => Object.hash(background, foreground, successAccent, errorAccent, warningAccent, infoAccent);
+  int get hashCode => Object.hashAll([success, error, warning, info, neutral]);
+}
+
+/// A set of colors for a single toast variant role.
+@immutable
+class QuiToastVariantColorScheme {
+  /// Creates a toast variant with all color roles.
+  const QuiToastVariantColorScheme({required this.background, required this.foreground, required this.icon});
+
+  /// {@macro qui_color_scheme_lerp}
+  factory QuiToastVariantColorScheme.lerp(QuiToastVariantColorScheme a, QuiToastVariantColorScheme b, double t) {
+    return QuiToastVariantColorScheme(
+      background: Color.lerp(a.background, b.background, t)!,
+      foreground: Color.lerp(a.foreground, b.foreground, t)!,
+      icon: Color.lerp(a.icon, b.icon, t)!,
+    );
+  }
+
+  /// Surface color for this toast variant's background.
+  final Color background;
+
+  /// Text color for this toast variant's message text.
+  final Color foreground;
+
+  /// Icon tint color for this toast variant's icon.
+  final Color icon;
+
+  /// {@macro qui_color_scheme_copy_with}
+  QuiToastVariantColorScheme copyWith({Color? background, Color? foreground, Color? icon}) {
+    return QuiToastVariantColorScheme(
+      background: background ?? this.background,
+      foreground: foreground ?? this.foreground,
+      icon: icon ?? this.icon,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QuiToastVariantColorScheme &&
+          background == other.background &&
+          foreground == other.foreground &&
+          icon == other.icon;
+
+  @override
+  int get hashCode => Object.hashAll([background, foreground, icon]);
 }

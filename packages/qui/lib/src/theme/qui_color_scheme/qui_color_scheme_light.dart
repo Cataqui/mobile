@@ -283,12 +283,31 @@ class _LightQuiColorScheme extends QuiColorScheme {
         overlay: const QuiOverlayColorScheme(scrim: Color(0x66000000)),
 
         toast: QuiToastColorScheme(
-          background: palette.neutral[12],
-          foreground: const Color(0xFFFFFFFF),
-          successAccent: palette.green[9],
-          errorAccent: palette.red[9],
-          warningAccent: palette.amber[9],
-          infoAccent: palette.blue[9],
+          success: QuiToastVariantColorScheme(
+            background: palette.green[12],
+            foreground: const Color(0xFFFFFFFF),
+            icon: palette.green[9],
+          ),
+          error: QuiToastVariantColorScheme(
+            background: palette.red[12],
+            foreground: const Color(0xFFFFFFFF),
+            icon: palette.red[9],
+          ),
+          warning: QuiToastVariantColorScheme(
+            background: palette.amber[12],
+            foreground: const Color(0xFFFFFFFF),
+            icon: palette.amber[9],
+          ),
+          info: QuiToastVariantColorScheme(
+            background: palette.blue[12],
+            foreground: const Color(0xFFFFFFFF),
+            icon: palette.blue[9],
+          ),
+          neutral: QuiToastVariantColorScheme(
+            background: palette.neutral[12],
+            foreground: const Color(0xFFFFFFFF),
+            icon: palette.neutral[9],
+          ),
         ),
 
         divider: QuiDividerColorScheme(standard: palette.neutral[6], strong: palette.neutral[7]),
