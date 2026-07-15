@@ -38,6 +38,7 @@ class QuiAppear extends StatefulWidget {
     this.appearDuration = const Duration(milliseconds: 300),
     this.destroyDuration = const Duration(milliseconds: 300),
     this.unmount = false,
+    this.onAppear,
     this.onDestroy,
     super.key,
   });
@@ -69,6 +70,24 @@ class QuiAppear extends StatefulWidget {
   /// after `destroy` completes.
   final bool unmount;
 
+  /// Called when `appear` is requested.
+  ///
+  /// Fires immediately when [QuiAppearController.appear] is called, before
+  /// the appear animation plays. The [animation] future completes when the
+  /// animation reaches opacity 1 (or immediately if already in the
+  /// appeared state or when animations are disabled).
+  ///
+  /// ```dart
+  /// QuiAppear(
+  ///   controller: controller,
+  ///   onAppear: (animation) async {
+  ///     await animation;
+  ///     // child is now fully visible
+  ///   },
+  /// )
+  /// ```
+  final void Function(Future<void> animation)? onAppear;
+
   /// Called when `destroy` is requested.
   ///
   /// Fires immediately when [QuiAppearController.destroy] is called, before
@@ -97,6 +116,7 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
   bool _initComplete = false;
   bool _unmounted = false;
   Completer<void>? _destroyCompleter;
+  Completer<void>? _appearCompleter;
 
   @override
   void initState() {
@@ -152,8 +172,9 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
   void _onAnimationStatus(AnimationStatus status) {
     if (status == AnimationStatus.dismissed) {
       _completeDestroy();
-
       if (widget.unmount) setState(() => _unmounted = true);
+    } else if (status == AnimationStatus.completed) {
+      _completeAppear();
     }
   }
 
@@ -161,11 +182,16 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
     if (!mounted) return;
     if (targetValue == 0) {
       _completeDestroy();
+      _completeAppear();
       final completer = Completer<void>();
       widget.onDestroy?.call(completer.future);
       _destroyCompleter = completer;
     } else {
       _completeDestroy();
+      _completeAppear();
+      final completer = Completer<void>();
+      widget.onAppear?.call(completer.future);
+      _appearCompleter = completer;
     }
     if (!_initComplete) {
       _pendingTargetValue = targetValue;
@@ -208,6 +234,16 @@ class _QuiAppearState extends State<QuiAppear> with SingleTickerProviderStateMix
     }
 
     _destroyCompleter = null;
+  }
+
+  void _completeAppear() {
+    final completer = _appearCompleter;
+
+    if (completer != null && !completer.isCompleted) {
+      completer.complete();
+    }
+
+    _appearCompleter = null;
   }
 
   @override

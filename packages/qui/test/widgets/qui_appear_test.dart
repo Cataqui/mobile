@@ -388,5 +388,114 @@ void main() {
       expect(animationFuture, isNotNull);
       expect(animationFuture, completes);
     });
+
+    testWidgets('when onAppear is provided and appear is called, it should fire immediately', (tester) async {
+      final controller = QuiAppearController();
+      var onAppearCalled = false;
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(
+            controller: controller,
+            onAppear: (animation) {
+              onAppearCalled = true;
+              animationFuture = animation;
+            },
+            child: const Text('Hello'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      controller.appear();
+
+      expect(onAppearCalled, isTrue);
+      expect(animationFuture, isNotNull);
+    });
+
+    testWidgets('when onAppear is provided and appear is called, the animation future should complete when the animation finishes',
+        (tester) async {
+      final controller = QuiAppearController();
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(
+            controller: controller,
+            onAppear: (animation) {
+              animationFuture = animation;
+            },
+            child: const Text('Hello'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      controller.appear();
+      await tester.pumpAndSettle();
+
+      expect(animationFuture, isNotNull);
+      expect(animationFuture, completes);
+    });
+
+    testWidgets('when onAppear is provided and destroy is called before appear completes, the appear future should complete immediately',
+        (tester) async {
+      final controller = QuiAppearController();
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuiAppear(
+            controller: controller,
+            onAppear: (animation) {
+              animationFuture = animation;
+            },
+            child: const Text('Hello'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      controller.appear();
+      controller.destroy();
+
+      expect(animationFuture, isNotNull);
+      expect(animationFuture, completes);
+    });
+
+    testWidgets('when onAppear is provided and appear is called with disableAnimations, it should fire immediately and the animation future should complete immediately',
+        (tester) async {
+      final controller = QuiAppearController();
+      var onAppearCalled = false;
+      Future<void>? animationFuture;
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: TestApp(
+            child: QuiAppear(
+              controller: controller,
+              onAppear: (animation) {
+                onAppearCalled = true;
+                animationFuture = animation;
+              },
+              child: const Text('Hello'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      controller.appear();
+
+      expect(onAppearCalled, isTrue);
+      expect(animationFuture, isNotNull);
+      expect(animationFuture, completes);
+    });
   });
 }
