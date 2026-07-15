@@ -113,8 +113,12 @@ void main() {
           },
         ),
       );
-      await tester.tap(find.text(i18n.feed.error.retryButtonTitle));
-      await tester.pumpAndSettle();
+      final retryButton = find.text(i18n.feed.error.retryButtonTitle);
+      await tester.ensureVisible(retryButton);
+      await tester.pump();
+      await tester.tap(retryButton);
+      // Pump past the 50ms loading delay timer so the test can settle.
+      await tester.pump(const Duration(milliseconds: 60));
 
       expect(retryCount, equals(1));
     });

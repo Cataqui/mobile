@@ -31,7 +31,7 @@ Widget _buildApp({
       theme: QuiTheme.light(),
       home: Scaffold(
         body: Center(
-          child: JobContactButton(jobId: 'test-job', contactReference: contactReference),
+          child: JobContactButton(jobId: 'test-job', contactReference: contactReference, isLoading: false),
         ),
       ),
     ),

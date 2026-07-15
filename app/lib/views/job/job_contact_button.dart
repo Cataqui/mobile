@@ -8,10 +8,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qui/qui.dart';
 
 class JobContactButton extends ConsumerWidget {
-  const JobContactButton({required this.jobId, required this.contactReference, super.key});
+  const JobContactButton({required this.jobId, required this.contactReference, required this.isLoading, super.key});
 
   final String jobId;
-  final JobContactReferenceDto contactReference;
+  final JobContactReferenceDto? contactReference;
+  final bool isLoading;
 
   static double get estimatedButtonHeight => _buttonPadding.vertical + _iconSize;
 
@@ -20,10 +21,16 @@ class JobContactButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final reference = contactReference;
+
+    if (reference == null) {
+      return QuiButton(variant: QuiButtonVariant.primary, label: '', padding: _buttonPadding, isLoading: isLoading);
+    }
+
     final i18n = ref.watch(translationProvider);
     final colorScheme = context.qui.colorScheme;
 
-    return switch (contactReference.contactMethod) {
+    return switch (reference.contactMethod) {
       JobContactMethod.whatsapp => _buildWhatsAppButton(i18n, colorScheme, ref),
       JobContactMethod.phoneCall => _buildPhoneCallButton(i18n, colorScheme, ref),
       JobContactMethod.unknown => QuiButton(
@@ -31,6 +38,7 @@ class JobContactButton extends ConsumerWidget {
         label: i18n.job.contactButton.unknown,
         padding: _buttonPadding,
         leadingIconSpacing: 10,
+        isLoading: isLoading,
         leadingIconBuilder: (state) => QuiIcons.instance.build(
           (assets) => assets.circleBlock,
           width: _iconSize,
@@ -47,6 +55,7 @@ class JobContactButton extends ConsumerWidget {
       label: i18n.job.contactButton.whatsapp,
       colorScheme: colorScheme.buttons.whatsapp.tertiary,
       padding: _buttonPadding,
+      isLoading: isLoading,
       leadingIconBuilder: (state) => QuiIcons.instance.build(
         (assets) => assets.whatsapp,
         width: _iconSize,
@@ -64,6 +73,7 @@ class JobContactButton extends ConsumerWidget {
       colorScheme: colorScheme.buttons.success,
       padding: _buttonPadding,
       leadingIconSpacing: 12,
+      isLoading: isLoading,
       leadingIconBuilder: (state) => QuiIcons.instance.build(
         (assets) => assets.phone,
         width: _iconSize,
@@ -75,14 +85,15 @@ class JobContactButton extends ConsumerWidget {
   }
 
   Future<void> _handleContactPressed(WidgetRef ref) async {
+    final reference = contactReference;
+    if (reference == null) return;
+
     try {
-      final contactData = await ref.read(
-        jobContactStateProvider(jobId: jobId, contactId: contactReference.contactId).future,
-      );
+      final contactData = await ref.read(jobContactStateProvider(jobId: jobId, contactId: reference.contactId).future);
 
       final identifier = contactData.contact.identifier;
 
-      switch (contactReference.contactMethod) {
+      switch (reference.contactMethod) {
         case JobContactMethod.whatsapp:
           final whatsapp = ref.read(whatsappProvider);
           await whatsapp.launchChat(number: identifier);

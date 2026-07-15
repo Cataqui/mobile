@@ -63,6 +63,7 @@ Widget _buildContactButton({
           contactReference: JobContactReferenceDto.fixture().copyWith(
             contactMethod: contactMethod,
           ),
+          isLoading: false,
         ),
       ),
     ),

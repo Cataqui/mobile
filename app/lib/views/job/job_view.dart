@@ -184,7 +184,7 @@ class _JobViewState extends ConsumerState<JobView> {
                 ),
               ),
             ),
-            if (jobData != null)
+            if (jobState.isLoading || jobData != null)
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -195,7 +195,11 @@ class _JobViewState extends ConsumerState<JobView> {
                     padding: const EdgeInsets.only(bottom: _contactButtonBottomSpacing),
                     child: Center(
                       child: QuiRouteSettled(
-                        child: JobContactButton(jobId: widget.jobId, contactReference: jobData.job.contactReference),
+                        child: JobContactButton(
+                          jobId: widget.jobId,
+                          contactReference: jobData?.job.contactReference,
+                          isLoading: jobState.isLoading,
+                        ),
                       ),
                     ),
                   ),
