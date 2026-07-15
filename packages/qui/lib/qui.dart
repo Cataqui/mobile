@@ -30,7 +30,8 @@ export 'src/theme/qui_color_scheme/qui_color_scheme.dart'
         QuiScrollbarColorScheme,
         QuiSkeletonColorScheme,
         QuiTextColorScheme,
-        QuiToastColorScheme;
+        QuiToastColorScheme,
+        QuiToastVariantColorScheme;
 export 'src/theme/qui_palette/qui_palette.dart' show QuiColorScale, QuiPalette;
 export 'src/theme/qui_theme.dart' show QuiTheme;
 export 'src/theme/qui_theme_context.dart' show QuiThemeContext;
@@ -96,6 +97,7 @@ export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
         QuiTikTokFeedLoadMoreErrorBuilder,
         QuiTikTokFeedNotification,
         QuiTikTokFeedProgressCallback;
+export 'src/widgets/qui_toast/qui_toast.dart' show QuiToast, QuiToastOverlayHost, QuiToastType;
 export 'src/widgets/qui_view_back_button.dart' show QuiViewBackButton;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
     show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;
