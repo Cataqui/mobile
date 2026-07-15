@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await AppBootstrap.setup();
 
-  runApp(const ProviderScope(child: CataquiApp()));
+  final providerContainer = ProviderContainer();
+  await AppBootstrap.setup(providerContainer: providerContainer);
+
+  runApp(UncontrolledProviderScope(container: providerContainer, child: const CataquiApp()));
 }

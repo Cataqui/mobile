@@ -4,7 +4,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_storage_state.g.dart';
 
-@Riverpod(keepAlive: true)
+Duration? _noRetry(int retryCount, Object error) => null;
+
+@Riverpod(keepAlive: true, retry: _noRetry)
 class AppStorageState extends _$AppStorageState {
   static const _seenSwipeFeedHintKey = 'seen_swipe_feed_hint';
 
