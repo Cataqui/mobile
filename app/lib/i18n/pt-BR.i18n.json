@@ -68,6 +68,9 @@
     "paymentOther": "Outro pagamento",
     "paymentUnknown": "Desconhecido"
   },
+  "navigation": {
+    "back": "Voltar"
+  },
   "job": {
     "error": {
       "title": "Eita...",
