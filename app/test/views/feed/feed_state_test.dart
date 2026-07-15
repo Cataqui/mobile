@@ -26,6 +26,23 @@ void main() {
       expect(feedState.jobs.single.jobId, 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502');
     });
 
+    test('when bootstrap starts the fetch before the view mounts, it should fetch only once', () async {
+      final repository = MockFeedRepository();
+      _stubFeedJobs(repository: repository);
+      final container = _createContainer(repository: repository)..read(feedStateProvider);
+
+      await pumpEventQueue();
+
+      await container.read(feedStateProvider.future);
+
+      verify(
+        () => repository.getFeedJobs(
+          cursor: any(named: 'cursor'),
+          sort: any(named: 'sort'),
+        ),
+      ).called(1);
+    });
+
     test('when first loaded with no jobs, it should expose full-screen empty state', () async {
       final repository = MockFeedRepository();
       _stubFeedJobs(
