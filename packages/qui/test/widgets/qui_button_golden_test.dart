@@ -15,18 +15,27 @@ void main() {
         children: [
           GoldenTestScenario(
             name: 'resting label only',
-            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Ver oportunidades',
+              onPressed: () {},
+            ),
           ),
           GoldenTestScenario(
             name: 'secondary resting label only',
-            child: QuiButton(variant: QuiButtonVariant.secondary, label: 'Ver oportunidades', onPressed: () {}),
+            child: QuiButton(
+              variant: QuiButtonVariant.secondary,
+              label: 'Ver oportunidades',
+              onPressed: () {},
+            ),
           ),
           GoldenTestScenario(
             name: 'leading icon',
             child: QuiButton(
               variant: QuiButtonVariant.primary,
               label: 'Buscar',
-              leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
+              leadingIconBuilder: (state) =>
+                  Icon(Icons.search, color: state.foregroundColor, size: 20),
               onPressed: () {},
             ),
           ),
@@ -35,7 +44,11 @@ void main() {
             child: QuiButton(
               variant: QuiButtonVariant.primary,
               label: 'Continuar',
-              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
+              trailingIconBuilder: (state) => Icon(
+                Icons.arrow_forward,
+                color: state.foregroundColor,
+                size: 20,
+              ),
               onPressed: () {},
             ),
           ),
@@ -44,8 +57,13 @@ void main() {
             child: QuiButton(
               variant: QuiButtonVariant.primary,
               label: 'Filtrar',
-              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
-              trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
+              leadingIconBuilder: (state) =>
+                  Icon(Icons.tune, color: state.foregroundColor, size: 20),
+              trailingIconBuilder: (state) => Icon(
+                Icons.arrow_drop_down,
+                color: state.foregroundColor,
+                size: 20,
+              ),
               onPressed: () {},
             ),
           ),
@@ -84,7 +102,8 @@ void main() {
             child: QuiButton(
               variant: QuiButtonVariant.primary,
               label: 'Indisponivel',
-              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
+              leadingIconBuilder: (state) =>
+                  Icon(Icons.lock, color: state.foregroundColor, size: 20),
             ),
           ),
           GoldenTestScenario(
@@ -92,7 +111,8 @@ void main() {
             child: QuiButton(
               variant: QuiButtonVariant.secondary,
               label: 'Indisponivel',
-              leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
+              leadingIconBuilder: (state) =>
+                  Icon(Icons.lock, color: state.foregroundColor, size: 20),
             ),
           ),
           GoldenTestScenario(
@@ -123,7 +143,11 @@ void main() {
           ),
           GoldenTestScenario(
             name: 'short label',
-            child: QuiButton(variant: QuiButtonVariant.primary, label: 'OK', onPressed: () {}),
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'OK',
+              onPressed: () {},
+            ),
           ),
           GoldenTestScenario(
             name: 'long label',
@@ -149,8 +173,13 @@ void main() {
               label: 'Espacado',
               leadingIconSpacing: 14,
               trailingIconSpacing: 18,
-              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
-              trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
+              leadingIconBuilder: (state) =>
+                  Icon(Icons.tune, color: state.foregroundColor, size: 20),
+              trailingIconBuilder: (state) => Icon(
+                Icons.arrow_forward,
+                color: state.foregroundColor,
+                size: 20,
+              ),
               onPressed: () {},
             ),
           ),
@@ -211,14 +240,20 @@ void main() {
       'when pressing the button, it should match the approved golden',
       fileName: 'qui_button_pressed',
       whilePerforming: (tester) async {
-        final gesture = await tester.startGesture(tester.getCenter(find.text('Ver oportunidades')));
+        final gesture = await tester.startGesture(
+          tester.getCenter(find.text('Ver oportunidades')),
+        );
         await tester.pump(const Duration(milliseconds: 120));
         addTearDown(gesture.removePointer);
         return null;
       },
       builder: () => SizedBox(
         width: 220,
-        child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
+        child: QuiButton(
+          variant: QuiButtonVariant.primary,
+          label: 'Ver oportunidades',
+          onPressed: () {},
+        ),
       ),
     );
 
@@ -278,7 +313,8 @@ void main() {
               child: QuiButton(
                 variant: QuiButtonVariant.primary,
                 label: 'Icon loading',
-                leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
+                leadingIconBuilder: (state) =>
+                    Icon(Icons.search, color: state.foregroundColor, size: 20),
                 onPressed: () => Completer<void>().future,
               ),
             ),
@@ -298,8 +334,13 @@ void main() {
             child: QuiButton(
               variant: QuiButtonVariant.primary,
               label: 'Filtrar resultados',
-              leadingIconBuilder: (state) => Icon(Icons.tune, color: state.foregroundColor, size: 20),
-              trailingIconBuilder: (state) => Icon(Icons.arrow_drop_down, color: state.foregroundColor, size: 20),
+              leadingIconBuilder: (state) =>
+                  Icon(Icons.tune, color: state.foregroundColor, size: 20),
+              trailingIconBuilder: (state) => Icon(
+                Icons.arrow_drop_down,
+                color: state.foregroundColor,
+                size: 20,
+              ),
               onPressed: () {},
             ),
           ),
@@ -310,7 +351,11 @@ void main() {
               child: QuiButton(
                 variant: QuiButtonVariant.primary,
                 label: 'Continuar',
-                trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
+                trailingIconBuilder: (state) => Icon(
+                  Icons.arrow_forward,
+                  color: state.foregroundColor,
+                  size: 20,
+                ),
                 fit: QuiButtonFit.expand,
                 onPressed: () {},
               ),
@@ -324,7 +369,8 @@ void main() {
                 variant: QuiButtonVariant.primary,
                 label: 'Indisponivel',
                 fit: QuiButtonFit.expand,
-                leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
+                leadingIconBuilder: (state) =>
+                    Icon(Icons.lock, color: state.foregroundColor, size: 20),
               ),
             ),
           ),
@@ -387,26 +433,39 @@ void main() {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
+                QuiButton(
+                  variant: QuiButtonVariant.primary,
+                  label: 'Ver oportunidades',
+                  onPressed: () {},
+                ),
                 const SizedBox(height: 12),
                 QuiButton(
                   variant: QuiButtonVariant.primary,
                   label: 'Buscar',
-                  leadingIconBuilder: (state) => Icon(Icons.search, color: state.foregroundColor, size: 20),
+                  leadingIconBuilder: (state) => Icon(
+                    Icons.search,
+                    color: state.foregroundColor,
+                    size: 20,
+                  ),
                   onPressed: () {},
                 ),
                 const SizedBox(height: 12),
                 QuiButton(
                   variant: QuiButtonVariant.primary,
                   label: 'Continuar',
-                  trailingIconBuilder: (state) => Icon(Icons.arrow_forward, color: state.foregroundColor, size: 20),
+                  trailingIconBuilder: (state) => Icon(
+                    Icons.arrow_forward,
+                    color: state.foregroundColor,
+                    size: 20,
+                  ),
                   onPressed: () {},
                 ),
                 const SizedBox(height: 12),
                 QuiButton(
                   variant: QuiButtonVariant.primary,
                   label: 'Indisponivel',
-                  leadingIconBuilder: (state) => Icon(Icons.lock, color: state.foregroundColor, size: 20),
+                  leadingIconBuilder: (state) =>
+                      Icon(Icons.lock, color: state.foregroundColor, size: 20),
                 ),
               ],
             ),
