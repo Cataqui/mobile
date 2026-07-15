@@ -923,6 +923,299 @@ void main() {
       });
     });
 
+    group('isLoading prop', () {
+      Future<void> _pumpPropLoadingState(WidgetTester tester) async {
+        await tester.pump();
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await tester.pump();
+      }
+
+      testWidgets('when isLoading is true, it should show the loading indicator', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Carregando', isLoading: true, onPressed: () {}),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+      });
+
+      testWidgets('when isLoading is true, it should hide the label text', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Carregando', isLoading: true, onPressed: () {}),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        expect(find.text('Carregando'), findsNothing);
+      });
+
+      testWidgets('when isLoading is false, it should show the label text and no loading indicator', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Normal', isLoading: false, onPressed: () {}),
+          ),
+        );
+
+        await tester.pump();
+
+        expect(find.text('Normal'), findsOneWidget);
+        expect(find.byType(QuiDotLoadingIndicator), findsNothing);
+      });
+
+      testWidgets('when isLoading transitions from false to true, it should show the loading indicator', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Carregando', isLoading: false, onPressed: () {}),
+          ),
+        );
+
+        await tester.pump();
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Carregando', isLoading: true, onPressed: () {}),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+      });
+
+      testWidgets('when isLoading transitions from true to false, it should restore the label', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Carregando', isLoading: true, onPressed: () {}),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Carregando', isLoading: false, onPressed: () {}),
+          ),
+        );
+
+        await _pumpContentRestoredState(tester);
+
+        expect(find.text('Carregando'), findsOneWidget);
+        expect(find.byType(QuiDotLoadingIndicator), findsNothing);
+      });
+
+      testWidgets('when isLoading is true and onPressed is null, it should show the loading indicator', (tester) async {
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Carregando', isLoading: true),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+      });
+
+      testWidgets('when isLoading is true and disabled, it should pass disabled foreground color to the indicator', (
+        tester,
+      ) async {
+        const customColorScheme = QuiButtonColorScheme(
+          background: Color(0xFFFFFFFF),
+          backgroundHover: Color(0xFFF2F2F2),
+          backgroundDisabled: Color(0xFFDDDDDD),
+          foreground: Color(0xFF1A1A1A),
+          foregroundDisabled: Color(0xFF999999),
+        );
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Desabilitado',
+              colorScheme: customColorScheme,
+              isLoading: true,
+            ),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        expect(_loadingIndicator(tester).color, equals(const Color(0xFF999999)));
+      });
+
+      testWidgets('when isLoading is true, tapping the button should not invoke onPressed', (tester) async {
+        var tapCount = 0;
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Carregando',
+              isLoading: true,
+              onPressed: () => tapCount += 1,
+            ),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        await tester.tap(find.byKey(const Key('qui_button_container')));
+        await tester.pump();
+
+        expect(tapCount, equals(0));
+      });
+
+      testWidgets('when isLoading is true and a press future is also pending, it should not duplicate the indicator', (
+        tester,
+      ) async {
+        final completer = Completer<void>();
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              isLoading: true,
+              onPressed: () => completer.future,
+            ),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        // Trigger a press that returns a future while already loading from prop
+        await tester.tap(find.byKey(const Key('qui_button_container')));
+        await tester.pump(const Duration(milliseconds: 60));
+
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+      });
+
+      testWidgets('when isLoading is true and the press future completes, it should still show loading', (tester) async {
+        final completer = Completer<void>();
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              isLoading: true,
+              onPressed: () => completer.future,
+            ),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        // Trigger a press while already loading
+        await tester.tap(find.byKey(const Key('qui_button_container')));
+        await tester.pump(const Duration(milliseconds: 60));
+        completer.complete();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+      });
+
+      testWidgets('when isLoading goes false while a press future is pending, it should keep showing loading', (
+        tester,
+      ) async {
+        final completer = Completer<void>();
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              isLoading: false,
+              onPressed: () => completer.future,
+            ),
+          ),
+        );
+
+        // Tap to trigger future-based loading
+        await tester.tap(find.text('Salvar agora'));
+        await _pumpLoadingState(tester);
+
+        // Set isLoading to true (now both sources active)
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              isLoading: true,
+              onPressed: () => completer.future,
+            ),
+          ),
+        );
+
+        await tester.pump(const Duration(milliseconds: 60));
+
+        // Set isLoading back to false while future is still pending
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(
+              variant: QuiButtonVariant.primary,
+              label: 'Salvar agora',
+              isLoading: false,
+              onPressed: () => completer.future,
+            ),
+          ),
+        );
+
+        await tester.pump(const Duration(milliseconds: 60));
+
+        // Should still be loading because the future is still pending
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+        completer.complete();
+        await _pumpContentRestoredState(tester);
+
+        expect(find.text('Salvar agora'), findsOneWidget);
+        expect(find.byType(QuiDotLoadingIndicator), findsNothing);
+      });
+
+      testWidgets('when isLoading starts as true on construction, it should show loading', (tester) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiButton(variant: QuiButtonVariant.primary, label: 'Inicial', isLoading: true, onPressed: () {}),
+          ),
+        );
+
+        await _pumpPropLoadingState(tester);
+
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+      });
+
+      testWidgets('when isLoading is true and animations are disabled, it should show the loading indicator', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          TestApp(
+            child: MediaQuery(
+              data: const MediaQueryData(disableAnimations: true),
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Rapido',
+                isLoading: true,
+                onPressed: () {},
+              ),
+            ),
+          ),
+        );
+
+        await tester.pump(const Duration(milliseconds: 16));
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(AnimatedSize), findsNothing);
+        expect(find.byType(QuiDotLoadingIndicator), findsOneWidget);
+      });
+    });
+
     group('lifecycle', () {
       testWidgets('when the widget is unmounted before the future completes, it should not call setState', (
         tester,

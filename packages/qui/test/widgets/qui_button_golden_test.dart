@@ -333,6 +333,50 @@ void main() {
     );
 
     goldenTest(
+      'when rendering isLoading prop states with animations disabled, it should match the approved goldens',
+      fileName: 'qui_button_is_loading',
+      whilePerforming: (tester) async {
+        await tester.pump();
+        await tester.pump();
+        return null;
+      },
+      builder: () => MediaQuery(
+        data: const MediaQueryData(disableAnimations: true),
+        child: GoldenTestGroup(
+          scenarioConstraints: const BoxConstraints(minWidth: 300),
+          children: [
+            GoldenTestScenario(
+              name: 'isLoading enabled',
+              child: QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Carregando',
+                isLoading: true,
+                onPressed: () {},
+              ),
+            ),
+            GoldenTestScenario(
+              name: 'isLoading disabled',
+              child: const QuiButton(
+                variant: QuiButtonVariant.primary,
+                label: 'Indisponivel',
+                isLoading: true,
+              ),
+            ),
+            GoldenTestScenario(
+              name: 'isLoading secondary',
+              child: QuiButton(
+                variant: QuiButtonVariant.secondary,
+                label: 'Carregando',
+                isLoading: true,
+                onPressed: () {},
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    goldenTest(
       'when multiple buttons are stacked, it should match the approved goldens',
       fileName: 'qui_button_stacked',
       builder: () => GoldenTestGroup(

@@ -19,6 +19,9 @@ part 'qui_button_types.dart';
 /// The [variant] controls which [QuiButtonColorScheme] is read from the active
 /// QUI theme unless [colorScheme] is provided directly.
 ///
+/// Set [isLoading] to `true` to show the loading indicator immediately
+/// without requiring a press — useful for external loading state.
+///
 /// ```dart
 /// QuiButton(
 ///   variant: QuiButtonVariant.primary,
@@ -55,6 +58,7 @@ class QuiButton extends StatefulWidget {
     this.alignment = QuiButtonAlignment.center,
     this.fit = QuiButtonFit.fit,
     this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+    this.isLoading = false,
   });
 
   /// Visible button label.
@@ -111,6 +115,31 @@ class QuiButton extends StatefulWidget {
   /// Defaults to the standard QUI button padding.
   final EdgeInsetsGeometry padding;
 
+  /// Whether the button is manually placed in the loading state.
+  ///
+  /// When `true`, the button shows the loading indicator with the same
+  /// fade animation used when [onPressed] returns a pending [Future].
+  /// Unlike the future-based loading, there is no debounce delay — the
+  /// animation begins immediately.
+  ///
+  /// When `false`, the button exits the loading state only if no
+  /// [onPressed] future is still pending. This allows the prop and the
+  /// future-based loading to overlap without flickering.
+  ///
+  /// The loading state works in any button state (including disabled)
+  /// and uses the state-appropriate colors. While loading, the button
+  /// is not interactive.
+  ///
+  /// ```dart
+  /// QuiButton(
+  ///   variant: QuiButtonVariant.primary,
+  ///   label: 'Salvar agora',
+  ///   isLoading: true,
+  ///   onPressed: () {},
+  /// )
+  /// ```
+  final bool isLoading;
+
   @override
   State<QuiButton> createState() => _QuiButtonState();
 }
@@ -130,10 +159,43 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
   bool _isPendingPress = false;
   bool _showLoadingIndicator = false;
   bool _showTransitionOverlay = false;
-  int _pressGeneration = 0;
+  int _loadingGeneration = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _contentOpacityController = AnimationController(duration: _contentTransitionDuration, value: 1, vsync: this);
+
+    if (widget.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _enterLoadingFromParam();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant QuiButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.isLoading != oldWidget.isLoading) {
+      if (widget.isLoading) {
+        _enterLoadingFromParam();
+      } else {
+        _exitLoadingFromParam();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _contentOpacityController.dispose();
+
+    super.dispose();
+  }
 
   bool get _isEnabled => widget.onPressed != null;
-  bool get _isInteractive => _isEnabled && !_isPendingPress;
+  bool get _isInteractive => _isEnabled && !_isPendingPress && !widget.isLoading;
 
   Future<void> _handlePressed(Future<void> _) async {
     final onPressed = widget.onPressed;
@@ -144,26 +206,35 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
     if (result is! Future<void>) return;
     if (!mounted) return;
 
-    final generation = _pressGeneration + 1;
-    _pressGeneration = generation;
+    final generation = _loadingGeneration + 1;
+    _loadingGeneration = generation;
 
     setState(() => _isPendingPress = true);
 
-    var isPending = true;
-    unawaited(_showLoadingAfterDelay(generation: generation, isPending: () => isPending));
+    if (!_isLoading) {
+      unawaited(_enterLoading(generation: generation, isPending: () => _isPendingPress, delay: _loadingDelay));
+    }
 
     try {
       await result;
     } finally {
-      isPending = false;
-      await _restoreContentAfterLoading(generation: generation);
+      if (mounted) {
+        setState(() => _isPendingPress = false);
+      }
+      await _maybeExitLoading(generation: generation);
     }
   }
 
-  Future<void> _showLoadingAfterDelay({required int generation, required bool Function() isPending}) async {
-    await Future<void>.delayed(_loadingDelay);
+  Future<void> _enterLoading({
+    required int generation,
+    required bool Function() isPending,
+    required Duration? delay,
+  }) async {
+    if (delay != null) {
+      await Future<void>.delayed(delay);
+    }
 
-    if (!mounted || _pressGeneration != generation || !isPending()) return;
+    if (!mounted || _loadingGeneration != generation || !isPending()) return;
     if (_isLoading) return;
 
     _contentOpacityController
@@ -180,25 +251,20 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
 
     await _contentOpacityController.reverse();
 
-    if (!mounted || _pressGeneration != generation || !isPending()) return;
+    if (!mounted || _loadingGeneration != generation || !isPending()) return;
     if (_showLoadingIndicator) return;
 
     setState(() => _showLoadingIndicator = true);
   }
 
   Future<void> _restoreContentAfterLoading({required int generation}) async {
-    if (!mounted || _pressGeneration != generation) return;
+    if (!mounted || _loadingGeneration != generation) return;
 
-    if (!_isLoading) {
-      setState(() => _isPendingPress = false);
-
-      return;
-    }
+    if (!_isLoading) return;
 
     if (MediaQuery.disableAnimationsOf(context)) {
       setState(() {
         _isLoading = false;
-        _isPendingPress = false;
         _showLoadingIndicator = false;
         _showTransitionOverlay = false;
       });
@@ -214,7 +280,7 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
 
     await Future<void>.delayed(_contentTransitionDuration * 3 ~/ 4);
 
-    if (!mounted || _pressGeneration != generation) return;
+    if (!mounted || _loadingGeneration != generation) return;
 
     setState(() {
       _showTransitionOverlay = false;
@@ -224,26 +290,29 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
     _contentOpacityController.stop(canceled: false);
     await _contentOpacityController.forward();
 
-    if (!mounted || _pressGeneration != generation) return;
+    if (!mounted || _loadingGeneration != generation) return;
 
     setState(() {
       _isLoading = false;
-      _isPendingPress = false;
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    _contentOpacityController = AnimationController(duration: _contentTransitionDuration, value: 1, vsync: this);
+  Future<void> _maybeExitLoading({required int generation}) async {
+    if (widget.isLoading || _isPendingPress) return;
+    await _restoreContentAfterLoading(generation: generation);
   }
 
-  @override
-  void dispose() {
-    _contentOpacityController.dispose();
+  void _enterLoadingFromParam() {
+    if (_isLoading) return;
 
-    super.dispose();
+    final generation = _loadingGeneration + 1;
+    _loadingGeneration = generation;
+
+    unawaited(_enterLoading(generation: generation, isPending: () => widget.isLoading, delay: null));
+  }
+
+  void _exitLoadingFromParam() {
+    unawaited(_maybeExitLoading(generation: _loadingGeneration));
   }
 
   @override
