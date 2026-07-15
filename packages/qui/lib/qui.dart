@@ -80,7 +80,7 @@ export 'src/widgets/qui_swipe_deck/qui_swipe_deck.dart'
 export 'src/widgets/qui_swipe_to_pop_surface/qui_swipe_to_pop_surface.dart'
     show QuiSwipeToPopHandoffState, QuiSwipeToPopSurface;
 export 'src/widgets/qui_swipe_up_hint/qui_swipe_up_hint.dart' show QuiSwipeUpHint;
-export 'src/widgets/qui_tap_animation.dart' show QuiTapAnimation, QuiTapAnimationType;
+export 'src/widgets/qui_tap/qui_tap.dart' show QuiTap, QuiTapAnimationType;
 export 'src/widgets/qui_text_button.dart' show QuiTextButton, QuiTextButtonIconBuilder, QuiTextButtonIconState;
 export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
     show

@@ -23,7 +23,7 @@ class FeedJobCard extends ConsumerWidget {
     final colorScheme = context.qui.colorScheme;
     final i18n = ref.watch(translationProvider);
 
-    return QuiTapAnimation(
+    return QuiTap(
       animation: QuiTapAnimationType.scale,
       fireHapticFeedback: false,
       onPressed: (animation) async {

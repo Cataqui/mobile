@@ -3,12 +3,27 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-part 'qui_tap_animation_enums.dart';
+part 'qui_tap_enums.dart';
 
-/// Reusable Cataquí tap feedback animation.
-class QuiTapAnimation extends StatefulWidget {
+/// Reusable QUI tap feedback animation.
+///
+/// Wraps [child] with press-down visual feedback (scale, fade, none etc.)
+/// and optional haptic feedback. The [onPressed] callback receives a
+/// [Future<void>] that resolves when the release animation completes,
+/// allowing callers to wait for visual feedback before navigating.
+///
+/// ```dart
+/// QuiTap(
+///   onPressed: (animation) async {
+///     await animation;
+///     // navigate after release animation
+///   },
+///   child: const Text('Tap me'),
+/// )
+/// ```
+class QuiTap extends StatefulWidget {
   /// Creates tap feedback around [child].
-  const QuiTapAnimation({
+  const QuiTap({
     required this.child,
     super.key,
     this.onPressed,
@@ -42,10 +57,10 @@ class QuiTapAnimation extends StatefulWidget {
   final QuiTapAnimationType animation;
 
   @override
-  State<QuiTapAnimation> createState() => _QuiTapAnimationState();
+  State<QuiTap> createState() => _QuiTapState();
 }
 
-class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderStateMixin {
+class _QuiTapState extends State<QuiTap> with TickerProviderStateMixin {
   final _pressedOpacity = 0.4;
   final _pressedScale = 0.96;
   final _pressInDuration = const Duration(milliseconds: 150);
@@ -60,6 +75,7 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderSt
   bool _releaseRequested = false;
   Completer<void>? _releaseCompleter;
   bool get _isEnabled => widget.onPressed != null;
+  bool get _hasAnimation => widget.animation != QuiTapAnimationType.none;
 
   @override
   void initState() {
@@ -85,7 +101,7 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderSt
   }
 
   @override
-  void didUpdateWidget(covariant QuiTapAnimation oldWidget) {
+  void didUpdateWidget(covariant QuiTap oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (!_isEnabled && _controller.value > 0) {
@@ -114,6 +130,8 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderSt
       HapticFeedback.lightImpact();
     }
 
+    if (!_hasAnimation) return;
+
     _releaseRequested = false;
     _releaseCompleter?.complete();
     _releaseCompleter = null;
@@ -127,7 +145,7 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderSt
     if (!_isEnabled) return;
     widget.onPressChanged?.call(false);
 
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (!_hasAnimation || MediaQuery.disableAnimationsOf(context)) {
       widget.onPressed?.call(Future<void>.value());
       return;
     }
@@ -140,7 +158,9 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderSt
   void _handleTapCancel() {
     if (!_isEnabled) return;
     widget.onPressChanged?.call(false);
-    _requestRelease();
+    if (_hasAnimation) {
+      _requestRelease();
+    }
   }
 
   void _requestRelease() {
@@ -162,6 +182,7 @@ class _QuiTapAnimationState extends State<QuiTapAnimation> with TickerProviderSt
         onTapCancel: _isEnabled ? _handleTapCancel : null,
         behavior: HitTestBehavior.opaque,
         child: switch (widget.animation) {
+          QuiTapAnimationType.none => widget.child,
           QuiTapAnimationType.scaleFade => ScaleTransition(
             scale: _scaleAnimation,
             child: FadeTransition(opacity: _opacityAnimation, child: widget.child),

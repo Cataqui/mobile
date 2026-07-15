@@ -22,15 +22,15 @@ void main() {
       expect(tapCount, equals(1));
     });
 
-    testWidgets('when enabled, it should wrap in QuiTapAnimation with scaleFade animation', (tester) async {
+    testWidgets('when enabled, it should wrap in QuiTap with scaleFade animation', (tester) async {
       await tester.pumpWidget(
         TestApp(
           child: QuiTextButton(text: 'Ver oportunidades', onPressed: () {}),
         ),
       );
 
-      final animation = tester.widget<QuiTapAnimation>(
-        find.descendant(of: find.byType(QuiTextButton), matching: find.byType(QuiTapAnimation)),
+      final animation = tester.widget<QuiTap>(
+        find.descendant(of: find.byType(QuiTextButton), matching: find.byType(QuiTap)),
       );
 
       expect(animation.onPressed, isNotNull);

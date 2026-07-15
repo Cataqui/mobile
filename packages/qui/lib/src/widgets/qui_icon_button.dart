@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
-import 'package:qui/src/widgets/qui_tap_animation.dart';
+import 'package:qui/src/widgets/qui_tap/qui_tap.dart';
 
 part 'qui_icon_button_types.dart';
 
@@ -73,7 +73,7 @@ class QuiIconButton extends StatelessWidget {
       enabled: isEnabled,
       label: resolvedLabel,
       onTap: isEnabled ? onPressed : null,
-      child: QuiTapAnimation(
+      child: QuiTap(
         onPressed: onPressed != null
             ? (animation) async {
                 onPressed!();

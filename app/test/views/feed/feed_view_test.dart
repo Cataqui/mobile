@@ -303,8 +303,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 900));
         await tester.pump();
         final feedJobCard = find.byType(FeedJobCard).first;
-        final tapAnimation = tester.widget<QuiTapAnimation>(
-          find.descendant(of: feedJobCard, matching: find.byType(QuiTapAnimation)),
+        final tapAnimation = tester.widget<QuiTap>(
+          find.descendant(of: feedJobCard, matching: find.byType(QuiTap)),
         );
         await tapAnimation.onPressed!(Future<void>.value());
         await tester.pump();

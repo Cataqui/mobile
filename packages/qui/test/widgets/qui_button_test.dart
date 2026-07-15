@@ -56,30 +56,30 @@ void main() {
         expect(find.byType(QuiDotLoadingIndicator), findsNothing);
       });
 
-      testWidgets('when enabled, it should wrap in QuiTapAnimation with scale animation', (tester) async {
+      testWidgets('when enabled, it should wrap in QuiTap with scale animation', (tester) async {
         await tester.pumpWidget(
           TestApp(
             child: QuiButton(variant: QuiButtonVariant.primary, label: 'Ver oportunidades', onPressed: () {}),
           ),
         );
 
-        final animation = tester.widget<QuiTapAnimation>(
-          find.descendant(of: find.byType(QuiButton), matching: find.byType(QuiTapAnimation)),
+        final animation = tester.widget<QuiTap>(
+          find.descendant(of: find.byType(QuiButton), matching: find.byType(QuiTap)),
         );
 
         expect(animation.onPressed, isNotNull);
         expect(animation.animation, equals(QuiTapAnimationType.scale));
       });
 
-      testWidgets('when disabled, it should pass null onPressed to QuiTapAnimation', (tester) async {
+      testWidgets('when disabled, it should pass null onPressed to QuiTap', (tester) async {
         await tester.pumpWidget(
           const TestApp(
             child: QuiButton(variant: QuiButtonVariant.primary, label: 'Indisponivel'),
           ),
         );
 
-        final animation = tester.widget<QuiTapAnimation>(
-          find.descendant(of: find.byType(QuiButton), matching: find.byType(QuiTapAnimation)),
+        final animation = tester.widget<QuiTap>(
+          find.descendant(of: find.byType(QuiButton), matching: find.byType(QuiTap)),
         );
 
         expect(animation.onPressed, isNull);

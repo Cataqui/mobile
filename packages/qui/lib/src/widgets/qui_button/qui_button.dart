@@ -6,7 +6,7 @@ import 'package:qui/src/enums/qui_button_fit.dart';
 import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
 import 'package:qui/src/widgets/qui_dot_loading_indicator/qui_dot_loading_indicator.dart';
-import 'package:qui/src/widgets/qui_tap_animation.dart';
+import 'package:qui/src/widgets/qui_tap/qui_tap.dart';
 
 part 'qui_button_enums.dart';
 part 'qui_button_types.dart';
@@ -291,7 +291,7 @@ class _QuiButtonState extends State<QuiButton> with SingleTickerProviderStateMix
         button: true,
         enabled: isInteractive,
         onTap: isInteractive ? () => unawaited(_handlePressed(Future<void>.value())) : null,
-        child: QuiTapAnimation(
+        child: QuiTap(
           onPressed: isInteractive ? _handlePressed : null,
           onPressChanged: isInteractive ? (pressed) => setState(() => _isPressed = pressed) : null,
           animation: QuiTapAnimationType.scale,

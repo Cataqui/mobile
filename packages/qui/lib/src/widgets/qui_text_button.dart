@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qui/src/theme/qui_theme_context.dart';
-import 'package:qui/src/widgets/qui_tap_animation.dart';
+import 'package:qui/src/widgets/qui_tap/qui_tap.dart';
 
 part 'qui_text_button_types.dart';
 
@@ -96,7 +96,7 @@ class _QuiTextButtonState extends State<QuiTextButton> {
       button: true,
       enabled: _isEnabled,
       onTap: _isEnabled ? widget.onPressed : null,
-      child: QuiTapAnimation(
+      child: QuiTap(
         onPressed: widget.onPressed != null
             ? (animation) async {
                 widget.onPressed!();
