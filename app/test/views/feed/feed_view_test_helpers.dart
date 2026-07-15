@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
+import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -50,6 +52,19 @@ class FakeFeedState extends FeedState {
   }
 
   AsyncValue<FeedData> get emittedValue => state;
+}
+
+class FixedAppStorageState extends AppStorageState {
+  FixedAppStorageState({required this.hasSeenSwipeFeedHint});
+
+  final bool hasSeenSwipeFeedHint;
+
+  @override
+  Future<AppStorageData> build() {
+    final data = AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint);
+    state = AsyncData(data);
+    return Future<AppStorageData>.value(data);
+  }
 }
 
 class FeedViewTestHelpers {
@@ -139,12 +154,15 @@ class FeedViewTestHelpers {
     required Widget child,
     GoRouter? goRouter,
     MockSharedPreferencesAsync? prefs,
+    bool? hasSeenSwipeFeedHint,
   }) {
     return ProviderScope(
       overrides: [
         feedStateProvider.overrideWith(() => feedState),
         if (goRouter != null) goRouterProvider.overrideWithValue(goRouter),
         if (prefs != null) sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+        if (hasSeenSwipeFeedHint != null)
+          appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint)),
       ],
       child: child,
     );
@@ -155,12 +173,19 @@ class FeedViewTestHelpers {
     required FakeFeedState feedState,
     GoRouter? goRouter,
     MockSharedPreferencesAsync? prefs,
+    bool? hasSeenSwipeFeedHint,
   }) async {
     mockHapticFeedback(tester);
     mockPlatformViews(tester);
     await tester.pumpWidget(
       buildApp(
-        child: buildScope(feedState: feedState, goRouter: goRouter, prefs: prefs, child: const FeedView()),
+        child: buildScope(
+          feedState: feedState,
+          goRouter: goRouter,
+          prefs: prefs,
+          hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
+          child: const FeedView(),
+        ),
       ),
     );
     await tester.pump(); // Microtask resolves, data arrives, exit starts
@@ -172,9 +197,15 @@ class FeedViewTestHelpers {
     required FakeFeedState feedState,
     bool disableAnimations = false,
     MockSharedPreferencesAsync? prefs,
+    bool? hasSeenSwipeFeedHint,
   }) {
     return buildApp(
-      child: buildScope(feedState: feedState, prefs: prefs, child: const FeedView()),
+      child: buildScope(
+        feedState: feedState,
+        prefs: prefs,
+        hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
+        child: const FeedView(),
+      ),
       disableAnimations: disableAnimations,
     );
   }

@@ -29,6 +29,20 @@ class _FeedViewState extends ConsumerState<FeedView> {
   final QuiTikTokFeedController _feedController = QuiTikTokFeedController();
   final _cardBorderRadius = BorderRadius.circular(44);
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
+  late final ValueNotifier<bool> _isHintActiveNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    final hasSeenHint = ref.read(appStorageStateProvider.select((s) => s.value?.hasSeenSwipeFeedHint));
+    _isHintActiveNotifier = ValueNotifier<bool>(!(hasSeenHint ?? false));
+  }
+
+  @override
+  void dispose() {
+    _isHintActiveNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +58,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
                 controller: _feedController,
                 cardBorderRadius: _cardBorderRadius,
                 feedInCurve: _feedInCurve,
+                isHintActiveNotifier: _isHintActiveNotifier,
               ),
             ),
           ),
@@ -67,7 +82,12 @@ class _FeedViewState extends ConsumerState<FeedView> {
           ),
           if (hasJobs)
             Positioned.fill(
-              child: IgnorePointer(child: _FeedSwipeUpHintOverlay(feedController: _feedController)),
+              child: IgnorePointer(
+                child: _FeedSwipeUpHintOverlay(
+                  feedController: _feedController,
+                  isHintActiveNotifier: _isHintActiveNotifier,
+                ),
+              ),
             ),
         ],
       ),

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qui/qui.dart';
 
@@ -479,6 +480,81 @@ void main() {
 
           verify(() => prefs.setBool('seen_swipe_feed_hint', true)).called(1);
           expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+          await FeedViewTestHelpers.pumpAndCleanUp(tester);
+        },
+      );
+    });
+
+    group('map gating', () {
+      setUp(FeedViewTestHelpers.mockMapChannels);
+
+      testWidgets('when the swipe-up hint appear animation is running, it should not mount the first card map', (
+        tester,
+      ) async {
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
+        );
+
+        // Let the hint appear animation start (post frame callback)
+        await tester.pump();
+
+        // Hint appear animation is running — maps should be gated
+        expect(find.byType(MapLibreMap), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the swipe-up hint appear animation completes, it should mount the first card map', (
+        tester,
+      ) async {
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
+        );
+
+        // Let the hint appear animation start
+        await tester.pump();
+
+        // Wait for the appear animation to finish and gate to release
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 900));
+
+        // Maps should now mount
+        expect(find.byType(MapLibreMap), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets(
+        'when the user swipes before the hint appear animation completes, it should mount the next card map immediately',
+        (tester) async {
+          final prefs = MockSharedPreferencesAsync();
+          when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+          await FeedViewTestHelpers.pumpFeedView(
+            tester: tester,
+            feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+            prefs: prefs,
+          );
+
+          // Let the hint appear animation start
+          await tester.pump();
+
+          // Swipe before appear animation completes
+          await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+          await tester.pump();
+
+          // Map should mount immediately (gate released by notification)
+          expect(find.byType(MapLibreMap), findsAtLeastNWidgets(1));
           await FeedViewTestHelpers.pumpAndCleanUp(tester);
         },
       );

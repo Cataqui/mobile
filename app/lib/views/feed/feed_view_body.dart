@@ -1,11 +1,17 @@
 part of 'feed_view.dart';
 
 class _FeedViewBody extends ConsumerStatefulWidget {
-  const _FeedViewBody({required this.controller, required this.cardBorderRadius, required this.feedInCurve});
+  const _FeedViewBody({
+    required this.controller,
+    required this.cardBorderRadius,
+    required this.feedInCurve,
+    required this.isHintActiveNotifier,
+  });
 
   final QuiTikTokFeedController controller;
   final BorderRadius cardBorderRadius;
   final CurveTween feedInCurve;
+  final ValueNotifier<bool> isHintActiveNotifier;
 
   @override
   ConsumerState<_FeedViewBody> createState() => _FeedBodyContentState();
@@ -71,10 +77,11 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ValueListenableBuilder<int>(
-                    valueListenable: _mapMountLimitNotifier,
-                    builder: (context, mapMountLimit, _) {
-                      if (index > mapMountLimit) return ColoredBox(color: colorScheme.background);
+                  ListenableBuilder(
+                    listenable: Listenable.merge([_mapMountLimitNotifier, widget.isHintActiveNotifier]),
+                    builder: (context, _) {
+                      final effectiveLimit = widget.isHintActiveNotifier.value ? -1 : _mapMountLimitNotifier.value;
+                      if (index > effectiveLimit) return ColoredBox(color: colorScheme.map.background);
 
                       const mapRadiusOffsetMultiplier = 1000;
                       const mapRadiusReferenceHeight = 100;

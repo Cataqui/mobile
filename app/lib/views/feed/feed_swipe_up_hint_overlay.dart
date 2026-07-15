@@ -1,9 +1,10 @@
 part of 'feed_view.dart';
 
 class _FeedSwipeUpHintOverlay extends ConsumerStatefulWidget {
-  const _FeedSwipeUpHintOverlay({required this.feedController});
+  const _FeedSwipeUpHintOverlay({required this.feedController, required this.isHintActiveNotifier});
 
   final QuiTikTokFeedController feedController;
+  final ValueNotifier<bool> isHintActiveNotifier;
 
   @override
   ConsumerState<_FeedSwipeUpHintOverlay> createState() => _FeedSwipeUpHintOverlayState();
@@ -34,6 +35,8 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
 
   void _onFeedNotification(QuiTikTokFeedNotification notification) {
     if (notification == QuiTikTokFeedNotification.nextItem) {
+      widget.isHintActiveNotifier.value = false;
+
       _appearController.destroy();
       widget.feedController.removeNotificationListener(_onFeedNotification);
     }
@@ -52,6 +55,10 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
       destroyDuration: const Duration(milliseconds: 400),
       appearDuration: const Duration(milliseconds: 600),
       unmount: true,
+      onAppear: (animation) async {
+        await animation;
+        if (mounted) widget.isHintActiveNotifier.value = false;
+      },
       onDestroy: (animation) async {
         await animation;
         unawaited(ref.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true));
