@@ -63,6 +63,17 @@ void main() {
       expect(secondResult, isFalse);
     });
 
+    testWidgets('when completing an opening transition, it should report that the route was settled', (tester) async {
+      await tester.pumpWidget(const _RouteTestApp(transitionDuration: Duration(milliseconds: 300)));
+      await tester.tap(find.text('Push'));
+      await tester.pump();
+      final route = _RouteTestApp.capturedRoute!;
+
+      final result = route.completeOpeningTransition();
+
+      expect(result, isTrue);
+    });
+
     testWidgets('when calling updateInteractivePop with closingProgress 0.5, it should set transitionValue to 0.5', (
       tester,
     ) async {
@@ -173,9 +184,11 @@ void main() {
 }
 
 class _RouteTestApp extends StatefulWidget {
-  const _RouteTestApp();
+  const _RouteTestApp({this.transitionDuration = Duration.zero});
 
   static QuiHeroPageRoute? capturedRoute;
+
+  final Duration transitionDuration;
 
   @override
   State<_RouteTestApp> createState() => _RouteTestAppState();
@@ -204,7 +217,7 @@ class _RouteTestAppState extends State<_RouteTestApp> {
                           _RouteTestApp.capturedRoute = QuiHeroPageRoute.maybeOf(routeContext);
                           return const Text('Destination');
                         },
-                        transitionDuration: Duration.zero,
+                        transitionDuration: widget.transitionDuration,
                         reverseTransitionDuration: Duration.zero,
                       ),
                     ),

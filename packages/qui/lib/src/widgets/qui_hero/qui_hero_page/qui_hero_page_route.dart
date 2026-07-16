@@ -63,7 +63,6 @@ class QuiHeroPageRoute extends PageRoute<void> {
   });
 
   final WidgetBuilder _builder;
-
   bool _isInteractivePopActive = false;
   bool _hasNavigatorUserGesture = false;
 
@@ -126,6 +125,23 @@ class QuiHeroPageRoute extends PageRoute<void> {
     navigator?.didStartUserGesture();
     _hasNavigatorUserGesture = true;
     routeController.stop(canceled: false);
+    return true;
+  }
+
+  /// Completes the opening transition immediately when it is still running.
+  ///
+  /// Returns `true` when the route animation was moved to the fully open
+  /// state. Returns `false` when the route is not current, has no controller,
+  /// is already fully open, or is running an interactive pop.
+  bool completeOpeningTransition() {
+    final routeController = controller;
+    if (!isCurrent || routeController == null || _isInteractivePopActive) return false;
+    if (routeController.status == AnimationStatus.completed) return false;
+    if (routeController.status != AnimationStatus.forward) return false;
+
+    routeController
+      ..value = 1
+      ..stop(canceled: false);
     return true;
   }
 

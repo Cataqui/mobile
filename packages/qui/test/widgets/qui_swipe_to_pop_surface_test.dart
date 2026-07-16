@@ -784,6 +784,33 @@ void main() {
     );
 
     testWidgets(
+      'when dragging a rounded wrapped background hero before the opening flight settles, it should apply the preview radius to the background flight',
+      (tester) async {
+        await tester.pumpWidget(const _SwipeToPopBackgroundHeroRadiusTestApp());
+        await tester.tap(
+          find.byKey(_SwipeToPopBackgroundHeroRadiusTestApp.openButtonKey),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 120));
+        final gesture = await tester.startGesture(
+          tester.getCenter(
+            find.byKey(_SwipeToPopBackgroundHeroRadiusTestApp.dragKey),
+          ),
+        );
+        await gesture.moveBy(const Offset(0, 90));
+        await tester.pump();
+
+        expect(
+          _SwipeToPopBackgroundHeroRadiusTestApp.largestBackgroundRadius(
+            tester,
+          ),
+          greaterThan(8),
+        );
+        await gesture.up();
+      },
+    );
+
+    testWidgets(
       'when releasing a rounded wrapped background hero route to pop, it should start the edge fade flight from the preview radius',
       (tester) async {
         await tester.pumpWidget(const _SwipeToPopBackgroundHeroRadiusTestApp());
@@ -807,6 +834,33 @@ void main() {
           ),
           greaterThan(35),
         );
+      },
+    );
+
+    testWidgets(
+      'when dragging a rounded wrapped background hero before the opening flight settles, it should apply the preview radius to the edge fade flight',
+      (tester) async {
+        await tester.pumpWidget(const _SwipeToPopBackgroundHeroRadiusTestApp());
+        await tester.tap(
+          find.byKey(_SwipeToPopBackgroundHeroRadiusTestApp.openButtonKey),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 120));
+        final gesture = await tester.startGesture(
+          tester.getCenter(
+            find.byKey(_SwipeToPopBackgroundHeroRadiusTestApp.dragKey),
+          ),
+        );
+        await gesture.moveBy(const Offset(0, 90));
+        await tester.pump();
+
+        expect(
+          _SwipeToPopBackgroundHeroRadiusTestApp.largestEdgeFadeClipRadius(
+            tester,
+          ),
+          greaterThan(8),
+        );
+        await gesture.up();
       },
     );
 

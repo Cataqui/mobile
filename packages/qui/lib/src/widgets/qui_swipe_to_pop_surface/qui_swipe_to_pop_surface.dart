@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
+import 'package:qui/src/widgets/qui_hero/qui_hero_page/qui_hero_page_route.dart';
 
 part '_qui_swipe_to_pop_surface_handoff_scope.dart';
 part 'qui_swipe_to_pop_handoff_state.dart';
@@ -269,6 +270,7 @@ class _QuiSwipeToPopSurfaceState extends State<QuiSwipeToPopSurface> with Single
   }
 
   void _startPreviewDrag() {
+    QuiHeroPageRoute.maybeOf(context)?.completeOpeningTransition();
     _restoreAnimationController.stop();
     _isPreviewDragActive = true;
     _holdActiveScrollPosition();
