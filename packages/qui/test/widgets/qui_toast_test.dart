@@ -42,11 +42,13 @@ void main() {
 
         await tester.pumpWidget(
           TestApp(
-            child: Builder(
-              builder: (context) {
-                toastContext = context;
-                return const SizedBox.shrink();
-              },
+            child: QuiToastMessenger(
+              child: Builder(
+                builder: (context) {
+                  toastContext = context;
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
         );
@@ -56,8 +58,6 @@ void main() {
 
         QuiToast.show(toastContext, message: 'Second error');
         await tester.pump();
-
-        expect(find.text('First error'), findsNothing);
 
         expect(find.text('First error'), findsNothing);
       },

@@ -231,11 +231,7 @@ class QuiToast extends StatelessWidget {
 
   Widget _buildIcon(BuildContext context, QuiToastType type, Color iconColor) {
     return switch (type) {
-      QuiToastType.error => QuiIcon.circleBlock(
-        width: _iconSize,
-        height: _iconSize,
-        color: iconColor,
-      ),
+      QuiToastType.error => QuiIcon.exclamationTriangle(width: _iconSize, height: _iconSize, color: iconColor),
     };
   }
 }
