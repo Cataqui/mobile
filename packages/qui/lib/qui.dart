@@ -5,6 +5,7 @@ export 'src/enums/qui_button_alignment.dart' show QuiButtonAlignment;
 export 'src/enums/qui_button_fit.dart' show QuiButtonFit;
 export 'src/extensions/widget_extension.dart' show WidgetExtension;
 export 'src/icons/qui_icons.dart' show QuiIcons;
+export 'src/qui_app.dart' show QuiApp;
 export 'src/theme/map_style/qui_map_style.dart' show QuiMapLibreStyle;
 export 'src/theme/map_style/qui_map_style_background_paint.dart' show QuiMapLibreStyleBackgroundPaint;
 export 'src/theme/map_style/qui_map_style_fill_paint.dart' show QuiMapLibreStyleFillPaint;
@@ -97,7 +98,7 @@ export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
         QuiTikTokFeedLoadMoreErrorBuilder,
         QuiTikTokFeedNotification,
         QuiTikTokFeedProgressCallback;
-export 'src/widgets/qui_toast/qui_toast.dart' show QuiToast, QuiToastOverlayHost, QuiToastType;
+export 'src/widgets/qui_toast/qui_toast.dart' show QuiToast, QuiToastMessenger, QuiToastType;
 export 'src/widgets/qui_view_back_button.dart' show QuiViewBackButton;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
     show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;
