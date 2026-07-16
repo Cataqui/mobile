@@ -1,40 +1,13 @@
+import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:flutter/material.dart';
 import 'package:qui/qui.dart';
 
-part 'qui_offline_error_state_types.dart';
+class OfflineErrorState extends StatelessWidget {
+  const OfflineErrorState({required this.title, this.description, this.retry, super.key});
 
-/// An offline/connection error state for the QUI design system.
-///
-/// Displays a 3D wifi-exclamation icon, a title, an optional description,
-/// and an optional retry button wired through a [QuiOfflineErrorStateRetry].
-///
-/// ```dart
-/// QuiOfflineErrorState(
-///   title: 'Sem conexão',
-///   description: 'Verifique sua internet e tente novamente.',
-///   retry: (
-///     label: 'Tentar novamente',
-///     onRetry: () {},
-///   ),
-/// )
-/// ```
-class QuiOfflineErrorState extends StatelessWidget {
-  /// Creates a QUI offline error state.
-  const QuiOfflineErrorState({required this.title, this.description, this.retry, super.key});
-
-  /// Primary message displayed below the icon.
   final String title;
-
-  /// Supporting message shown under [title].
-  ///
-  /// When null, the description area is omitted entirely.
   final String? description;
-
-  /// Optional record pairing the retry button [String label] with its
-  /// [VoidCallback onRetry].
-  ///
-  /// When null, the retry button is omitted entirely.
-  final QuiOfflineErrorStateRetry? retry;
+  final ({String label, VoidCallback onRetry})? retry;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +18,7 @@ class QuiOfflineErrorState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          QuiThreeD.wifiExclamation(height: 140),
+          $ThreeD.wifiExclamation(height: 140),
           const SizedBox(height: 20),
           Text(
             title,
@@ -69,11 +42,8 @@ class QuiOfflineErrorState extends StatelessWidget {
               variant: QuiButtonVariant.secondary,
               fit: QuiButtonFit.fit,
               label: retry!.label,
-              leadingIconBuilder: (state) => QuiIcon.arrowRotateClockwise(
-                height: 15,
-                width: 15,
-                color: state.foregroundColor,
-              ),
+              leadingIconBuilder: (state) =>
+                  QuiIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
               leadingIconSpacing: 10,
               onPressed: retry!.onRetry,
             ),

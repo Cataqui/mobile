@@ -4,6 +4,7 @@ import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
@@ -111,7 +112,7 @@ class FeedViewTestHelpers {
   }
 
   static Future<void> precacheFeedStateImages(BuildContext context) async {
-    await QuiThreeD.precache(context);
+    await $ThreeD.precache(context);
   }
 
   static Future<void> prepareGoldenCapture({required WidgetTester tester, required Finder contextFinder}) async {

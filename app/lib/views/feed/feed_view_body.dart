@@ -132,7 +132,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     final i18n = ref.watch(translationProvider);
 
     if (paginationError.isOfflineConnectionDioException) {
-      return QuiOfflineErrorState(
+      return OfflineErrorState(
         title: i18n.feed.loadingMore.offline.title,
         description: i18n.feed.loadingMore.offline.description,
         retry: (label: i18n.feed.loadingMore.offline.retryButtonTitle, onRetry: retry),
@@ -146,7 +146,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            QuiThreeD.workItemsMess(height: 150, width: 150),
+            $ThreeD.workItemsMess(height: 150, width: 150),
             const SizedBox(height: 40),
             Text(
               i18n.feed.loadingMore.error.title,
@@ -196,7 +196,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            QuiThreeD.emptyCitySaoPaulo(
+            $ThreeD.emptyCitySaoPaulo(
               height: 150,
               colorBlendMode: BlendMode.hue,
             ),
@@ -283,7 +283,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     final i18n = ref.watch(translationProvider);
 
     if (error.isOfflineConnectionDioException) {
-      return QuiOfflineErrorState(
+      return OfflineErrorState(
         title: i18n.feed.offline.title,
         description: i18n.feed.offline.description,
         retry: (
@@ -298,7 +298,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          QuiThreeD.locationPinRestingCracked(height: 140),
+          $ThreeD.locationPinRestingCracked(height: 140),
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,

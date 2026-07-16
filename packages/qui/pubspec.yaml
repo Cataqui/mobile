@@ -33,14 +33,11 @@ dotdart:
     - assets/lotties/
   svg:
     - assets/icons/
-  image:
-    - assets/three_d/
 
 flutter:
   uses-material-design: true
   assets:
     - assets/icons/
-    - assets/three_d/
   fonts:
     - family: Inter
       fonts:

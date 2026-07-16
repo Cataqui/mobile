@@ -7,6 +7,7 @@ import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
+import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -139,7 +140,7 @@ void main() {
     });
 
     group('initial offline error', () {
-      testWidgets('when initial error is offline, it should render the QuiOfflineErrorState', (tester) async {
+      testWidgets('when initial error is offline, it should render the OfflineErrorState', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(
@@ -147,7 +148,7 @@ void main() {
           ),
         );
         await tester.pump();
-        expect(find.byType(QuiOfflineErrorState), findsOneWidget);
+        expect(find.byType(OfflineErrorState), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -303,9 +304,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 900));
         await tester.pump();
         final feedJobCard = find.byType(FeedJobCard).first;
-        final tapAnimation = tester.widget<QuiTap>(
-          find.descendant(of: feedJobCard, matching: find.byType(QuiTap)),
-        );
+        final tapAnimation = tester.widget<QuiTap>(find.descendant(of: feedJobCard, matching: find.byType(QuiTap)));
         await tapAnimation.onPressed!(Future<void>.value());
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
