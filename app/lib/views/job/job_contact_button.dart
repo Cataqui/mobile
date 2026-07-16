@@ -39,11 +39,10 @@ class JobContactButton extends ConsumerWidget {
         padding: _buttonPadding,
         leadingIconSpacing: 10,
         isLoading: isLoading,
-        leadingIconBuilder: (state) => QuiIcons.instance.build(
-          (assets) => assets.circleBlock,
+        leadingIconBuilder: (state) => QuiIcon.circleBlock(
           width: _iconSize,
           height: _iconSize,
-          colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+          color: state.foregroundColor,
         ),
       ),
     };
@@ -56,11 +55,10 @@ class JobContactButton extends ConsumerWidget {
       colorScheme: colorScheme.buttons.whatsapp.tertiary,
       padding: _buttonPadding,
       isLoading: isLoading,
-      leadingIconBuilder: (state) => QuiIcons.instance.build(
-        (assets) => assets.whatsapp,
+      leadingIconBuilder: (state) => QuiIcon.whatsapp(
         width: _iconSize,
         height: _iconSize,
-        colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+        color: state.foregroundColor,
       ),
       onPressed: () => _handleContactPressed(ref),
     );
@@ -74,11 +72,10 @@ class JobContactButton extends ConsumerWidget {
       padding: _buttonPadding,
       leadingIconSpacing: 12,
       isLoading: isLoading,
-      leadingIconBuilder: (state) => QuiIcons.instance.build(
-        (assets) => assets.phone,
+      leadingIconBuilder: (state) => QuiIcon.phone(
         width: _iconSize,
         height: _iconSize,
-        colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+        color: state.foregroundColor,
       ),
       onPressed: () => _handleContactPressed(ref),
     );

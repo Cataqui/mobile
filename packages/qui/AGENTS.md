@@ -232,9 +232,9 @@ lib/
 ├── qui.dart                   # Barrel file — single entry point for consumers
 ├── gen/                       # Generated code (fonts, assets) — do not edit
 └── src/
-    ├── icons/                 # QuiIcons — automatic icon accessors (flutter_gen facade)
+    ├── icons/                 # QuiIcon — SVG icon namespace (dotdart facade)
     ├── theme/                 # Design tokens (colors, typography, theme data)
-    ├── three_d/               # Qui3d — automatic 3D image asset accessors (flutter_gen facade)
+    ├── three_d/               # QuiThreeD — 3D image asset namespace (dotdart facade)
     └── widgets/               # Reusable UI components (each with attached preview)
 ```
 
@@ -246,6 +246,14 @@ lib/
   `part` files for public value types, controllers, actions, and other support
   classes, following the `qui_swipe_deck` structure.
 
-- Access bundled SVG icons via `QuiIcons` (e.g. `QuiIcons.instance.build((icons) => icons.cross, width: 16, height: 16)`), exported from the barrel. `QuiIcons` is an injectable class over `flutter_gen`'s generated `Assets.icons` — add an `.svg` to `assets/icons/` and run `melos gen:all` to surface a new accessor. Do not import `gen/assets.gen.dart` directly from widget code; use `QuiIcons`.
-- Access bundled 3D image assets via `Qui3d` (e.g. `Qui3d.instance.build(context, (threeD) => threeD.box, width: 200, height: 200)`), exported from the barrel. `Qui3d` is an injectable class over `flutter_gen`'s generated `Assets.threeD` — add an image file (e.g. `.webp`, `.png`, `.jpg`) to `assets/three_d/` and run `melos gen:all` to surface a new accessor. Do not import `gen/assets.gen.dart` directly from widget code; use `Qui3d`.
+- Access bundled SVG icons via `QuiIcon` (e.g. `QuiIcon.cross(width: 16, height: 16, color: Colors.red)`),
+  exported from the barrel. `QuiIcon` is an `abstract final class` with one `static Widget` method per icon,
+  delegating to dotdart's generated `$Icons` namespace. Add an `.svg` to `assets/icons/` and run
+  `melos gen:all` to generate the dotdart accessor, then add a static method to `QuiIcon`.
+  Do not import `gen/icons.g.dart` directly from widget code; use `QuiIcon`.
+- Access bundled 3D image assets via `QuiThreeD` (e.g. `QuiThreeD.box(width: 200, height: 200)`),
+  exported from the barrel. `QuiThreeD` is an `abstract final class` with one `static Widget` method per
+  image, delegating to dotdart's generated `$ThreeD` namespace. Add an image to `assets/three_d/` and
+  run `melos gen:all`, then add a static method to `QuiThreeD`. Use `QuiThreeD.precache(context)` to warm
+  the image cache. Do not import `gen/three_d.g.dart` directly from widget code; use `QuiThreeD`.
 - Private declarations (`_`-prefixed classes, methods, fields, and part files for private types) must NOT have dartdoc. Private code should be self-explanatory through naming and structure alone. dartdoc is reserved for the public API surface that consumers outside the package can see.

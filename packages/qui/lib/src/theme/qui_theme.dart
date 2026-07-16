@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qui/gen/fonts.gen.dart';
 
 import 'qui_color_scheme/qui_color_scheme.dart';
 import 'qui_palette/qui_palette.dart';
@@ -11,7 +10,10 @@ import 'qui_typography.dart';
 /// Material components and QUI widgets resolve from the same semantic scheme,
 /// preventing framework defaults from drifting away from package tokens.
 abstract final class QuiTheme {
-  /// Creates the fully specified light appearance from [primaryColor] and
+  /// The font family of the QUI Design System.
+  static const String fontFamily = 'packages/qui/Inter';
+
+  /// Creates the fully specified QUI light theme from [primaryColor] and
   /// [onPrimary].
   ///
   /// When omitted, [primaryColor] and [onPrimary] defaults to the default QUI colors
@@ -65,7 +67,7 @@ abstract final class QuiTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      fontFamily: FontFamily.inter,
+      fontFamily: QuiTheme.fontFamily,
       scaffoldBackgroundColor: quiData.colorScheme.background,
       textTheme: _buildTextTheme(quiData.typography),
       extensions: [quiData],

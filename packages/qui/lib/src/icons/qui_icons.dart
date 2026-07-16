@@ -1,57 +1,81 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:qui/gen/assets.gen.dart';
+import 'package:qui/gen/icons.g.dart';
 
-/// QUI-design-system accessor for bundled SVG icons.
+/// QUI-design-system icons.
 ///
-/// Provides a [build] method that renders a selected icon as an [SvgPicture].
-/// The default production instance is [QuiIcons.instance]. Use a separate
-/// [QuiIcons] instance (e.g. in tests) for DI-friendly mocking.
+/// Each static method returns a [Widget] rendered via a [CustomPainter]
+/// — no runtime SVG parser dependency.
+///
+/// All current icons are monochrome; the `color` param recolors the entire
+/// icon.
 ///
 /// ```dart
-/// // Non-DI context:
-/// QuiIcons.instance.build((assets) => assets.cross, width: 16, height: 16);
-///
-/// // DI-provided (app-level, via Riverpod):
-/// ref.watch(quiIconsProvider).build((assets) => assets.magnifierGlass, width: 20, height: 20);
+/// QuiIcon.cross(width: 16, height: 16, color: Colors.red);
 /// ```
-class QuiIcons {
-  /// Creates a [QuiIcons] instance.
-  const QuiIcons();
+abstract final class QuiIcon {
+  QuiIcon._();
 
-  /// Builds the icon selected by [selector] as an [SvgPicture].
-  ///
-  /// The [selector] receives the full set of generated icon accessors
-  /// so you can pick one via autocomplete:
-  ///
-  /// ```dart
-  /// QuiIcons.instance.build((assets) => assets.cross, width: 16, height: 16);
-  /// ```
-  SvgPicture build(
-    SvgGenImage Function($AssetsIconsGen assets) selector, {
-    double? width,
-    double? height,
-    ColorFilter? colorFilter,
-    BoxFit fit = BoxFit.contain,
-    AlignmentGeometry alignment = Alignment.center,
-    bool matchTextDirection = false,
-    String? semanticsLabel,
-    bool excludeFromSemantics = false,
-  }) {
-    return selector(Assets.icons).svg(
-      width: width,
-      height: height,
-      colorFilter: colorFilter,
-      fit: fit,
-      alignment: alignment,
-      matchTextDirection: matchTextDirection,
-      semanticsLabel: semanticsLabel,
-      excludeFromSemantics: excludeFromSemantics,
-    );
-  }
+  /// Arrow pointing left.
+  static Widget arrowLeft({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.arrowLeft(key: key, width: width, height: height, color1: color);
 
-  /// The default singleton [QuiIcons] instance.
-  ///
-  /// Use in contexts where DI is not required.
-  static const QuiIcons instance = QuiIcons();
+  /// Circular arrow (retry/refresh).
+  static Widget arrowRotateClockwise({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.arrowRotateClockwise(key: key, width: width, height: height, color1: color);
+
+  /// Arrow pointing up.
+  static Widget arrowUp({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.arrowUp(key: key, width: width, height: height, color1: color);
+
+  /// Chevron pointing down.
+  static Widget chevronDown({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.chevronDown(key: key, width: width, height: height, color1: color);
+
+  /// Blocked / circle-slash icon.
+  static Widget circleBlock({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.circleBlock(key: key, width: width, height: height, color1: color);
+
+  /// Clock icon.
+  static Widget clock({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.clock(key: key, width: width, height: height, color1: color);
+
+  /// Close / cross icon.
+  static Widget cross({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.cross(key: key, width: width, height: height, color1: color);
+
+  /// Exclamation circle icon.
+  static Widget exclamationCircle({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.exclamationCircle(key: key, width: width, height: height, color1: color);
+
+  /// Exclamation triangle icon.
+  static Widget exclamationTriangle({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.exclamationTriangle(key: key, width: width, height: height, color1: color);
+
+  /// Magnifying glass icon.
+  static Widget magnifierGlass({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.magnifierGlass(key: key, width: width, height: height, color1: color);
+
+  /// Map pin icon.
+  static Widget mapPin({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.mapPin(key: key, width: width, height: height, color1: color);
+
+  /// Phone handset icon.
+  static Widget phone({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.phone(key: key, width: width, height: height, color1: color);
+
+  /// Pointer hand pointing up icon.
+  static Widget pointerHandUp({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.pointerHandUp(key: key, width: width, height: height, color1: color);
+
+  /// Smartphone icon.
+  static Widget smartphone({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.smartphone(key: key, width: width, height: height, color1: color);
+
+  /// WhatsApp icon.
+  static Widget whatsapp({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.whatsapp(key: key, width: width, height: height, color1: color);
+
+  /// Wrench / tool icon.
+  static Widget wrench({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.wrench(key: key, width: width, height: height, color1: color);
 }

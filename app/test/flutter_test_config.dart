@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:alchemist/alchemist.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/gen/fonts.gen.dart';
+import 'package:qui/qui.dart';
 import 'package:qui/src/theme/qui_theme.dart';
 import 'package:test_api/scaffolding.dart' as test_package;
 
@@ -18,10 +18,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   return AlchemistConfig.runWithConfig(
     config: AlchemistConfig(
       theme: QuiTheme.light(),
-      platformGoldensConfig: PlatformGoldensConfig(
-        enabled: !isRunningInCi,
-        theme: QuiTheme.light(),
-      ),
+      platformGoldensConfig: PlatformGoldensConfig(enabled: !isRunningInCi, theme: QuiTheme.light()),
     ),
     run: testMain,
   );
@@ -36,7 +33,7 @@ Future<ByteData> _loadFontAsset(String path) async {
 }
 
 Future<void> _loadQuiFonts() async {
-  final interLoader = FontLoader(FontFamily.inter)
+  final interLoader = FontLoader(QuiTheme.fontFamily)
     ..addFont(_loadFontAsset('inter_variable.ttf'))
     ..addFont(_loadFontAsset('inter_italic.ttf'));
 

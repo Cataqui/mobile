@@ -146,7 +146,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Qui3d.instance.build(context, (assets) => assets.workItemsMess, height: 150, width: 150),
+            QuiThreeD.workItemsMess(height: 150, width: 150),
             const SizedBox(height: 40),
             Text(
               i18n.feed.loadingMore.error.title,
@@ -170,11 +170,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             QuiButton(
               variant: QuiButtonVariant.primary,
               label: i18n.feed.loadingMore.error.retryButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.instance.build(
-                (assets) => assets.arrowRotateClockwise,
+              leadingIconBuilder: (state) => QuiIcon.arrowRotateClockwise(
                 height: 15,
                 width: 15,
-                colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+                color: state.foregroundColor,
               ),
               leadingIconSpacing: 10,
               onPressed: () {
@@ -197,9 +196,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Qui3d.instance.build(
-              context,
-              (assets) => assets.emptyCitySaoPaulo,
+            QuiThreeD.emptyCitySaoPaulo(
               height: 150,
               colorBlendMode: BlendMode.hue,
             ),
@@ -226,11 +223,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             QuiButton(
               variant: QuiButtonVariant.secondary,
               label: i18n.feed.empty.adjustAreaButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.instance.build(
-                (assets) => assets.wrench,
+              leadingIconBuilder: (state) => QuiIcon.wrench(
                 height: 15,
                 width: 15,
-                colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+                color: state.foregroundColor,
               ),
               leadingIconSpacing: 10,
               onPressed: () {
@@ -302,7 +298,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.instance.build(context, (assets) => assets.locationPinRestingCracked, height: 140),
+          QuiThreeD.locationPinRestingCracked(height: 140),
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,
@@ -326,11 +322,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           QuiButton(
             variant: QuiButtonVariant.primary,
             label: i18n.feed.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.instance.build(
-              (assets) => assets.arrowRotateClockwise,
+            leadingIconBuilder: (state) => QuiIcon.arrowRotateClockwise(
               height: 15,
               width: 15,
-              colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+              color: state.foregroundColor,
             ),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),

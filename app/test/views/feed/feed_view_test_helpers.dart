@@ -111,20 +111,7 @@ class FeedViewTestHelpers {
   }
 
   static Future<void> precacheFeedStateImages(BuildContext context) async {
-    await Future.wait([
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.brush).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.hammer).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.ladder).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.motorcycle).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.shoppingCart).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.smallTruck).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.toolBox).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.box).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.locationPinRestingCracked).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.emptyCitySaoPaulo).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.workItemsMess).image, context),
-      precacheImage(Qui3d.instance.build(context, (assets) => assets.wifiExclamation).image, context),
-    ]);
+    await QuiThreeD.precache(context);
   }
 
   static Future<void> prepareGoldenCapture({required WidgetTester tester, required Finder contextFinder}) async {

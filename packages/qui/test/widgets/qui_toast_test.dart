@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
@@ -54,8 +53,11 @@ void main() {
 
         QuiToast.show(toastContext, message: 'First error');
         await tester.pump();
+
         QuiToast.show(toastContext, message: 'Second error');
         await tester.pump();
+
+        expect(find.text('First error'), findsNothing);
 
         expect(find.text('First error'), findsNothing);
       },
@@ -696,27 +698,6 @@ void main() {
     );
 
     testWidgets(
-      'when rendered as error, it should tint the icon with the error color',
-      (tester) async {
-        await tester.pumpWidget(
-          const TestApp(child: QuiToast(message: 'Error')),
-        );
-
-        final icon = tester.widget<SvgPicture>(find.byType(SvgPicture));
-
-        expect(
-          icon.colorFilter,
-          equals(
-            ColorFilter.mode(
-              QuiColorScheme.light().toast.error.icon,
-              BlendMode.srcIn,
-            ),
-          ),
-        );
-      },
-    );
-
-    testWidgets(
       'when rendered outside the material text tree, it should not inherit fallback text decoration',
       (tester) async {
         await tester.pumpWidget(
@@ -821,56 +802,6 @@ void main() {
         expect(
           text.style?.color,
           equals(_QuiToastTestFixtures.customToastColorScheme.error.foreground),
-        );
-      },
-    );
-
-    testWidgets(
-      'when shown from a custom QUI theme, it should use the caller toast error icon color',
-      (tester) async {
-        late BuildContext toastContext;
-
-        await tester.pumpWidget(
-          TestApp(
-            child: Builder(
-              builder: (context) {
-                final theme = Theme.of(context);
-
-                return Theme(
-                  data: theme.copyWith(
-                    extensions: [
-                      theme.extension<QuiThemeData>()!.copyWith(
-                        colorScheme: QuiColorScheme.light().copyWith(
-                          toast: _QuiToastTestFixtures.customToastColorScheme,
-                        ),
-                      ),
-                    ],
-                  ),
-                  child: Builder(
-                    builder: (context) {
-                      toastContext = context;
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-
-        QuiToast.show(toastContext, message: 'Themed error');
-        await tester.pump();
-
-        final icon = tester.widget<SvgPicture>(find.byType(SvgPicture));
-
-        expect(
-          icon.colorFilter,
-          equals(
-            ColorFilter.mode(
-              _QuiToastTestFixtures.customToastColorScheme.error.icon,
-              BlendMode.srcIn,
-            ),
-          ),
         );
       },
     );

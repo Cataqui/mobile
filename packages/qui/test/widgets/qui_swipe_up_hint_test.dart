@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/gen/swipe_up_phone_animation.g.dart';
 import 'package:qui/qui.dart';
 
 import '../test_app.dart';
@@ -111,18 +110,23 @@ void main() {
       expect(find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(CustomPaint)), findsOneWidget);
     });
 
-    testWidgets('it should pass progress 0.3 to SwipeUpPhone', (tester) async {
+    testWidgets('it should pass progress 0.3 to the generated animation widget', (tester) async {
       await tester.pumpWidget(
         const TestApp(
           child: MediaQuery(data: MediaQueryData(disableAnimations: true), child: QuiSwipeUpHint()),
         ),
       );
 
-      final swipeUpPhone = tester.widget<SwipeUpPhoneAnimation>(
-        find.descendant(of: find.byType(QuiSwipeUpHint), matching: find.byType(SwipeUpPhoneAnimation)),
-      );
+      final swipeUpPhone = tester.widgetList<Widget>(
+        find.descendant(
+          of: find.byType(QuiSwipeUpHint),
+          matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_SwipeUpPhoneAnimation'),
+        ),
+      ).first;
 
-      expect(swipeUpPhone.progress, 0.3);
+      final progress = (swipeUpPhone as dynamic).progress as double;
+
+      expect(progress, 0.3);
     });
   });
 }

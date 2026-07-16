@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qui/gen/swipe_up_phone_animation.g.dart';
+import 'package:qui/gen/lotties.g.dart';
 import 'package:qui/qui.dart';
 
 /// A QUI animated hint showing a hand swiping upward on a phone screen.
@@ -45,7 +45,7 @@ class QuiSwipeUpHint extends StatelessWidget {
     final phone = phoneColor ?? colors.solid;
     final hand = accentColor ?? colors.subtle;
 
-    return SwipeUpPhoneAnimation(
+    return $Lotties.swipeUpPhoneAnimation(
       height: height,
       color1: hand,
       color2: phone,

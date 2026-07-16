@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qui/gen/fonts.gen.dart';
+
+import 'qui_theme.dart';
 
 /// Typography tokens for the Cataquí design system.
 ///
@@ -101,7 +102,7 @@ class QuiTypography {
 
   TextStyle _style({required double fontSize, required double letterSpacing, required double? height}) {
     return TextStyle(
-      fontFamily: FontFamily.inter,
+      fontFamily: QuiTheme.fontFamily,
       fontWeight: FontWeight.w400,
       fontSize: fontSize,
       letterSpacing: letterSpacing,

@@ -161,7 +161,7 @@ The app uses **flutter_gen** for type-safe asset access.
   Assets.logos.cataqui.svg(width: 120, height: 120);
   ```
 - **Facades:** The app does **not** use branded facades like `qui`'s
-  `QuiIcons`/`Qui3d` — access the `Assets` entry point directly.
+  `QuiIcon`/`QuiThreeD` — access the `Assets` entry point directly.
 
 ## Repositories
 

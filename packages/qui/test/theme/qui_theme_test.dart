@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/gen/fonts.gen.dart';
 import 'package:qui/src/theme/qui_color_scheme/qui_color_scheme.dart';
 import 'package:qui/src/theme/qui_palette/qui_palette.dart';
 import 'package:qui/src/theme/qui_theme.dart';
@@ -12,7 +11,7 @@ const _brandColor = Color(0xFFFF4A4B);
 void main() {
   group('FontFamily', () {
     test('inter constant resolves to packages/qui/Inter', () {
-      expect(FontFamily.inter, equals('packages/qui/Inter'));
+      expect(QuiTheme.fontFamily, equals('packages/qui/Inter'));
     });
   });
 
@@ -30,7 +29,7 @@ void main() {
     test('displayLarge has Inter font family', () {
       const typography = QuiTypography();
 
-      expect(typography.displayLarge.fontFamily, equals(FontFamily.inter));
+      expect(typography.displayLarge.fontFamily, equals(QuiTheme.fontFamily));
     });
 
     test('displayLarge has w400 weight', () {
@@ -54,7 +53,7 @@ void main() {
     test('displayMedium has Inter font family', () {
       const typography = QuiTypography();
 
-      expect(typography.displayMedium.fontFamily, equals(FontFamily.inter));
+      expect(typography.displayMedium.fontFamily, equals(QuiTheme.fontFamily));
     });
 
     test('displayMedium has 45px font size', () {
@@ -84,7 +83,7 @@ void main() {
     test('headlineLarge has Inter font family', () {
       const typography = QuiTypography();
 
-      expect(typography.headlineLarge.fontFamily, equals(FontFamily.inter));
+      expect(typography.headlineLarge.fontFamily, equals(QuiTheme.fontFamily));
     });
 
     test('headlineLarge has 32px font size', () {
@@ -126,7 +125,7 @@ void main() {
     test('titleLarge has Inter font family', () {
       const typography = QuiTypography();
 
-      expect(typography.titleLarge.fontFamily, equals(FontFamily.inter));
+      expect(typography.titleLarge.fontFamily, equals(QuiTheme.fontFamily));
     });
 
     test('titleLarge has 22px font size', () {
@@ -168,7 +167,7 @@ void main() {
     test('bodyLarge has Inter font family', () {
       const typography = QuiTypography();
 
-      expect(typography.bodyLarge.fontFamily, equals(FontFamily.inter));
+      expect(typography.bodyLarge.fontFamily, equals(QuiTheme.fontFamily));
     });
 
     test('bodyLarge has 16px font size', () {
@@ -210,7 +209,7 @@ void main() {
     test('labelLarge has Inter font family', () {
       const typography = QuiTypography();
 
-      expect(typography.labelLarge.fontFamily, equals(FontFamily.inter));
+      expect(typography.labelLarge.fontFamily, equals(QuiTheme.fontFamily));
     });
 
     test('labelLarge has 15px font size', () {
@@ -251,10 +250,16 @@ void main() {
   });
 
   group('QuiThemeData', () {
-    QuiThemeData _themeData({Color primary = _brandColor, QuiTypography? typography}) {
+    QuiThemeData _themeData({
+      Color primary = _brandColor,
+      QuiTypography? typography,
+    }) {
       final palette = QuiPalette(primaryColor: primary);
       return QuiThemeData(
-        colorScheme: QuiColorScheme.light(palette: palette, onPrimary: const Color(0xFF1E1615)),
+        colorScheme: QuiColorScheme.light(
+          palette: palette,
+          onPrimary: const Color(0xFF1E1615),
+        ),
         typography: typography ?? const QuiTypography(),
         palette: palette,
       );
@@ -270,7 +275,10 @@ void main() {
     test('copyWith replaces colorScheme when provided', () {
       final original = _themeData();
       final otherPalette = QuiPalette(primaryColor: const Color(0xFF0984E3));
-      final custom = QuiColorScheme.light(palette: otherPalette, onPrimary: const Color(0xFFFFFFFF));
+      final custom = QuiColorScheme.light(
+        palette: otherPalette,
+        onPrimary: const Color(0xFFFFFFFF),
+      );
       final result = original.copyWith(colorScheme: custom);
 
       expect(result.colorScheme, equals(custom));
@@ -294,13 +302,21 @@ void main() {
     test('lerp interpolates background between two themes', () {
       final a = _themeData();
       final b = _themeData();
-      final bColorScheme = QuiColorScheme.light().copyWith(background: const Color(0xFF000000));
+      final bColorScheme = QuiColorScheme.light().copyWith(
+        background: const Color(0xFF000000),
+      );
       final bAlt = b.copyWith(colorScheme: bColorScheme);
       final result = a.lerp(bAlt, 0.5);
 
       expect(
         result.colorScheme.background,
-        equals(Color.lerp(a.colorScheme.background, bAlt.colorScheme.background, 0.5)),
+        equals(
+          Color.lerp(
+            a.colorScheme.background,
+            bAlt.colorScheme.background,
+            0.5,
+          ),
+        ),
       );
     });
 
@@ -309,7 +325,10 @@ void main() {
       final b = _themeData(primary: const Color(0xFF000000));
       final result = a.lerp(b, 0.5);
 
-      expect(result.colorScheme.colors.primary, isNot(equals(a.colorScheme.colors.primary)));
+      expect(
+        result.colorScheme.colors.primary,
+        isNot(equals(a.colorScheme.colors.primary)),
+      );
     });
 
     test('lerp uses source typography when t < 0.5', () {
@@ -331,65 +350,119 @@ void main() {
 
   group('QuiTheme', () {
     test('light theme registers QuiThemeData extension', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final theme = QuiTheme.light(
+        primaryColor: _brandColor,
+        onPrimary: const Color(0xFF1E1615),
+      );
       final data = theme.extension<QuiThemeData>();
 
       expect(data, isNotNull);
     });
 
     test('light theme sets scaffoldBackgroundColor to neutral-1', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final theme = QuiTheme.light(
+        primaryColor: _brandColor,
+        onPrimary: const Color(0xFF1E1615),
+      );
       expect(theme.scaffoldBackgroundColor, equals(Colors.white));
     });
 
     test('light theme enables Material 3', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final theme = QuiTheme.light(
+        primaryColor: _brandColor,
+        onPrimary: const Color(0xFF1E1615),
+      );
 
       expect(theme.useMaterial3, isTrue);
     });
 
-    test('when light theme is created, it should map the exact QUI primary pair into Material', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
-      final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
+    test(
+      'when light theme is created, it should map the exact QUI primary pair into Material',
+      () {
+        final theme = QuiTheme.light(
+          primaryColor: _brandColor,
+          onPrimary: const Color(0xFF1E1615),
+        );
+        final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
 
-      expect(theme.colorScheme.primary, equals(quiColors.colors.primary.solid));
-      expect(theme.colorScheme.onPrimary, equals(quiColors.colors.primary.onSolid));
-    });
+        expect(
+          theme.colorScheme.primary,
+          equals(quiColors.colors.primary.solid),
+        );
+        expect(
+          theme.colorScheme.onPrimary,
+          equals(quiColors.colors.primary.onSolid),
+        );
+      },
+    );
 
-    test('when light theme is created, it should map exact surface and outline roles into Material', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
-      final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
+    test(
+      'when light theme is created, it should map exact surface and outline roles into Material',
+      () {
+        final theme = QuiTheme.light(
+          primaryColor: _brandColor,
+          onPrimary: const Color(0xFF1E1615),
+        );
+        final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
 
-      expect(theme.colorScheme.surface, equals(quiColors.background));
-      expect(theme.colorScheme.onSurface, equals(quiColors.text.primary));
-      expect(theme.colorScheme.outline, equals(quiColors.border.standard));
-      expect(theme.colorScheme.outlineVariant, equals(quiColors.border.subtle));
-    });
+        expect(theme.colorScheme.surface, equals(quiColors.background));
+        expect(theme.colorScheme.onSurface, equals(quiColors.text.primary));
+        expect(theme.colorScheme.outline, equals(quiColors.border.standard));
+        expect(
+          theme.colorScheme.outlineVariant,
+          equals(quiColors.border.subtle),
+        );
+      },
+    );
 
-    test('when light theme is created, it should map exact secondary and error pairs into Material', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
-      final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
+    test(
+      'when light theme is created, it should map exact secondary and error pairs into Material',
+      () {
+        final theme = QuiTheme.light(
+          primaryColor: _brandColor,
+          onPrimary: const Color(0xFF1E1615),
+        );
+        final quiColors = theme.extension<QuiThemeData>()!.colorScheme;
 
-      expect(theme.colorScheme.secondary, equals(quiColors.colors.teal.solid));
-      expect(theme.colorScheme.onSecondary, equals(quiColors.colors.teal.onSolid));
-      expect(theme.colorScheme.error, equals(quiColors.error.solid));
-      expect(theme.colorScheme.onError, equals(quiColors.error.onSolid));
-    });
+        expect(
+          theme.colorScheme.secondary,
+          equals(quiColors.colors.teal.solid),
+        );
+        expect(
+          theme.colorScheme.onSecondary,
+          equals(quiColors.colors.teal.onSolid),
+        );
+        expect(theme.colorScheme.error, equals(quiColors.error.solid));
+        expect(theme.colorScheme.onError, equals(quiColors.error.onSolid));
+      },
+    );
 
     test('light theme applies Inter font family to textTheme bodyMedium', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final theme = QuiTheme.light(
+        primaryColor: _brandColor,
+        onPrimary: const Color(0xFF1E1615),
+      );
 
-      expect(theme.textTheme.bodyMedium?.fontFamily, equals(FontFamily.inter));
+      expect(
+        theme.textTheme.bodyMedium?.fontFamily,
+        equals(QuiTheme.fontFamily),
+      );
     });
 
     test('light theme textTheme bodyMedium has w400 weight', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final theme = QuiTheme.light(
+        primaryColor: _brandColor,
+        onPrimary: const Color(0xFF1E1615),
+      );
 
       expect(theme.textTheme.bodyMedium?.fontWeight, equals(FontWeight.w400));
     });
 
     test('light theme applies proportional letter spacing to bodyMedium', () {
-      final theme = QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615));
+      final theme = QuiTheme.light(
+        primaryColor: _brandColor,
+        onPrimary: const Color(0xFF1E1615),
+      );
       const expected = 14 * -0.02;
 
       expect(theme.textTheme.bodyMedium?.letterSpacing, equals(expected));
@@ -397,10 +470,15 @@ void main() {
   });
 
   group('QuiThemeContext', () {
-    testWidgets('extension retrieves QuiThemeData from BuildContext', (tester) async {
+    testWidgets('extension retrieves QuiThemeData from BuildContext', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: QuiTheme.light(primaryColor: _brandColor, onPrimary: const Color(0xFF1E1615)),
+          theme: QuiTheme.light(
+            primaryColor: _brandColor,
+            onPrimary: const Color(0xFF1E1615),
+          ),
           home: Builder(
             builder: (context) {
               final data = Theme.of(context).extension<QuiThemeData>();

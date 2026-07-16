@@ -233,7 +233,7 @@ class _JobViewState extends ConsumerState<JobView> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.instance.build(context, (assets) => assets.spilledCoffee, height: 140),
+          QuiThreeD.spilledCoffee(height: 140),
           const SizedBox(height: 20),
           Text(
             i18n.job.error.title,
@@ -257,11 +257,10 @@ class _JobViewState extends ConsumerState<JobView> {
           QuiButton(
             variant: QuiButtonVariant.secondary,
             label: i18n.job.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.instance.build(
-              (assets) => assets.arrowRotateClockwise,
+            leadingIconBuilder: (state) => QuiIcon.arrowRotateClockwise(
               height: 15,
               width: 15,
-              colorFilter: ColorFilter.mode(state.foregroundColor, BlendMode.srcIn),
+              color: state.foregroundColor,
             ),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),
