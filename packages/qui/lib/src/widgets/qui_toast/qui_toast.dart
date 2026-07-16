@@ -15,6 +15,7 @@ part 'qui_toast_gesture_transform/_qui_toast_gesture_transform_widget.dart';
 part 'qui_toast_messenger.dart';
 part 'qui_toast_slide/_qui_toast_slide_render_object.dart';
 part 'qui_toast_slide/_qui_toast_slide_widget.dart';
+part 'qui_toast_types.dart';
 
 /// A toast surface for transient messages.
 ///
@@ -42,13 +43,31 @@ class QuiToast extends StatelessWidget {
   ///
   /// Use the constructor for direct rendering in previews, tests, or composed
   /// surfaces. Use [show] for the common overlay behavior.
-  const QuiToast({required this.message, super.key, this.type = QuiToastType.error});
+  const QuiToast({required this.message, super.key, this.type = QuiToastType.error, this.iconBuilder});
 
   /// The visible message presented in the toast.
   final String message;
 
   /// The status type that controls colors and iconography.
   final QuiToastType type;
+
+  /// Builds a custom icon to replace the default type-driven icon.
+  ///
+  /// When provided, [iconBuilder] is called with a [QuiToastState] that
+  /// carries the current toast config. When null, the default type-driven
+  /// icon is used.
+  ///
+  /// ```dart
+  /// QuiToast(
+  ///   message: 'Something went wrong',
+  ///   iconBuilder: (state) => Icon(
+  ///     Icons.warning_amber_rounded,
+  ///     size: state.iconSize,
+  ///     color: state.iconColor,
+  ///   ),
+  /// )
+  /// ```
+  final QuiToastIconBuilder? iconBuilder;
 
   /// Shows a QUI toast above [context].
   ///
@@ -69,6 +88,7 @@ class QuiToast extends StatelessWidget {
     BuildContext context, {
     required String message,
     QuiToastType type = QuiToastType.error,
+    QuiToastIconBuilder? iconBuilder,
     Duration? duration,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
   }) {
@@ -89,6 +109,7 @@ class QuiToast extends StatelessWidget {
         _QuiToastOverlay(
           message: message,
           type: type,
+          iconBuilder: iconBuilder,
           duration: duration ?? _estimateDuration(message),
           disableAnimations: disableAnimations,
           padding: padding,
@@ -230,6 +251,9 @@ class QuiToast extends StatelessWidget {
   }
 
   Widget _buildIcon(BuildContext context, QuiToastType type, Color iconColor) {
+    final iconBuilder = this.iconBuilder;
+    if (iconBuilder != null) return iconBuilder(QuiToastState(iconSize: _iconSize, iconColor: iconColor));
+
     return switch (type) {
       QuiToastType.error => QuiIcon.exclamationTriangle(width: _iconSize, height: _iconSize, color: iconColor),
     };

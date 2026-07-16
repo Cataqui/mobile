@@ -96,7 +96,7 @@ export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
         QuiTikTokFeedLoadMoreErrorBuilder,
         QuiTikTokFeedNotification,
         QuiTikTokFeedProgressCallback;
-export 'src/widgets/qui_toast/qui_toast.dart' show QuiToast, QuiToastMessenger, QuiToastType;
+export 'src/widgets/qui_toast/qui_toast.dart' show QuiToast, QuiToastIconBuilder, QuiToastState, QuiToastMessenger, QuiToastType;
 export 'src/widgets/qui_view_back_button.dart' show QuiViewBackButton;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
     show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;

@@ -4,6 +4,7 @@ class _QuiToastOverlay extends StatefulWidget {
   const _QuiToastOverlay({
     required this.message,
     required this.type,
+    required this.iconBuilder,
     required this.duration,
     required this.disableAnimations,
     required this.padding,
@@ -12,6 +13,7 @@ class _QuiToastOverlay extends StatefulWidget {
 
   final String message;
   final QuiToastType type;
+  final QuiToastIconBuilder? iconBuilder;
   final Duration duration;
   final bool disableAnimations;
   final EdgeInsetsGeometry padding;
@@ -398,7 +400,7 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
                         onPointerMove: _handlePointerMove,
                         onPointerUp: _handlePointerUp,
                         onPointerCancel: _handlePointerCancel,
-                        child: QuiToast(message: widget.message, type: widget.type),
+                        child: QuiToast(message: widget.message, type: widget.type, iconBuilder: widget.iconBuilder),
                       ),
                     ),
                   ),

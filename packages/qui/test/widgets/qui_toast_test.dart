@@ -835,7 +835,115 @@ void main() {
         expect(transition.opacity.value, equals(1));
       },
     );
+
+    testWidgets(
+      'when a custom iconBuilder is provided, it should render the custom icon widget instead of the default one',
+      (tester) async {
+        await tester.pumpWidget(
+          const TestApp(
+            child: QuiToast(
+              message: 'Custom icon',
+              iconBuilder: _buildTestCustomIcon,
+            ),
+          ),
+        );
+
+        expect(find.byKey(const Key('qui_toast_custom_icon')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'when a custom iconBuilder is provided, it should pass the recommended icon size of 30px',
+      (tester) async {
+        double? capturedIconSize;
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiToast(
+              message: 'Check size',
+              iconBuilder: (state) {
+                capturedIconSize = state.iconSize;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+
+        expect(capturedIconSize, equals(30));
+      },
+    );
+
+    testWidgets(
+      'when a custom iconBuilder is provided, it should pass the design-system icon color for the toast type',
+      (tester) async {
+        Color? capturedIconColor;
+
+        await tester.pumpWidget(
+          TestApp(
+            child: QuiToast(
+              message: 'Check color',
+              iconBuilder: (state) {
+                capturedIconColor = state.iconColor;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+
+        expect(capturedIconColor, equals(QuiColorScheme.light().toast.error.icon));
+      },
+    );
+
+    testWidgets(
+      'when no iconBuilder is provided, it should render the default icon in the icon box',
+      (tester) async {
+        await tester.pumpWidget(
+          const TestApp(child: QuiToast(message: 'Default icon')),
+        );
+
+        final iconBox = tester.widget<SizedBox>(find.byKey(const Key('qui_toast_icon_box')));
+        final child = iconBox.child;
+
+        expect(child, isNotNull);
+      },
+    );
+
+    testWidgets(
+      'when QuiToast.show is called with an iconBuilder, it should render the custom icon in the overlay',
+      (tester) async {
+        late BuildContext toastContext;
+
+        await tester.pumpWidget(
+          TestApp(
+            child: Builder(
+              builder: (context) {
+                toastContext = context;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+
+        QuiToast.show(
+          toastContext,
+          message: 'Custom overlay icon',
+          iconBuilder: _buildTestCustomIcon,
+        );
+        await tester.pump();
+
+        expect(find.byKey(const Key('qui_toast_custom_icon')), findsOneWidget);
+      },
+    );
   });
+}
+
+Widget _buildTestCustomIcon(QuiToastState state) {
+  return SizedBox(
+    key: const Key('qui_toast_custom_icon'),
+    width: state.iconSize,
+    height: state.iconSize,
+    child: Icon(Icons.warning, color: state.iconColor, size: state.iconSize),
+  );
 }
 
 abstract final class _QuiToastTestFixtures {

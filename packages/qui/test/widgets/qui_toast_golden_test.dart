@@ -45,10 +45,28 @@ void main() {
               child: QuiToast(message: 'uh lala'),
             ),
           ),
+          GoldenTestScenario(
+            name: 'custom icon',
+            child: const _ToastGoldenFrame(
+              child: QuiToast(
+                message: 'Com icone personalizado',
+                iconBuilder: _buildTestCustomIcon,
+              ),
+            ),
+          ),
         ],
       ),
     );
   });
+}
+
+Widget _buildTestCustomIcon(QuiToastState state) {
+  return SizedBox(
+    key: const Key('qui_toast_custom_icon'),
+    width: state.iconSize,
+    height: state.iconSize,
+    child: Icon(Icons.warning, color: state.iconColor, size: state.iconSize),
+  );
 }
 
 class _ToastGoldenFrame extends StatelessWidget {
