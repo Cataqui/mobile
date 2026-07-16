@@ -85,6 +85,7 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 - Prefer Dart `enum` structures over arbitrary `const` objects or magic strings for state variations, domain constants, and error codes. Use switches over enums to guarantee compile-time exhaustiveness.
 - Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `qui_text_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
+- **Enum-owning logic over static helpers:** When logic is determined solely by an enum value (color resolution, label text, icon selection, etc.), put the getter or method on the enum itself rather than writing a static function on an implementation class. This keeps the resolution logic with the value that drives it, makes it discoverable from any call site via `myValue.method()`, and eliminates duplicate switch statements across consumers. The enum member is the single source of truth for its own behavior.
 
 ### Exhaustive Switch Over Enums
 
@@ -128,6 +129,8 @@ widget or model that produces or consumes the data.
 ### Constants Local to Widgets
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
+- **Name your math:** When combining numbers in an expression where each operand's meaning is not immediately obvious (e.g. `width - 30 - 12 - 14 - 26`), extract each operand into a named constant so the expression reads as intent. Simple standalone values like `padding: 24` do not need extraction — the position tells you what the number means.
+- **Linked layout constants:** When a calculation depends on a layout value defined elsewhere (padding, icon size, gap, etc.), store the shared value as a constant and reference it in both locations. This guarantees the two sites can never drift apart and makes the dependency explicit to readers.
 
 ### Shared Constants Across Files
 
