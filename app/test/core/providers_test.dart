@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 void main() {
   group('cataquiDioProvider', () {
@@ -66,6 +67,21 @@ void main() {
       final dio = container.read(cataquiDioProvider);
 
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isFalse);
+    });
+
+    test('when environment is production, it should register the offline error interceptor', () {
+      final container = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(
+            const AppConfig(environment: 'production', cataquiApiUrl: 'https://api.test.cataqui.com'),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final dio = container.read(cataquiDioProvider);
+
+      expect(dio.interceptors.any((interceptor) => interceptor is OfflineErrorDioInterceptor), isTrue);
     });
   });
 }

@@ -52,11 +52,12 @@ Dio cataquiDio(Ref ref) {
   );
 
   if (appConfig.isDevelopment) {
-    dio.interceptors.addAll([
+    dio.interceptors.add(
       LogInterceptor(requestBody: true, responseBody: true, logPrint: (object) => debugPrint(object.toString())),
-      OfflineErrorDioInterceptor(),
-    ]);
+    );
   }
+
+  dio.interceptors.add(OfflineErrorDioInterceptor());
 
   return dio;
 }
