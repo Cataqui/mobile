@@ -218,3 +218,42 @@ verify(() => whatsapp.launchChat(number: '+5511999999999')).called(1);
 - Use `verifyNever` to confirm a method was NOT called in error/failure paths.
 - Always define package mock classes in `test/mocks.dart`, not inline in test
   files.
+
+## 11. Prefer `find.byKey` Over `find.text`
+
+Always access widgets via `find.byKey` instead of `find.text`. Key-based lookups
+are more robust: they don't break when translation copy changes, are immune to
+duplicate strings, and make the test's intent explicit. If the widget under test
+doesn't have a `Key`, add one via `ValueKey` — the small production-code change
+is worth the test stability.
+
+```dart
+// ❌ Fragile — breaks when copy changes, ambiguous with duplicates
+await tester.tap(find.text(i18n.job.contactButton.whatsapp));
+expect(find.text(i18n.job.contactButton.unknown), findsOneWidget);
+
+// ✅ Robust — survives copy changes, unambiguous
+await tester.tap(find.byKey(const ValueKey('job_contact_whatsapp')));
+expect(find.byKey(const ValueKey('job_contact_unknown')), findsOneWidget);
+```
+
+### When to Use Each
+
+| Use `find.byKey` for                    | Use `find.text` for                                 |
+| --------------------------------------- | --------------------------------------------------- |
+| User-interaction points (taps, scrolls) | Content validation (is the right text showing?)     |
+| Verifying widget presence/absence       | Verifying dynamic or API-driven content values      |
+| Navigation targets                      | Fixture data assertions (with `copyWith` overrides) |
+
+### Key Naming Convention
+
+Use `snake_case` prefixed with the widget's domain:
+
+```dart
+const ValueKey('job_contact_whatsapp')
+const ValueKey('feed_job_card_title')
+const ValueKey('job_detail_back_button')
+```
+
+Keys are just for identification — namespace them by feature to avoid collisions.
+Do not use i18n strings or user-facing text as key values.
