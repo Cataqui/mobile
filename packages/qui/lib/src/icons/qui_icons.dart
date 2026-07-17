@@ -75,6 +75,10 @@ abstract final class QuiIcon {
   static Widget whatsapp({Key? key, double? width, double? height, Color? color}) =>
       $Icons.whatsapp(key: key, width: width, height: height, color1: color);
 
+  /// WiFi connection with exclamation mark (no internet).
+  static Widget wifiExclamation({Key? key, double? width, double? height, Color? color}) =>
+      $Icons.wifiExclamation(key: key, width: width, height: height, color1: color);
+
   /// Wrench / tool icon.
   static Widget wrench({Key? key, double? width, double? height, Color? color}) =>
       $Icons.wrench(key: key, width: width, height: height, color1: color);
