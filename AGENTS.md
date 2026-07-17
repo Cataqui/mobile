@@ -452,6 +452,12 @@ approved goldens` (does not describe what the user sees)
 
 In widget and golden tests, use `pumpAndSettle` over `pump` unless only `pump` is needed (e.g., asserting in-progress animation state, or avoiding infinite pump loops). `pumpAndSettle` waits for all animations, timers, and microtasks to complete, producing more realistic test frames and reducing flakiness from un-settled widget states.
 
+### Always `pumpAndSettle` After `pumpWidget`
+
+Always call `pumpAndSettle` immediately after `pumpWidget` before performing any action (taps, scrolls, assertions). The `pumpWidget` call only creates the initial frame; `pumpAndSettle` ensures all microtasks, timers, and animations have fully resolved before the test interacts with the widget tree. Skipping this step leads to flaky tests where widgets appear loading instead of their settled state.
+
+**Exception:** When the widget intentionally shows an infinite loading state (e.g., `AsyncLoading` with a never-completing `Completer`), use a single `pump()` instead of `pumpAndSettle` to avoid the framework timing out waiting for the state to settle.
+
 ---
 
 ## 5. Security, Trust, & Safety Safeguards
