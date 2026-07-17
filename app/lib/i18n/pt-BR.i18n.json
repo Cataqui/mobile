@@ -80,7 +80,11 @@
     "contactButton": {
       "whatsapp": "Enviar Mensagem",
       "phoneCall": "Ligar agora",
-      "unknown": "Indisponível"
+      "unknown": "Indisponível",
+      "error": {
+        "genericMessage": "Eita, não conseguimos abrir por algum erro. Tenta de novo",
+        "offlineMessage": "Tá sem internet parece. Dá uma olhada e tenta de novo"
+      }
     }
   }
 }

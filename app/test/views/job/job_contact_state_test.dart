@@ -9,118 +9,214 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
 
+final class _JobContactStateTestHelpers {
+  _JobContactStateTestHelpers._();
+
+  static ProviderContainer container({
+    required MockJobRepository repository,
+    MockWhatsapp? whatsapp,
+    MockTelephony? telephony,
+  }) {
+    final overrides = [jobRepositoryProvider.overrideWithValue(repository)];
+    if (whatsapp != null) {
+      overrides.add(whatsappProvider.overrideWithValue(whatsapp));
+    }
+    if (telephony != null) {
+      overrides.add(telephonyProvider.overrideWithValue(telephony));
+    }
+    final container = ProviderContainer(overrides: overrides);
+    addTearDown(container.dispose);
+    return container;
+  }
+}
+
 void main() {
   late MockJobRepository repository;
 
   setUp(() {
+    registerFallbackValue(Uri());
     repository = MockJobRepository();
     when(
       () => repository.getJobContact(
         jobId: any(named: 'jobId'),
         contactId: any(named: 'contactId'),
       ),
-    ).thenAnswer((_) async => _envelope());
+    ).thenAnswer(
+      (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
+        data: JobContactDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+      ),
+    );
   });
 
   group('JobContactState', () {
-    test('when the provider is first read, it should expose the job contact data', () async {
-      final container = _container(repository: repository);
+    group('when the provider is first read', () {
+      test('it should expose a null resting state (no fetch)', () async {
+        final container = _JobContactStateTestHelpers.container(repository: repository);
 
-      final jobContactState = await container.read(
-        jobContactStateProvider(jobId: 'job-001', contactId: 'contact-001').future,
-      );
+        await container.read(jobContactStateProvider(jobId: 'job-001', contactId: 'contact-001').future);
 
-      expect(jobContactState.contact.identifier, '+5511999999999');
+        verifyNever(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        );
+      });
+
+      test('it should not fetch the contact from the repository', () async {
+        final container = _JobContactStateTestHelpers.container(repository: repository);
+
+        await container.read(jobContactStateProvider(jobId: 'job-001', contactId: 'contact-001').future);
+
+        expect(container.read(jobContactStateProvider(jobId: 'job-001', contactId: 'contact-001')).hasError, isFalse);
+      });
     });
 
-    test(
-      'when the provider is first read, it should pass the requested job id and contact id to the repository',
-      () async {
-        final container = _container(repository: repository);
+    group('when contact is called', () {
+      test('it should fetch the job contact with the correct job id and contact id', () async {
+        final whatsapp = MockWhatsapp();
+        final telephony = MockTelephony();
+        final container = _JobContactStateTestHelpers.container(
+          repository: repository,
+          whatsapp: whatsapp,
+          telephony: telephony,
+        );
+        final provider = jobContactStateProvider(jobId: 'job-call', contactId: 'contact-call');
+        await container.read(provider.future);
 
-        await container.read(jobContactStateProvider(jobId: 'custom-job', contactId: 'custom-contact').future);
+        await container.read(provider.notifier).contact();
 
-        verify(() => repository.getJobContact(jobId: 'custom-job', contactId: 'custom-contact')).called(1);
-      },
-    );
+        verify(() => repository.getJobContact(jobId: 'job-call', contactId: 'contact-call')).called(1);
+      });
 
-    test('when retry is called, it should fetch the contact again', () async {
-      final container = _container(repository: repository);
-      await container.read(jobContactStateProvider(jobId: 'retry-job', contactId: 'retry-contact').future);
+      test('when the contact fetch succeeds with a whatsapp method, it should launch WhatsApp', () async {
+        final whatsapp = MockWhatsapp();
+        when(() => whatsapp.launchChat(number: any(named: 'number'))).thenAnswer((_) async => true);
 
-      final secondContact = JobContactDto.fixture().copyWith(identifier: '+5511888888888');
+        final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
 
-      when(
-        () => repository.getJobContact(
-          jobId: any(named: 'jobId'),
-          contactId: any(named: 'contactId'),
-        ),
-      ).thenAnswer((_) async => _envelope(contact: secondContact));
+        final notifier = container.read(jobContactStateProvider(jobId: 'job-wpp', contactId: 'contact-wpp').notifier);
+        await notifier.contact();
 
-      await container.read(jobContactStateProvider(jobId: 'retry-job', contactId: 'retry-contact').notifier).retry();
+        verify(() => whatsapp.launchChat(number: '+5511999999999')).called(1);
+      });
 
-      expect(
-        container
-            .read(jobContactStateProvider(jobId: 'retry-job', contactId: 'retry-contact'))
-            .value
-            ?.contact
-            .identifier,
-        '+5511888888888',
-      );
-    });
+      test('when the contact fetch succeeds with a phone call method, it should launch a phone call', () async {
+        when(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        ).thenAnswer(
+          (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
+            data: JobContactDto.fixture().copyWith(
+              contactMethod: JobContactMethod.phoneCall,
+              identifier: '+5511888888888',
+            ),
+          ),
+        );
 
-    test('when retry fails after a successful load, it should expose an AsyncError', () async {
-      final container = _container(repository: repository);
-      await container.read(jobContactStateProvider(jobId: 'retry-fail-job', contactId: 'retry-fail-contact').future);
-      when(
-        () => repository.getJobContact(
-          jobId: any(named: 'jobId'),
-          contactId: any(named: 'contactId'),
-        ),
-      ).thenThrow(StateError('retry failed'));
+        final telephony = MockTelephony();
+        when(() => telephony.call(number: any(named: 'number'))).thenAnswer((_) async => true);
 
-      await container
-          .read(jobContactStateProvider(jobId: 'retry-fail-job', contactId: 'retry-fail-contact').notifier)
-          .retry();
+        final container = _JobContactStateTestHelpers.container(repository: repository, telephony: telephony);
 
-      expect(
-        container.read(jobContactStateProvider(jobId: 'retry-fail-job', contactId: 'retry-fail-contact')).hasError,
-        isTrue,
-      );
-    });
+        final notifier = container.read(
+          jobContactStateProvider(jobId: 'job-phone', contactId: 'contact-phone').notifier,
+        );
+        await notifier.contact();
 
-    test('when the initial fetch fails, it should expose an AsyncError', () async {
-      final failingRepository = MockJobRepository();
-      when(
-        () => failingRepository.getJobContact(
-          jobId: any(named: 'jobId'),
-          contactId: any(named: 'contactId'),
-        ),
-      ).thenThrow(StateError('initial fetch failed'));
+        verify(() => telephony.call(number: '+5511888888888')).called(1);
+      });
 
-      final container = _container(repository: failingRepository);
+      test('when the contact method is unknown, it should not launch WhatsApp or telephony', () async {
+        when(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        ).thenAnswer(
+          (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
+            data: JobContactDto.fixture().copyWith(contactMethod: JobContactMethod.unknown),
+          ),
+        );
 
-      await expectLater(
-        container.read(jobContactStateProvider(jobId: 'fail-job', contactId: 'fail-contact').future),
-        throwsA(isA<StateError>()),
-      );
+        final whatsapp = MockWhatsapp();
+        final telephony = MockTelephony();
+        final container = _JobContactStateTestHelpers.container(
+          repository: repository,
+          whatsapp: whatsapp,
+          telephony: telephony,
+        );
+
+        final notifier = container.read(
+          jobContactStateProvider(jobId: 'job-unknown', contactId: 'contact-unknown').notifier,
+        );
+        await notifier.contact();
+
+        verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
+        verifyNever(() => telephony.call(number: any(named: 'number')));
+      });
+
+      test('when the fetch fails, it should expose an AsyncError', () async {
+        when(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        ).thenThrow(StateError('fetch failed'));
+
+        final container = _JobContactStateTestHelpers.container(repository: repository);
+
+        final notifier = container.read(jobContactStateProvider(jobId: 'job-fail', contactId: 'contact-fail').notifier);
+        await notifier.contact();
+
+        expect(container.read(jobContactStateProvider(jobId: 'job-fail', contactId: 'contact-fail')).hasError, isTrue);
+      });
+
+      test('when the fetch fails, it should not launch WhatsApp or telephony', () async {
+        when(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        ).thenThrow(StateError('fetch failed'));
+
+        final whatsapp = MockWhatsapp();
+        final telephony = MockTelephony();
+        final container = _JobContactStateTestHelpers.container(
+          repository: repository,
+          whatsapp: whatsapp,
+          telephony: telephony,
+        );
+
+        final notifier = container.read(
+          jobContactStateProvider(jobId: 'job-fail-nolaunch', contactId: 'contact-fail-nolaunch').notifier,
+        );
+        await notifier.contact();
+
+        verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
+        verifyNever(() => telephony.call(number: any(named: 'number')));
+      });
+
+      test('when the dispatch itself fails, it should expose an AsyncError', () async {
+        final whatsapp = MockWhatsapp();
+        when(() => whatsapp.launchChat(number: any(named: 'number'))).thenThrow(StateError('launch failed'));
+
+        final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
+
+        final notifier = container.read(
+          jobContactStateProvider(jobId: 'job-dispatch-fail', contactId: 'contact-dispatch-fail').notifier,
+        );
+        await notifier.contact();
+
+        expect(
+          container
+              .read(jobContactStateProvider(jobId: 'job-dispatch-fail', contactId: 'contact-dispatch-fail'))
+              .hasError,
+          isTrue,
+        );
+      });
     });
   });
-}
-
-ProviderContainer _container({required MockJobRepository repository}) {
-  final container = ProviderContainer(overrides: [jobRepositoryProvider.overrideWithValue(repository)]);
-  addTearDown(container.dispose);
-  return container;
-}
-
-ApiEnvelopeDto<JobContactDto> _envelope({JobContactDto? contact}) {
-  return ApiEnvelopeDto<JobContactDto>(
-    data:
-        contact ??
-        JobContactDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
-    requestId: 'contact-req-001',
-    timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-    endpoint: '/job/test-job/contact/test-contact',
-  );
 }

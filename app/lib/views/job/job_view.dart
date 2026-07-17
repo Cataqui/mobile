@@ -204,8 +204,6 @@ class _JobViewState extends ConsumerState<JobView> {
                       child: QuiRouteSettled(
                         child: JobContactButton(
                           jobId: widget.jobId,
-                          contactReference: jobData?.job.contactReference,
-                          isLoading: jobState.isLoading,
                         ),
                       ),
                     ),

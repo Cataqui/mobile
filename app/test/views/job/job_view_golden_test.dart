@@ -43,6 +43,7 @@ void main() {
           jobState: JobViewTestHelpers.loadedState(),
         ),
       ),
+      pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
@@ -72,6 +73,7 @@ void main() {
           jobState: JobViewTestHelpers.loadedState(),
         ),
       ),
+      pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
@@ -98,6 +100,7 @@ void main() {
           jobState: JobViewTestHelpers.loadedState(),
         ),
       ),
+      pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
@@ -140,6 +143,10 @@ void main() {
 
 class JobViewGoldenTestHelpers {
   JobViewGoldenTestHelpers._();
+
+  static Future<void> settle(WidgetTester tester) async {
+    await tester.pumpAndSettle();
+  }
 
   static String get veryLongDescription {
     final paragraphs = List.generate(
