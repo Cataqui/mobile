@@ -3,10 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
 class _TestRouterDelegate extends RouterDelegate<Object> with ChangeNotifier {
-  _TestRouterDelegate({this.onBuild, this.routerConfig});
+  _TestRouterDelegate({this.onBuild});
 
   final void Function(BuildContext)? onBuild;
-  final RouterConfig<Object>? routerConfig;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +24,10 @@ class _TestRouterDelegate extends RouterDelegate<Object> with ChangeNotifier {
 }
 
 class _TestRouteInformationParser extends RouteInformationParser<Object> {
+  static final RouteInformation _rootRouteInformation = RouteInformation(
+    uri: Uri.parse('/'),
+  );
+
   @override
   Future<Object> parseRouteInformation(
     RouteInformation routeInformation,
@@ -32,7 +35,7 @@ class _TestRouteInformationParser extends RouteInformationParser<Object> {
 
   @override
   RouteInformation restoreRouteInformation(Object configuration) =>
-      const RouteInformation(location: '/');
+      _rootRouteInformation;
 }
 
 RouterConfig<Object> _createConfig({void Function(BuildContext)? onBuild}) {
@@ -40,7 +43,8 @@ RouterConfig<Object> _createConfig({void Function(BuildContext)? onBuild}) {
     routeInformationParser: _TestRouteInformationParser(),
     routerDelegate: _TestRouterDelegate(onBuild: onBuild),
     routeInformationProvider: PlatformRouteInformationProvider(
-      initialRouteInformation: const RouteInformation(location: '/'),
+      initialRouteInformation:
+          _TestRouteInformationParser._rootRouteInformation,
     ),
   );
 }
