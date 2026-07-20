@@ -31,6 +31,14 @@ Every public declaration exported by the package must have a **dartdoc comment**
   to use the API, what behavior or role it controls, and what guarantees the
   consumer can rely on. Avoid maintainer-focused implementation narration unless
   it directly affects correct package usage.
+- Widget dartdoc must make the visible interaction immediately understandable
+  without any repository, design-system, or implementation context. Start with
+  plain language describing what the user sees, what they can do, and what the
+  widget does in response. Do not rely on the widget name or abstract phrases
+  such as "provides behavior" to explain its purpose.
+- For widgets with complex interactions, multiple modes, or configuration that
+  changes gesture behavior, include copy-paste examples for the primary use case
+  and for any non-obvious configuration consumers must get right.
 - Document the **what** and **why**, not just the how.
 - Use `///` doc comments on all public APIs: classes, top-level functions, extensions, typedefs, enums, fields, and constructors.
 - Include a **code example** inside the doc comment using triple-backtick fences. This example must be valid Dart that a user could copy and paste:
