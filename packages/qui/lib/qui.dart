@@ -39,10 +39,12 @@ export 'src/theme/qui_theme_context.dart' show QuiThemeContext;
 export 'src/theme/qui_theme_data.dart' show QuiThemeData;
 export 'src/theme/qui_typography.dart' show QuiTypography;
 export 'src/widgets/qui_appear.dart' show QuiAppear, QuiAppearAnimationType, QuiAppearController;
+export 'src/widgets/qui_bottom_sheet/qui_bottom_sheet.dart' show QuiBottomSheet;
 export 'src/widgets/qui_button/qui_button.dart' show QuiButton, QuiButtonIconBuilder, QuiButtonState, QuiButtonVariant;
 export 'src/widgets/qui_buttons_bar.dart' show QuiButtonsBar, QuiButtonsBarFit, QuiButtonsBarOrientation;
 export 'src/widgets/qui_dot_loading_indicator/qui_dot_loading_indicator.dart' show QuiDotLoadingIndicator;
 export 'src/widgets/qui_dot_matrix/qui_dot_matrix.dart' show QuiDotMatrix;
+export 'src/widgets/qui_drag_resistance/qui_drag_resistance.dart' show QuiDragResistance;
 export 'src/widgets/qui_edge_fade/qui_edge_fade.dart' show QuiEdgeFade, QuiEdgeFadePosition, QuiEdgeFadeStyle;
 export 'src/widgets/qui_hero/heroes/background/qui_hero_background.dart' show QuiHeroBackground;
 export 'src/widgets/qui_hero/heroes/group/qui_hero_group.dart' show QuiHeroGroup;
@@ -96,7 +98,8 @@ export 'src/widgets/qui_tiktok_feed/qui_tiktok_feed.dart'
         QuiTikTokFeedLoadMoreErrorBuilder,
         QuiTikTokFeedNotification,
         QuiTikTokFeedProgressCallback;
-export 'src/widgets/qui_toast/qui_toast.dart' show QuiToast, QuiToastIconBuilder, QuiToastState, QuiToastMessenger, QuiToastType;
+export 'src/widgets/qui_toast/qui_toast.dart'
+    show QuiToast, QuiToastIconBuilder, QuiToastMessenger, QuiToastState, QuiToastType;
 export 'src/widgets/qui_view_back_button.dart' show QuiViewBackButton;
 export 'src/widgets/qui_widget_transition/qui_widget_transition.dart'
     show QuiWidgetTransition, QuiWidgetTransitionAnimationBuilder;
