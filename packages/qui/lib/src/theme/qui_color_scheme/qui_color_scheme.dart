@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import '../qui_palette/qui_palette.dart';
 
 part 'qui_border_color_scheme.dart';
+part 'qui_bottom_sheet_color_scheme.dart';
 part 'qui_branded_button_color_scheme.dart';
 part 'qui_button_color_scheme.dart';
 part 'qui_buttons_color_scheme.dart';
@@ -63,8 +64,8 @@ part 'qui_toast_color_scheme.dart';
 /// [QuiColorScheme.selectionHighlight], and [QuiColorScheme.scrim] for shared
 /// surface roles. Read grouped properties such as [QuiColorScheme.text],
 /// [QuiColorScheme.border], [QuiColorScheme.colors],
-/// [QuiColorScheme.buttons], and [QuiColorScheme.map] when a UI concern has
-/// its own dedicated token family.
+/// [QuiColorScheme.buttons], [QuiColorScheme.bottomSheet], and
+/// [QuiColorScheme.map] when a UI concern has its own dedicated token family.
 ///
 /// Prefer consuming this contract through the active QUI theme extension, such
 /// as `context.qui.colorScheme`, so UI code follows the package theme selected
@@ -108,6 +109,7 @@ class QuiColorScheme {
     required this.notificationDot,
     required this.buttons,
     required this.overlay,
+    required this.bottomSheet,
     required this.toast,
     required this.divider,
     required this.scrollbar,
@@ -133,6 +135,7 @@ class QuiColorScheme {
       notificationDot: Color.lerp(a.notificationDot, b.notificationDot, t)!,
       buttons: QuiButtonsColorScheme.lerp(a.buttons, b.buttons, t),
       overlay: QuiOverlayColorScheme.lerp(a.overlay, b.overlay, t),
+      bottomSheet: QuiBottomSheetColorScheme.lerp(a.bottomSheet, b.bottomSheet, t),
       toast: QuiToastColorScheme.lerp(a.toast, b.toast, t),
       divider: QuiDividerColorScheme.lerp(a.divider, b.divider, t),
       scrollbar: QuiScrollbarColorScheme.lerp(a.scrollbar, b.scrollbar, t),
@@ -191,6 +194,9 @@ class QuiColorScheme {
   /// Overlay-specific semantic roles that complement shared surface tokens.
   final QuiOverlayColorScheme overlay;
 
+  /// Semantic roles for bottom-sheet surfaces and drag handles.
+  final QuiBottomSheetColorScheme bottomSheet;
+
   /// Semantic roles for toast backgrounds, foregrounds, and status accents.
   final QuiToastColorScheme toast;
 
@@ -227,6 +233,7 @@ class QuiColorScheme {
     Color? notificationDot,
     QuiButtonsColorScheme? buttons,
     QuiOverlayColorScheme? overlay,
+    QuiBottomSheetColorScheme? bottomSheet,
     QuiToastColorScheme? toast,
     QuiDividerColorScheme? divider,
     QuiScrollbarColorScheme? scrollbar,
@@ -249,6 +256,7 @@ class QuiColorScheme {
       notificationDot: notificationDot ?? this.notificationDot,
       buttons: buttons ?? this.buttons,
       overlay: overlay ?? this.overlay,
+      bottomSheet: bottomSheet ?? this.bottomSheet,
       toast: toast ?? this.toast,
       divider: divider ?? this.divider,
       scrollbar: scrollbar ?? this.scrollbar,
@@ -277,6 +285,7 @@ class QuiColorScheme {
           notificationDot == other.notificationDot &&
           buttons == other.buttons &&
           overlay == other.overlay &&
+          bottomSheet == other.bottomSheet &&
           toast == other.toast &&
           divider == other.divider &&
           scrollbar == other.scrollbar &&
@@ -300,6 +309,7 @@ class QuiColorScheme {
     notificationDot,
     buttons,
     overlay,
+    bottomSheet,
     toast,
     divider,
     scrollbar,

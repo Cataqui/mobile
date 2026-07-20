@@ -19,6 +19,7 @@ export 'src/theme/map_style/qui_map_style_symbol_paint.dart' show QuiMapLibreSty
 export 'src/theme/map_style/qui_map_style_value.dart' show QuiMapLibreStyleValue, QuiMapLibreStyleZoomStop;
 export 'src/theme/qui_color_scheme/qui_color_scheme.dart'
     show
+        QuiBottomSheetColorScheme,
         QuiButtonColorScheme,
         QuiColorScheme,
         QuiColorVariantColorScheme,

@@ -7,7 +7,7 @@ class _LightQuiColorScheme extends QuiColorScheme {
 
   _LightQuiColorScheme._({required QuiPalette palette, required Color onPrimary})
     : super(
-        background: Colors.white,
+        background: _background,
 
         text: QuiTextColorScheme(
           primary: palette.neutral[12],
@@ -282,6 +282,8 @@ class _LightQuiColorScheme extends QuiColorScheme {
 
         overlay: const QuiOverlayColorScheme(scrim: Color(0x66000000)),
 
+        bottomSheet: QuiBottomSheetColorScheme(background: _background, handle: palette.neutral[6]),
+
         toast: QuiToastColorScheme(
           success: QuiToastVariantColorScheme(
             background: palette.green[12],
@@ -364,6 +366,8 @@ class _LightQuiColorScheme extends QuiColorScheme {
           locationRadius: palette.cyan[9].withValues(alpha: 0.15),
         ),
       );
+
+  static const Color _background = Colors.white;
 
   static Color _hoverColor({required Color background, required Color foreground, required Color dark}) {
     final overlay = foreground == const Color(0xFFFFFFFF) ? dark : const Color(0xFFFFFFFF);

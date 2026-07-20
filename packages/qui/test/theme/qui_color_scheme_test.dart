@@ -14,6 +14,20 @@ void main() {
       expect(_light.background, equals(Colors.white));
     });
 
+    test(
+      'when light scheme is created, it should use the app background for the bottom-sheet surface',
+      () {
+        expect(_light.bottomSheet.background, same(_light.background));
+      },
+    );
+
+    test(
+      'when light scheme is created, it should use neutral-6 for the bottom-sheet handle',
+      () {
+        expect(_light.bottomSheet.handle, equals(_palette.neutral[6]));
+      },
+    );
+
     test('light() sets text.primary to neutral-12', () {
       expect(_light.text.primary, equals(_palette.neutral[12]));
     });
@@ -540,6 +554,16 @@ void main() {
       expect(result.colors.whatsapp.solid, equals(const Color(0xFF000000)));
     });
 
+    test(
+      'when copying with bottom-sheet colors, it should replace the bottom-sheet group',
+      () {
+        final custom = _light.bottomSheet.copyWith(handle: _palette.primary[9]);
+        final result = _light.copyWith(bottomSheet: custom);
+
+        expect(result.bottomSheet, same(custom));
+      },
+    );
+
     test('== returns true for equal instances', () {
       final a = QuiColorScheme.light();
       final b = QuiColorScheme.light();
@@ -579,6 +603,15 @@ void main() {
           whatsapp: a.colors.whatsapp.copyWith(solid: const Color(0xFF000000)),
         ),
       );
+      expect(a == b, isFalse);
+    });
+
+    test('when bottom-sheet colors differ, schemes should not be equal', () {
+      final a = QuiColorScheme.light();
+      final b = a.copyWith(
+        bottomSheet: a.bottomSheet.copyWith(handle: a.colors.primary.solid),
+      );
+
       expect(a == b, isFalse);
     });
 
@@ -687,6 +720,28 @@ void main() {
         equals(Color.lerp(a.skeleton.bone, b.skeleton.bone, 0.5)),
       );
     });
+
+    test(
+      'when schemes are interpolated, it should interpolate bottom-sheet colors',
+      () {
+        final a = QuiColorScheme.light();
+        final b = a.copyWith(
+          bottomSheet: a.bottomSheet.copyWith(
+            background: a.colors.primary.subtle,
+            handle: a.colors.primary.solid,
+          ),
+        );
+        final result = QuiColorScheme.lerp(a, b, 0.5);
+
+        expect(
+          (result.bottomSheet.background, result.bottomSheet.handle),
+          (
+            Color.lerp(a.bottomSheet.background, b.bottomSheet.background, 0.5),
+            Color.lerp(a.bottomSheet.handle, b.bottomSheet.handle, 0.5),
+          ),
+        );
+      },
+    );
 
     test('lerp interpolates colors.whatsapp.solid at t=0.5', () {
       final a = QuiColorScheme.light();
