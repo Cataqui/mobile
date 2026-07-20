@@ -312,18 +312,25 @@ void main() {
       },
     );
 
-    testWidgets('when shown, it should use the active QUI background', (
-      tester,
-    ) async {
-      await _pumpBottomSheetApp(tester);
-      await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
-      await tester.pumpAndSettle();
-      final material = tester.widget<Material>(
-        find.byKey(_BottomSheetTestApp.surfaceKey),
-      );
+    testWidgets(
+      'when shown, it should use the active bottom-sheet background token',
+      (tester) async {
+        final scheme = QuiColorScheme.light();
+        final custom = scheme.copyWith(
+          bottomSheet: scheme.bottomSheet.copyWith(
+            background: scheme.colors.primary.subtle,
+          ),
+        );
+        await _pumpBottomSheetApp(tester, colorScheme: custom);
+        await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
+        await tester.pumpAndSettle();
+        final material = tester.widget<Material>(
+          find.byKey(_BottomSheetTestApp.surfaceKey),
+        );
 
-      expect(material.color, QuiColorScheme.light().background);
-    });
+        expect(material.color, custom.bottomSheet.background);
+      },
+    );
 
     testWidgets(
       'when shown on an iPhone with a large safe area, it should use continuous corners with adaptive bottom radii',
@@ -386,9 +393,15 @@ void main() {
     );
 
     testWidgets(
-      'when shown, it should render the draggable handle with the standard border token',
+      'when shown, it should render the draggable handle with the bottom-sheet handle token',
       (tester) async {
-        await _pumpBottomSheetApp(tester);
+        final scheme = QuiColorScheme.light();
+        final custom = scheme.copyWith(
+          bottomSheet: scheme.bottomSheet.copyWith(
+            handle: scheme.colors.primary.solid,
+          ),
+        );
+        await _pumpBottomSheetApp(tester, colorScheme: custom);
         await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
         await tester.pumpAndSettle();
         final handle = tester.widget<DecoratedBox>(
@@ -401,7 +414,45 @@ void main() {
         expect((
           tester.getSize(find.byKey(_BottomSheetTestApp.handleKey)),
           handle.decoration,
-        ), _handleMatcher());
+        ), _handleMatcher(custom.bottomSheet.handle));
+      },
+    );
+
+    testWidgets(
+      'when scrollable content is shown, it should use the bottom-sheet tokens for the pinned handle',
+      (tester) async {
+        final scheme = QuiColorScheme.light();
+        final custom = scheme.copyWith(
+          bottomSheet: scheme.bottomSheet.copyWith(
+            background: scheme.colors.primary.subtle,
+            handle: scheme.colors.primary.solid,
+          ),
+        );
+        await _pumpBottomSheetApp(
+          tester,
+          scrollable: true,
+          colorScheme: custom,
+          child: const _ScrollableSheetContent(),
+        );
+        await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
+        await tester.pumpAndSettle();
+        final handleFinder = find.byKey(_BottomSheetTestApp.handleKey);
+        final header = tester.widget<ColoredBox>(
+          find
+              .ancestor(of: handleFinder, matching: find.byType(ColoredBox))
+              .first,
+        );
+        final handle = tester.widget<DecoratedBox>(
+          find.descendant(
+            of: handleFinder,
+            matching: find.byType(DecoratedBox),
+          ),
+        );
+
+        expect(
+          (header.color, (handle.decoration as BoxDecoration).color),
+          (custom.bottomSheet.background, custom.bottomSheet.handle),
+        );
       },
     );
 
@@ -1345,13 +1396,13 @@ void main() {
   });
 }
 
-Matcher _handleMatcher() {
+Matcher _handleMatcher(Color expectedColor) {
   return isA<(Size, Decoration)>()
       .having((value) => value.$1, 'size', const Size(36, 8))
       .having(
         (value) => (value.$2 as BoxDecoration).color,
         'color',
-        QuiColorScheme.light().border.standard,
+        expectedColor,
       );
 }
 
@@ -1374,6 +1425,7 @@ Future<void> _pumpBottomSheetApp(
   Widget child = const Text('Opportunity details'),
   bool scrollable = false,
   TargetPlatform? platform,
+  QuiColorScheme? colorScheme,
   void Function(BuildContext context)? onShow,
 }) async {
   tester.view
@@ -1405,6 +1457,7 @@ Future<void> _pumpBottomSheetApp(
       sheetChild: child,
       scrollable: scrollable,
       platform: platform,
+      colorScheme: colorScheme,
       onShow: onShow,
     ),
   );
@@ -1417,6 +1470,7 @@ class _BottomSheetTestApp extends StatelessWidget {
     required this.sheetChild,
     required this.scrollable,
     required this.platform,
+    required this.colorScheme,
     this.onShow,
   });
 
@@ -1430,12 +1484,25 @@ class _BottomSheetTestApp extends StatelessWidget {
   final Widget sheetChild;
   final bool scrollable;
   final TargetPlatform? platform;
+  final QuiColorScheme? colorScheme;
   final void Function(BuildContext context)? onShow;
 
   @override
   Widget build(BuildContext context) {
+    final baseTheme = QuiTheme.light();
+    final customColorScheme = colorScheme;
+    final theme = customColorScheme == null
+        ? baseTheme
+        : baseTheme.copyWith(
+            extensions: [
+              baseTheme.extension<QuiThemeData>()!.copyWith(
+                colorScheme: customColorScheme,
+              ),
+            ],
+          );
+
     return MaterialApp(
-      theme: QuiTheme.light().copyWith(platform: platform),
+      theme: theme.copyWith(platform: platform),
       builder: (context, child) => MediaQuery(
         data: mediaQueryData,
         child: child ?? const SizedBox.shrink(),

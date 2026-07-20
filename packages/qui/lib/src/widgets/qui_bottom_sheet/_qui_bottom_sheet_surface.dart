@@ -68,7 +68,7 @@ class _QuiBottomSheetSurface<T> extends StatelessWidget {
   }
 
   Widget _buildScrollableSheet(BuildContext context) {
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.qui.colorScheme.bottomSheet;
 
     return DraggableScrollableSheet(
       controller: route._scrollableController,
@@ -91,7 +91,7 @@ class _QuiBottomSheetSurface<T> extends StatelessWidget {
                   pinned: true,
                   delegate: _QuiBottomSheetHandleDelegate(
                     backgroundColor: colorScheme.background,
-                    handleColor: colorScheme.border.standard,
+                    handleColor: colorScheme.handle,
                   ),
                 ),
                 SliverSafeArea(
@@ -120,7 +120,7 @@ class _QuiBottomSheetSurface<T> extends StatelessWidget {
   }
 
   Widget _buildSheet(BuildContext context, {required Widget content, bool showFixedHandle = true}) {
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.qui.colorScheme.bottomSheet;
 
     return SizedBox(
       key: route._sheetMeasurementKey,
@@ -138,7 +138,7 @@ class _QuiBottomSheetSurface<T> extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (showFixedHandle) _QuiBottomSheetHandle(color: colorScheme.border.standard),
+                  if (showFixedHandle) _QuiBottomSheetHandle(color: colorScheme.handle),
                   content,
                 ],
               ),
