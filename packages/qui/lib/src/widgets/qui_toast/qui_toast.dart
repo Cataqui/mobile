@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -10,8 +9,6 @@ import 'package:qui/qui.dart';
 part '_qui_toast_overlay.dart';
 part '_qui_toast_presentation.dart';
 part 'qui_toast_enums.dart';
-part 'qui_toast_gesture_transform/_qui_toast_gesture_transform_render_object.dart';
-part 'qui_toast_gesture_transform/_qui_toast_gesture_transform_widget.dart';
 part 'qui_toast_messenger.dart';
 part 'qui_toast_slide/_qui_toast_slide_render_object.dart';
 part 'qui_toast_slide/_qui_toast_slide_widget.dart';

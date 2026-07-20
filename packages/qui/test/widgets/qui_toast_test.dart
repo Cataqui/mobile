@@ -4,10 +4,8 @@ import 'package:qui/qui.dart';
 
 import '../test_app.dart';
 
-dynamic _findGestureTransformRenderObject(WidgetTester tester) {
-  return tester.renderObject(
-    find.byKey(const Key('qui_toast_resistance_transform')),
-  );
+dynamic _findResistanceTransformRenderObject(WidgetTester tester) {
+  return tester.renderObject(find.byType(QuiDragResistance));
 }
 
 void main() {
@@ -205,9 +203,11 @@ void main() {
         );
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
-        final renderObject = _findGestureTransformRenderObject(tester);
+        final transition = tester.widget<ScaleTransition>(
+          find.byKey(const Key('qui_toast_press_scale_transition')),
+        );
 
-        expect(renderObject.currentScale, equals(0.985));
+        expect(transition.scale.value, equals(0.985));
         await gesture.up();
       },
     );
@@ -237,7 +237,7 @@ void main() {
         await gesture.moveBy(const Offset(0, 18));
         await gesture.moveBy(const Offset(0, 96));
         await tester.pump();
-        final renderObject = _findGestureTransformRenderObject(tester);
+        final renderObject = _findResistanceTransformRenderObject(tester);
 
         expect(
           renderObject.currentResistanceOffset.dy,
@@ -271,7 +271,7 @@ void main() {
         await gesture.moveBy(const Offset(18, 0));
         await gesture.moveBy(const Offset(96, 0));
         await tester.pump();
-        final renderObject = _findGestureTransformRenderObject(tester);
+        final renderObject = _findResistanceTransformRenderObject(tester);
 
         expect(
           renderObject.currentResistanceOffset.dx,
@@ -306,7 +306,7 @@ void main() {
         await gesture.moveBy(const Offset(0, -24));
         await gesture.moveBy(const Offset(0, 12));
         await tester.pump();
-        final renderObject = _findGestureTransformRenderObject(tester);
+        final renderObject = _findResistanceTransformRenderObject(tester);
 
         expect(renderObject.currentResistanceOffset.dy, equals(0));
       },
@@ -890,7 +890,10 @@ void main() {
           ),
         );
 
-        expect(capturedIconColor, equals(QuiColorScheme.light().toast.error.icon));
+        expect(
+          capturedIconColor,
+          equals(QuiColorScheme.light().toast.error.icon),
+        );
       },
     );
 
@@ -901,7 +904,9 @@ void main() {
           const TestApp(child: QuiToast(message: 'Default icon')),
         );
 
-        final iconBox = tester.widget<SizedBox>(find.byKey(const Key('qui_toast_icon_box')));
+        final iconBox = tester.widget<SizedBox>(
+          find.byKey(const Key('qui_toast_icon_box')),
+        );
         final child = iconBox.child;
 
         expect(child, isNotNull);

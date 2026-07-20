@@ -23,36 +23,26 @@ class _QuiToastOverlay extends StatefulWidget {
   State<_QuiToastOverlay> createState() => _QuiToastOverlayState();
 }
 
-class _QuiToastOverlayState extends State<_QuiToastOverlay>
-    with TickerProviderStateMixin, WidgetsBindingObserver {
+class _QuiToastOverlayState extends State<_QuiToastOverlay> with TickerProviderStateMixin, WidgetsBindingObserver {
   static const double _dragDismissDistance = 82;
   static const double _dragDismissOffset = 12;
   static const double _dragUpdateMaxDistance = 24;
   static const double _dragDismissProgress = 0.34;
   static const double _dragMinVisibleProgress = 0.24;
-  static const double _resistanceMaxOffset = 6;
-  static const double _resistanceDampingDistance = 96;
   static const double _pressedScale = 0.985;
   static const double _swipeDismissMinVelocity = 250;
   static const Duration _swipeDismissMinDuration = Duration(milliseconds: 140);
-  static const Duration _resistanceResetDuration = Duration(milliseconds: 180);
   static const Duration _pressScaleDuration = Duration(milliseconds: 300);
 
   late final AnimationController _animationController;
-  late final AnimationController _resistanceResetController;
   late final AnimationController _pressScaleController;
   late final Animation<double> _opacityAnimation;
   late final Animation<Offset> _offsetAnimation;
   late final Animation<double> _pressScaleAnimation;
-  late final Animation<double> _resistanceResetAnimation;
-
-  final ValueNotifier<Offset> _resistanceOffsetNotifier = ValueNotifier<Offset>(Offset.zero);
 
   Timer? _dismissTimer;
   VelocityTracker? _velocityTracker;
   double _dragOffsetY = 0;
-  Offset _resistanceDragOffset = Offset.zero;
-  Offset _resistanceOffsetAtResetStart = Offset.zero;
   Offset? _pointerStartPosition;
   int? _activePointer;
   bool _isDismissed = false;
@@ -128,18 +118,17 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
 
   void _handleDragStart() {
     _animationController.stop();
-    _resistanceResetController.stop();
     _dragOffsetY = 0;
-    _resistanceDragOffset = Offset.zero;
   }
 
   void _handleDragUpdate(Offset delta) {
     if (_isDismissed) return;
 
-    final dragDelta = _resolveDismissDragDelta(delta);
+    final nextDragOffsetY = (_dragOffsetY + delta.dy).clamp(double.negativeInfinity, 0.0);
+    final dragDelta = nextDragOffsetY - _dragOffsetY;
+    _dragOffsetY = nextDragOffsetY;
     if (dragDelta == 0) return;
 
-    _dragOffsetY = (_dragOffsetY + dragDelta).clamp(double.negativeInfinity, 0);
     final dragDistance = dragDelta.clamp(-_dragUpdateMaxDistance, _dragUpdateMaxDistance);
     final dismissDelta = -dragDistance / _dragDismissDistance;
     _animationController.value = (_animationController.value - dismissDelta).clamp(_dragMinVisibleProgress, 1);
@@ -160,65 +149,12 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
 
     if (widget.disableAnimations) {
       _dragOffsetY = 0;
-      _resistanceDragOffset = Offset.zero;
-      _resistanceOffsetNotifier.value = Offset.zero;
       _animationController.value = 1;
       return;
     }
 
     _dragOffsetY = 0;
-    _resistanceDragOffset = Offset.zero;
-    _resetResistanceOffset();
     unawaited(_showToast());
-  }
-
-  double _resolveDismissDragDelta(Offset delta) {
-    var resistanceDelta = Offset(_shouldApplyResistance ? delta.dx : 0, 0);
-    var dismissDeltaY = 0.0;
-
-    if (delta.dy > 0 && _dragOffsetY < 0) {
-      final restoreDeltaY = delta.dy.clamp(0, -_dragOffsetY).toDouble();
-      final remainingDeltaY = delta.dy - restoreDeltaY;
-      dismissDeltaY = restoreDeltaY;
-
-      if (remainingDeltaY > 0 && _shouldApplyResistance) {
-        resistanceDelta += Offset(0, remainingDeltaY);
-      }
-    } else if (delta.dy > 0) {
-      resistanceDelta += Offset(0, delta.dy);
-    } else if (_resistanceDragOffset.dy > 0) {
-      final nextResistanceY = _resistanceDragOffset.dy + delta.dy;
-      resistanceDelta += Offset(0, -_resistanceDragOffset.dy);
-      dismissDeltaY = nextResistanceY;
-
-      if (nextResistanceY > 0) {
-        resistanceDelta = Offset(delta.dx, delta.dy);
-        dismissDeltaY = 0;
-      }
-    } else {
-      dismissDeltaY = delta.dy;
-    }
-
-    _resistanceDragOffset += resistanceDelta;
-
-    if (_resistanceDragOffset.dy < 0) {
-      _resistanceDragOffset = Offset(_resistanceDragOffset.dx, 0);
-    }
-    _resistanceOffsetNotifier.value = _resolveResistanceOffset(_resistanceDragOffset);
-
-    return dismissDeltaY;
-  }
-
-  bool get _shouldApplyResistance {
-    return _dragOffsetY == 0 && _animationController.value == 1;
-  }
-
-  Offset _resolveResistanceOffset(Offset dragOffset) {
-    final distance = dragOffset.distance;
-    if (distance == 0) return Offset.zero;
-
-    final resistedDistance = _resistanceMaxOffset * (1 - 1 / (1 + distance / _resistanceDampingDistance));
-    return Offset.fromDirection(dragOffset.direction, resistedDistance);
   }
 
   void _setPressed(bool value) {
@@ -233,25 +169,6 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
     } else {
       unawaited(_pressScaleController.reverse());
     }
-  }
-
-  void _resetResistanceOffset() {
-    final current = _resistanceOffsetNotifier.value;
-    if (current == Offset.zero) return;
-
-    _resistanceOffsetAtResetStart = current;
-
-    unawaited(_resistanceResetController.forward(from: 0));
-  }
-
-  void _syncResistanceResetOffset() {
-    if (!mounted) return;
-
-    _resistanceOffsetNotifier.value = Offset.lerp(
-      _resistanceOffsetAtResetStart,
-      Offset.zero,
-      _resistanceResetAnimation.value,
-    )!;
   }
 
   void _dismiss({Duration? minimumDuration}) {
@@ -312,11 +229,10 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
       reverseDuration: _pressScaleDuration,
       vsync: this,
     );
-    _pressScaleAnimation = Tween<double>(begin: 1, end: _pressedScale)
-        .animate(CurveTween(curve: Curves.easeOutCubic).animate(_pressScaleController));
-    _resistanceResetController = AnimationController(duration: _resistanceResetDuration, vsync: this)
-      ..addListener(_syncResistanceResetOffset);
-    _resistanceResetAnimation = CurveTween(curve: Curves.easeOutCubic).animate(_resistanceResetController);
+    _pressScaleAnimation = Tween<double>(
+      begin: 1,
+      end: _pressedScale,
+    ).animate(CurveTween(curve: Curves.easeOutCubic).animate(_pressScaleController));
     _opacityAnimation = _animationController;
     _offsetAnimation = Tween<Offset>(begin: const Offset(0, -0.22), end: Offset.zero).animate(_animationController);
 
@@ -342,9 +258,7 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _dismissTimer?.cancel();
-    _resistanceOffsetNotifier.dispose();
     _pressScaleController.dispose();
-    _resistanceResetController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -355,7 +269,6 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
       case AppLifecycleState.paused:
         _animationController.stop();
         _pressScaleController.stop();
-        _resistanceResetController.stop();
         _dismissTimer?.cancel();
         _dismissTimerPaused = true;
       case AppLifecycleState.resumed:
@@ -388,19 +301,22 @@ class _QuiToastOverlayState extends State<_QuiToastOverlay>
                 padding: widget.padding,
                 child: Align(
                   alignment: Alignment.topCenter,
-                  child: _QuiToastGestureTransformWidget(
-                    key: const Key('qui_toast_resistance_transform'),
-                    resistanceListenable: _resistanceOffsetNotifier,
-                    pressScaleAnimation: widget.disableAnimations ? null : _pressScaleAnimation,
-                    child: RepaintBoundary(
-                      child: Listener(
-                        key: const Key('qui_toast_gesture_target'),
-                        behavior: HitTestBehavior.opaque,
-                        onPointerDown: _handlePointerDown,
-                        onPointerMove: _handlePointerMove,
-                        onPointerUp: _handlePointerUp,
-                        onPointerCancel: _handlePointerCancel,
-                        child: QuiToast(message: widget.message, type: widget.type, iconBuilder: widget.iconBuilder),
+                  child: QuiDragResistance(
+                    top: false,
+                    child: ScaleTransition(
+                      key: const Key('qui_toast_press_scale_transition'),
+                      alignment: Alignment.topLeft,
+                      scale: widget.disableAnimations ? const AlwaysStoppedAnimation<double>(1) : _pressScaleAnimation,
+                      child: RepaintBoundary(
+                        child: Listener(
+                          key: const Key('qui_toast_gesture_target'),
+                          behavior: HitTestBehavior.opaque,
+                          onPointerDown: _handlePointerDown,
+                          onPointerMove: _handlePointerMove,
+                          onPointerUp: _handlePointerUp,
+                          onPointerCancel: _handlePointerCancel,
+                          child: QuiToast(message: widget.message, type: widget.type, iconBuilder: widget.iconBuilder),
+                        ),
                       ),
                     ),
                   ),
