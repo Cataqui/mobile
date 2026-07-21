@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qui/qui.dart';
 
@@ -288,7 +289,138 @@ void main() {
     );
 
     testWidgets(
-      'when system insets exceed content padding, it should keep the child inside the safe area',
+      'when Android reports a 48 pixel bottom safe area, it should keep the sheet above it',
+      (tester) async {
+        await _pumpBottomSheetApp(
+          tester,
+          mediaQueryData: const MediaQueryData(
+            size: Size(400, 800),
+            padding: EdgeInsets.only(bottom: 48),
+            viewPadding: EdgeInsets.only(bottom: 48),
+            systemGestureInsets: EdgeInsets.only(bottom: 48),
+          ),
+          platform: TargetPlatform.android,
+        );
+        await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
+        await tester.pumpAndSettle();
+        final sheetRect = tester.getRect(
+          find.byKey(_BottomSheetTestApp.surfaceKey),
+        );
+
+        expect(sheetRect.bottom, 740);
+      },
+    );
+
+    testWidgets(
+      'when a bottom sheet opens and closes, it should use light navigation icons only while open',
+      (tester) async {
+        await _pumpBottomSheetApp(tester);
+        final beforeOpening = tester
+            .widgetList<AnnotatedRegion<SystemUiOverlayStyle>>(
+              find.byType(AnnotatedRegion<SystemUiOverlayStyle>),
+            )
+            .map((region) => region.value.systemNavigationBarIconBrightness)
+            .toList();
+        await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
+        await tester.pumpAndSettle();
+        final whileOpen = tester
+            .widgetList<AnnotatedRegion<SystemUiOverlayStyle>>(
+              find.byType(AnnotatedRegion<SystemUiOverlayStyle>),
+            )
+            .map((region) => region.value.systemNavigationBarIconBrightness)
+            .toList();
+        Navigator.of(
+          tester.element(find.byKey(_BottomSheetTestApp.surfaceKey)),
+        ).pop();
+        await tester.pumpAndSettle();
+        final afterClosing = tester
+            .widgetList<AnnotatedRegion<SystemUiOverlayStyle>>(
+              find.byType(AnnotatedRegion<SystemUiOverlayStyle>),
+            )
+            .map((region) => region.value.systemNavigationBarIconBrightness)
+            .toList();
+
+        expect(
+          [beforeOpening, whileOpen, afterClosing],
+          [
+            <Brightness?>[Brightness.dark],
+            <Brightness?>[Brightness.dark, Brightness.light],
+            <Brightness?>[Brightness.dark],
+          ],
+        );
+      },
+    );
+
+    testWidgets(
+      'when an iOS bottom sheet opens, it should request light navigation icons',
+      (tester) async {
+        await _pumpBottomSheetApp(tester, platform: TargetPlatform.iOS);
+        await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
+        await tester.pumpAndSettle();
+        final whileOpen = tester
+            .widgetList<AnnotatedRegion<SystemUiOverlayStyle>>(
+              find.byType(AnnotatedRegion<SystemUiOverlayStyle>),
+            )
+            .map((region) => region.value.systemNavigationBarIconBrightness)
+            .toList();
+
+        expect(whileOpen, [Brightness.dark, Brightness.light]);
+      },
+    );
+
+    testWidgets(
+      'when the Android bottom safe area moves the sheet upward, it should keep the standard content bottom padding',
+      (tester) async {
+        await _pumpBottomSheetApp(
+          tester,
+          mediaQueryData: const MediaQueryData(
+            size: Size(400, 800),
+            padding: EdgeInsets.only(bottom: 48),
+            viewPadding: EdgeInsets.only(bottom: 48),
+            systemGestureInsets: EdgeInsets.only(bottom: 48),
+          ),
+          platform: TargetPlatform.android,
+          child: const SizedBox(
+            key: _BottomSheetTestApp.contentKey,
+            width: double.infinity,
+            height: 40,
+          ),
+        );
+        await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
+        await tester.pumpAndSettle();
+        final contentRect = tester.getRect(
+          find.byKey(_BottomSheetTestApp.contentKey),
+        );
+
+        expect(contentRect.bottom, 720);
+      },
+    );
+
+    testWidgets(
+      'when Android reports a 24 pixel gesture safe area, it should keep the sheet above it',
+      (tester) async {
+        await _pumpBottomSheetApp(
+          tester,
+          mediaQueryData: const MediaQueryData(
+            size: Size(400, 800),
+            padding: EdgeInsets.only(bottom: 24),
+            viewPadding: EdgeInsets.only(bottom: 24),
+            systemGestureInsets: EdgeInsets.only(bottom: 24),
+          ),
+          platform: TargetPlatform.android,
+        );
+        await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
+        await tester.pumpAndSettle();
+        final sheetRect = tester.getRect(
+          find.byKey(_BottomSheetTestApp.surfaceKey),
+        );
+
+        expect(sheetRect.bottom, 764);
+      },
+    );
+
+    testWidgets(
+      'when iOS system insets exceed content padding, it should keep the child inside the safe area',
       (tester) async {
         await _pumpBottomSheetApp(
           tester,
@@ -301,6 +433,7 @@ void main() {
             width: double.infinity,
             height: 40,
           ),
+          platform: TargetPlatform.iOS,
         );
         await tester.tap(find.byKey(_BottomSheetTestApp.openButtonKey));
         await tester.pumpAndSettle();
@@ -1507,25 +1640,30 @@ class _BottomSheetTestApp extends StatelessWidget {
         data: mediaQueryData,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: FilledButton(
-              key: openButtonKey,
-              onPressed: () {
-                final show = onShow;
-                if (show != null) {
-                  show(context);
-                  return;
-                }
+      home: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
+        child: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                key: openButtonKey,
+                onPressed: () {
+                  final show = onShow;
+                  if (show != null) {
+                    show(context);
+                    return;
+                  }
 
-                QuiBottomSheet.show<void>(
-                  context,
-                  scrollable: scrollable,
-                  child: sheetChild,
-                );
-              },
-              child: const Text('Open'),
+                  QuiBottomSheet.show<void>(
+                    context,
+                    scrollable: scrollable,
+                    child: sheetChild,
+                  );
+                },
+                child: const Text('Open'),
+              ),
             ),
           ),
         ),

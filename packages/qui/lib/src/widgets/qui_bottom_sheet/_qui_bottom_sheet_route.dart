@@ -167,7 +167,11 @@ class _QuiBottomSheetRoute<T> extends PopupRoute<T> {
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-    return capturedThemes.wrap(_QuiBottomSheetSurface(route: this, animation: animation, child: child));
+    final sheet = capturedThemes.wrap(_QuiBottomSheetSurface(route: this, animation: animation, child: child));
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(systemNavigationBarIconBrightness: Brightness.light),
+      child: sheet,
+    );
   }
 
   @override

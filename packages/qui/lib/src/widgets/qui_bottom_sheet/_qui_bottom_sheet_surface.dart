@@ -52,16 +52,26 @@ class _QuiBottomSheetSurface<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final availableHeight = math.max(0, mediaQuery.size.height - mediaQuery.viewInsets.bottom);
+    final bottomSafeAreaInset = Theme.of(context).platform == TargetPlatform.android ? mediaQuery.padding.bottom : 0.0;
+    final availableHeight = math.max(0, mediaQuery.size.height - mediaQuery.viewInsets.bottom - bottomSafeAreaInset);
 
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
         key: const Key('qui_bottom_sheet_outer_padding'),
-        padding: EdgeInsets.fromLTRB(_outerMargin, 0, _outerMargin, mediaQuery.viewInsets.bottom + _outerMargin),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: availableHeight * _QuiBottomSheetRoute._maximumHeightFraction),
-          child: route.scrollable ? _buildScrollableSheet(context) : _buildIntrinsicSheet(context),
+        padding: EdgeInsets.fromLTRB(
+          _outerMargin,
+          0,
+          _outerMargin,
+          mediaQuery.viewInsets.bottom + bottomSafeAreaInset + _outerMargin,
+        ),
+        child: MediaQuery.removePadding(
+          context: context,
+          removeBottom: bottomSafeAreaInset > 0,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: availableHeight * _QuiBottomSheetRoute._maximumHeightFraction),
+            child: route.scrollable ? _buildScrollableSheet(context) : _buildIntrinsicSheet(context),
+          ),
         ),
       ),
     );

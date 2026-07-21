@@ -50,6 +50,37 @@ void main() {
     );
 
     goldenTest(
+      'when showing compact information above the Android bottom safe area, it should match the approved golden',
+      fileName: 'qui_bottom_sheet_android_safe_area',
+      whilePerforming: (tester) async {
+        await tester.tap(find.byKey(_BottomSheetGoldenApp.openButtonKey));
+        await tester.pumpAndSettle();
+        return null;
+      },
+      builder: () => GoldenTestGroup(
+        scenarioConstraints: const BoxConstraints.tightFor(
+          width: 400,
+          height: 800,
+        ),
+        children: [
+          GoldenTestScenario(
+            name: 'Android bottom safe area',
+            child: _BottomSheetGoldenApp(
+              platform: TargetPlatform.android,
+              mediaQueryData: const MediaQueryData(
+                size: Size(400, 800),
+                padding: EdgeInsets.only(bottom: 48),
+                viewPadding: EdgeInsets.only(bottom: 48),
+                systemGestureInsets: EdgeInsets.only(bottom: 48),
+              ),
+              child: _CompactContent(),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    goldenTest(
       'when showing compact information on an iPhone with a large safe area, it should match the approved concentric-corner golden',
       fileName: 'qui_bottom_sheet_iphone_concentric_corners',
       whilePerforming: (tester) async {
