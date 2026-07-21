@@ -76,8 +76,9 @@ melos goldens:update:all     # updates all packages/apps
 ### Public package development
 
 Mobile declares `dotdart`, `oh_my_flutter`, and `qui` from immutable public Git
-tags. For local package work, the ignored root `pubspec_overrides.yaml` resolves
-the sibling checkouts at `../dotdart`, `../oh_my_flutter`, and `../qui`; copy
+tags. The `qui` package is hosted in the `Cataqui/qui_flutter` repository. For
+local package work, the ignored root `pubspec_overrides.yaml` resolves the
+sibling checkouts at `../dotdart`, `../oh_my_flutter`, and `../qui_flutter`; copy
 `pubspec_overrides.yaml.example` or run `melos public-packages:local` to activate
 them.
 
@@ -155,15 +156,7 @@ Mobile/
 │   ├── test/
 │   └── pubspec.yaml
 ├── packages/
-│       └── oh_my_flutter/         # Flutter/Dart superpower utils
-│           ├── lib/
-│           ├── test/
-│           └── pubspec.yaml
-│       └── qui/                  # Reusable UI components
-│           ├── lib/
-│           ├── test/
-│           ├── analysis_options.yaml
-│           └── pubspec.yaml
+│   └── README.md             # Reserved for future private packages
 ├── pubspec.yaml              # Workspace root
 └── .fvmrc                    # Flutter version pin
 ```

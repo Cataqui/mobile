@@ -4,4 +4,4 @@ dependency_overrides:
   oh_my_flutter:
     path: ../oh_my_flutter
   qui:
-    path: ../qui
+    path: ../qui_flutter

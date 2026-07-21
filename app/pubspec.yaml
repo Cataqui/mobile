@@ -31,8 +31,8 @@ dependencies:
       ref: v0.1.0
   qui:
     git:
-      url: https://github.com/Cataqui/qui.git
-      ref: v0.1.0-dev.1
+      url: https://github.com/Cataqui/qui_flutter.git
+      ref: v0.1.0
   riverpod_annotation: ^4.0.2
   shared_preferences: ^2.5.5
   slang: ^4.16.0

@@ -50,7 +50,8 @@ To maintain absolute structural health across the monorepo, follow these modular
 
 - **Domain Isolation:** Code within local packages must communicate across boundaries using clean, explicit public APIs. Do not leak internal implementation layers.
 - **Reusable UI Elements (`qui`):** Reusable UI belongs in the standalone public
-  `qui` package, which stands for Cataquí UI.
+  `qui` package from the `Cataqui/qui_flutter` repository, which stands for
+  Cataquí UI.
 - **Workspace Dependencies:** Declare dependencies between packages that remain
   in this repository inside `pubspec.yaml` using exact relative paths:
 
@@ -61,10 +62,12 @@ dependencies:
 ```
 
 - **Extracted Public Packages:** Declare `dotdart`, `oh_my_flutter`, and `qui`
-  using immutable Git release tags in committed pubspecs. Use only the ignored
-  root `pubspec_overrides.yaml` to resolve sibling checkouts locally. Before
-  committing or releasing, run `melos public-packages:remote-lock`; the committed
-  lockfile must resolve Git tags, never local path overrides.
+  using immutable Git release tags in committed pubspecs. The `qui` package is
+  hosted at `Cataqui/qui_flutter`, and its sibling checkout is
+  `../qui_flutter`. Use only the ignored root `pubspec_overrides.yaml` to
+  resolve sibling checkouts locally. Before committing or releasing, run
+  `melos public-packages:remote-lock`; the committed lockfile must resolve Git
+  tags, never local path overrides.
 
 - **Task Orchestration:** Always execute tasks using the workspace's designated monorepo tool (e.g., **Melos** or specific workspace scripts) when performing multi-package operations.
 

@@ -874,11 +874,11 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "v0.1.0-dev.1"
-      resolved-ref: "74d414a80f99ba2ad099670751ceb9eeee73cc8c"
-      url: "https://github.com/Cataqui/qui.git"
+      ref: "v0.1.0"
+      resolved-ref: "8cd1512b804fc0aae4e1a58317d284c7cf59ef8d"
+      url: "https://github.com/Cataqui/qui_flutter.git"
     source: git
-    version: "0.1.0-dev.1"
+    version: "0.1.0"
   recase:
     dependency: transitive
     description:
