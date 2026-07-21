@@ -6,12 +6,14 @@ class _FeedViewBody extends ConsumerStatefulWidget {
     required this.cardBorderRadius,
     required this.feedInCurve,
     required this.isHintActiveNotifier,
+    required this.onAdjustAreaPressed,
   });
 
   final QuiTikTokFeedController controller;
   final BorderRadius cardBorderRadius;
   final CurveTween feedInCurve;
   final ValueNotifier<bool> isHintActiveNotifier;
+  final VoidCallback onAdjustAreaPressed;
 
   @override
   ConsumerState<_FeedViewBody> createState() => _FeedBodyContentState();
@@ -170,11 +172,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             QuiButton(
               variant: QuiButtonVariant.primary,
               label: i18n.feed.loadingMore.error.retryButtonTitle,
-              leadingIconBuilder: (state) => QuiIcon.arrowRotateClockwise(
-                height: 15,
-                width: 15,
-                color: state.foregroundColor,
-              ),
+              leadingIconBuilder: (state) =>
+                  QuiIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
               leadingIconSpacing: 10,
               onPressed: () {
                 retry();
@@ -196,10 +195,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            $ThreeD.emptyCitySaoPaulo(
-              height: 150,
-              colorBlendMode: BlendMode.hue,
-            ),
+            $ThreeD.emptyCitySaoPaulo(height: 150, colorBlendMode: BlendMode.hue),
             const SizedBox(height: 20),
             Text(
               i18n.feed.empty.title,
@@ -221,17 +217,12 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             ),
             const SizedBox(height: 40),
             QuiButton(
+              key: const ValueKey('feed_empty_adjust_area_button'),
               variant: QuiButtonVariant.secondary,
               label: i18n.feed.empty.adjustAreaButtonTitle,
-              leadingIconBuilder: (state) => QuiIcon.wrench(
-                height: 15,
-                width: 15,
-                color: state.foregroundColor,
-              ),
+              leadingIconBuilder: (state) => QuiIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
               leadingIconSpacing: 10,
-              onPressed: () {
-                // TODO(RyanHolanda): Implement once we add the edit area screen
-              },
+              onPressed: widget.onAdjustAreaPressed,
             ),
           ],
         ),
@@ -322,11 +313,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           QuiButton(
             variant: QuiButtonVariant.primary,
             label: i18n.feed.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcon.arrowRotateClockwise(
-              height: 15,
-              width: 15,
-              color: state.foregroundColor,
-            ),
+            leadingIconBuilder: (state) =>
+                QuiIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
           ),

@@ -104,6 +104,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
                 cardBorderRadius: _cardBorderRadius,
                 feedInCurve: _feedInCurve,
                 isHintActiveNotifier: _isHintActiveNotifier,
+                onAdjustAreaPressed: _showLocationAvailabilitySheet,
               ),
             ),
           ),

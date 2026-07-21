@@ -272,14 +272,18 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when the adjust area button is tapped, it should not throw', (tester) async {
+      testWidgets('when the adjust area button is tapped, it should explain where Cataquí is available', (
+        tester,
+      ) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump(const Duration(milliseconds: 600));
-        await tester.tap(find.text(i18n.feed.empty.adjustAreaButtonTitle));
-        await tester.pump(const Duration(milliseconds: 900));
+        await tester.tap(find.byKey(const ValueKey('feed_empty_adjust_area_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.text(i18n.feed.locationAvailability.message), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
