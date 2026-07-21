@@ -5,8 +5,6 @@ environment:
 
 workspace:
   - app
-  - packages/oh_my_flutter
-  - packages/qui
 
 dev_dependencies:
   build_runner: ^2.15.0
@@ -59,8 +57,6 @@ melos:
       description: Remove all coverage artifacts
       run: |
         rm -rf app/coverage/
-        rm -rf packages/oh_my_flutter/coverage/
-        rm -rf packages/qui/coverage/
 
     coverage:collect:
       description: Run tests with --coverage (no HTML report)
@@ -101,8 +97,8 @@ melos:
       exec:
         concurrency: 1
 
-    dotdart:local:
-      description: Resolve dotdart from the sibling checkout for local development
+    public-packages:local:
+      description: Resolve public packages from sibling checkouts for local development
       run: |
         if [ -e "pubspec_overrides.yaml" ] && [ -e "pubspec_overrides.yaml.disabled" ]; then
           echo "Both override files exist; keep only the intended local state."
@@ -114,8 +110,8 @@ melos:
         fi
         fvm flutter pub get
 
-    dotdart:remote-lock:
-      description: Regenerate the committed lockfile from the immutable dotdart Git tag
+    public-packages:remote-lock:
+      description: Regenerate the committed lockfile from immutable public package Git tags
       run: |
         if [ -e "pubspec_overrides.yaml" ] && [ -e "pubspec_overrides.yaml.disabled" ]; then
           echo "Both override files exist; keep only the intended local state."

@@ -59,11 +59,11 @@ melos gen:all
 # Code generation (interactive package selection)
 melos gen
 
-# Resolve dotdart from ../dotdart for local package development
-melos dotdart:local
+# Resolve public packages from sibling checkouts for local development
+melos public-packages:local
 
-# Disable the local override and restore the committed v0.6.0 lock
-melos dotdart:remote-lock
+# Disable local overrides and restore the committed immutable Git lock
+melos public-packages:remote-lock
 
 # Regenerate the iOS and Android native splash resources
 melos generate_splash
@@ -73,20 +73,22 @@ melos goldens:update         # asks which package/app
 melos goldens:update:all     # updates all packages/apps
 ```
 
-### dotdart development
+### Public package development
 
-The app and `qui` declare dotdart from the immutable public `v0.6.0` Git tag.
-For local package work, the ignored root `pubspec_overrides.yaml` resolves the
-sibling checkout at `../dotdart`; copy `pubspec_overrides.yaml.example` or run
-`melos dotdart:local` to activate it.
+Mobile declares `dotdart`, `oh_my_flutter`, and `qui` from immutable public Git
+tags. For local package work, the ignored root `pubspec_overrides.yaml` resolves
+the sibling checkouts at `../dotdart`, `../oh_my_flutter`, and `../qui`; copy
+`pubspec_overrides.yaml.example` or run `melos public-packages:local` to activate
+them.
 
 Running Pub while the override is active changes `pubspec.lock` to a path
 resolution. Before committing, testing a release checkout, or releasing Mobile,
-run `melos dotdart:remote-lock`. That command temporarily disables the override,
-regenerates the lock from `v0.6.0`, and leaves the override parked in the ignored
-`pubspec_overrides.yaml.disabled` file so editor-driven Pub resolution cannot
-rewrite the lock. Run `melos dotdart:local` to reactivate it. The committed
-lockfile must always contain the Git resolution, never the local path.
+run `melos public-packages:remote-lock`. That command temporarily disables the
+override, regenerates the lock from the committed tags, and leaves the override
+parked in the ignored `pubspec_overrides.yaml.disabled` file so editor-driven
+Pub resolution cannot rewrite the lock. Run `melos public-packages:local` to
+reactivate it. The committed lockfile must always contain Git resolutions,
+never local paths.
 
 ### Git Hooks
 

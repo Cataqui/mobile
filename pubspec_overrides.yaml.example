@@ -1,3 +1,7 @@
 dependency_overrides:
   dotdart:
     path: ../dotdart
+  oh_my_flutter:
+    path: ../oh_my_flutter
+  qui:
+    path: ../qui
