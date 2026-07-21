@@ -1,0 +1,3 @@
+dependency_overrides:
+  dotdart:
+    path: ../dotdart

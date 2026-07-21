@@ -38,7 +38,9 @@ dev_dependencies:
   alchemist: ^0.14.0
   build_runner: ^2.15.0
   dotdart:
-    path: ../packages/dotdart
+    git:
+      url: https://github.com/Cataqui/dotdart.git
+      ref: v0.6.0
   envied_generator: ^1.3.5
   flutter_gen_runner: ^5.14.1
   flutter_launcher_icons: ^0.14.4

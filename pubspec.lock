@@ -289,6 +289,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  dotdart:
+    dependency: transitive
+    description:
+      path: "."
+      ref: "v0.6.0"
+      resolved-ref: "6b7bab1f85b5cb52c7272085a81af624d6fd18b9"
+      url: "https://github.com/Cataqui/dotdart.git"
+    source: git
+    version: "0.6.0"
   envied:
     dependency: transitive
     description:
