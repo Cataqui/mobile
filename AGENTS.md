@@ -351,6 +351,26 @@ test('when parsing a feed job, it should map the title', () {
 });
 ```
 
+### Relative-Time Tests Must Pin Time
+
+Any test that renders or asserts relative time text (for example, `3h atrás`,
+`1 dia atrás`, `X time ago`, or any value derived from `DateTime.now()`,
+`clock.now()`, or elapsed durations) must pin both sides of the calculation:
+
+- Pin the current time with `package:clock` or the existing project test helper.
+- Set fixture dates explicitly relative to that fixed instant, instead of
+  relying on fixture defaults or the real current date.
+- For Alchemist golden tests, ensure the fixed clock is active during the actual
+  pump/render step (`pumpWidget`, `pumpBeforeTest`, and any interaction such as
+  scroll or drag), not only while constructing the widget. Alchemist may build
+  or repaint later than the `builder` callback.
+- Never approve golden changes caused only by calendar time passing. Fix the
+  clock/date setup first, then regenerate goldens only if the stable output is
+  intentionally different.
+
+This prevents tests from breaking as days pass and keeps visual baselines
+deterministic.
+
 ### One Assertion Per Test Case
 
 Every individual test block must contain **exactly one** `expect` or assertion call. If verifying a complex workflow state requires multiple checks, explicitly split the assertions across cleanly named, isolated test scenarios.

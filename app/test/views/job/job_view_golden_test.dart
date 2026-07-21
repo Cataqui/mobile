@@ -26,119 +26,104 @@ void main() {
     goldenTest(
       'when the full job is loading, it should show the immediate header and description spinner',
       fileName: 'job_view_loading_description',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: JobViewTestHelpers.feedJob(),
-          jobState: JobViewTestHelpers.loadingState(),
-        ),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: JobViewGoldenTestHelpers.feedJob(),
+        jobState: JobViewTestHelpers.loadingState(),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
     );
 
     goldenTest(
       'when the full job has loaded, it should show the immediate header and full description',
       fileName: 'job_view_loaded_description',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: JobViewTestHelpers.feedJob(),
-          jobState: JobViewTestHelpers.loadedState(),
-        ),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: JobViewGoldenTestHelpers.feedJob(),
+        jobState: JobViewTestHelpers.loadedState(),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
       pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
       'when the full job fails, it should show the immediate header and retry action',
       fileName: 'job_view_error_retry',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: JobViewTestHelpers.feedJob(),
-          jobState: JobViewTestHelpers.errorState(),
-        ),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: JobViewGoldenTestHelpers.feedJob(),
+        jobState: JobViewTestHelpers.errorState(),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
       pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
       'when the title is very long, it should clamp to 4 lines with ellipsis',
       fileName: 'job_view_long_title',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: JobViewTestHelpers.feedJob(
-            title:
-                'Preciso de um ajudante muito experiente para descarregar um '
-                'caminhão pesado amanhã cedo no centro da cidade perto da '
-                'estação',
-          ),
-          jobState: JobViewTestHelpers.loadedState(),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: JobViewGoldenTestHelpers.feedJob(
+          title:
+              'Preciso de um ajudante muito experiente para descarregar um '
+              'caminhão pesado amanhã cedo no centro da cidade perto da '
+              'estação',
         ),
+        jobState: JobViewTestHelpers.loadedState(),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
       pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
       'when deep-linked and loading, it should show header skeletons and description skeleton',
       fileName: 'job_view_deep_link_loading',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: null,
-          jobId: 'job_deep_link',
-          jobState: JobViewTestHelpers.loadingState(),
-        ),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.loadingState(),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
     );
 
     goldenTest(
       'when deep-linked and loaded, it should show the fetched header and description',
       fileName: 'job_view_deep_link_loaded',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: null,
-          jobId: 'job_deep_link',
-          jobState: JobViewTestHelpers.loadedState(),
-        ),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.loadedState(job: JobViewGoldenTestHelpers.job()),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
       pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
       'when deep-linked and error, it should show header skeletons and retry action',
       fileName: 'job_view_deep_link_error',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: null,
-          jobId: 'job_deep_link',
-          jobState: JobViewTestHelpers.errorState(),
-        ),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: null,
+        jobId: 'job_deep_link',
+        jobState: JobViewTestHelpers.errorState(),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
       pumpBeforeTest: JobViewGoldenTestHelpers.settle,
     );
 
     goldenTest(
       'when scrolled to the bottom of a very long description, it should show bottom padding before the edge fade',
       fileName: 'job_view_long_description',
-      builder: () => withClock(
-        JobViewGoldenTestHelpers.fixedClock(),
-        () => JobViewGoldenTestHelpers.scenario(
-          feedJob: JobViewTestHelpers.feedJob(),
-          jobState: JobViewTestHelpers.loadedState(
-            job: JobViewTestHelpers.job(description: JobViewGoldenTestHelpers.veryLongDescription),
-          ),
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: JobViewGoldenTestHelpers.feedJob(),
+        jobState: JobViewTestHelpers.loadedState(
+          job: JobViewGoldenTestHelpers.job(description: JobViewGoldenTestHelpers.veryLongDescription),
         ),
       ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
       pumpBeforeTest: JobViewGoldenTestHelpers.scrollToBottom,
     );
 
     goldenTest(
       'when dragging down from the top, it should show the card shrinking back toward the feed',
       fileName: 'job_view_mid_drag_close',
-      builder: () => withClock(JobViewGoldenTestHelpers.fixedClock(), JobViewGoldenTestHelpers.routedScenario),
+      builder: JobViewGoldenTestHelpers.routedScenario,
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
       pumpBeforeTest: JobViewGoldenTestHelpers.prepareRoutedFeed,
       whilePerforming: JobViewGoldenTestHelpers.dragMidClose,
     );
@@ -148,12 +133,20 @@ void main() {
 class JobViewGoldenTestHelpers {
   JobViewGoldenTestHelpers._();
 
+  static final DateTime fixedNow = DateTime(2026, 6, 30, 11);
+
+  static Future<void> pumpWidget(WidgetTester tester, Widget widget) {
+    return withClock(fixedClock(), () => tester.pumpWidget(widget));
+  }
+
   static Future<void> settle(WidgetTester tester) async {
-    await tester.runAsync(() => $ThreeD.precache(tester.element(find.byType(JobView))));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.pumpAndSettle();
+    await withClock(fixedClock(), () async {
+      await tester.runAsync(() => $ThreeD.precache(tester.element(find.byType(JobView))));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pumpAndSettle();
+    });
   }
 
   static String get veryLongDescription {
@@ -169,14 +162,27 @@ class JobViewGoldenTestHelpers {
   }
 
   static Future<void> scrollToBottom(WidgetTester tester) async {
-    await tester.pump();
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -10000));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await withClock(fixedClock(), () async {
+      await tester.pump();
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -10000));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+    });
   }
 
   static Clock fixedClock() {
-    return Clock(() => DateTime(2026, 6, 30, 11));
+    return Clock(() => fixedNow);
+  }
+
+  static FeedJobDto feedJob({String? title}) {
+    return JobViewTestHelpers.feedJob(
+      title: title ?? 'Unload a truck',
+      createdAt: fixedNow.subtract(const Duration(hours: 3)),
+    );
+  }
+
+  static JobDto job({String? description}) {
+    return JobViewTestHelpers.job(description: description, createdAt: fixedNow.subtract(const Duration(hours: 3)));
   }
 
   static Widget scenario({required FakeJobState jobState, FeedJobDto? feedJob, String? jobId}) {
@@ -193,15 +199,15 @@ class JobViewGoldenTestHelpers {
 
   static Widget routedScenario() {
     final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
-    final feedJob = JobViewTestHelpers.feedJob();
+    final goldenFeedJob = feedJob();
     final jobRepository = MockJobRepository();
 
     when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(
-        data: JobViewTestHelpers.job(),
+        data: job(),
         requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
         timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-        endpoint: '/job/${feedJob.jobId}',
+        endpoint: '/job/${goldenFeedJob.jobId}',
       ),
     );
 
@@ -210,32 +216,36 @@ class JobViewGoldenTestHelpers {
       height: 844,
       child: JobViewTestHelpers.buildRoutedApp(
         goRouter: goRouter,
-        feedState: () => FakeFeedState(buildResult: () => FeedData(jobs: [feedJob], hasMore: false)),
+        feedState: () => FakeFeedState(buildResult: () => FeedData(jobs: [goldenFeedJob], hasMore: false)),
         jobRepository: jobRepository,
       ),
     );
   }
 
   static Future<void> prepareRoutedFeed(WidgetTester tester) async {
-    FeedViewTestHelpers.mockPlatformViews(tester);
-    FeedViewTestHelpers.mockMapChannels();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 900));
-    await tester.pump();
+    await withClock(fixedClock(), () async {
+      FeedViewTestHelpers.mockPlatformViews(tester);
+      FeedViewTestHelpers.mockMapChannels();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pump();
+    });
   }
 
   static Future<AsyncCallback?> dragMidClose(WidgetTester tester) async {
-    final feedJob = tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob;
+    return withClock(fixedClock(), () async {
+      final feedJob = tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob;
 
-    unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedJobCard).first)));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 560));
-    await tester.pumpAndSettle();
+      unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedJobCard).first)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 560));
+      await tester.pumpAndSettle();
 
-    final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
-    await gesture.moveBy(const Offset(0, 140));
-    await tester.pump();
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+      await gesture.moveBy(const Offset(0, 140));
+      await tester.pump();
 
-    return gesture.up;
+      return gesture.up;
+    });
   }
 }
