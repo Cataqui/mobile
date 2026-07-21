@@ -33,6 +33,48 @@ class _FeedViewState extends ConsumerState<FeedView> {
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
   late final ValueNotifier<bool> _isHintActiveNotifier;
 
+  void _showLocationAvailabilitySheet() {
+    final i18n = ref.read(translationProvider);
+    final colorScheme = context.qui.colorScheme;
+
+    unawaited(
+      QuiBottomSheet.show<void>(
+        context,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            ExcludeSemantics(child: $ThreeD.comingSoonPlatePortuguese(fit: BoxFit.contain, height: 130)),
+            const SizedBox(height: 18),
+            Text(
+              'Só em São Paulo',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colorScheme.text.primary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              i18n.feed.locationAvailability.message,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.text.secondary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: QuiButton(
+                label: i18n.feed.locationAvailability.closeButtonTitle,
+                variant: QuiButtonVariant.primary,
+                fit: QuiButtonFit.expand,
+                padding: const EdgeInsetsGeometry.symmetric(vertical: 16, horizontal: 20),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +91,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.qui.colorScheme;
+    final i18n = ref.watch(translationProvider);
     final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
 
     return Scaffold(
@@ -80,6 +123,44 @@ class _FeedViewState extends ConsumerState<FeedView> {
             child: QuiEdgeFade(
               position: QuiEdgeFadePosition.bottom,
               style: QuiEdgeFadeStyle(color: colorScheme.background),
+            ),
+          ),
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: SafeArea(
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 40),
+                      child: Align(
+                        alignment: AlignmentGeometry.topStart,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 48),
+                          child: QuiTextButton(
+                            text: i18n.feed.locationAvailability.cityLabel,
+                            leadingIconBuilder: (state) {
+                              return QuiIcon.mapPin(height: 14, width: 14, color: colorScheme.colors.primary.solid);
+                            },
+                            leadingIconSpacing: 10,
+                            trailingIconSpacing: 10,
+                            trailingIconBuilder: (state) {
+                              return QuiIcon.chevronDown(height: 14, width: 14, color: state.recommendedIconColor);
+                            },
+                            onPressed: _showLocationAvailabilitySheet,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Align(
+                    //   alignment: AlignmentGeometry.bottomCenter,
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
+                    //     child: const QuiSearchBarButton(placeholder: 'Buscar oportunidades'),
+                    //   ),
+                    // ),
+                  ],
+                ),
+              ),
             ),
           ),
           if (hasJobs)

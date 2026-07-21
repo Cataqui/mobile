@@ -39,6 +39,11 @@
     },
     "swipeUpHint": {
       "caption": "Arrasta pra cima e confere os trampos"
+    },
+    "locationAvailability": {
+      "cityLabel": "São Paulo",
+      "message": "Por enquanto, estamos disponíveis só na cidade de São Paulo. Logo estaremos em mais cidades!",
+      "closeButtonTitle": "Beleza"
     }
   },
   "feedJob": {

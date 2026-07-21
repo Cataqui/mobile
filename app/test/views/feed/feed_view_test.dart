@@ -28,13 +28,53 @@ void main() {
 
   group('FeedView', () {
     group('chrome', () {
-      testWidgets('when the view renders in any state, it should not show the location button', (tester) async {
+      testWidgets('when the view renders in any state, it should show the current city button', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.text('São Paulo'), findsNothing);
+        expect(find.text(i18n.feed.locationAvailability.cityLabel), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the current city button renders, it should provide a 48 pixel touch target', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+
+        expect(tester.getSize(find.byType(QuiTextButton)).height, greaterThanOrEqualTo(48));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the current city button is tapped, it should explain where Cataquí is available', (
+        tester,
+      ) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+        await tester.tap(find.text(i18n.feed.locationAvailability.cityLabel));
+        await tester.pumpAndSettle();
+
+        expect(find.text(i18n.feed.locationAvailability.message), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the availability message is open and the close button is tapped, it should close the message', (
+        tester,
+      ) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+        await tester.tap(find.text(i18n.feed.locationAvailability.cityLabel));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(i18n.feed.locationAvailability.closeButtonTitle));
+        await tester.pumpAndSettle();
+
+        expect(find.text(i18n.feed.locationAvailability.message), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 

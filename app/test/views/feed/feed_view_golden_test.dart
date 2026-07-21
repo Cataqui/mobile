@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
+import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
@@ -48,7 +49,13 @@ Widget _goldenScenario({required FakeFeedState feedState, bool hasSeenSwipeFeedH
 }
 
 void main() {
+  late Translations i18n;
+
   group('FeedView Golden Tests', () {
+    setUpAll(() async {
+      i18n = await AppLocale.ptBr.build();
+    });
+
     setUp(FeedViewTestHelpers.mockMapChannels);
 
     goldenTest(
@@ -192,6 +199,31 @@ void main() {
       builder: () {
         return _goldenScenario(
           feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataWithJobs(count: 1))),
+        );
+      },
+    );
+
+    goldenTest(
+      'when the current city button is tapped, it should show the approved location availability message',
+      fileName: 'feed_view_location_availability_sheet',
+      whilePerforming: (tester) async {
+        await FeedViewTestHelpers.prepareGoldenCapture(tester: tester, contextFinder: find.byType(MaterialApp));
+        await tester.tap(find.text(i18n.feed.locationAvailability.cityLabel));
+        await tester.pumpAndSettle();
+        final sheetImageFinder = find.descendant(
+          of: find.byKey(const Key('qui_bottom_sheet_surface')),
+          matching: find.byType(Image),
+        );
+        final sheetImage = tester.widget<Image>(sheetImageFinder);
+        await tester.runAsync(() async {
+          await precacheImage(sheetImage.image, tester.element(sheetImageFinder));
+        });
+        await tester.pumpAndSettle();
+        return null;
+      },
+      builder: () {
+        return _goldenScenario(
+          feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
         );
       },
     );
