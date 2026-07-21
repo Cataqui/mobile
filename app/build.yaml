@@ -22,6 +22,7 @@ targets:
           - "!lib/**/*.freezed.dart"
           - "!lib/**/*.g.dart"
       slang_build_runner:
+        enabled: false
         options:
           base_locale: pt-BR
           fallback_strategy: base_locale

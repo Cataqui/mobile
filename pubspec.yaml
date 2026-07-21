@@ -141,7 +141,7 @@ melos:
 
     gen:all:
       description: Run code generation across the workspace
-      run: fvm dart run build_runner build --workspace && melos run gen:i18n && melos run i18n:configure
+      run: melos run gen:i18n && fvm dart run build_runner build --workspace
 
     gen:all:watch:
       description: Watch and regenerate code across the workspace
