@@ -62,7 +62,7 @@ melos gen
 # Resolve dotdart from ../dotdart for local package development
 melos dotdart:local
 
-# Temporarily disable the local override and restore the committed v0.6.0 lock
+# Disable the local override and restore the committed v0.6.0 lock
 melos dotdart:remote-lock
 
 # Regenerate the iOS and Android native splash resources
@@ -83,8 +83,10 @@ sibling checkout at `../dotdart`; copy `pubspec_overrides.yaml.example` or run
 Running Pub while the override is active changes `pubspec.lock` to a path
 resolution. Before committing, testing a release checkout, or releasing Mobile,
 run `melos dotdart:remote-lock`. That command temporarily disables the override,
-regenerates the lock from `v0.6.0`, and restores the ignored override file. The
-committed lockfile must always contain the Git resolution, never the local path.
+regenerates the lock from `v0.6.0`, and leaves the override parked in the ignored
+`pubspec_overrides.yaml.disabled` file so editor-driven Pub resolution cannot
+rewrite the lock. Run `melos dotdart:local` to reactivate it. The committed
+lockfile must always contain the Git resolution, never the local path.
 
 ### Git Hooks
 
