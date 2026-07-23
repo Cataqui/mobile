@@ -129,6 +129,23 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     );
   }
 
+  Widget _buildScrollableState({required Widget child}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          primary: false,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: MateoSearchBarButton.searchBarHeight),
+              child: Center(child: child),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildLoadMoreError(BuildContext context, VoidCallback retry) {
     final paginationError = ref.read(feedStateProvider).value?.paginationError;
     final i18n = ref.watch(translationProvider);
@@ -141,50 +158,43 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
       );
     }
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: MateoSearchBarButton.searchBarHeight),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            $ThreeD.workItemsMess(height: 150, width: 150),
-            const SizedBox(height: 40),
-            Text(
-              i18n.feed.loadingMore.error.title,
+    return _buildScrollableState(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          $ThreeD.workItemsMess(height: 150, width: 150),
+          const SizedBox(height: 40),
+          Text(
+            i18n.feed.loadingMore.error.title,
+            style: TextStyle(fontSize: 18, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          FractionallySizedBox(
+            widthFactor: 0.7,
+            child: Text(
+              i18n.feed.loadingMore.error.description,
               style: TextStyle(
-                fontSize: 18,
-                color: context.mateo.colorScheme.text.primary,
-                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: context.mateo.colorScheme.text.secondary,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            FractionallySizedBox(
-              widthFactor: 0.7,
-              child: Text(
-                i18n.feed.loadingMore.error.description,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: context.mateo.colorScheme.text.secondary,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 20),
-            MateoButton(
-              variant: MateoButtonVariant.primary,
-              label: i18n.feed.loadingMore.error.retryButtonTitle,
-              leadingIconBuilder: (state) =>
-                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
-              leadingIconSpacing: 10,
-              onPressed: () {
-                retry();
-              },
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          MateoButton(
+            variant: MateoButtonVariant.primary,
+            label: i18n.feed.loadingMore.error.retryButtonTitle,
+            leadingIconBuilder: (state) =>
+                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+            leadingIconSpacing: 10,
+            onPressed: () {
+              retry();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -192,48 +202,41 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildEnd(BuildContext context) {
     final i18n = ref.watch(translationProvider);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: MateoSearchBarButton.searchBarHeight),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            $ThreeD.emptyCitySaoPaulo(height: 150, colorBlendMode: BlendMode.hue),
-            const SizedBox(height: 20),
-            Text(
-              i18n.feed.empty.title,
+    return _buildScrollableState(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          $ThreeD.emptyCitySaoPaulo(height: 150, colorBlendMode: BlendMode.hue),
+          const SizedBox(height: 20),
+          Text(
+            i18n.feed.empty.title,
+            style: TextStyle(fontSize: 18, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          FractionallySizedBox(
+            widthFactor: 0.7,
+            child: Text(
+              i18n.feed.empty.description,
               style: TextStyle(
-                fontSize: 18,
-                color: context.mateo.colorScheme.text.primary,
-                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: context.mateo.colorScheme.text.secondary,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            FractionallySizedBox(
-              widthFactor: 0.7,
-              child: Text(
-                i18n.feed.empty.description,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: context.mateo.colorScheme.text.secondary,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 40),
-            MateoButton(
-              key: const ValueKey('feed_empty_adjust_area_button'),
-              variant: MateoButtonVariant.secondary,
-              label: i18n.feed.empty.adjustAreaButtonTitle,
-              leadingIconBuilder: (state) => MateoIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
-              leadingIconSpacing: 10,
-              onPressed: widget.onAdjustAreaPressed,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 40),
+          MateoButton(
+            key: const ValueKey('feed_empty_adjust_area_button'),
+            variant: MateoButtonVariant.secondary,
+            label: i18n.feed.empty.adjustAreaButtonTitle,
+            leadingIconBuilder: (state) => MateoIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
+            leadingIconSpacing: 10,
+            onPressed: widget.onAdjustAreaPressed,
+          ),
+        ],
       ),
     );
   }

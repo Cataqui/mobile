@@ -243,6 +243,85 @@ void main() {
     });
 
     group('data — empty', () {
+      testWidgets('when the empty state fits the view, it should remain vertically centered', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+
+        final contentFinder = find.ancestor(of: find.text(i18n.feed.empty.title), matching: find.byType(Column));
+
+        expect(tester.getCenter(contentFinder).dy, closeTo(tester.getCenter(find.byType(Scaffold)).dy, 0.01));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the empty state fits above the search area, it should have no scroll extent', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+
+        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+
+        expect(scrollableState.position.maxScrollExtent, 0);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the empty state fits above the search area, dragging it should not move the content', (
+        tester,
+      ) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+        final titleFinder = find.text(i18n.feed.empty.title);
+        final topBeforeDrag = tester.getTopLeft(titleFinder).dy;
+
+        await tester.drag(titleFinder, const Offset(0, -100));
+        await tester.pumpAndSettle();
+
+        expect(tester.getTopLeft(titleFinder).dy, topBeforeDrag);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the empty state does not fit above the search area, it should become scrollable', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(390, 400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+
+        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+
+        expect(scrollableState.position.maxScrollExtent, greaterThan(0));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when scrolling a compact empty state to the end, it should clear the search area', (tester) async {
+        tester.view.physicalSize = const Size(390, 400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+
+        scrollableState.position.jumpTo(scrollableState.position.maxScrollExtent);
+        await tester.pumpAndSettle();
+
+        final viewportBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
+        final buttonBottom = tester.getBottomRight(find.byKey(const ValueKey('feed_empty_adjust_area_button'))).dy;
+        expect(viewportBottom - buttonBottom, closeTo(MateoSearchBarButton.searchBarHeight, 0.01));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
       testWidgets('when feedData is empty, it should render the empty title', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
@@ -374,6 +453,28 @@ void main() {
         expect(feed.items.keyBuilder?.call(feedData.jobs.first, 0), feedData.jobs.first.jobId);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
+
+      testWidgets(
+        'when loading more jobs fails after the last card, it should center the retry state in the feed view',
+        (tester) async {
+          await FeedViewTestHelpers.pumpFeedView(
+            tester: tester,
+            feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationError),
+          );
+
+          await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+
+          final contentFinder = find.ancestor(
+            of: find.text(i18n.feed.loadingMore.error.title),
+            matching: find.byType(Column),
+          );
+          expect(
+            tester.getCenter(contentFinder).dy,
+            closeTo(tester.getCenter(find.byType(MateoYSnapList<FeedJobDto>)).dy, 0.01),
+          );
+          await FeedViewTestHelpers.pumpAndCleanUp(tester);
+        },
+      );
     });
 
     group('feed state keys', () {

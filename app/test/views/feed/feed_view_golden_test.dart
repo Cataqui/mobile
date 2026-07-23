@@ -26,10 +26,10 @@ class _FixedAppStorageState extends AppStorageState {
   }
 }
 
-Widget _goldenScenario({required FakeFeedState feedState, bool hasSeenSwipeFeedHint = true}) {
+Widget _goldenScenario({required FakeFeedState feedState, bool hasSeenSwipeFeedHint = true, double height = 780}) {
   return SizedBox(
     width: 390,
-    height: 780,
+    height: height,
     child: TickerMode(
       enabled: false,
       child: FeedViewTestHelpers.buildApp(
@@ -49,6 +49,7 @@ Widget _goldenScenario({required FakeFeedState feedState, bool hasSeenSwipeFeedH
 }
 
 void main() {
+  const compactScenarioHeight = 400.0;
   late Translations i18n;
 
   group('FeedView Golden Tests', () {
@@ -101,6 +102,55 @@ void main() {
               ),
             ),
           ],
+        );
+      },
+    );
+
+    goldenTest(
+      'when the empty state fits above the search area, it should remain centered in the view',
+      fileName: 'feed_view_empty_state_centered',
+      whilePerforming: (tester) async {
+        await FeedViewTestHelpers.prepareGoldenCapture(tester: tester, contextFinder: find.byType(MaterialApp));
+
+        return null;
+      },
+      builder: () {
+        return _goldenScenario(
+          feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
+        );
+      },
+    );
+
+    goldenTest(
+      'when the empty state is taller than the space above the search area, it should show scrollable content',
+      fileName: 'feed_view_empty_state_compact',
+      whilePerforming: (tester) async {
+        await FeedViewTestHelpers.prepareGoldenCapture(tester: tester, contextFinder: find.byType(MaterialApp));
+
+        return null;
+      },
+      builder: () {
+        return _goldenScenario(
+          height: compactScenarioHeight,
+          feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
+        );
+      },
+    );
+
+    goldenTest(
+      'when scrolling a compact empty state to the end, it should show the action above the search area',
+      fileName: 'feed_view_empty_state_compact_scrolled',
+      whilePerforming: (tester) async {
+        await FeedViewTestHelpers.prepareGoldenCapture(tester: tester, contextFinder: find.byType(MaterialApp));
+        await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -300));
+        await tester.pumpAndSettle();
+
+        return null;
+      },
+      builder: () {
+        return _goldenScenario(
+          height: compactScenarioHeight,
+          feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
         );
       },
     );
