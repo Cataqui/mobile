@@ -672,10 +672,10 @@ packages:
     dependency: transitive
     description:
       name: mateo_mobile
-      sha256: b1ff7a86fd521c1eb9ac932701609ea14a3a074ffd3fd61a36021f266621b709
+      sha256: "4600be7824281fb5c717647078e118e8d19cffffced5fe7f5bdc7aa9a88f0c38"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.2"
+    version: "0.1.3"
   material_color_utilities:
     dependency: transitive
     description:
