@@ -62,7 +62,7 @@ melos gen
 # Resolve public packages from sibling checkouts for local development
 melos public-packages:local
 
-# Disable local overrides and restore the committed immutable Git lock
+# Disable the local Mateo override and restore the committed remote lock
 melos public-packages:remote-lock
 
 # Regenerate the iOS and Android native splash resources
@@ -75,21 +75,19 @@ melos goldens:update:all     # updates all packages/apps
 
 ### Public package development
 
-Mobile declares `dotdart`, `oh_my_flutter`, and `qui` from immutable public Git
-tags. The `qui` package is hosted in the `Cataqui/qui_flutter` repository. For
-local package work, the ignored root `pubspec_overrides.yaml` resolves the
-sibling checkouts at `../dotdart`, `../oh_my_flutter`, and `../qui_flutter`; copy
-`pubspec_overrides.yaml.example` or run `melos public-packages:local` to activate
-them.
+Mobile resolves `dotdart`, `oh_my_flutter`, and `mateo_mobile` from pub.dev.
+For local Mateo work, run `melos public-packages:local`; the ignored root
+`pubspec_overrides.yaml` then resolves
+`../../mateo/packages/flutter/mateo-mobile-flutter`.
 
 Running Pub while the override is active changes `pubspec.lock` to a path
 resolution. Before committing, testing a release checkout, or releasing Mobile,
 run `melos public-packages:remote-lock`. That command temporarily disables the
-override, regenerates the lock from the committed tags, and leaves the override
-parked in the ignored `pubspec_overrides.yaml.disabled` file so editor-driven
-Pub resolution cannot rewrite the lock. Run `melos public-packages:local` to
-reactivate it. The committed lockfile must always contain Git resolutions,
-never local paths.
+override, regenerates the lock from pub.dev, and leaves the override parked in
+the ignored `pubspec_overrides.yaml.disabled` file so editor-driven Pub
+resolution cannot rewrite the lock. Run `melos public-packages:local` to
+reactivate it. The committed lockfile must resolve `dotdart`, `oh_my_flutter`,
+and `mateo_mobile` from pub.dev, never from local paths.
 
 ### Git Hooks
 

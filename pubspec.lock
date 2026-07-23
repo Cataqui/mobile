@@ -292,12 +292,11 @@ packages:
   dotdart:
     dependency: transitive
     description:
-      path: "."
-      ref: "v0.6.0"
-      resolved-ref: "6b7bab1f85b5cb52c7272085a81af624d6fd18b9"
-      url: "https://github.com/Cataqui/dotdart.git"
-    source: git
-    version: "0.6.0"
+      name: dotdart
+      sha256: "45daff368e6feaa58a6bd116d3baa09477c2da772a1db2c731c81d73648384a7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.1"
   envied:
     dependency: transitive
     description:
@@ -669,6 +668,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.19"
+  mateo_mobile:
+    dependency: transitive
+    description:
+      name: mateo_mobile
+      sha256: b1ff7a86fd521c1eb9ac932701609ea14a3a074ffd3fd61a36021f266621b709
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   material_color_utilities:
     dependency: transitive
     description:
@@ -736,12 +743,11 @@ packages:
   oh_my_flutter:
     dependency: transitive
     description:
-      path: "."
-      ref: "v0.1.0"
-      resolved-ref: "2c7b942784efe7c9dba0472cb2976ade87658187"
-      url: "https://github.com/Cataqui/oh_my_flutter.git"
-    source: git
-    version: "0.1.0"
+      name: oh_my_flutter
+      sha256: "3b83f44712f61b82101a1201f67f37d61faeb199d7273b53dd9337bf3984c65a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1"
   package_config:
     dependency: transitive
     description:
@@ -870,15 +876,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  qui:
-    dependency: transitive
-    description:
-      path: "."
-      ref: "v0.1.0"
-      resolved-ref: "8cd1512b804fc0aae4e1a58317d284c7cf59ef8d"
-      url: "https://github.com/Cataqui/qui_flutter.git"
-    source: git
-    version: "0.1.0"
   recase:
     dependency: transitive
     description:

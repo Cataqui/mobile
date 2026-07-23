@@ -4,7 +4,7 @@ import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qui/qui.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 class CataquiApp extends ConsumerWidget {
   const CataquiApp({super.key});
@@ -14,7 +14,7 @@ class CataquiApp extends ConsumerWidget {
     final goRouter = ref.watch(goRouterProvider);
     final i18n = ref.watch(translationProvider);
 
-    return QuiApp.router(
+    return MateoApp.router(
       title: i18n.app.name,
       color: (primary: const Color(0xFFFF4A4B), onPrimary: const Color(0xFFFFFFFF)),
       routerConfig: goRouter,

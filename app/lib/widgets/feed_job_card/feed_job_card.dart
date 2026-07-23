@@ -6,8 +6,8 @@ import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/qui.dart';
 
 class FeedJobCard extends ConsumerWidget {
   const FeedJobCard({required this.feedJob, super.key, this.skeleton = false});
@@ -20,33 +20,33 @@ class FeedJobCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
     final i18n = ref.watch(translationProvider);
 
-    return QuiTap(
-      animation: QuiTapAnimationType.scale,
+    return MateoTap(
+      animation: MateoTapAnimationType.scale,
       fireHapticFeedback: false,
       onPressed: (animation) async {
         if (skeleton) return;
         unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(context));
       },
-      child: QuiHeroBackground(
+      child: MateoHeroBackground(
         tag: backgroundHeroKey(feedJob.jobId),
         width: double.infinity,
         decoration: BoxDecoration(color: colorScheme.background, borderRadius: BorderRadius.circular(38)),
-        edgeFade: const QuiHeroEdgeFade(switchThreshold: 1),
+        edgeFade: const MateoHeroEdgeFade(switchThreshold: 1),
         padding: const EdgeInsets.all(24),
-        child: QuiSkeleton(
-          style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect(duration: Duration(seconds: 2))),
+        child: MateoSkeleton(
+          style: const MateoSkeletonStyle(effect: MateoSkeletonFadeEffect(duration: Duration(seconds: 2))),
           enabled: skeleton,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              QuiHeroGroup(
+              MateoHeroGroup(
                 tag: headerHeroKey(feedJob.jobId),
                 heroes: [
-                  QuiHeroText(
+                  MateoHeroText(
                     feedJob.createdAt.timeAgo(
                       onNow: () => i18n.feedJob.timeAgo.now,
                       onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
@@ -58,19 +58,19 @@ class FeedJobCard extends ConsumerWidget {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colorScheme.text.tertiary),
                     padding: const EdgeInsets.only(bottom: 6),
                   ),
-                  QuiHeroText(
+                  MateoHeroText(
                     feedJob.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     onStart: HapticFeedback.successNotification,
                     style: TextStyle(color: colorScheme.text.primary, fontWeight: FontWeight.w600, fontSize: 22),
                   ),
-                  QuiHeroText(
+                  MateoHeroText(
                     padding: skeleton ? const EdgeInsets.only(top: 6) : EdgeInsets.zero,
                     feedJob.payment.formatPayment(i18n),
                     style: TextStyle(fontSize: 25, color: colorScheme.text.profit, fontWeight: FontWeight.w600),
                   ),
-                  QuiHeroText(
+                  MateoHeroText(
                     padding: skeleton ? const EdgeInsets.only(top: 6) : const EdgeInsets.only(top: 4),
                     feedJob.descriptionSummary,
                     maxLines: 3,

@@ -2,17 +2,17 @@
 
 ## Purpose
 
-`app` is the monorepo's **application entry point** — the primary mobile app for the Cataquí platform. It is the **sole consumer** of `qui` design system components and `oh_my_flutter` superpower utils.
+`app` is the monorepo's **application entry point** — the primary mobile app for the Cataquí platform. It uses the [Mateo Mobile design-system](https://github.com/Ventairy/mateo) components and `oh_my_flutter` utilities.
 
-Unlike the `qui` package (which must be portable and publicly distributable), the `app` package is **internal and single-purpose**. It orchestrates screens, widgets, services, and state specific to the Cataquí mobile experience.
+The `app` package is **internal and single-purpose**. It orchestrates screens, widgets, services, and state specific to the Cataquí mobile experience.
 
 ## No Documentation for Internal Code
 
 Code inside `app/` is **not a public API**. It is consumed exclusively by this application itself and by AI agents working on this repository.
 
 - **No dartdoc (`///`) needed** on any class, method, field, or variable inside the `app` package. The code should be self-explanatory through naming, structure, and conventions alone.
-- **No `@Preview` annotations** — they are only required in the `qui` package.
-- Dartdoc is reserved for `qui` and `oh_my_flutter`, which may be published as standalone packages on pub.dev.
+- **No `@Preview` annotations** — they belong in the Mateo package.
+- Dartdoc is reserved for public packages such as `mateo_mobile` and `oh_my_flutter`.
 
 ## Structure
 
@@ -160,8 +160,8 @@ The app uses **flutter_gen** for type-safe asset access.
   ```dart
   Assets.logos.cataqui.svg(width: 120, height: 120);
   ```
-- **Facades:** The app does **not** use branded facades like `qui`'s
-  `QuiIcon`/`QuiThreeD` — access the `Assets` entry point directly.
+- **Facades:** The app does **not** use Mateo for app specific assets — access the
+  app's `Assets` entry point directly.
 
 ## Repositories
 

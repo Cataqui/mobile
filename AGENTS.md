@@ -49,9 +49,9 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 To maintain absolute structural health across the monorepo, follow these modularization rules:
 
 - **Domain Isolation:** Code within local packages must communicate across boundaries using clean, explicit public APIs. Do not leak internal implementation layers.
-- **Reusable UI Elements (`qui`):** Reusable UI belongs in the standalone public
-  `qui` package from the `Cataqui/qui_flutter` repository, which stands for
-  Cataquí UI.
+- **Design System:** Cataquí uses
+  [Mateo](https://github.com/Ventairy/mateo/tree/main/design-system) as its
+  design system. Reusable mobile UI belongs in the design system's Flutter package rather than in the application.
 - **Workspace Dependencies:** Declare dependencies between packages that remain
   in this repository inside `pubspec.yaml` using exact relative paths:
 
@@ -60,14 +60,6 @@ dependencies:
   oh_my_flutter:
     path: ../oh_my_flutter
 ```
-
-- **Extracted Public Packages:** Declare `dotdart`, `oh_my_flutter`, and `qui`
-  using immutable Git release tags in committed pubspecs. The `qui` package is
-  hosted at `Cataqui/qui_flutter`, and its sibling checkout is
-  `../qui_flutter`. Use only the ignored root `pubspec_overrides.yaml` to
-  resolve sibling checkouts locally. Before committing or releasing, run
-  `melos public-packages:remote-lock`; the committed lockfile must resolve Git
-  tags, never local path overrides.
 
 - **Task Orchestration:** Always execute tasks using the workspace's designated monorepo tool (e.g., **Melos** or specific workspace scripts) when performing multi-package operations.
 
@@ -95,7 +87,7 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 ### Enums Over Constant Objects
 
 - Prefer Dart `enum` structures over arbitrary `const` objects or magic strings for state variations, domain constants, and error codes. Use switches over enums to guarantee compile-time exhaustiveness.
-- Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `qui_text_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
+- Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `app_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
 - **Enum-owning logic over static helpers:** When logic is determined solely by an enum value (color resolution, label text, icon selection, etc.), put the getter or method on the enum itself rather than writing a static function on an implementation class. This keeps the resolution logic with the value that drives it, makes it discoverable from any call site via `myValue.method()`, and eliminates duplicate switch statements across consumers. The enum member is the single source of truth for its own behavior.
 
 ### Exhaustive Switch Over Enums
@@ -113,7 +105,7 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 ### One Implementation Class Per File
 
-Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. The only exception is Flutter `StatefulWidget` / `ConsumerStatefulWidget` pairs: the main widget class and its private `_*State` class must always stay in the same file. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established `qui_location_radius_map` folder structure.
+Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. The only exception is Flutter `StatefulWidget` / `ConsumerStatefulWidget` pairs: the main widget class and its private `_*State` class must always stay in the same file. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established grouped-widget folder structure.
 
 ### No Top-Level Functions
 
@@ -145,7 +137,7 @@ widget or model that produces or consumes the data.
 
 ### Shared Constants Across Files
 
-- **Never** duplicate the same logical value as independent variables in separate files. When a value (size, duration, threshold, etc.) is shared across files, define it once as a **static const** on the class that owns the domain (e.g. `_QuiTikTokFeedLoadingIndicator.indicatorSize`), and reference it everywhere the value is needed.
+- **Never** duplicate the same logical value as independent variables in separate files. When a value (size, duration, threshold, etc.) is shared across files, define it once as a **static const** on the class that owns the domain (e.g. `FeedView.indicatorSize`), and reference it everywhere the value is needed.
 - Never use top-level constants (`const double myConstant = ...`) for shared values — they pollute the library namespace and bypass the owning class. Always put the constant as a `static const` member on the relevant class.
 - When you encounter a value that already exists in two or more places, extract it into a single shared `static const` and create a test that verifies all consumers reference the same shared constant. This prevents silent desync when the value is updated in only one location.
 
@@ -222,28 +214,28 @@ extension WidgetExtension on Widget {
 }
 
 // Avoid — multiple per-feature extensions on the same type:
-extension QuiSkeletonExtension on Widget { Widget skeleton() { ... } }
+extension SkeletonExtension on Widget { Widget skeleton() { ... } }
 extension FadeInExtension on Widget { Widget fadeIn() { ... } }
 ```
 
 ### Subdirectory Per File Group
 
-Whenever a set of files is related to a single primary subject (e.g., a widget split into `QuiHeroBox` and `_QuiHeroBoxContent`, or a class with separate `_types`, `_enums`, or `_providers` files), **all related files must be placed under a dedicated subdirectory** named after the primary subject — even if a broader parent folder already exists.
+Whenever a set of files is related to a single primary subject (e.g., a widget split into `HeroBox` and `_HeroBoxContent`, or a class with separate `_types`, `_enums`, or `_providers` files), **all related files must be placed under a dedicated subdirectory** named after the primary subject — even if a broader parent folder already exists.
 
 For example, instead of:
 
 ```
-qui_hero/
-  qui_hero_box.dart
-  qui_hero_box_content.dart
+hero/
+  hero_box.dart
+  hero_box_content.dart
 ```
 
 place files under:
 
 ```
-qui_hero/qui_hero_box/
-  qui_hero_box.dart
-  qui_hero_box_content.dart
+hero/hero_box/
+  hero_box.dart
+  hero_box_content.dart
 ```
 
 This rule applies to any group of companion files: main implementation, private sub-widgets, enums, types, providers, tests, and golden test scenarios. Use a flat file layout only when a folder contains exactly one self-contained subject file with no companion files.
@@ -257,7 +249,7 @@ This rule applies to any group of companion files: main implementation, private 
 ```dart
 // Good — guard returns early, main path is flat
 void _resumeOrSkipTransition() {
-  if (_phase == QuiWidgetTransitionPhase.idle) return;
+  if (_phase == WidgetTransitionPhase.idle) return;
   if (_isDisabled) {
     _skipToIdle();
     return;
@@ -269,7 +261,7 @@ void _resumeOrSkipTransition() {
 ```dart
 // Avoid — else adds unnecessary nesting
 void _resumeOrSkipTransition() {
-  if (_phase != QuiWidgetTransitionPhase.idle) {
+  if (_phase != WidgetTransitionPhase.idle) {
     if (_isDisabled) {
       _skipToIdle();
     } else {
@@ -279,13 +271,14 @@ void _resumeOrSkipTransition() {
 }
 ```
 
-### Color Scheme: Always Use `qui` Tokens
+### Color Scheme: Always Use Design-System Tokens
 
-**Never hardcode color values** (`Colors.blue`, `Color(0xFF...`) in widget code, tests, or any UI layer. Always use the `qui` color system via `context.qui`:
+**Never hardcode color values** (`Colors.blue`, `Color(0xFF...`) in widget code, tests, or any UI layer. Resolve colors from the active design-system theme:
 
-- **Semantic colors:** `context.qui.colorScheme` — use `colorScheme.background`, `colorScheme.text.primary`, `colorScheme.colors.primary.solid`, `colorScheme.border.standard`, etc.
-- **Raw palette (12-step scales):** `context.qui.palette` — use `palette.primary[9]`, `palette.neutral[12]`, etc. Only when a semantic token does not exist.
-- **Import:** `package:qui/qui.dart`
+- **Semantic colors:** Prefer semantic roles such as background, primary text,
+  borders, and component states.
+- **Raw palette:** Use raw palette steps only when no semantic token exists.
+- **Import:** Use the design system's public package entrypoint.
 
 ### Dart Documentation
 
@@ -429,8 +422,7 @@ visual regression guard.
   `dev_dependency`, create `test/flutter_test_config.dart`, configure
   `AlchemistConfig` with the app/package theme, and commit the generated CI
   goldens.
-- Configure `AlchemistConfig` so package-specific tokens resolve correctly
-  (for example, `qui` uses `QuiTheme.light(primaryColor: ...)`).
+- Configure `AlchemistConfig` so package-specific tokens resolve correctly.
 - Each widget or screen must have a dedicated golden test file:
   `test/widgets/<widget_name>_golden_test.dart` or
   `test/screens/<screen_name>_golden_test.dart`.
@@ -524,7 +516,7 @@ Always adopt the direct, real-world vernacular of the street. Explicitly exclude
 When executing modifications inside this repository as an AI agent, you must strictly comply with the following behavior rules:
 
 1.  **Context Enforcement:** This file takes absolute precedence over generic coding preferences, standard global LLM training defaults, or speculative architectural habits.
-2.  **Sub-AGENTS.md Precedence:** Each repo, package, or product directory in this monorepo (e.g., `app/`, `qui/`, `oh_my_flutter/`) has its own `AGENTS.md`. Their rules **always prevail** over any colliding rule in this root `AGENTS.md`.
+2.  **Sub-AGENTS.md Precedence:** Each repo, package, or product directory in this monorepo (e.g., `app/`) has its own `AGENTS.md`. Their rules **always prevail** over any colliding rule in this root `AGENTS.md`.
 3.  **No Dead Code:** Do not leave commented-out blocks of logic, unused imports, experimental features, or speculative abstractions behind. Every single line of code must serve the immediate objective.
 4.  **Dependency Lockdown:** Do not add external third-party pub packages unless explicitly instructed. Lean heavily on native Flutter/Dart capabilities and the repository's existing technical stack.
 5.  **No Silent Contracts:** Never modify, rename, or delete public API boundaries, core Riverpod provider definitions, or common data model interfaces without analyzing downstream impacts across the entire monorepo workspace.

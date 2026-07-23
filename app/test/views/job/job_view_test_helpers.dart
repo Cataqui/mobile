@@ -18,9 +18,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
+import '../../utils/test_app.dart';
 import '../feed/feed_view_test_helpers.dart';
 
 // FakeJobState exists because _$JobState (from riverpod_generator) is
@@ -127,15 +127,10 @@ class JobViewTestHelpers {
     ).copyWith(disableAnimations: disableAnimations);
 
     return ProviderScope(
-      overrides: [
-        jobStateProvider(resolvedJobId).overrideWith(() => jobState),
-      ],
-      child: MaterialApp(
-        theme: QuiTheme.light(),
-        home: MediaQuery(
-          data: mediaQueryData,
-          child: JobView(jobId: resolvedJobId, feedJob: feedJob),
-        ),
+      overrides: [jobStateProvider(resolvedJobId).overrideWith(() => jobState)],
+      child: TestApp.screen(
+        mediaQueryData: mediaQueryData,
+        child: JobView(jobId: resolvedJobId, feedJob: feedJob),
       ),
     );
   }
@@ -159,13 +154,7 @@ class JobViewTestHelpers {
         jobRepositoryProvider.overrideWithValue(jobRepository),
         sharedPreferencesAsyncProvider.overrideWithValue(_seenPrefs()),
       ],
-      child: MaterialApp.router(
-        theme: QuiTheme.light(),
-        routerConfig: goRouter,
-        builder: (context, child) {
-          return MediaQuery(data: mediaQueryData, child: child ?? const SizedBox.shrink());
-        },
-      ),
+      child: TestApp.router(routerConfig: goRouter, mediaQueryData: mediaQueryData),
     );
   }
 

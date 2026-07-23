@@ -97,31 +97,6 @@ melos:
       exec:
         concurrency: 1
 
-    public-packages:local:
-      description: Resolve public packages from sibling checkouts for local development
-      run: |
-        if [ -e "pubspec_overrides.yaml" ] && [ -e "pubspec_overrides.yaml.disabled" ]; then
-          echo "Both override files exist; keep only the intended local state."
-          exit 1
-        elif [ -e "pubspec_overrides.yaml.disabled" ]; then
-          mv "pubspec_overrides.yaml.disabled" "pubspec_overrides.yaml"
-        elif [ ! -e "pubspec_overrides.yaml" ]; then
-          cp "pubspec_overrides.yaml.example" "pubspec_overrides.yaml"
-        fi
-        fvm flutter pub get
-
-    public-packages:remote-lock:
-      description: Regenerate the committed lockfile from immutable public package Git tags
-      run: |
-        if [ -e "pubspec_overrides.yaml" ] && [ -e "pubspec_overrides.yaml.disabled" ]; then
-          echo "Both override files exist; keep only the intended local state."
-          exit 1
-        fi
-        if [ -e "pubspec_overrides.yaml" ]; then
-          mv "pubspec_overrides.yaml" "pubspec_overrides.yaml.disabled"
-        fi
-        fvm flutter pub get
-
     generate_app_icons:
       description: Run app icon generation
       run: melos exec --scope=app -- fvm dart run flutter_launcher_icons

@@ -12,11 +12,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
+import '../../utils/test_app.dart';
 import 'job_view_test_helpers.dart';
 
 class _ButtonTestHelpers {
@@ -50,12 +51,7 @@ class _ButtonTestHelpers {
         telephonyProvider.overrideWithValue(telephony),
         translationProvider.overrideWithValue(i18n),
       ],
-      child: MaterialApp(
-        theme: QuiTheme.light(),
-        home: const Scaffold(
-          body: Center(child: JobContactButton(jobId: 'test-job')),
-        ),
-      ),
+      child: const TestApp(child: JobContactButton(jobId: 'test-job')),
     );
   }
 }
@@ -110,7 +106,7 @@ void main() {
 
         await tester.pump();
 
-        final button = tester.widget<QuiButton>(find.byType(QuiButton));
+        final button = tester.widget<MateoButton>(find.byType(MateoButton));
         expect(button.isLoading, isTrue);
       });
     });
@@ -145,7 +141,7 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        expect(find.byType(QuiButton), findsOneWidget);
+        expect(find.byType(MateoButton), findsOneWidget);
       });
 
       testWidgets('when tapped, it should fetch the contact and launch WhatsApp', (tester) async {

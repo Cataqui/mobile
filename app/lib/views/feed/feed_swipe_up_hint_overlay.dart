@@ -3,7 +3,7 @@ part of 'feed_view.dart';
 class _FeedSwipeUpHintOverlay extends ConsumerStatefulWidget {
   const _FeedSwipeUpHintOverlay({required this.feedController, required this.isHintActiveNotifier});
 
-  final QuiTikTokFeedController feedController;
+  final MateoYSnapListController feedController;
   final ValueNotifier<bool> isHintActiveNotifier;
 
   @override
@@ -11,7 +11,7 @@ class _FeedSwipeUpHintOverlay extends ConsumerStatefulWidget {
 }
 
 class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay> {
-  final QuiAppearController _appearController = QuiAppearController();
+  final ControlledVisibilityController _visibilityController = ControlledVisibilityController();
 
   @override
   void initState() {
@@ -23,7 +23,7 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
     widget.feedController.addNotificationListener(_onFeedNotification);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _appearController.appear();
+      _visibilityController.show();
     });
   }
 
@@ -33,11 +33,11 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
     super.dispose();
   }
 
-  void _onFeedNotification(QuiTikTokFeedNotification notification) {
-    if (notification == QuiTikTokFeedNotification.nextItem) {
+  void _onFeedNotification(MateoYSnapListNotification notification) {
+    if (notification == MateoYSnapListNotification.nextItem) {
       widget.isHintActiveNotifier.value = false;
 
-      _appearController.destroy();
+      _visibilityController.hide();
       widget.feedController.removeNotificationListener(_onFeedNotification);
     }
   }
@@ -47,20 +47,24 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
     final hasSeenHint = ref.watch(appStorageStateProvider.select((s) => s.value?.hasSeenSwipeFeedHint));
     if (hasSeenHint ?? false) return const SizedBox.shrink();
 
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
     final i18n = ref.watch(translationProvider);
 
-    return QuiAppear(
-      controller: _appearController,
-      destroyDuration: const Duration(milliseconds: 400),
-      appearDuration: const Duration(milliseconds: 600),
+    return ControlledVisibility(
+      controller: _visibilityController,
+      showDuration: const Duration(milliseconds: 600),
+      hideDuration: const Duration(milliseconds: 400),
+      showTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
+      hideTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
       unmount: true,
-      onAppear: (animation) async {
-        await animation;
+      onShow: (transition) async {
+        await transition;
         if (mounted) widget.isHintActiveNotifier.value = false;
       },
-      onDestroy: (animation) async {
-        await animation;
+      onHide: (transition) async {
+        await transition;
+        if (!mounted) return;
+
         unawaited(ref.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true));
       },
       child: ColoredBox(
@@ -72,10 +76,10 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(right: 15),
-                  child: QuiSwipeUpHint(
+                  child: MateoSwipeUpHint(
                     height: 120,
-                    accentColor: context.qui.palette.primary[1],
-                    phoneColor: context.qui.palette.neutral[11],
+                    accentColor: context.mateo.palette.primary[1],
+                    phoneColor: context.mateo.palette.neutral[11],
                   ),
                 ),
               ),
@@ -85,7 +89,7 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
                 child: Text(
                   i18n.feed.swipeUpHint.caption,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.qui.palette.neutral[1]),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.mateo.palette.neutral[1]),
                 ),
               ),
             ],

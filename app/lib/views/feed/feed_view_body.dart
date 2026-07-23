@@ -9,7 +9,7 @@ class _FeedViewBody extends ConsumerStatefulWidget {
     required this.onAdjustAreaPressed,
   });
 
-  final QuiTikTokFeedController controller;
+  final MateoYSnapListController controller;
   final BorderRadius cardBorderRadius;
   final CurveTween feedInCurve;
   final ValueNotifier<bool> isHintActiveNotifier;
@@ -42,13 +42,13 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildFeedContent(BuildContext context, FeedData feedData) {
     if (feedData.isEmpty) return _buildEnd(context);
 
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
 
     return SafeArea(
       bottom: false,
       child: Padding(
         padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
-        child: QuiTikTokFeed<FeedJobDto>(
+        child: MateoYSnapList<FeedJobDto>(
           spacing: 10,
           controller: widget.controller,
           loadMoreThreshold: 0.7,
@@ -93,7 +93,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                             (math.pow(MediaQuery.sizeOf(context).height / mapRadiusReferenceHeight, 2)),
                       );
 
-                      return QuiLocationRadiusMap(
+                      return MateoLocationRadiusMap(
                         maximumMapFps: 30,
                         tileUrlTemplate: mapConfig.authenticatedTileUrl,
                         location: (latitude: location.latitude, longitude: location.longitude),
@@ -103,7 +103,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                         tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
                         zoom: 12.8,
                         offset: mapRadiusOffset,
-                        radiusStyle: (color: context.qui.colorScheme.map.locationRadius),
+                        radiusStyle: (color: context.mateo.colorScheme.map.locationRadius),
                         onMapLoad: () {
                           final next = index + 1;
                           if (_mapMountLimitNotifier.value < next) {
@@ -143,7 +143,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: QuiSearchBarButton.searchBarHeight),
+        padding: const EdgeInsets.only(bottom: MateoSearchBarButton.searchBarHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -152,7 +152,11 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             const SizedBox(height: 40),
             Text(
               i18n.feed.loadingMore.error.title,
-              style: TextStyle(fontSize: 18, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                color: context.mateo.colorScheme.text.primary,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
@@ -162,18 +166,18 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                 i18n.feed.loadingMore.error.description,
                 style: TextStyle(
                   fontSize: 16,
-                  color: context.qui.colorScheme.text.secondary,
+                  color: context.mateo.colorScheme.text.secondary,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 20),
-            QuiButton(
-              variant: QuiButtonVariant.primary,
+            MateoButton(
+              variant: MateoButtonVariant.primary,
               label: i18n.feed.loadingMore.error.retryButtonTitle,
               leadingIconBuilder: (state) =>
-                  QuiIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
               leadingIconSpacing: 10,
               onPressed: () {
                 retry();
@@ -190,7 +194,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: QuiSearchBarButton.searchBarHeight),
+        padding: const EdgeInsets.only(bottom: MateoSearchBarButton.searchBarHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -199,7 +203,11 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             const SizedBox(height: 20),
             Text(
               i18n.feed.empty.title,
-              style: TextStyle(fontSize: 18, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                color: context.mateo.colorScheme.text.primary,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
@@ -209,18 +217,18 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                 i18n.feed.empty.description,
                 style: TextStyle(
                   fontSize: 16,
-                  color: context.qui.colorScheme.text.secondary,
+                  color: context.mateo.colorScheme.text.secondary,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 40),
-            QuiButton(
+            MateoButton(
               key: const ValueKey('feed_empty_adjust_area_button'),
-              variant: QuiButtonVariant.secondary,
+              variant: MateoButtonVariant.secondary,
               label: i18n.feed.empty.adjustAreaButtonTitle,
-              leadingIconBuilder: (state) => QuiIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
+              leadingIconBuilder: (state) => MateoIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
               leadingIconSpacing: 10,
               onPressed: widget.onAdjustAreaPressed,
             ),
@@ -231,7 +239,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   }
 
   Widget _buildInitialLoading(BuildContext context) {
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
 
     return SafeArea(
       bottom: false,
@@ -245,7 +253,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               children: [
                 ColoredBox(
                   color: colorScheme.map.background,
-                  child: const Padding(padding: EdgeInsets.all(8), child: QuiDotMatrix(radius: 0, dotSize: 1)),
+                  child: const Padding(padding: EdgeInsets.all(8), child: MateoDotMatrix(radius: 0, dotSize: 1)),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(9),
@@ -293,7 +301,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -303,18 +311,18 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               i18n.feed.error.description,
               style: TextStyle(
                 fontSize: 16,
-                color: context.qui.colorScheme.text.secondary,
+                color: context.mateo.colorScheme.text.secondary,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 20),
-          QuiButton(
-            variant: QuiButtonVariant.primary,
+          MateoButton(
+            variant: MateoButtonVariant.primary,
             label: i18n.feed.error.retryButtonTitle,
             leadingIconBuilder: (state) =>
-                QuiIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
           ),

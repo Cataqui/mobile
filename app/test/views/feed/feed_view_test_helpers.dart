@@ -15,9 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
+import '../../utils/test_app.dart';
 
 // FakeFeedState exists because _$FeedState (from riverpod_generator) is
 // library-private and cannot be accessed by mocktail outside feed_state.dart.
@@ -131,10 +131,7 @@ class FeedViewTestHelpers {
       textScaler: TextScaler.noScaling,
     ).copyWith(disableAnimations: disableAnimations);
 
-    return MaterialApp(
-      theme: QuiTheme.light(),
-      home: MediaQuery(data: mediaQueryData, child: child),
-    );
+    return TestApp.screen(mediaQueryData: mediaQueryData, child: child);
   }
 
   static ProviderScope buildScope({

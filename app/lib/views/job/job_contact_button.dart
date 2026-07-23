@@ -6,8 +6,8 @@ import 'package:cataqui_app/views/job/job_contact_state.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/qui.dart';
 
 class JobContactButton extends ConsumerWidget {
   const JobContactButton({required this.jobId, super.key});
@@ -25,23 +25,23 @@ class JobContactButton extends ConsumerWidget {
 
   void _showErrorToast(BuildContext context, Translations i18n, Object error) {
     if (error.isOfflineConnectionDioException) {
-      QuiToast.show(
+      MateoToast.show(
         context,
         message: i18n.job.contactButton.error.offlineMessage,
         iconBuilder: (state) {
-          return QuiIcon.wifiExclamation(width: state.iconSize, height: state.iconSize, color: state.iconColor);
+          return MateoIcon.wifiExclamation(width: state.iconSize, height: state.iconSize, color: state.iconColor);
         },
       );
       return;
     }
 
-    QuiToast.show(context, message: i18n.job.contactButton.error.genericMessage);
+    MateoToast.show(context, message: i18n.job.contactButton.error.genericMessage);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final i18n = ref.watch(translationProvider);
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
     final jobState = ref.watch(jobStateProvider(jobId));
 
     if (jobState.isLoading) return _buildLoadingButton();
@@ -86,61 +86,61 @@ class JobContactButton extends ConsumerWidget {
     };
   }
 
-  QuiButton _buildWhatsAppButton(
+  MateoButton _buildWhatsAppButton(
     WidgetRef ref,
     BuildContext context,
     Translations i18n,
-    QuiColorScheme colorScheme,
+    MateoColorScheme colorScheme,
     bool isLoading,
     JobContactReferenceDto contactReference,
   ) {
-    return QuiButton(
-      variant: QuiButtonVariant.primary,
+    return MateoButton(
+      variant: MateoButtonVariant.primary,
       label: i18n.job.contactButton.whatsapp,
       colorScheme: colorScheme.buttons.whatsapp.tertiary,
       padding: _buttonPadding,
       isLoading: isLoading,
       onPressed: () => _contact(ref, jobId, contactReference.contactId),
       leadingIconBuilder: (state) {
-        return QuiIcon.whatsapp(width: _iconSize, height: _iconSize, color: state.foregroundColor);
+        return MateoIcon.whatsapp(width: _iconSize, height: _iconSize, color: state.foregroundColor);
       },
     );
   }
 
-  QuiButton _buildPhoneCallButton(
+  MateoButton _buildPhoneCallButton(
     WidgetRef ref,
     BuildContext context,
     Translations i18n,
-    QuiColorScheme colorScheme,
+    MateoColorScheme colorScheme,
     bool isLoading,
     JobContactReferenceDto contactReference,
   ) {
-    return QuiButton(
-      variant: QuiButtonVariant.primary,
+    return MateoButton(
+      variant: MateoButtonVariant.primary,
       label: i18n.job.contactButton.phoneCall,
       colorScheme: colorScheme.buttons.success,
       padding: _buttonPadding,
       leadingIconSpacing: 12,
       isLoading: isLoading,
-      leadingIconBuilder: (state) => QuiIcon.phone(width: _iconSize, height: _iconSize, color: state.foregroundColor),
+      leadingIconBuilder: (state) => MateoIcon.phone(width: _iconSize, height: _iconSize, color: state.foregroundColor),
       onPressed: () => _contact(ref, jobId, contactReference.contactId),
     );
   }
 
-  QuiButton _buildUnknownButton(Translations i18n, bool isLoading) {
-    return QuiButton(
-      variant: QuiButtonVariant.primary,
+  MateoButton _buildUnknownButton(Translations i18n, bool isLoading) {
+    return MateoButton(
+      variant: MateoButtonVariant.primary,
       label: i18n.job.contactButton.unknown,
       padding: _buttonPadding,
       leadingIconSpacing: 10,
       isLoading: isLoading,
       leadingIconBuilder: (state) {
-        return QuiIcon.circleBlock(width: _iconSize, height: _iconSize, color: state.foregroundColor);
+        return MateoIcon.circleBlock(width: _iconSize, height: _iconSize, color: state.foregroundColor);
       },
     );
   }
 
-  QuiButton _buildLoadingButton() {
-    return const QuiButton(variant: QuiButtonVariant.primary, label: '', padding: _buttonPadding, isLoading: true);
+  MateoButton _buildLoadingButton() {
+    return const MateoButton(variant: MateoButtonVariant.primary, label: '', padding: _buttonPadding, isLoading: true);
   }
 }

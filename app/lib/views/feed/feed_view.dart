@@ -14,8 +14,8 @@ import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/qui.dart';
 
 part 'feed_swipe_up_hint_overlay.dart';
 part 'feed_view_body.dart';
@@ -28,17 +28,17 @@ class FeedView extends ConsumerStatefulWidget {
 }
 
 class _FeedViewState extends ConsumerState<FeedView> {
-  final QuiTikTokFeedController _feedController = QuiTikTokFeedController();
+  final MateoYSnapListController _feedController = MateoYSnapListController();
   final _cardBorderRadius = BorderRadius.circular(44);
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
   late final ValueNotifier<bool> _isHintActiveNotifier;
 
   void _showLocationAvailabilitySheet() {
     final i18n = ref.read(translationProvider);
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
 
     unawaited(
-      QuiBottomSheet.show<void>(
+      MateoBottomSheet.show<void>(
         context,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -61,10 +61,10 @@ class _FeedViewState extends ConsumerState<FeedView> {
             const SizedBox(height: 32),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: QuiButton(
+              child: MateoButton(
                 label: i18n.feed.locationAvailability.closeButtonTitle,
-                variant: QuiButtonVariant.primary,
-                fit: QuiButtonFit.expand,
+                variant: MateoButtonVariant.primary,
+                fit: MateoButtonFit.expand,
                 padding: const EdgeInsetsGeometry.symmetric(vertical: 16, horizontal: 20),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -90,7 +90,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
     final i18n = ref.watch(translationProvider);
     final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
 
@@ -112,18 +112,18 @@ class _FeedViewState extends ConsumerState<FeedView> {
             top: 0,
             left: 0,
             right: 0,
-            child: QuiEdgeFade(
-              position: QuiEdgeFadePosition.top,
-              style: QuiEdgeFadeStyle(color: colorScheme.background),
+            child: MateoEdgeFade(
+              position: MateoEdgeFadePosition.top,
+              style: MateoEdgeFadeStyle(color: colorScheme.background),
             ),
           ),
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: QuiEdgeFade(
-              position: QuiEdgeFadePosition.bottom,
-              style: QuiEdgeFadeStyle(color: colorScheme.background),
+            child: MateoEdgeFade(
+              position: MateoEdgeFadePosition.bottom,
+              style: MateoEdgeFadeStyle(color: colorScheme.background),
             ),
           ),
           Positioned.fill(
@@ -137,15 +137,15 @@ class _FeedViewState extends ConsumerState<FeedView> {
                         alignment: AlignmentGeometry.topStart,
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 48),
-                          child: QuiTextButton(
+                          child: MateoTextButton(
                             text: i18n.feed.locationAvailability.cityLabel,
                             leadingIconBuilder: (state) {
-                              return QuiIcon.mapPin(height: 14, width: 14, color: colorScheme.colors.primary.solid);
+                              return MateoIcon.mapPin(height: 14, width: 14, color: context.mateo.palette.primary[9]);
                             },
                             leadingIconSpacing: 10,
                             trailingIconSpacing: 10,
                             trailingIconBuilder: (state) {
-                              return QuiIcon.chevronDown(height: 14, width: 14, color: state.recommendedIconColor);
+                              return MateoIcon.chevronDown(height: 14, width: 14, color: state.recommendedIconColor);
                             },
                             onPressed: _showLocationAvailabilitySheet,
                           ),
@@ -156,7 +156,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
                     //   alignment: AlignmentGeometry.bottomCenter,
                     //   child: Padding(
                     //     padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
-                    //     child: const QuiSearchBarButton(placeholder: 'Buscar oportunidades'),
+                    //     child: const MateoSearchBarButton(placeholder: 'Buscar oportunidades'),
                     //   ),
                     // ),
                   ],

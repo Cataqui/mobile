@@ -7,7 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:qui/qui.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 part 'animated_splash_logo_bytes_loader.dart';
 part 'animated_splash_logo_painter.dart';
@@ -209,7 +209,7 @@ class _AppAnimatedSplashState extends State<AppAnimatedSplash> with SingleTicker
   }
 
   Widget _buildSplashOverlay(BuildContext context) {
-    final splashColor = context.qui.colorScheme.colors.primary.solid;
+    final splashColor = context.mateo.palette.primary[9];
 
     return Positioned.fill(
       child: AnnotatedRegion<SystemUiOverlayStyle>(

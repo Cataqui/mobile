@@ -13,10 +13,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
+import '../../utils/test_app.dart';
 import 'feed_view_test_helpers.dart';
 
 void main() {
@@ -44,7 +45,7 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
 
-        expect(tester.getSize(find.byType(QuiTextButton)).height, greaterThanOrEqualTo(48));
+        expect(tester.getSize(find.byType(MateoTextButton)).height, greaterThanOrEqualTo(48));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -95,7 +96,7 @@ void main() {
           tester: tester,
           feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
         );
-        expect(find.byType(QuiSkeleton), findsOneWidget);
+        expect(find.byType(MateoSkeleton), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -164,7 +165,7 @@ void main() {
           feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
         );
         await tester.pump();
-        expect(find.byType(QuiSkeleton), findsNothing);
+        expect(find.byType(MateoSkeleton), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -287,19 +288,19 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when feedData is empty, it should not render QuiTikTokFeed', (tester) async {
+      testWidgets('when feedData is empty, it should not render MateoYSnapList', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.byWidgetPredicate((w) => w is QuiTikTokFeed), findsNothing);
+        expect(find.byWidgetPredicate((w) => w is MateoYSnapList), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
 
     group('data — with jobs', () {
-      testWidgets('when feedData has jobs, it should render QuiTikTokFeed', (tester) async {
+      testWidgets('when feedData has jobs, it should render MateoYSnapList', (tester) async {
         final prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         await FeedViewTestHelpers.pumpFeedView(
@@ -308,7 +309,7 @@ void main() {
           prefs: prefs,
         );
         await tester.pump();
-        expect(find.byWidgetPredicate((w) => w is QuiTikTokFeed), findsOneWidget);
+        expect(find.byWidgetPredicate((w) => w is MateoYSnapList), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -341,14 +342,14 @@ void main() {
               sharedPreferencesAsyncProvider.overrideWithValue(prefs),
               goRouterProvider.overrideWithValue(goRouter),
             ],
-            child: MaterialApp.router(theme: QuiTheme.light(), routerConfig: goRouter),
+            child: TestApp.router(routerConfig: goRouter),
           ),
         );
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 900));
         await tester.pump();
         final feedJobCard = find.byType(FeedJobCard).first;
-        final tapAnimation = tester.widget<QuiTap>(find.descendant(of: feedJobCard, matching: find.byType(QuiTap)));
+        final tapAnimation = tester.widget<MateoTap>(find.descendant(of: feedJobCard, matching: find.byType(MateoTap)));
         await tapAnimation.onPressed!(Future<void>.value());
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
@@ -369,7 +370,7 @@ void main() {
         );
         await tester.pump();
 
-        final feed = tester.widget<QuiTikTokFeed<FeedJobDto>>(find.byType(QuiTikTokFeed<FeedJobDto>));
+        final feed = tester.widget<MateoYSnapList<FeedJobDto>>(find.byType(MateoYSnapList<FeedJobDto>));
         expect(feed.items.keyBuilder?.call(feedData.jobs.first, 0), feedData.jobs.first.jobId);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });

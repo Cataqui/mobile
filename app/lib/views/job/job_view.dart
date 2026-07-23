@@ -10,8 +10,8 @@ import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/qui.dart';
 
 class JobView extends ConsumerStatefulWidget {
   const JobView({required this.jobId, this.feedJob, super.key});
@@ -36,13 +36,13 @@ class _JobViewState extends ConsumerState<JobView> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
     final i18n = ref.watch(translationProvider);
     final jobState = ref.watch(jobStateProvider(widget.jobId));
     final jobData = jobState.asData?.value;
     final feedJob = widget.feedJob;
 
-    return QuiSwipeToPopSurface(
+    return MateoSwipeToPopSurface(
       borderRadius: BorderRadiusGeometry.circular(34),
       sensibility: 0.15,
       swipeDown: true,
@@ -50,10 +50,10 @@ class _JobViewState extends ConsumerState<JobView> {
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            QuiHeroBackground(
+            MateoHeroBackground(
               tag: FeedJobCard.backgroundHeroKey(widget.jobId),
               decoration: BoxDecoration(color: colorScheme.background),
-              edgeFade: QuiHeroEdgeFade.vertical,
+              edgeFade: MateoHeroEdgeFade.vertical,
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
@@ -73,11 +73,11 @@ class _JobViewState extends ConsumerState<JobView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (feedJob != null || jobData != null) ...[
-                              QuiHeroGroup(
+                              MateoHeroGroup(
                                 tag: FeedJobCard.headerHeroKey(widget.jobId),
                                 onEnd: HapticFeedback.lightImpact,
                                 heroes: [
-                                  QuiHeroText(
+                                  MateoHeroText(
                                     (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
                                       onNow: () => i18n.feedJob.timeAgo.now,
                                       onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
@@ -93,7 +93,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                     ),
                                     padding: const EdgeInsets.only(bottom: 6),
                                   ),
-                                  QuiHeroText(
+                                  MateoHeroText(
                                     feedJob?.title ?? jobData!.job.title,
                                     maxLines: 4,
                                     overflow: TextOverflow.ellipsis,
@@ -103,7 +103,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                       color: colorScheme.text.primary,
                                     ),
                                   ),
-                                  QuiHeroText(
+                                  MateoHeroText(
                                     (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
                                     style: TextStyle(
                                       fontSize: 30,
@@ -113,7 +113,7 @@ class _JobViewState extends ConsumerState<JobView> {
                                     padding: const EdgeInsets.only(bottom: 12),
                                   ),
                                   if (jobData != null)
-                                    QuiHeroText(
+                                    MateoHeroText(
                                       jobData.job.description,
                                       switchThreshold: 0.97,
                                       style: TextStyle(
@@ -128,15 +128,15 @@ class _JobViewState extends ConsumerState<JobView> {
                               if (feedJob != null)
                                 jobState.when(
                                   data: (_) => const SizedBox.shrink(),
-                                  error: (error, _) => QuiRouteSettled(
+                                  error: (error, _) => _buildWhenRouteSettled(
                                     child: Padding(
                                       padding: const EdgeInsets.only(top: 40),
                                       child: _buildError(context, i18n, error),
                                     ),
                                   ),
-                                  loading: () => QuiRouteSettled(
-                                    child: QuiSkeleton(
-                                      style: const QuiSkeletonStyle(effect: QuiSkeletonFadeEffect()),
+                                  loading: () => _buildWhenRouteSettled(
+                                    child: MateoSkeleton(
+                                      style: const MateoSkeletonStyle(effect: MateoSkeletonFadeEffect()),
                                       child: Text(
                                         JobDto.fixture().description,
                                         style: TextStyle(
@@ -153,12 +153,12 @@ class _JobViewState extends ConsumerState<JobView> {
                                 loading: () => SizedBox(
                                   height: MediaQuery.of(context).size.height * 0.7,
                                   child: Center(
-                                    child: QuiDotMatrix(
+                                    child: MateoDotMatrix(
                                       width: 60,
                                       height: 60,
                                       radius: 30,
                                       dotSize: 6,
-                                      color: colorScheme.colors.primary.solid,
+                                      color: context.mateo.palette.primary[9],
                                     ),
                                   ),
                                 ),
@@ -182,8 +182,8 @@ class _JobViewState extends ConsumerState<JobView> {
                 alignment: AlignmentGeometry.topLeft,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: QuiRouteSettled(
-                    child: QuiViewBackButton(
+                  child: _buildWhenRouteSettled(
+                    child: MateoViewBackButton(
                       onPressed: () => Navigator.of(context).maybePop(),
                       semanticLabel: i18n.navigation.back,
                     ),
@@ -201,11 +201,7 @@ class _JobViewState extends ConsumerState<JobView> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: _contactButtonBottomSpacing),
                     child: Center(
-                      child: QuiRouteSettled(
-                        child: JobContactButton(
-                          jobId: widget.jobId,
-                        ),
-                      ),
+                      child: _buildWhenRouteSettled(child: JobContactButton(jobId: widget.jobId)),
                     ),
                   ),
                 ),
@@ -237,7 +233,7 @@ class _JobViewState extends ConsumerState<JobView> {
           const SizedBox(height: 20),
           Text(
             i18n.job.error.title,
-            style: TextStyle(fontSize: 20, color: context.qui.colorScheme.text.primary, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -247,23 +243,31 @@ class _JobViewState extends ConsumerState<JobView> {
               i18n.job.error.description,
               style: TextStyle(
                 fontSize: 17,
-                color: context.qui.colorScheme.text.secondary,
+                color: context.mateo.colorScheme.text.secondary,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 20),
-          QuiButton(
-            variant: QuiButtonVariant.secondary,
+          MateoButton(
+            variant: MateoButtonVariant.secondary,
             label: i18n.job.error.retryButtonTitle,
             leadingIconBuilder: (state) =>
-                QuiIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildWhenRouteSettled({required Widget child}) {
+    return RouteSettled(
+      showTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
+      hideTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
+      child: child,
     );
   }
 }

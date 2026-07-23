@@ -4,8 +4,7 @@ import 'dart:io';
 import 'package:alchemist/alchemist.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/qui.dart';
-import 'package:qui/src/theme/qui_theme.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:test_api/scaffolding.dart' as test_package;
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
@@ -13,12 +12,12 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   (binding as dynamic).defaultTestTimeout = const test_package.Timeout(Duration(seconds: 10));
 
   final isRunningInCi = Platform.environment['CI'] == 'true';
-  await _loadQuiFonts();
+  await _loadMateoFonts();
 
   return AlchemistConfig.runWithConfig(
     config: AlchemistConfig(
-      theme: QuiTheme.light(),
-      platformGoldensConfig: PlatformGoldensConfig(enabled: !isRunningInCi, theme: QuiTheme.light()),
+      theme: MateoTheme.light(primaryColor: const Color(0xFFFF4A4B), onPrimary: const Color(0xFFFFFFFF)),
+      platformGoldensConfig: PlatformGoldensConfig(enabled: !isRunningInCi, theme: MateoTheme.light()),
     ),
     run: testMain,
   );
@@ -26,14 +25,14 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 
 Future<ByteData> _loadFontAsset(String path) async {
   try {
-    return await rootBundle.load('packages/qui/assets/fonts/$path');
+    return await rootBundle.load('packages/mateo_mobile/assets/fonts/$path');
   } catch (_) {
     return rootBundle.load('assets/fonts/$path');
   }
 }
 
-Future<void> _loadQuiFonts() async {
-  final interLoader = FontLoader(QuiTheme.fontFamily)
+Future<void> _loadMateoFonts() async {
+  final interLoader = FontLoader(MateoTypography.fontFamily)
     ..addFont(_loadFontAsset('inter_variable.ttf'))
     ..addFont(_loadFontAsset('inter_italic.ttf'));
 

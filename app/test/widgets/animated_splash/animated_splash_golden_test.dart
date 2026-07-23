@@ -2,7 +2,7 @@ import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/qui.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 class _AnimatedSplashGoldenHarness extends StatelessWidget {
   const _AnimatedSplashGoldenHarness({this.freezeAnimation = false});
@@ -29,7 +29,7 @@ class _AnimatedSplashGoldenHarness extends StatelessWidget {
                 child: Text(
                   'Oportunidades perto de você',
                   style: TextStyle(
-                    color: context.qui.colorScheme.text.primary,
+                    color: context.mateo.colorScheme.text.primary,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),

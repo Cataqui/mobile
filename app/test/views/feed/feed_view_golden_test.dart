@@ -211,7 +211,7 @@ void main() {
         await tester.tap(find.text(i18n.feed.locationAvailability.cityLabel));
         await tester.pumpAndSettle();
         final sheetImageFinder = find.descendant(
-          of: find.byKey(const Key('qui_bottom_sheet_surface')),
+          of: find.byKey(const Key('mateo_bottom_sheet_surface')),
           matching: find.byType(Image),
         );
         final sheetImage = tester.widget<Image>(sheetImageFinder);

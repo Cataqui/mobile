@@ -9,8 +9,8 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
 import 'job_view_test_helpers.dart';
@@ -123,17 +123,17 @@ void main() {
       expect(retryCount, equals(1));
     });
 
-    testWidgets('when opened, it should show the QUI back button', (tester) async {
+    testWidgets('when opened, it should show the Mateo back button', (tester) async {
       await JobViewTestHelpers.pumpJobView(
         tester: tester,
         feedJob: JobViewTestHelpers.feedJob(),
         jobState: JobViewTestHelpers.loadingState(),
       );
 
-      expect(find.byType(QuiViewBackButton), findsOneWidget);
+      expect(find.byType(MateoViewBackButton), findsOneWidget);
     });
 
-    testWidgets('when motion is enabled and the screen starts opening, it should keep the QUI back button hidden', (
+    testWidgets('when motion is enabled and the screen starts opening, it should keep the Mateo back button hidden', (
       tester,
     ) async {
       await JobViewTestHelpers.pumpJobView(
@@ -145,32 +145,36 @@ void main() {
 
       final fadeTransition = tester.widget<FadeTransition>(
         find
-            .ancestor(of: find.byType(QuiViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
+            .ancestor(of: find.byType(MateoViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
             .first,
       );
       expect(fadeTransition.opacity.value, equals(0));
     });
 
-    testWidgets('when motion is enabled and the opening transition finishes, it should show the QUI back button once', (
-      tester,
-    ) async {
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: JobViewTestHelpers.feedJob(),
-        jobState: JobViewTestHelpers.loadingState(),
-        disableAnimations: false,
-      );
-      await tester.pump(const Duration(milliseconds: 560));
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.pump();
+    testWidgets(
+      'when motion is enabled and the opening transition finishes, it should show the Mateo back button once',
+      (tester) async {
+        await JobViewTestHelpers.pumpJobView(
+          tester: tester,
+          feedJob: JobViewTestHelpers.feedJob(),
+          jobState: JobViewTestHelpers.loadingState(),
+          disableAnimations: false,
+        );
+        await tester.pump(const Duration(milliseconds: 560));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
 
-      final hasVisibleFade = tester.widgetList<FadeTransition>(
-        find.ancestor(of: find.byType(QuiViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition)),
-      );
-      expect(hasVisibleFade.any((fadeTransition) => fadeTransition.opacity.value == 1), isTrue);
-    });
+        final hasVisibleFade = tester.widgetList<FadeTransition>(
+          find.ancestor(
+            of: find.byType(MateoViewBackButton, skipOffstage: false),
+            matching: find.byType(FadeTransition),
+          ),
+        );
+        expect(hasVisibleFade.any((fadeTransition) => fadeTransition.opacity.value == 1), isTrue);
+      },
+    );
 
-    testWidgets('when motion is enabled and the QUI back button is tapped, it should hide before leaving', (
+    testWidgets('when motion is enabled and the Mateo back button is tapped, it should hide before leaving', (
       tester,
     ) async {
       final feedJob = JobViewTestHelpers.feedJob();
@@ -182,19 +186,19 @@ void main() {
         disableAnimations: false,
       );
 
-      await tester.tap(find.byType(QuiViewBackButton));
+      await tester.tap(find.byType(MateoViewBackButton));
       await tester.pump();
 
       final fadeTransition = tester.widget<FadeTransition>(
         find
-            .ancestor(of: find.byType(QuiViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
+            .ancestor(of: find.byType(MateoViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
             .first,
       );
       expect(fadeTransition.opacity.value, equals(0));
     });
 
     testWidgets(
-      'when motion is enabled and the QUI back button is tapped, it should keep the full description as a shared element',
+      'when motion is enabled and the Mateo back button is tapped, it should keep the full description as a shared element',
       (tester) async {
         const description = 'Descrição completa do trabalho com horários, local e detalhes importantes.';
 
@@ -207,7 +211,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 560));
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump();
-        await tester.tap(find.byType(QuiViewBackButton));
+        await tester.tap(find.byType(MateoViewBackButton));
         await tester.pump();
 
         expect(
@@ -234,7 +238,7 @@ void main() {
         jobState: JobViewTestHelpers.loadingState(),
       );
 
-      expect(find.byType(QuiSwipeToPopSurface), findsOneWidget);
+      expect(find.byType(MateoSwipeToPopSurface), findsOneWidget);
     });
 
     testWidgets('when opened from the feed, it should render the title inside the grouped header hero', (tester) async {
@@ -267,7 +271,7 @@ void main() {
         jobRepository: jobRepository,
       );
 
-      final backgroundHero = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground).first);
+      final backgroundHero = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground).first);
       expect(backgroundHero.tag, equals(FeedJobCard.backgroundHeroKey(feedJob.jobId)));
     });
 
@@ -286,7 +290,7 @@ void main() {
       await gesture.moveBy(const Offset(0, 220));
       await tester.pump();
 
-      final route = QuiHeroPageRoute.maybeOf(tester.element(find.byType(JobView)));
+      final route = MateoHeroPageRoute.maybeOf(tester.element(find.byType(JobView)));
       expect(route!.transitionValue, equals(1));
       await gesture.up();
     });
@@ -347,12 +351,12 @@ void main() {
         await tester.drag(find.byType(CustomScrollView), const Offset(0, 150));
         await tester.pump();
 
-        final route = QuiHeroPageRoute.maybeOf(tester.element(find.byType(JobView)));
+        final route = MateoHeroPageRoute.maybeOf(tester.element(find.byType(JobView)));
         expect(route!.transitionValue, equals(1));
       },
     );
 
-    testWidgets('when the swipe-to-pop preview starts, it should keep the QUI back button visible', (tester) async {
+    testWidgets('when the swipe-to-pop preview starts, it should keep the Mateo back button visible', (tester) async {
       final feedJob = JobViewTestHelpers.feedJob();
 
       await JobViewTestHelpers.pumpRoutedJobView(
@@ -367,7 +371,7 @@ void main() {
 
       final fadeTransition = tester.widget<FadeTransition>(
         find
-            .ancestor(of: find.byType(QuiViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
+            .ancestor(of: find.byType(MateoViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
             .first,
       );
       expect(fadeTransition.opacity.value, equals(1));

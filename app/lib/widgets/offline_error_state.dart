@@ -1,6 +1,6 @@
 import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:flutter/material.dart';
-import 'package:qui/qui.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 class OfflineErrorState extends StatelessWidget {
   const OfflineErrorState({required this.title, this.description, this.retry, super.key});
@@ -11,7 +11,7 @@ class OfflineErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.qui.colorScheme;
+    final colorScheme = context.mateo.colorScheme;
 
     return Center(
       child: Column(
@@ -38,12 +38,12 @@ class OfflineErrorState extends StatelessWidget {
           ],
           if (retry != null) ...[
             const SizedBox(height: 20),
-            QuiButton(
-              variant: QuiButtonVariant.secondary,
-              fit: QuiButtonFit.fit,
+            MateoButton(
+              variant: MateoButtonVariant.secondary,
+              fit: MateoButtonFit.fit,
               label: retry!.label,
               leadingIconBuilder: (state) =>
-                  QuiIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
               leadingIconSpacing: 10,
               onPressed: retry!.onRetry,
             ),

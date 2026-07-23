@@ -9,7 +9,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/qui.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 import '../utils/test_app.dart';
 import '../views/job/job_view_test_helpers.dart';
@@ -117,7 +117,7 @@ void main() {
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
 
-        expect(text.style!.color, equals(QuiColorScheme.light().text.profit));
+        expect(text.style!.color, equals(MateoColorScheme.light().text.profit));
       });
 
       testWidgets('when created, the description should use 15.7px font size', (tester) async {
@@ -132,11 +132,9 @@ void main() {
         await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
+        final context = tester.element(find.byType(FeedJobCard));
 
-        expect(
-          text.style!.color,
-          equals(QuiColorScheme.light().text.secondary),
-        );
+        expect(text.style!.color, equals(context.mateo.colorScheme.text.secondary));
       });
 
       testWidgets('when created, the title should be limited to 2 lines', (tester) async {
@@ -217,8 +215,8 @@ void main() {
         const jobId = 'job_123';
 
         await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(jobId: jobId))));
-        final cardBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
-        final cardHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
+        final cardBackgroundTag = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground)).tag;
+        final cardHeaderTag = tester.widget<MateoHeroGroup>(find.byType(MateoHeroGroup)).tag;
 
         await tester.pumpWidget(const SizedBox());
 
@@ -227,8 +225,8 @@ void main() {
           feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
           jobState: JobViewTestHelpers.loadingState(),
         );
-        final viewBackgroundTag = tester.widget<QuiHeroBackground>(find.byType(QuiHeroBackground)).tag;
-        final viewHeaderTag = tester.widget<QuiHeroGroup>(find.byType(QuiHeroGroup)).tag;
+        final viewBackgroundTag = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground)).tag;
+        final viewHeaderTag = tester.widget<MateoHeroGroup>(find.byType(MateoHeroGroup)).tag;
 
         expect(viewBackgroundTag, equals(cardBackgroundTag));
         expect(viewHeaderTag, equals(cardHeaderTag));

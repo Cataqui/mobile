@@ -2,7 +2,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:qui/qui.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 part 'job_route.g.dart';
 
@@ -24,7 +24,7 @@ class JobRoute extends GoRouteData with $JobRoute {
       );
     }
 
-    return QuiHeroPage(
+    return MateoHeroPage(
       transitionDuration: const Duration(milliseconds: 400),
       key: state.pageKey,
       builder: (_) => JobView(jobId: jobId, feedJob: feedJob),

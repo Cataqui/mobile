@@ -10,8 +10,8 @@ import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qui/qui.dart';
 
 import '../../mocks.dart';
 import '../feed/feed_view_test_helpers.dart';
@@ -120,7 +120,7 @@ void main() {
       expect(tester.widget<JobView>(find.byType(JobView)).feedJob, feedJob);
     });
 
-    testWidgets('when pushing the job route from the feed, it should mount the JobView under a QuiHeroPage', (
+    testWidgets('when pushing the job route from the feed, it should mount the JobView under a MateoHeroPage', (
       tester,
     ) async {
       final feedJob = JobViewTestHelpers.feedJob();
@@ -131,7 +131,7 @@ void main() {
         jobRepository: jobRepository,
       );
       final settings = ModalRoute.of(tester.element(find.byType(JobView)))!.settings;
-      expect(settings, isA<QuiHeroPage>());
+      expect(settings, isA<MateoHeroPage>());
     });
 
     testWidgets(
@@ -144,7 +144,7 @@ void main() {
           feedJob: feedJob,
           jobRepository: jobRepository,
         );
-        final page = ModalRoute.of(tester.element(find.byType(JobView)))!.settings as QuiHeroPage;
+        final page = ModalRoute.of(tester.element(find.byType(JobView)))!.settings as MateoHeroPage;
         expect(page.transitionDuration, const Duration(milliseconds: 400));
       },
     );

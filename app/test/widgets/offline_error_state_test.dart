@@ -1,7 +1,8 @@
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/qui.dart';
+
+import '../utils/test_app.dart';
 
 const _title = 'Sem conexão';
 const _description = 'Verifique sua internet e tente novamente.';
@@ -13,11 +14,7 @@ const _retryRecord = (label: _label, onRetry: _noop);
 void main() {
   group('OfflineErrorState', () {
     Widget _buildApp(Widget child) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: QuiTheme.light(),
-        home: Scaffold(body: Center(child: child)),
-      );
+      return TestApp(child: child);
     }
 
     testWidgets('when rendered with a title, it should display the title', (tester) async {

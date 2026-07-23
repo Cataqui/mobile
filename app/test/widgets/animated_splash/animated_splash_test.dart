@@ -1,7 +1,8 @@
 import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/qui.dart';
+
+import '../../utils/test_app.dart';
 
 abstract final class _AnimatedSplashTestHarness {
   static Widget build({bool disableAnimations = false}) {
@@ -10,13 +11,10 @@ abstract final class _AnimatedSplashTestHarness {
       devicePixelRatio: 1,
     ).copyWith(disableAnimations: disableAnimations);
 
-    return MaterialApp(
-      theme: QuiTheme.light(),
-      home: MediaQuery(
-        data: mediaQueryData,
-        child: const AppAnimatedSplash(
-          child: Scaffold(body: Center(child: Text('Cataquí'))),
-        ),
+    return TestApp.screen(
+      mediaQueryData: mediaQueryData,
+      child: const AppAnimatedSplash(
+        child: Scaffold(body: Center(child: Text('Cataquí'))),
       ),
     );
   }
