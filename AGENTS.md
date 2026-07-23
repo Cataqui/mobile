@@ -2,7 +2,7 @@
 
 ## 0. Mission & Core Philosophy
 
-You are operating within the **Cataquí Mobile Repository**, a high-performance Mobile App Monorepo built using Flutter and Dart.
+You are operating within the **Cataquí Mobile Repository**, a high-performance Flutter app workspace built using Flutter and Dart.
 
 Cataquí is the real-time opportunity layer of the city: a fast, frictionless, hyperlocal feed for quick jobs, side hustles, informal work, and temporary tasks.
 
@@ -22,7 +22,7 @@ Cataquí is the real-time opportunity layer of the city: a fast, frictionless, h
 
 ## 1. Technical Stack & Environment
 
-This repository is structured as a **Mobile App Monorepo** containing core applications and modularized, domain-isolated Dart/Flutter packages for mobile apps.
+This repository is structured as a **Flutter app workspace**. Shared packages that used to live in this repository now live in their own repositories and are consumed like normal external dependencies.
 
 ### Environment & Tooling
 
@@ -44,24 +44,25 @@ This repository is structured as a **Mobile App Monorepo** containing core appli
 
 ---
 
-## 2. Monorepo Guardrails & Package Rules
+## 2. Workspace Guardrails & Package Rules
 
-To maintain absolute structural health across the monorepo, follow these modularization rules:
+To maintain absolute structural health across the workspace, follow these modularization rules:
 
-- **Domain Isolation:** Code within local packages must communicate across boundaries using clean, explicit public APIs. Do not leak internal implementation layers.
+- **External Package Boundaries:** Shared packages are owned by their standalone repositories. Consume them through their published package APIs or explicitly configured local overrides for development.
 - **Design System:** Cataquí uses
   [Mateo](https://github.com/Ventairy/mateo/tree/main/design-system) as its
   design system. Reusable mobile UI belongs in the design system's Flutter package rather than in the application.
-- **Workspace Dependencies:** Declare dependencies between packages that remain
-  in this repository inside `pubspec.yaml` using exact relative paths:
+- **Future Internal Packages:** If internal packages are added to this
+  repository, add each package explicitly to the root `pubspec.yaml` workspace
+  list and use exact relative paths from the consuming package:
 
 ```yaml
 dependencies:
-  oh_my_flutter:
-    path: ../oh_my_flutter
+  cataqui_internal:
+    path: ../cataqui_internal
 ```
 
-- **Task Orchestration:** Always execute tasks using the workspace's designated monorepo tool (e.g., **Melos** or specific workspace scripts) when performing multi-package operations.
+- **Task Orchestration:** Always execute tasks using the workspace's designated tool (e.g., **Melos** or specific workspace scripts) when performing multi-member operations.
 
 ---
 
@@ -432,8 +433,8 @@ visual regression guard.
 - CI goldens (`test/**/goldens/ci/`) are committed to source control.
   Platform goldens (`test/**/goldens/macos/`, etc.) are gitignored.
 - Run `melos goldens:update` (asks which package) or `melos goldens:update:all`
-  (all packages) from the repository root to regenerate after
-  intentional visual changes. The script filters to packages with
+  (all workspace members) from the repository root to regenerate after
+  intentional visual changes. The script filters to workspace members with
   `dart_test.yaml` and prompts for package selection like `melos test`.
   Review the diff before committing.
 - Golden tests do not replace unit tests for non-visual logic. They

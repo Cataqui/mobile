@@ -43,7 +43,7 @@ melos test
 # Run tests without coverage (fast, for pre-commit hook)
 melos test:no-coverage
 
-# Run tests for all packages (no prompt)
+# Run tests for all workspace members (no prompt)
 melos coverage
 
 # Individual steps:
@@ -70,7 +70,7 @@ melos generate_splash
 
 # Update approved visual goldens after intentional UI changes
 melos goldens:update         # asks which package/app
-melos goldens:update:all     # updates all packages/apps
+melos goldens:update:all     # updates all workspace members
 ```
 
 ### Public package development
@@ -95,7 +95,7 @@ This project uses [dart_husky](https://pub.dev/packages/dart_husky) to enforce c
 
 **Hooks run automatically on every commit:**
 
-- `pre-commit` — runs `melos analyze` (static analysis across all packages) and tests only on packages with staged files (via `preset: melos` with `staged_only: true`). The commit is blocked if either fails.
+- `pre-commit` — runs `melos analyze` (static analysis across all workspace members) and tests only on workspace members with staged files (via `preset: melos` with `staged_only: true`). The commit is blocked if either fails.
 - `commit-msg` — validates commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format.
 
 Hooks are automatically installed via `melos setup`. To install manually:
@@ -153,8 +153,10 @@ Mobile/
 │   ├── lib/
 │   ├── test/
 │   └── pubspec.yaml
-├── packages/
-│   └── README.md             # Reserved for future private packages
 ├── pubspec.yaml              # Workspace root
 └── .fvmrc                    # Flutter version pin
 ```
+
+Internal packages are not currently part of this repository. To add one back,
+create the package directory, add it to the root `pubspec.yaml` `workspace`
+list, and depend on it from consumers with an exact relative `path:`.

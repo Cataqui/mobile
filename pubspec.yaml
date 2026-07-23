@@ -17,7 +17,7 @@ melos:
 
   scripts:
     analyze:
-      description: Run static analysis across all packages
+      description: Run static analysis across all workspace members
       run: fvm flutter analyze
 
     test:
@@ -38,7 +38,7 @@ melos:
         dirExists: test
 
     test:all:
-      description: Run tests with coverage for all packages (no prompt) and open each report
+      description: Run tests with coverage for all workspace members (no prompt) and open each report
       run: melos run test --no-select
 
     test:no-coverage:
@@ -50,7 +50,7 @@ melos:
         dirExists: test
 
     coverage:
-      description: Run tests with coverage, generate HTML, and open (all packages, no prompt)
+      description: Run tests with coverage, generate HTML, and open (all workspace members, no prompt)
       run: melos run test --no-select
 
     coverage:clean:
@@ -79,7 +79,7 @@ melos:
         fileExists: dart_test.yaml
 
     goldens:update:all:
-      description: Update approved golden files for all packages/apps (no prompt)
+      description: Update approved golden files for all workspace members (no prompt)
       run: melos run goldens:update --no-select
 
     setup:
@@ -129,7 +129,7 @@ melos:
         dirExists: lib/i18n
 
     gen:
-      description: Run code generation for selected packages (interactive)
+      description: Run code generation for selected workspace members (interactive)
       run: |
         ln -sf ../.env .env 2>/dev/null || true
         fvm dart run build_runner build
