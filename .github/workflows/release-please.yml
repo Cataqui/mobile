@@ -51,17 +51,18 @@ jobs:
         id: pr
         if: steps.release.outputs.prs_created == 'true'
         env:
-          RELEASE_PR_BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
-          RELEASE_PR_NUMBER: ${{ fromJSON(steps.release.outputs.pr).number }}
+          RELEASE_PRS: ${{ steps.release.outputs.prs }}
         run: |
-          : "${RELEASE_PR_BRANCH:?Release Please did not return a PR branch}"
-          git check-ref-format --branch "$RELEASE_PR_BRANCH"
-          if [[ ! "$RELEASE_PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+          release_pr_branch="$(jq --exit-status --raw-output '.[0].headBranchName' <<< "$RELEASE_PRS")"
+          release_pr_number="$(jq --exit-status --raw-output '.[0].number' <<< "$RELEASE_PRS")"
+
+          git check-ref-format --branch "$release_pr_branch"
+          if [[ ! "$release_pr_number" =~ ^[1-9][0-9]*$ ]]; then
             echo "::error::Release Please did not return a valid PR number."
             exit 1
           fi
-          printf 'branch=%s\n' "$RELEASE_PR_BRANCH" >> "$GITHUB_OUTPUT"
-          printf 'number=%s\n' "$RELEASE_PR_NUMBER" >> "$GITHUB_OUTPUT"
+          printf 'branch=%s\n' "$release_pr_branch" >> "$GITHUB_OUTPUT"
+          printf 'number=%s\n' "$release_pr_number" >> "$GITHUB_OUTPUT"
 
   candidate:
     name: Build release candidate
