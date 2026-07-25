@@ -8,6 +8,7 @@
 
 License Cataquí-authored material under the
 [PolyForm Shield License 1.0.0](../../LICENSE).
+Ventairy Inc., Cataquí's parent company, is the owner and licensor.
 
 This is a **source-available license**, not an Open Source Initiative-approved
 open-source license. Cataquí must describe the repository accordingly.
@@ -82,6 +83,9 @@ Ventairy Inc.'s freedom to relicense code it owns.
 
 At the decision date:
 
+- Ventairy Inc.'s Montana Articles of Incorporation and certification were
+  reviewed; they identify `VENTAIRY INC.` as a domestic for-profit corporation
+  effective May 7, 2026;
 - all commits in the repository history identify Ryan Holanda, a Cataquí
   founder, as author;
 - the repository had no root license, contribution policy, or trademark
@@ -102,8 +106,9 @@ Qualified counsel should confirm:
 
 1. the written employment, contractor, and IP-assignment chain supporting
    Ventairy Inc.'s ownership of the existing copyrights and patents;
-2. Ventairy Inc.'s exact registered name, jurisdiction, and address for
-   enforcement and contributor records;
+2. the completed corporate-governance update establishing Ventairy Inc. as
+   Cataquí's parent company and confirming its authority to own, license, and
+   operate Cataquí;
 3. enforceability and any required localization for Brazil and launch markets;
 4. the inbound contribution and provenance process; and
 5. whether Cataquí should register the software and marks with the relevant
