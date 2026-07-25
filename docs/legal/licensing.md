@@ -55,13 +55,18 @@ The [trademark policy](../../TRADEMARKS.md) separately prevents the software
 license from being mistaken for permission to launch a confusingly branded
 fork.
 
-The [Contributor License Agreement](../../CONTRIBUTOR_LICENSE_AGREEMENT.md)
-keeps contributor ownership intact while granting the project rights to use,
-defend, and relicense the combined work. This avoids relying only on
-inbound-equals-outbound terms, which could leave the project without the
-flexibility needed to protect or relicense contributor-owned code. A
-read-only GitHub Actions check requires the acceptance box, and the pull
-request template records the signer's legal name for maintainer review.
+External contributions use an inbound-equals-outbound model. GitHub's
+[Contributions Under Repository License](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#6-contributions-under-repository-license)
+terms license submissions under the repository's PolyForm Shield terms and
+require contributors to have authority to make that grant. Contributors retain
+ownership, and Ventairy Inc. receives the same rights as every other licensee.
+
+As a result, Ventairy Inc. cannot place copyrightable contributor material
+under incompatible terms without the applicable rights holder's permission.
+Before changing the license of a future release, Ventairy Inc. must audit
+external contributions and obtain permission, remove them, or independently
+rewrite them. This trade-off avoids a separate signing process while preserving
+Ventairy Inc.'s freedom to relicense code it owns.
 
 ## What this cannot protect
 
@@ -79,7 +84,7 @@ At the decision date:
 
 - all commits in the repository history identify Ryan Holanda, a Cataquí
   founder, as author;
-- the repository had no root license, contribution agreement, or trademark
+- the repository had no root license, contribution policy, or trademark
   policy;
 - the locked Dart and Flutter dependency graph was inspected for license files;
 - no GPL, AGPL, or MPL dependency was detected;
@@ -100,7 +105,7 @@ Qualified counsel should confirm:
 2. Ventairy Inc.'s exact registered name, jurisdiction, and address for
    enforcement and contributor records;
 3. enforceability and any required localization for Brazil and launch markets;
-4. the electronic Contributor License Agreement acceptance process; and
+4. the inbound contribution and provenance process; and
 5. whether Cataquí should register the software and marks with the relevant
    intellectual-property offices.
 
@@ -116,7 +121,6 @@ that must remain a trade secret.
 - [Functional Source License 1.1](https://fsl.software/)
 - [MariaDB Business Source License 1.1](https://mariadb.com/bsl11/)
 - [GitHub Terms — contributions under a repository license](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#6-contributions-under-repository-license)
-- [Harmony Contributor Agreement Template 1.0](https://www.harmonyagreements.org/docs/ha-combined-v1)
 - [Brazilian Software Law — Lei 9.609/1998](https://www.planalto.gov.br/ccivil_03/leis/l9609.htm)
 - [Brazilian Copyright Law — Lei 9.610/1998](https://www.planalto.gov.br/ccivil_03/leis/l9610.htm)
 - [INPI software protection guidance](https://www.gov.br/inpi/pt-br/acesso-a-informacao/perguntas-frequentes/programas-de-computador)

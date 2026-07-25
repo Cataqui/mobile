@@ -157,9 +157,8 @@ software for permitted purposes, but does not permit using it to provide a
 competing product—even when that product is free.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
-Contributors retain ownership of their work and must accept the
-[Contributor License Agreement](CONTRIBUTOR_LICENSE_AGREEMENT.md) so Cataquí
-can use, protect, and continue licensing the combined project.
+Contributors retain ownership of their work and license submissions under the
+same PolyForm Shield terms that apply to the repository.
 
 The software license does not grant rights to Cataquí names, logos, or other
 brand identifiers. See [TRADEMARKS.md](TRADEMARKS.md).

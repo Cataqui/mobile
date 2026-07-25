@@ -17,22 +17,18 @@ free.
 The license covers Cataquí-authored material only. Do not submit code, assets,
 translations, or other material unless you have the right to license it.
 
-## Contributor agreement
+## Contribution licensing
 
-Every contributor must accept the
-[Contributor License Agreement](CONTRIBUTOR_LICENSE_AGREEMENT.md) when opening
-their first pull request. The agreement:
+You retain ownership of your contribution. When you intentionally submit
+material for inclusion in this repository, GitHub's
+[Contributions Under Repository License](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#6-contributions-under-repository-license)
+terms license it under the same [PolyForm Shield License 1.0.0](LICENSE) that
+applies to the repository and confirm that you have the right to do so.
 
-- keeps ownership of your contribution with you;
-- gives the project the copyright and patent permissions needed to use,
-  protect, and continue licensing the combined work; and
-- confirms that you have authority to make the contribution.
-
-Pull requests without a valid acceptance cannot be merged. If your employer or
-another organization owns the contribution, an authorized representative of
-that organization must accept the agreement. The contributor-agreement check
-requires the acceptance box; maintainers also verify the legal name recorded in
-the pull request. Editing the pull request re-runs the check.
+This inbound-equals-outbound policy gives Ventairy Inc. the same license to a
+contribution that every other recipient receives. If an employer or another
+organization owns your work, confirm that you have its authorization before
+submitting it.
 
 ## Submit a change
 
@@ -41,10 +37,6 @@ the pull request. Editing the pull request re-runs the check.
 3. Run the relevant workspace formatting, analysis, and tests from the
    repository root.
 4. Open a pull request and complete every item in the pull request template.
-
-By submitting a pull request, issue attachment, patch, or other material
-intended for inclusion, you agree that the submission is a Contribution under
-the Contributor License Agreement.
 
 ## Third-party material
 
