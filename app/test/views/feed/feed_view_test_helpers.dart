@@ -1,6 +1,10 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
+import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
@@ -9,8 +13,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
-import 'package:qui/qui.dart';
+
+import '../../mocks.dart';
+import '../../utils/test_app.dart';
 
 // FakeFeedState exists because _$FeedState (from riverpod_generator) is
 // library-private and cannot be accessed by mocktail outside feed_state.dart.
@@ -46,6 +53,19 @@ class FakeFeedState extends FeedState {
   }
 
   AsyncValue<FeedData> get emittedValue => state;
+}
+
+class FixedAppStorageState extends AppStorageState {
+  FixedAppStorageState({required this.hasSeenSwipeFeedHint});
+
+  final bool hasSeenSwipeFeedHint;
+
+  @override
+  Future<AppStorageData> build() {
+    final data = AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint);
+    state = AsyncData(data);
+    return Future<AppStorageData>.value(data);
+  }
 }
 
 class FeedViewTestHelpers {
@@ -92,20 +112,7 @@ class FeedViewTestHelpers {
   }
 
   static Future<void> precacheFeedStateImages(BuildContext context) async {
-    await Future.wait([
-      precacheImage(Qui3d.brush.provider(), context),
-      precacheImage(Qui3d.hammer.provider(), context),
-      precacheImage(Qui3d.ladder.provider(), context),
-      precacheImage(Qui3d.motorcycle.provider(), context),
-      precacheImage(Qui3d.shoppingCart.provider(), context),
-      precacheImage(Qui3d.smallTruck.provider(), context),
-      precacheImage(Qui3d.toolBox.provider(), context),
-      precacheImage(Qui3d.box.provider(), context),
-      precacheImage(Qui3d.locationPinRestingCracked.provider(), context),
-      precacheImage(Qui3d.emptyCitySaoPaulo.provider(), context),
-      precacheImage(Qui3d.workItemsMess.provider(), context),
-      precacheImage(Qui3d.wifiExclamation.provider(), context),
-    ]);
+    await $ThreeD.precache(context);
   }
 
   static Future<void> prepareGoldenCapture({required WidgetTester tester, required Finder contextFinder}) async {
@@ -124,22 +131,46 @@ class FeedViewTestHelpers {
       textScaler: TextScaler.noScaling,
     ).copyWith(disableAnimations: disableAnimations);
 
-    return MaterialApp(
-      theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-      home: MediaQuery(data: mediaQueryData, child: child),
+    return TestApp.screen(mediaQueryData: mediaQueryData, child: child);
+  }
+
+  static ProviderScope buildScope({
+    required FakeFeedState feedState,
+    required Widget child,
+    GoRouter? goRouter,
+    MockSharedPreferencesAsync? prefs,
+    bool? hasSeenSwipeFeedHint,
+  }) {
+    return ProviderScope(
+      overrides: [
+        feedStateProvider.overrideWith(() => feedState),
+        if (goRouter != null) goRouterProvider.overrideWithValue(goRouter),
+        if (prefs != null) sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+        if (hasSeenSwipeFeedHint != null)
+          appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint)),
+      ],
+      child: child,
     );
   }
 
-  static ProviderScope buildScope({required FakeFeedState feedState, required Widget child}) {
-    return ProviderScope(overrides: [feedStateProvider.overrideWith(() => feedState)], child: child);
-  }
-
-  static Future<void> pumpFeedView({required WidgetTester tester, required FakeFeedState feedState}) async {
+  static Future<void> pumpFeedView({
+    required WidgetTester tester,
+    required FakeFeedState feedState,
+    GoRouter? goRouter,
+    MockSharedPreferencesAsync? prefs,
+    bool? hasSeenSwipeFeedHint,
+  }) async {
     mockHapticFeedback(tester);
     mockPlatformViews(tester);
     await tester.pumpWidget(
       buildApp(
-        child: buildScope(feedState: feedState, child: const FeedView()),
+        child: buildScope(
+          feedState: feedState,
+          goRouter: goRouter,
+          prefs: prefs,
+          hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
+          child: const FeedView(),
+        ),
       ),
     );
     await tester.pump(); // Microtask resolves, data arrives, exit starts
@@ -147,9 +178,19 @@ class FeedViewTestHelpers {
     await tester.pump(); // Enter starts, content renders in tree
   }
 
-  static Widget buildFeedViewApp({required FakeFeedState feedState, bool disableAnimations = false}) {
+  static Widget buildFeedViewApp({
+    required FakeFeedState feedState,
+    bool disableAnimations = false,
+    MockSharedPreferencesAsync? prefs,
+    bool? hasSeenSwipeFeedHint,
+  }) {
     return buildApp(
-      child: buildScope(feedState: feedState, child: const FeedView()),
+      child: buildScope(
+        feedState: feedState,
+        prefs: prefs,
+        hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
+        child: const FeedView(),
+      ),
       disableAnimations: disableAnimations,
     );
   }
@@ -184,7 +225,7 @@ class FeedViewTestHelpers {
   static DioException offlineDioException() {
     return DioException(
       requestOptions: RequestOptions(path: '/feed'),
-      error: const OmfOfflineConnectionDioException(message: 'No internet connection'),
+      error: const OfflineConnectionDioException(message: 'No internet connection'),
     );
   }
 

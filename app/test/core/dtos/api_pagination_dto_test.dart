@@ -12,15 +12,10 @@ void main() {
       expect(pagination.hasMore, isTrue);
     });
 
-    test(
-      'when parsing pagination without cursor, it should keep cursor null',
-      () {
-        final pagination = ApiPaginationDto.fromJson(const <String, Object?>{
-          'has_more': false,
-        });
+    test('when parsing pagination without cursor, it should keep cursor null', () {
+      final pagination = ApiPaginationDto.fromJson(const <String, Object?>{'has_more': false});
 
-        expect(pagination.nextCursor, isNull);
-      },
-    );
+      expect(pagination.nextCursor, isNull);
+    });
   });
 }

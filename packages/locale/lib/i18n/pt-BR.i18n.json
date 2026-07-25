@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Cataquí",
+    "tagline": "Oportunidades em tempo real"
+  },
+  "feed": {
+    "searchPlaceholder": "Buscar Oportunidades",
+    "loading": "Buscando oportunidades perto de você...",
+    "paginationError": "Não conseguimos buscar mais oportunidades.",
+    "retry": "Tentar novamente",
+    "end": "Você viu todas as oportunidades por enquanto.",
+    "offline": {
+      "title": "Sem Internet",
+      "description": "Parece que a internet não tá funcionando. Dá uma olhada e tenta de novo",
+      "retryButtonTitle": "Tentar de novo"
+    },
+    "loadingMore": {
+      "title": "Buscando mais pra você...",
+      "error": {
+        "title": "Ops, algo deu errado",
+        "description": "Não acreditamos que isso aconteceu logo agora. Tenta de novo",
+        "retryButtonTitle": "Tentar de novo"
+      },
+      "offline": {
+        "title": "Sem Internet",
+        "description": "Parece que a internet não tá funcionando. Dá uma olhada e tenta de novo",
+        "retryButtonTitle": "Tentar de novo"
+      }
+    },
+    "error": {
+      "title": "Xiii... Deu erro",
+      "description": "Que estranho, não era pra isso acontecer. Tenta de novo",
+      "retryButtonTitle": "Tentar de novo"
+    },
+    "empty": {
+      "title": "Sem mais oportunidades",
+      "description": "Novas aparecem o tempo todo. Tente novamente mais tarde ou ajuste sua área de interesse.",
+      "adjustAreaButtonTitle": "Ajustar minha área"
+    },
+    "swipeUpHint": {
+      "caption": "Arrasta pra cima e confere os trampos"
+    },
+    "locationAvailability": {
+      "cityLabel": "São Paulo",
+      "message": "Por enquanto, estamos disponíveis só na cidade de São Paulo. Logo estaremos em mais cidades!",
+      "closeButtonTitle": "Beleza"
+    }
+  },
+  "feedJob": {
+    "timeAgo": {
+      "now": "agora",
+      "minutes": "{count: int}min atrás",
+      "hours": "{count: int}h atrás",
+      "days(param=count)": {
+        "one": "1 dia atrás",
+        "other": "{count: int} dias atrás"
+      },
+      "months(param=count)": {
+        "one": "1 mês atrás",
+        "other": "{count: int} meses atrás"
+      }
+    }
+  },
+  "jobPayment": {
+    "paymentFlexible": "A Combinar",
+    "paymentFixed": "{value: String}{period: String}",
+    "paymentRangeUpTo": "Até {value: String}{period: String}",
+    "paymentPeriodHourly": "/hora",
+    "paymentPeriodDaily": "/dia",
+    "paymentPeriodWeekly": "/semana",
+    "paymentPeriodMonthly": "/mês",
+    "paymentPeriodYearly": "/ano",
+    "paymentOther": "Outro pagamento",
+    "paymentUnknown": "Desconhecido"
+  },
+  "navigation": {
+    "back": "Voltar"
+  },
+  "job": {
+    "error": {
+      "title": "Eita...",
+      "description": "Algo deu errado quando a gente ia te mostrar esse trampo. Tenta de novo",
+      "retryButtonTitle": "Tentar de novo"
+    },
+    "contactButton": {
+      "whatsapp": "Enviar Mensagem",
+      "phoneCall": "Ligar agora",
+      "unknown": "Indisponível",
+      "error": {
+        "genericMessage": "Eita, não conseguimos abrir por algum erro. Tenta de novo",
+        "offlineMessage": "Tá sem internet parece. Dá uma olhada e tenta de novo"
+      }
+    }
+  }
+}

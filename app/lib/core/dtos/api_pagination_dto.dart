@@ -10,11 +10,7 @@ abstract class ApiPaginationDto with _$ApiPaginationDto {
     @JsonKey(name: 'next_cursor') String? nextCursor,
   }) = _ApiPaginationDto;
 
-  factory ApiPaginationDto.fromJson(Map<String, Object?> json) =>
-      _$ApiPaginationDtoFromJson(json);
+  factory ApiPaginationDto.fromJson(Map<String, Object?> json) => _$ApiPaginationDtoFromJson(json);
 
-  factory ApiPaginationDto.fixture() => const ApiPaginationDto(
-    hasMore: true,
-    nextCursor: 'next-feed-cursor',
-  );
+  factory ApiPaginationDto.fixture() => const ApiPaginationDto(hasMore: true, nextCursor: 'next-feed-cursor');
 }

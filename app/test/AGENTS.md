@@ -41,6 +41,8 @@ testWidgets('when the API fails, it should show error', (tester) async {
 
 This keeps tests DRY while making deviations explicit and easy to spot.
 
+When many tests in a group need the same mock setup (e.g., a shared `setBool` stub), put it in `setUp`. Do not repeat the same `when` in every individual test — that's noise.
+
 ## 4. Helper Organization — No Top-Level Functions
 
 Helper code (fixture builders, pump helpers, app wrappers, cleanup) must not be top-level functions. Organize them in one of two ways:
@@ -157,7 +159,7 @@ Tests must never assert on hardcoded Portuguese string literals that are transla
 Build the `Translations` instance once per test file and name the variable `i18n` (per `app/AGENTS.md`):
 
 ```dart
-import 'package:cataqui_app/i18n/strings.g.dart';
+import 'package:locale/locale.dart';
 
 late Translations i18n;
 
@@ -189,3 +191,69 @@ expect(result, equals('A Combinar'));
 ### Exception: Parameterized Template Fragments
 
 Some translation values are parameterized templates (e.g. `paymentRangeUpTo`, `"Até {value}{period}"`). A test that checks for a fragment of the template (like `'Até'`) where no standalone translation key exists may remain hardcoded with a clarifying comment. Resolving this properly requires adding a new key to the JSON (a source-side change).
+
+## 10. Package Mocks — Verify the Call, Trust the Package
+
+When testing code that delegates to a package/library (e.g. `OmfWhatsapp.launchChat`,
+`OmfTelephony.call`, `url_launcher.launchUrl`), the test's responsibility is only
+to verify that the package method was called with the correct arguments. **Do not**
+re-test the package's own behavior (URI construction, platform channel communication,
+return values).
+
+```dart
+// Mock the package class in test/mocks.dart
+class MockOmfWhatsapp extends Mock implements OmfWhatsapp {}
+
+// In the test, inject via provider override:
+when(() => whatsapp.launchChat(number: any(named: 'number')))
+    .thenAnswer((_) async => true);
+
+// Then verify the call:
+verify(() => whatsapp.launchChat(number: '+5511999999999')).called(1);
+```
+
+- The stub must return a realistic default (`thenAnswer((_) async => true)` for
+  `Future<bool>` methods) so the calling code's control flow can complete.
+- `verify` checks the arguments passed to the package method — nothing more.
+- Use `verifyNever` to confirm a method was NOT called in error/failure paths.
+- Always define package mock classes in `test/mocks.dart`, not inline in test
+  files.
+
+## 11. Prefer `find.byKey` Over `find.text`
+
+Always access widgets via `find.byKey` instead of `find.text`. Key-based lookups
+are more robust: they don't break when translation copy changes, are immune to
+duplicate strings, and make the test's intent explicit. If the widget under test
+doesn't have a `Key`, add one via `ValueKey` — the small production-code change
+is worth the test stability.
+
+```dart
+// ❌ Fragile — breaks when copy changes, ambiguous with duplicates
+await tester.tap(find.text(i18n.job.contactButton.whatsapp));
+expect(find.text(i18n.job.contactButton.unknown), findsOneWidget);
+
+// ✅ Robust — survives copy changes, unambiguous
+await tester.tap(find.byKey(const ValueKey('job_contact_whatsapp')));
+expect(find.byKey(const ValueKey('job_contact_unknown')), findsOneWidget);
+```
+
+### When to Use Each
+
+| Use `find.byKey` for                    | Use `find.text` for                                 |
+| --------------------------------------- | --------------------------------------------------- |
+| User-interaction points (taps, scrolls) | Content validation (is the right text showing?)     |
+| Verifying widget presence/absence       | Verifying dynamic or API-driven content values      |
+| Navigation targets                      | Fixture data assertions (with `copyWith` overrides) |
+
+### Key Naming Convention
+
+Use `snake_case` prefixed with the widget's domain:
+
+```dart
+const ValueKey('job_contact_whatsapp')
+const ValueKey('feed_job_card_title')
+const ValueKey('job_detail_back_button')
+```
+
+Keys are just for identification — namespace them by feature to avoid collisions.
+Do not use i18n strings or user-facing text as key values.

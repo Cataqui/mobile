@@ -1,48 +1,39 @@
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
-import 'package:cataqui_app/views/feed/feed_view.dart';
+import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:qui/qui.dart';
-
-final _routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
-    initialLocation: '/',
-    routes: [GoRoute(path: '/', builder: (context, state) => const FeedView())],
-  );
-});
+import 'package:locale/locale.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 class CataquiApp extends ConsumerWidget {
   const CataquiApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(_routerProvider);
+    final goRouter = ref.watch(goRouterProvider);
     final i18n = ref.watch(translationProvider);
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarDividerColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.dark,
-        systemNavigationBarContrastEnforced: false,
-        systemStatusBarContrastEnforced: false,
+    return MateoApp.router(
+      title: i18n.app.name,
+      color: (primary: const Color(0xFFFF4A4B), onPrimary: const Color(0xFFFFFFFF)),
+      routerConfig: goRouter,
+      locale: Locale.fromSubtags(
+        languageCode: i18n.$meta.locale.languageCode,
+        scriptCode: i18n.$meta.locale.scriptCode,
+        countryCode: i18n.$meta.locale.countryCode,
       ),
-      child: MaterialApp.router(
-        title: i18n.app.name,
-        routerConfig: router,
-        theme: QuiTheme.light(primaryColor: const Color(0xFFFF4A4B)),
-        locale: i18n.$meta.locale.flutterLocale,
-        supportedLocales: AppLocaleUtils.supportedLocales,
-        localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        debugShowCheckedModeBanner: false,
+      supportedLocales: AppLocaleUtils.instance.locales.map(
+        (locale) => Locale.fromSubtags(
+          languageCode: locale.languageCode,
+          scriptCode: locale.scriptCode,
+          countryCode: locale.countryCode,
+        ),
       ),
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      builder: (context, child) {
+        return AppAnimatedSplash(child: child ?? const SizedBox.shrink());
+      },
     );
   }
 }

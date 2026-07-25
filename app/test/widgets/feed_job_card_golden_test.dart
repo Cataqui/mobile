@@ -1,6 +1,6 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/widgets/feed_job_card.dart';
+import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,10 +16,7 @@ void main() {
       builder: () => withClock(
         _fixedClock,
         () => ProviderScope(
-          child: SizedBox(
-            width: 360,
-            child: FeedJobCard(feedJob: FeedJobDto.fixture(), onTap: () async {}),
-          ),
+          child: SizedBox(width: 360, child: FeedJobCard(feedJob: FeedJobDto.fixture())),
         ),
       ),
     );
@@ -36,7 +33,6 @@ void main() {
               feedJob: FeedJobDto.fixture().copyWith(
                 title: 'Preciso de um ajudante muito experiente para descarregar caminhão pesado amanhã cedo',
               ),
-              onTap: () async {},
             ),
           ),
         ),
@@ -53,9 +49,9 @@ void main() {
             width: 360,
             child: FeedJobCard(
               feedJob: FeedJobDto.fixture().copyWith(
-                descriptionSummary: 'Preciso de um ajudante muito experiente para descarregar caminhão pesado amanhã cedo. Precisa ter força e disposição. O pagamento é por dia e o trabalho é pesado.',
+                descriptionSummary:
+                    'Preciso de um ajudante muito experiente para descarregar caminhão pesado amanhã cedo. Precisa ter força e disposição. O pagamento é por dia e o trabalho é pesado.',
               ),
-              onTap: () async {},
             ),
           ),
         ),
@@ -72,7 +68,7 @@ void main() {
             width: 360,
             child: Align(
               alignment: Alignment.topCenter,
-              child: FeedJobCard(feedJob: FeedJobDto.fixture(), onTap: () async {}),
+              child: FeedJobCard(feedJob: FeedJobDto.fixture()),
             ),
           ),
         ),
@@ -90,11 +86,7 @@ void main() {
             child: Align(
               alignment: Alignment.topCenter,
               child: FeedJobCard(
-                feedJob: FeedJobDto.fixture().copyWith(
-                  title: 'Ajudante',
-                  descriptionSummary: 'Rápido.',
-                ),
-                onTap: () async {},
+                feedJob: FeedJobDto.fixture().copyWith(title: 'Ajudante', descriptionSummary: 'Rápido.'),
               ),
             ),
           ),

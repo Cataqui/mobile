@@ -1,17 +1,18 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
-import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
-import 'package:cataqui_app/widgets/feed_job_card.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qui/qui.dart';
+import 'package:locale/locale.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 import '../utils/test_app.dart';
+import '../views/job/job_view_test_helpers.dart';
 
 FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionSummary}) {
   return FeedJobDto(
@@ -58,13 +59,13 @@ void main() {
   group('FeedJobCard', () {
     group('rendering', () {
       testWidgets('when created with a job, it should display the title', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         expect(find.text('Garçom para Fim de Semana'), findsOneWidget);
       });
 
       testWidgets('when created with a job, it should display the payment', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         expect(find.textContaining(r'R$'), findsOneWidget);
         expect(find.textContaining('120'), findsOneWidget);
@@ -72,22 +73,21 @@ void main() {
       });
 
       testWidgets('when created with a job, it should display the description', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         expect(find.text('Experiente em atendimento ao cliente.'), findsOneWidget);
       });
 
       testWidgets('when created, the card should have 38px border radius', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
-        final container = tester.widget<Container>(find.byType(Container).first);
-        final decoration = container.decoration! as BoxDecoration;
+        final decoratedBox = tester.widget<DecoratedBox>(find.byType(DecoratedBox).first);
 
-        expect(decoration.borderRadius, equals(BorderRadius.circular(38)));
+        expect((decoratedBox.decoration as BoxDecoration).borderRadius, equals(BorderRadius.circular(38)));
       });
 
       testWidgets('when created, the title should use semi-bold weight', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -95,7 +95,7 @@ void main() {
       });
 
       testWidgets('when created, the title should use 22px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -103,7 +103,7 @@ void main() {
       });
 
       testWidgets('when created, the payment should use 25px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
@@ -111,17 +111,17 @@ void main() {
         expect(text.style!.fontSize, equals(25));
       });
 
-      testWidgets('when created, the payment should use money color', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+      testWidgets('when created, the payment should use the accessible pay text color', (tester) async {
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
 
-        expect(text.style!.color, equals(const Color(0xFF00DD55)));
+        expect(text.style!.color, equals(MateoColorScheme.light().text.profit));
       });
 
       testWidgets('when created, the description should use 15.7px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -129,15 +129,16 @@ void main() {
       });
 
       testWidgets('when created, the description should use secondary text color', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
+        final context = tester.element(find.byType(FeedJobCard));
 
-        expect(text.style!.color, equals(const QuiColors.light().textSecondary));
+        expect(text.style!.color, equals(context.mateo.colorScheme.text.secondary));
       });
 
       testWidgets('when created, the title should be limited to 2 lines', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -145,7 +146,7 @@ void main() {
       });
 
       testWidgets('when created, the title should use ellipsis overflow', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -153,7 +154,7 @@ void main() {
       });
 
       testWidgets('when created, the description should be limited to 3 lines', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -161,7 +162,7 @@ void main() {
       });
 
       testWidgets('when created, the description should use ellipsis overflow', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: () async {})));
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -175,14 +176,7 @@ void main() {
         final fixedNow = createdAt.add(const Duration(hours: 20));
 
         await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(
-            _wrap(
-              FeedJobCard(
-                feedJob: _fixture().copyWith(createdAt: createdAt),
-                onTap: () async {},
-              ),
-            ),
-          );
+          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt))));
 
           expect(find.text(i18n.feedJob.timeAgo.hours(count: 20)), findsOneWidget);
         });
@@ -193,33 +187,49 @@ void main() {
         final fixedNow = createdAt.add(const Duration(days: 1));
 
         await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(
-            _wrap(
-              FeedJobCard(
-                feedJob: _fixture().copyWith(createdAt: createdAt),
-                onTap: () async {},
-              ),
-            ),
-          );
+          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt))));
 
           expect(find.text(i18n.feedJob.timeAgo.days(count: 1)), findsOneWidget);
         });
       });
     });
 
-    group('interaction', () {
-      testWidgets('when the card is tapped, it should call onTap', (tester) async {
-        var tapCount = 0;
-        Future<void> onTap() async {
-          tapCount += 1;
-        }
+    group('hero keys', () {
+      test('when generating the background hero key, it should return the expected tag format', () {
+        expect(FeedJobCard.backgroundHeroKey('job_123'), 'job-job_123-surface');
+      });
 
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture(), onTap: onTap)));
+      test('when generating the header hero key, it should return the expected tag format', () {
+        expect(FeedJobCard.headerHeroKey('job_123'), 'job-job_123-header');
+      });
 
-        await tester.tap(find.text('Garçom para Fim de Semana'));
-        await tester.pumpAndSettle();
+      test('when generating hero keys for the same job, the background and header keys should differ', () {
+        expect(FeedJobCard.backgroundHeroKey('job_123'), isNot(FeedJobCard.headerHeroKey('job_123')));
+      });
+    });
 
-        expect(tapCount, equals(1));
+    group('cross-widget consistency', () {
+      testWidgets('when FeedJobCard and JobView reference the same job, it should use matching hero tags', (
+        tester,
+      ) async {
+        const jobId = 'job_123';
+
+        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(jobId: jobId))));
+        final cardBackgroundTag = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground)).tag;
+        final cardHeaderTag = tester.widget<MateoHeroGroup>(find.byType(MateoHeroGroup)).tag;
+
+        await tester.pumpWidget(const SizedBox());
+
+        await JobViewTestHelpers.pumpJobView(
+          tester: tester,
+          feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
+          jobState: JobViewTestHelpers.loadingState(),
+        );
+        final viewBackgroundTag = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground)).tag;
+        final viewHeaderTag = tester.widget<MateoHeroGroup>(find.byType(MateoHeroGroup)).tag;
+
+        expect(viewBackgroundTag, equals(cardBackgroundTag));
+        expect(viewHeaderTag, equals(cardHeaderTag));
       });
     });
   });

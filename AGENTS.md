@@ -2,19 +2,19 @@
 
 ## 0. Mission & Core Philosophy
 
-You are operating within the **Cataquí Mobile Repository**, a high-performance Mobile App Monorepo built using Flutter and Dart.
+You are operating within the **Cataquí Mobile Repository**, a high-performance Flutter workspace.
 
 Cataquí is the real-time opportunity layer of the city: a fast, frictionless, hyperlocal feed for quick jobs, side hustles, informal work, and temporary tasks.
 
 ### The Core Product Promise
 
-> Open Cataquí and immediately see real opportunities happening near you right now.
+> Open Cataquí and immediately see real work opportunities happening near you right now.
 
 ### Core Visual & Experience Anchors
 
 - **Ultralight & Fast:** Zero lag, instantaneous feed updates, smooth 60/120fps scrolling.
-- **Hyperlocal:** Geographically sorted, contextualized for the streets of São Paulo.
-- **Frictionless Loop:** Post an opportunity $\rightarrow$ Discover in feed $\rightarrow$ Tap Direct WhatsApp Contact.
+- **Hyperlocal:** Geographically sorted, contextualized for each region.
+- **Frictionless Loop:** Post an opportunity $\rightarrow$ Discover in feed $\rightarrow$ Tap Contact.
 - **Non-Corporate Brand:** Feels trustworthy, authentic, local, and premium—never look or behave like enterprise HR software, staffing ERPs, or corporate applicant tracking systems (ATS).
 - **Mass-Market by Default:** Cataquí is built for the masses — every line of code must prioritize broad device coverage across Latin America, where low-end devices dominate. Every architectural decision, dependency, animation, layout, and feature must be optimized to run well on low-end hardware, not just flagship phones. If a feature cannot be delivered performantly on low-end devices, it must be rethought or cut.
 
@@ -22,41 +22,51 @@ Cataquí is the real-time opportunity layer of the city: a fast, frictionless, h
 
 ## 1. Technical Stack & Environment
 
-This repository is structured as a **Mobile App Monorepo** containing core applications and modularized, domain-isolated Dart/Flutter packages for mobile apps.
+This repository is structured as a **Flutter workspace** using melos:
+
+- Packages live at `packages/` folder
+- App live at `app/` folder
 
 ### Environment & Tooling
 
 - **Flutter Version Management:** Managed exclusively via **fvm** (`https://fvm.dev/`). Do **NOT** use global untracked Flutter installations.
 - **Determinism Rule:** The `pubspec.lock` file is the absolute source of truth for dependencies. **Never** add `pubspec.lock` to `.gitignore`. It must be committed on every dependency alteration to guarantee identical builds across all agent environments and the CI pipeline.
 - **SDK Constraints:** Always respect the minimum Flutter/Dart SDK constraints declared in `pubspec.yaml`.
-- **Environment Variables:** Keep local runtime configuration in the root
-  `.env` file, using `.env.example` as the committed template. The app reads
-  `ENVIRONMENT` and `CATAQUI_API_URL` through Envied-generated Dart code.
-  Regenerate code after changing `.env` values.
+- **Environment Variables:** Keep local runtime configuration in the root `.env` file, using `.env.example` as the committed template. The app reads the values through Envied-generated Dart code. Code must be generated after changing values. Optional Fastlane values in the same template are only for local signing and release administration.
+- **Startup Splash:** Keep essential asynchronous startup work in `AppBootstrap.setup()` so the native splash remains visible until bootstrap completes.
 
 ### Architecture & Frameworks
 
 - **State Management:** **Riverpod** (preferring code-generation workflows via `@riverpod`).
-- **Networking Layer:** **Dio** (configured with explicit interceptors for standardized error handling and clean timeout controls).
-- **Local Persistence:** High-performance local cache engine (e.g., Isar/Hive) used for offline-first geographic feed continuity.
+- **Networking Layer:** **Dio** (configured with explicit interceptors).
+
+### Design System
+
+- Cataquí uses [Mateo](https://github.com/Ventairy/mateo/tree/main/design-system) as its design system. When implementing any UI, always refer to Mateo for design guidelines and reusable components. When needing a component that doesn't exist in the design system yet, instead of re-creating it locally, analyse if it could be added to the design system and propose a new component by opening an [issue](https://github.com/Ventairy/mateo/issues). Components too specific to Cataquí context should not be proposed, only reusable components that can be useful for other apps
 
 ---
 
-## 2. Monorepo Guardrails & Package Rules
+## 2. Workspace Guardrails & Package Rules
 
-To maintain absolute structural health across the monorepo, follow these modularization rules:
+To maintain absolute structural health across the workspace, follow these modularization rules:
 
-- **Domain Isolation:** Code within local packages must communicate across boundaries using clean, explicit public APIs. Do not leak internal implementation layers.
-- **Reusable UI Elements (`qui`):** All UI elements that can be reused further must live in a package called `qui`, which stands for Cataquí UI.
-- **Local Dependencies:** Declare cross-package dependencies inside `pubspec.yaml` using exact relative paths:
+- **Packages** should always live at `packages/`, when implementing something think if it fits better to be a package or an internal app thing. Prefer to create packages when it's stuff that later could be decoupled from this repo and become an standalone package to be implemented in other apps and repositories
+
+- **Release Tooling:** `packages/release` is a package for internal tooling related to releasing the app. Keep all release logic in this package.
+
+- **Locales:** `packages/locale` owns the shared locale catalog and generated
+  translation API consumed by both the app and release tooling. Add languages
+  there so supported app and store locales remain one source of truth.
+
+- **Future Internal Packages:** If internal packages are added to this repository, add each package explicitly to the root `pubspec.yaml` workspace list and use exact relative paths from the consuming package:
 
 ```yaml
 dependencies:
-  oh_my_flutter:
-    path: ../oh_my_flutter
+  cataqui_internal:
+    path: ../cataqui_internal
 ```
 
-- **Task Orchestration:** Always execute tasks using the workspace's designated monorepo tool (e.g., **Melos** or specific workspace scripts) when performing multi-package operations.
+- **Task Orchestration:** Always execute tasks using the workspace's designated tool (e.g., **Melos** or specific workspace scripts) when performing multi-member operations.
 
 ---
 
@@ -68,6 +78,17 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 - **Bad:** `final p = await repo.find(id);`
 - **Good:** `final post = await _postsRepository.findById(postId: postId);`
+
+### Function Names Must Match Their Behavior
+
+- A function's name, responsibility, and return value must describe the same operation. Never name a function after
+  one action while returning the result of another.
+- Verification functions only verify. A function named `verify...` must return `void` or `Future<void>` and throw
+  when verification fails; it must not also retrieve or return data.
+- Functions that return values must be named for the value-producing operation, such as `read...`, `get...`,
+  `find...`, `create...`, or `parse...`.
+- Keep verification and value retrieval as separate operations. This preserves single responsibility and makes call
+  sites honest about what the code does.
 
 ### Strong Type Safety
 
@@ -82,7 +103,8 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 ### Enums Over Constant Objects
 
 - Prefer Dart `enum` structures over arbitrary `const` objects or magic strings for state variations, domain constants, and error codes. Use switches over enums to guarantee compile-time exhaustiveness.
-- Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `qui_text_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
+- Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `app_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
+- **Enum-owning logic over static helpers:** When logic is determined solely by an enum value (color resolution, label text, icon selection, etc.), put the getter or method on the enum itself rather than writing a static function on an implementation class. This keeps the resolution logic with the value that drives it, makes it discoverable from any call site via `myValue.method()`, and eliminates duplicate switch statements across consumers. The enum member is the single source of truth for its own behavior.
 
 ### Exhaustive Switch Over Enums
 
@@ -99,7 +121,7 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 ### One Implementation Class Per File
 
-Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. The only exception is Flutter `StatefulWidget` / `ConsumerStatefulWidget` pairs: the main widget class and its private `_*State` class must always stay in the same file. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established `qui_location_radius_map` folder structure.
+Every source file must contain **at most one** implementation class (a class with fields, methods, or widget logic). Pure value classes (`const` constructors, no logic) may coexist in the same file as their primary consumer if they have no implementation of their own. The only exception is Flutter `StatefulWidget` / `ConsumerStatefulWidget` pairs: the main widget class and its private `_*State` class must always stay in the same file. Files that grow beyond this limit must be split using same-directory `part` files with the `part of` directive, following the established grouped-widget folder structure.
 
 ### No Top-Level Functions
 
@@ -116,21 +138,123 @@ Pure utility functions (formatting, measurement, computation) must live as
 `static` methods on the class that owns the domain they serve — typically the
 widget or model that produces or consumes the data.
 
+- **Do not mark a helper `static` if its only caller is an instance method.**
+  A function should only be `static` when it is called from multiple contexts
+  or has no logical tie to instance state. If an instance method is the sole
+  caller, make it an instance private method instead — this keeps the calling
+  convention consistent and avoids the `static` keyword as a ceremonial
+  ceremony that adds no value.
+
 ### Constants Local to Widgets
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
+- **Name your math:** When combining numbers in an expression where each operand's meaning is not immediately obvious (e.g. `width - 30 - 12 - 14 - 26`), extract each operand into a named constant so the expression reads as intent. Simple standalone values like `padding: 24` do not need extraction — the position tells you what the number means.
+- **Linked layout constants:** When a calculation depends on a layout value defined elsewhere (padding, icon size, gap, etc.), store the shared value as a constant and reference it in both locations. This guarantees the two sites can never drift apart and makes the dependency explicit to readers.
 
 ### Shared Constants Across Files
 
-- **Never** duplicate the same logical value as independent variables in separate files. When a value (size, duration, threshold, etc.) is shared across files, define it once as a **static const** on the class that owns the domain (e.g. `_QuiTikTokFeedLoadingIndicator.indicatorSize`), and reference it everywhere the value is needed.
+- **Never** duplicate the same logical value as independent variables in separate files. When a value (size, duration, threshold, etc.) is shared across files, define it once as a **static const** on the class that owns the domain (e.g. `FeedView.indicatorSize`), and reference it everywhere the value is needed.
 - Never use top-level constants (`const double myConstant = ...`) for shared values — they pollute the library namespace and bypass the owning class. Always put the constant as a `static const` member on the relevant class.
 - When you encounter a value that already exists in two or more places, extract it into a single shared `static const` and create a test that verifies all consumers reference the same shared constant. This prevents silent desync when the value is updated in only one location.
 
 ### Component Architecture (UI Layer)
 
-- **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility `ConsumerWidget` or `HookConsumerWidget` components.
+- **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility components.
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
-- **Widget Method Ordering:** In Flutter widget classes, place helper methods that do not return widgets above `build`. Helper methods that return widgets must stay below `build`.
+
+### Method Ordering Within Classes
+
+Every class must follow a consistent top-to-bottom method ordering so that related concerns are easy to find.
+
+#### General Classes (Non-Widgets)
+
+1. **Constructor fields** — `final` instance fields initialized via `this.xxx` in the constructor. List public fields first, then private fields. These are the class's primary inputs.
+2. **Static public members** — `static` fields and methods usable by external callers.
+3. **Static private members** — `static` helpers scoped to the class.
+4. **Instance fields (non-constructor)** — `final`/`var` fields with inline initializers (`final name = defaultValue`). These are secondary state, not primary inputs.
+5. **Instance public methods** — public instance methods (including getters and setters) that do not override a superclass member.
+6. **Instance private methods** — private instance methods (including getters and setters) that do not override a superclass member.
+7. **Overrides** — `@override` methods (lifecycle, operator overloads, interface implementations).
+
+#### Widget Classes (StatefulWidget + State, StatelessWidget, ConsumerWidget, etc.)
+
+1. **Constructor** — the widget's constructor.
+2. **Static public members** — `static const` fields, `static` methods (including those returning Widget).
+3. **Static private members** — `static const` private fields, `static` methods (including those returning Widget).
+4. **Instance public fields** — `final`/`var` public fields (rare in widgets).
+5. **Overrides** — `@override` methods in this exact order:
+   - `createState()` (StatefulWidget only)
+   - `didChangeDependencies()` (State only)
+   - `didUpdateWidget()` (State only)
+   - `dispose()` (State only)
+   - `build()` / `build(BuildContext)` (always the last override)
+6. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
+7. **Private helper functions** — `_doSomething()` methods that return non-Widget values.
+8. **Public helper functions** — public instance methods that return non-Widget values (rare).
+
+#### State Classes
+
+For `State<T>` subclasses the ordering above is adjusted so
+private helpers are discovered before the lifecycle methods they
+serve:
+
+1. **Static public members**
+2. **Static private members**
+3. **Instance public fields** (must be `@visibleForTesting`; otherwise keep `private`)
+4. **Instance private fields**
+5. **Private helper functions** — `_doSomething()` methods that return non‑Widget values, ordered from most generic to most specific.
+6. **Overrides** — `@override` methods in this exact order:
+   - `initState()`
+   - `didChangeDependencies()`
+   - `didUpdateWidget()`
+   - `dispose()`
+   - lifecycle observer overrides (e.g. `didChangeAppLifecycleState`)
+   - `build()` / `build(BuildContext)` — always the last override
+7. **Private builder functions** — `_buildFoo()` methods that return Widget, called from `build()`.
+8. **Public helper functions** — do **not** exist in a `State` class.
+
+### Universal Extensions (One Per Type)
+
+Extensions on a given type must live in a single shared file, not in dedicated
+per-feature files. This avoids scattering multiple `extension on X` declarations
+across the codebase and keeps the import surface minimal.
+
+Apply this to every extension type: `WidgetExtension`, `StringExtension`,
+`ColorExtension`, `BuildContextExtension`, and so on.
+
+```dart
+// Good — one extension per type, all methods on that type live together:
+extension WidgetExtension on Widget {
+  Widget skeleton({bool enabled = true, bool shimmer = true}) { ... }
+  Widget fadeIn(...) { ... }
+}
+
+// Avoid — multiple per-feature extensions on the same type:
+extension SkeletonExtension on Widget { Widget skeleton() { ... } }
+extension FadeInExtension on Widget { Widget fadeIn() { ... } }
+```
+
+### Subdirectory Per File Group
+
+Whenever a set of files is related to a single primary subject (e.g., a widget split into `HeroBox` and `_HeroBoxContent`, or a class with separate `_types`, `_enums`, or `_providers` files), **all related files must be placed under a dedicated subdirectory** named after the primary subject — even if a broader parent folder already exists.
+
+For example, instead of:
+
+```
+hero/
+  hero_box.dart
+  hero_box_content.dart
+```
+
+place files under:
+
+```
+hero/hero_box/
+  hero_box.dart
+  hero_box_content.dart
+```
+
+This rule applies to any group of companion files: main implementation, private sub-widgets, enums, types, providers, tests, and golden test scenarios. Use a flat file layout only when a folder contains exactly one self-contained subject file with no companion files.
 
 ### Early Returns Over if/else
 
@@ -141,7 +265,7 @@ widget or model that produces or consumes the data.
 ```dart
 // Good — guard returns early, main path is flat
 void _resumeOrSkipTransition() {
-  if (_phase == QuiWidgetTransitionPhase.idle) return;
+  if (_phase == WidgetTransitionPhase.idle) return;
   if (_isDisabled) {
     _skipToIdle();
     return;
@@ -153,7 +277,7 @@ void _resumeOrSkipTransition() {
 ```dart
 // Avoid — else adds unnecessary nesting
 void _resumeOrSkipTransition() {
-  if (_phase != QuiWidgetTransitionPhase.idle) {
+  if (_phase != WidgetTransitionPhase.idle) {
     if (_isDisabled) {
       _skipToIdle();
     } else {
@@ -162,6 +286,20 @@ void _resumeOrSkipTransition() {
   }
 }
 ```
+
+### Color Scheme: Always Use Design-System Tokens
+
+**Never hardcode color values** (`Colors.blue`, `Color(0xFF...`) in widget code, tests, or any UI layer. Resolve colors from the active design-system theme:
+
+- **Semantic colors:** Prefer semantic roles such as background, primary text, borders, and component states.
+- **Raw palette:** Use raw palette steps only when no semantic token exists.
+- **Import:** Use the design system's public package entrypoint.
+
+### Dart Documentation
+
+- **Public API requires Dart doc.** Every declaration visible outside its library (public classes, public members, public typedefs, top-level constants) must have a `///` doc comment explaining what it does, when to use it, and what callers must know.
+- **Internal code does not need Dart doc.** Private declarations (`_`-prefixed), library-internal declarations (in packages, anything not exported via `library` or `export`), and any symbol that cannot be reached from outside its owning file or package does not require a doc comment. The code itself — clear naming, strong types, small functions — is the documentation.
+- When in doubt about whether something is public API, check whether it is exported by the package's main barrel file or referenced in another package's imports. If it is not reachable from outside, treat it as internal and skip the doc comment.
 
 ---
 
@@ -173,7 +311,10 @@ Untested business logic is considered broken code.
 
 All testing, analysis, and build routines must run within the **fvm** environment wrapper.
 
-- **Run Tests:** `melos test` — interactive package selection, runs tests with per-package coverage HTML report
+- **Run Tests:** `melos test` — run tests with coverage for the selected
+  workspace members. The default first selection runs all members.
+- **Format Code:** `melos format` — format every workspace member
+  automatically; do not maintain a manual path list.
 - **Analyze Code:** `melos analyze`
 
 ### Strict Regression Rule
@@ -202,6 +343,12 @@ coverage in shared catch-all test files; place tests in a path that mirrors the
 source owner, for example `lib/src/extensions/color_extension.dart` maps to
 `test/extensions/color_extension_test.dart`.
 
+**Hard rule:** Tests for a given source file must always live in the test file
+that mirrors it. e.g Never place tests for `color_extension.dart` in
+`omf_oklch_test.dart` or any other file. If a source file adds a new public
+method, the test for that method goes in the existing corresponding test file —
+never in a different file.
+
 ### DTO Fixture Tests Must Override Under Test
 
 When a test uses `XxxDto.fixture()` and asserts on a specific field, it **must**
@@ -225,6 +372,26 @@ test('when parsing a feed job, it should map the title', () {
   expect(job.title, 'Descarregar Caminhão');
 });
 ```
+
+### Relative-Time Tests Must Pin Time
+
+Any test that renders or asserts relative time text (for example, `3h atrás`,
+`1 dia atrás`, `X time ago`, or any value derived from `DateTime.now()`,
+`clock.now()`, or elapsed durations) must pin both sides of the calculation:
+
+- Pin the current time with `package:clock` or the existing project test helper.
+- Set fixture dates explicitly relative to that fixed instant, instead of
+  relying on fixture defaults or the real current date.
+- For Alchemist golden tests, ensure the fixed clock is active during the actual
+  pump/render step (`pumpWidget`, `pumpBeforeTest`, and any interaction such as
+  scroll or drag), not only while constructing the widget. Alchemist may build
+  or repaint later than the `builder` callback.
+- Never approve golden changes caused only by calendar time passing. Fix the
+  clock/date setup first, then regenerate goldens only if the stable output is
+  intentionally different.
+
+This prevents tests from breaking as days pass and keeps visual baselines
+deterministic.
 
 ### One Assertion Per Test Case
 
@@ -273,8 +440,7 @@ visual regression guard.
   `dev_dependency`, create `test/flutter_test_config.dart`, configure
   `AlchemistConfig` with the app/package theme, and commit the generated CI
   goldens.
-- Configure `AlchemistConfig` so package-specific tokens resolve correctly
-  (for example, `qui` uses `QuiTheme.light(primaryColor: ...)`).
+- Configure `AlchemistConfig` so package-specific tokens resolve correctly.
 - Each widget or screen must have a dedicated golden test file:
   `test/widgets/<widget_name>_golden_test.dart` or
   `test/screens/<screen_name>_golden_test.dart`.
@@ -283,10 +449,10 @@ visual regression guard.
   variant).
 - CI goldens (`test/**/goldens/ci/`) are committed to source control.
   Platform goldens (`test/**/goldens/macos/`, etc.) are gitignored.
-- Run `melos goldens:update` (asks which package) or `melos goldens:update:all`
-  (all packages) from the repository root to regenerate after
-  intentional visual changes. The script filters to packages with
-  `dart_test.yaml` and prompts for package selection like `melos test`.
+- Run `melos goldens:update` from the repository root to regenerate after
+  intentional visual changes. The script filters to workspace members with
+  `dart_test.yaml` and prompts for package selection like `melos test`; the
+  default first selection runs all eligible members.
   Review the diff before committing.
 - Golden tests do not replace unit tests for non-visual logic. They
   complement them.
@@ -314,14 +480,24 @@ descriptions should understand how the app behaves without reading the test body
   actions and the resulting state so a failing test name is immediately
   actionable.
 - **Good:** `when on the last card while loading more, after swiping up to enter
-  the waiting scale then swiping back down to exit, swiping down again navigates
-  to the previous card`
+the waiting scale then swiping back down to exit, swiping down again navigates
+to the previous card`
 - **Bad:** `when exiting await and swiping down again, it should navigate to the
-  previous item instead of re-entering await` (uses internal state terms like
+previous item instead of re-entering await` (uses internal state terms like
   "await" and "re-entering")
 - **Bad:** `when rendering state after exiting from await, it should match the
-  approved goldens` (does not describe what the user sees)
+approved goldens` (does not describe what the user sees)
 - This applies to **all** test types: unit, widget, golden, integration.
+
+### Prefer `pumpAndSettle` Over `pump`
+
+In widget and golden tests, use `pumpAndSettle` over `pump` unless only `pump` is needed (e.g., asserting in-progress animation state, or avoiding infinite pump loops). `pumpAndSettle` waits for all animations, timers, and microtasks to complete, producing more realistic test frames and reducing flakiness from un-settled widget states.
+
+### Always `pumpAndSettle` After `pumpWidget`
+
+Always call `pumpAndSettle` immediately after `pumpWidget` before performing any action (taps, scrolls, assertions). The `pumpWidget` call only creates the initial frame; `pumpAndSettle` ensures all microtasks, timers, and animations have fully resolved before the test interacts with the widget tree. Skipping this step leads to flaky tests where widgets appear loading instead of their settled state.
+
+**Exception:** When the widget intentionally shows an infinite loading state (e.g., `AsyncLoading` with a never-completing `Completer`), use a single `pump()` instead of `pumpAndSettle` to avoid the framework timing out waiting for the state to settle.
 
 ---
 
@@ -358,7 +534,7 @@ Always adopt the direct, real-world vernacular of the street. Explicitly exclude
 When executing modifications inside this repository as an AI agent, you must strictly comply with the following behavior rules:
 
 1.  **Context Enforcement:** This file takes absolute precedence over generic coding preferences, standard global LLM training defaults, or speculative architectural habits.
-2.  **Sub-AGENTS.md Precedence:** Each repo, package, or product directory in this monorepo (e.g., `app/`, `qui/`, `oh_my_flutter/`) has its own `AGENTS.md`. Their rules **always prevail** over any colliding rule in this root `AGENTS.md`.
+2.  **Sub-AGENTS.md Precedence:** Each repo, package, or product directory in this monorepo (e.g., `app/`) has its own `AGENTS.md`. Their rules **always prevail** over any colliding rule in this root `AGENTS.md`.
 3.  **No Dead Code:** Do not leave commented-out blocks of logic, unused imports, experimental features, or speculative abstractions behind. Every single line of code must serve the immediate objective.
 4.  **Dependency Lockdown:** Do not add external third-party pub packages unless explicitly instructed. Lean heavily on native Flutter/Dart capabilities and the repository's existing technical stack.
 5.  **No Silent Contracts:** Never modify, rename, or delete public API boundaries, core Riverpod provider definitions, or common data model interfaces without analyzing downstream impacts across the entire monorepo workspace.
@@ -366,3 +542,18 @@ When executing modifications inside this repository as an AI agent, you must str
 7.  **README Sync:** The `README.md` at the project root is the authoritative source of project requirements (prerequisites, setup, scripts). Whenever you modify tooling, dependencies, setup steps, or any requirement that affects onboarding, you **must** update both `README.md` and `AGENTS.md` to stay in sync.
 8.  **Low-End Device Gate:** Before implementing any request from the human, analyze whether the proposed solution will work performantly on low-end devices (2-4GB RAM, older SoCs, 60Hz displays common in Latin America). If the approach would only work well on high-end flagship devices, **stop** and warn the human explicitly, explaining why it fails on low-end hardware and suggesting alternatives. Every feature must work well on low-end devices first — top-end device support is a baseline, not a ceiling.
 9.  **Revert on Failed Fix:** If a bug-fix attempt changes production code and the fix does not resolve the issue (tests still fail, behavior unchanged, or new failures introduced), revert all changes from that attempt immediately before trying a different approach. Never leave speculative, non-working, or partially-applied changes in the codebase — they are dead code that can introduce new bugs or confuse future readers.
+10. **Debug Before Fixing:** When the root cause of a bug is not immediately clear, do not attempt a speculative fix. Instead, first work with the human to understand the environment and reproduce the issue. Add diagnostic logging (`debugPrint`, `log`, or similar) to the relevant code paths, then ask the human to run the app, reproduce the bug, and share the log output. Only propose a fix after the logs have revealed the actual cause. This applies even when you think you know the fix — if you cannot explain the root cause with evidence, you are guessing, and guessing is not fixing.
+11. **No Unsolicited Changes:** Never modify, rename, delete, or create files that the human did not directly ask about. If you think something should be changed, ask permission first. Only make changes that are explicitly requested or directly required to fulfill the requested task.
+12. **Fix Lints, Don't Suppress Them:** When the analyzer reports a warning or info-level lint, always fix the underlying code first. Only add `ignore_for_file` as a last resort when the lint is a known false positive (e.g., `cascade_invocations` on `void`-returning methods) or when the pattern is genuinely intentional and documented with a comment explaining why. Every `ignore_for_file` must have a comment immediately above it explaining why the lint cannot be fixed.
+
+## 8. Release Work
+
+- Read `RELEASES.md` before changing release tooling, versioning, distribution
+  metadata, signing, or publishing workflows. It is the shared release contract
+  for humans and agents.
+- Keep `RELEASES.md` synchronized whenever release behavior, prerequisites,
+  configuration, or recovery steps change.
+- Use the workspace commands documented there to validate release changes.
+- Preparing or validating a release does not authorize merging a release PR,
+  tagging, publishing, submitting an app for review, or changing legal and
+  store declarations.

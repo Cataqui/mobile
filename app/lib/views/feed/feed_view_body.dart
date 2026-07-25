@@ -5,13 +5,15 @@ class _FeedViewBody extends ConsumerStatefulWidget {
     required this.controller,
     required this.cardBorderRadius,
     required this.feedInCurve,
-    required this.onOpenJobDetails,
+    required this.isHintActiveNotifier,
+    required this.onAdjustAreaPressed,
   });
 
-  final QuiTikTokFeedController controller;
+  final MateoYSnapListController controller;
   final BorderRadius cardBorderRadius;
   final CurveTween feedInCurve;
-  final Future<void> Function() onOpenJobDetails;
+  final ValueNotifier<bool> isHintActiveNotifier;
+  final VoidCallback onAdjustAreaPressed;
 
   @override
   ConsumerState<_FeedViewBody> createState() => _FeedBodyContentState();
@@ -30,47 +32,23 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget build(BuildContext context) {
     final feedState = ref.watch(feedStateProvider);
 
-    return QuiWidgetTransition(
-      builder: (context) => feedState.when(
-        data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
-        error: (error, st) =>
-            KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
-        loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
-      ),
-      outDuration: const Duration(milliseconds: 600),
-      outTransition: (child, animation) => FadeTransition(
-        opacity: Tween<double>(begin: 1, end: 0).animate(animation),
-        child: RepaintBoundary(child: child),
-      ),
-      inDuration: const Duration(milliseconds: 600),
-      inTransition: (child, animation) {
-        final wrapped = RepaintBoundary(child: child);
-
-        return feedState.maybeWhen(
-          data: (_) => FadeTransition(
-            opacity: widget.feedInCurve.animate(animation),
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.30),
-                end: Offset.zero,
-              ).chain(widget.feedInCurve).animate(animation),
-              child: wrapped,
-            ),
-          ),
-          orElse: () => FadeTransition(opacity: widget.feedInCurve.animate(animation), child: wrapped),
-        );
-      },
+    return feedState.when(
+      data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
+      error: (error, st) => KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
+      loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
     );
   }
 
   Widget _buildFeedContent(BuildContext context, FeedData feedData) {
     if (feedData.isEmpty) return _buildEnd(context);
 
+    final colorScheme = context.mateo.colorScheme;
+
     return SafeArea(
       bottom: false,
       child: Padding(
         padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
-        child: QuiTikTokFeed<FeedJobDto>(
+        child: MateoYSnapList<FeedJobDto>(
           spacing: 10,
           controller: widget.controller,
           loadMoreThreshold: 0.7,
@@ -101,10 +79,11 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ValueListenableBuilder<int>(
-                    valueListenable: _mapMountLimitNotifier,
-                    builder: (context, mapMountLimit, _) {
-                      if (index > mapMountLimit) return ColoredBox(color: context.qui.colors.mapBackground);
+                  ListenableBuilder(
+                    listenable: Listenable.merge([_mapMountLimitNotifier, widget.isHintActiveNotifier]),
+                    builder: (context, _) {
+                      final effectiveLimit = widget.isHintActiveNotifier.value ? -1 : _mapMountLimitNotifier.value;
+                      if (index > effectiveLimit) return ColoredBox(color: colorScheme.map.background);
 
                       const mapRadiusOffsetMultiplier = 1000;
                       const mapRadiusReferenceHeight = 100;
@@ -114,7 +93,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                             (math.pow(MediaQuery.sizeOf(context).height / mapRadiusReferenceHeight, 2)),
                       );
 
-                      return QuiLocationRadiusMap(
+                      return MateoLocationRadiusMap(
                         maximumMapFps: 30,
                         tileUrlTemplate: mapConfig.authenticatedTileUrl,
                         location: (latitude: location.latitude, longitude: location.longitude),
@@ -124,7 +103,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                         tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
                         zoom: 12.8,
                         offset: mapRadiusOffset,
-                        radiusStyle: RadiusStyle(color: Colors.blue.withValues(alpha: 0.2)),
+                        radiusStyle: (color: context.mateo.colorScheme.map.locationRadius),
                         onMapLoad: () {
                           final next = index + 1;
                           if (_mapMountLimitNotifier.value < next) {
@@ -138,7 +117,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                     padding: const EdgeInsets.all(9),
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: FeedJobCard(feedJob: job, onTap: widget.onOpenJobDetails),
+                      child: FeedJobCard(feedJob: job),
                     ),
                   ),
                 ],
@@ -150,56 +129,72 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     );
   }
 
+  Widget _buildScrollableState({required Widget child}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          primary: false,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: MateoSearchBarButton.searchBarHeight),
+              child: Center(child: child),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildLoadMoreError(BuildContext context, VoidCallback retry) {
     final paginationError = ref.read(feedStateProvider).value?.paginationError;
     final i18n = ref.watch(translationProvider);
 
-    if (paginationError.isOmfOfflineConnectionDioException) {
-      return QuiOfflineErrorState(
+    if (paginationError.isOfflineConnectionDioException) {
+      return OfflineErrorState(
         title: i18n.feed.loadingMore.offline.title,
         description: i18n.feed.loadingMore.offline.description,
         retry: (label: i18n.feed.loadingMore.offline.retryButtonTitle, onRetry: retry),
       );
     }
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: QuiSearchBarButton.searchBarHeight),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Qui3d.workItemsMess.downsampledImage(context, height: 150, width: 150),
-            const SizedBox(height: 40),
-            Text(
-              i18n.feed.loadingMore.error.title,
-              style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
+    return _buildScrollableState(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          $ThreeD.workItemsMess(height: 150, width: 150),
+          const SizedBox(height: 40),
+          Text(
+            i18n.feed.loadingMore.error.title,
+            style: TextStyle(fontSize: 18, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          FractionallySizedBox(
+            widthFactor: 0.7,
+            child: Text(
+              i18n.feed.loadingMore.error.description,
+              style: TextStyle(
+                fontSize: 16,
+                color: context.mateo.colorScheme.text.secondary,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            FractionallySizedBox(
-              widthFactor: 0.7,
-              child: Text(
-                i18n.feed.loadingMore.error.description,
-                style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 20),
-            QuiPrimaryButton(
-              label: i18n.feed.loadingMore.error.retryButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
-                height: 15,
-                width: 15,
-                colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-              ),
-              leadingIconSpacing: 10,
-              onPressed: () {
-                retry();
-              },
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          MateoButton(
+            variant: MateoButtonVariant.primary,
+            label: i18n.feed.loadingMore.error.retryButtonTitle,
+            leadingIconBuilder: (state) =>
+                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+            leadingIconSpacing: 10,
+            onPressed: () {
+              retry();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -207,63 +202,81 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildEnd(BuildContext context) {
     final i18n = ref.watch(translationProvider);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: QuiSearchBarButton.searchBarHeight),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Qui3d.emptyCitySaoPaulo.downsampledImage(context, height: 150, colorBlendMode: BlendMode.hue),
-            const SizedBox(height: 20),
-            Text(
-              i18n.feed.empty.title,
-              style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
+    return _buildScrollableState(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          $ThreeD.emptyCitySaoPaulo(height: 150, colorBlendMode: BlendMode.hue),
+          const SizedBox(height: 20),
+          Text(
+            i18n.feed.empty.title,
+            style: TextStyle(fontSize: 18, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          FractionallySizedBox(
+            widthFactor: 0.7,
+            child: Text(
+              i18n.feed.empty.description,
+              style: TextStyle(
+                fontSize: 16,
+                color: context.mateo.colorScheme.text.secondary,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            FractionallySizedBox(
-              widthFactor: 0.7,
-              child: Text(
-                i18n.feed.empty.description,
-                style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 40),
-            QuiSecondaryButton(
-              label: i18n.feed.empty.adjustAreaButtonTitle,
-              leadingIconBuilder: (state) => QuiIcons.wrench.svg(
-                height: 15,
-                width: 15,
-                colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-              ),
-              leadingIconSpacing: 10,
-              onPressed: () {
-                // TODO(RyanHolanda): Implement once we add the edit area screen
-              },
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 40),
+          MateoButton(
+            key: const ValueKey('feed_empty_adjust_area_button'),
+            variant: MateoButtonVariant.secondary,
+            label: i18n.feed.empty.adjustAreaButtonTitle,
+            leadingIconBuilder: (state) => MateoIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
+            leadingIconSpacing: 10,
+            onPressed: widget.onAdjustAreaPressed,
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildInitialLoading(BuildContext context) {
-    return Center(
-      child: QuiOrbit(
-        revolutionDuration: const Duration(milliseconds: 3000),
-        radius: 100,
-        items: [
-          QuiOrbitItem(child: Qui3d.brush.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.hammer.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.ladder.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.motorcycle.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.shoppingCart.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.smallTruck.downsampledImage(context, width: 50), size: const Size(50, 50)),
-          QuiOrbitItem(child: Qui3d.toolBox.downsampledImage(context, width: 43), size: const Size(43, 43)),
-          QuiOrbitItem(child: Qui3d.box.downsampledImage(context, width: 43), size: const Size(43, 43)),
-        ],
+    final colorScheme = context.mateo.colorScheme;
+
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
+        child: SizedBox.expand(
+          child: ClipRRect(
+            borderRadius: widget.cardBorderRadius,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(
+                  color: colorScheme.map.background,
+                  child: const Padding(padding: EdgeInsets.all(8), child: MateoDotMatrix(radius: 0, dotSize: 1)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(9),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: FeedJobCard(
+                      feedJob: FeedJobDto.fixture().copyWith(
+                        title: 'Loading your next job',
+                        createdAt: clock.now(),
+                        descriptionSummary: 'Your next job is coming, wait a bit and it will appear...',
+                        payment: JobPaymentDto.fixture().copyWith(minAmount: 1200, type: JobPaymentType.fixed),
+                      ),
+                      skeleton: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -271,8 +284,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildInitialError(BuildContext context, Object error) {
     final i18n = ref.watch(translationProvider);
 
-    if (error.isOmfOfflineConnectionDioException) {
-      return QuiOfflineErrorState(
+    if (error.isOfflineConnectionDioException) {
+      return OfflineErrorState(
         title: i18n.feed.offline.title,
         description: i18n.feed.offline.description,
         retry: (
@@ -287,11 +300,11 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Qui3d.locationPinRestingCracked.downsampledImage(context, height: 140),
+          $ThreeD.locationPinRestingCracked(height: 140),
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,
-            style: TextStyle(fontSize: 18, color: context.qui.colors.textPrimary, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -299,18 +312,20 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             widthFactor: 0.7,
             child: Text(
               i18n.feed.error.description,
-              style: TextStyle(fontSize: 16, color: context.qui.colors.textSecondary, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 16,
+                color: context.mateo.colorScheme.text.secondary,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 20),
-          QuiPrimaryButton(
+          MateoButton(
+            variant: MateoButtonVariant.primary,
             label: i18n.feed.error.retryButtonTitle,
-            leadingIconBuilder: (state) => QuiIcons.arrowRotateClockwise.svg(
-              height: 15,
-              width: 15,
-              colorFilter: ColorFilter.mode(state.recommendedIconColor, BlendMode.srcIn),
-            ),
+            leadingIconBuilder: (state) =>
+                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
             leadingIconSpacing: 10,
             onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
           ),

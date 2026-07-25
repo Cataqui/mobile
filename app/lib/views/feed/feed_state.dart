@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_state.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class FeedState extends _$FeedState {
   bool _isFetchingNextPage = false;
 

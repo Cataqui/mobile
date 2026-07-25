@@ -1,0 +1,87 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Update or publish release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      pr_created: ${{ steps.release.outputs.prs_created }}
+      pr_branch: ${{ steps.pr.outputs.branch }}
+      pr_number: ${{ steps.pr.outputs.number }}
+
+    steps:
+      - name: Create release bot token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          target-branch: main
+
+      - name: Read release PR
+        id: pr
+        if: steps.release.outputs.prs_created == 'true'
+        env:
+          RELEASE_PR_BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          RELEASE_PR_NUMBER: ${{ fromJSON(steps.release.outputs.pr).number }}
+        run: |
+          : "${RELEASE_PR_BRANCH:?Release Please did not return a PR branch}"
+          git check-ref-format --branch "$RELEASE_PR_BRANCH"
+          if [[ ! "$RELEASE_PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::Release Please did not return a valid PR number."
+            exit 1
+          fi
+          printf 'branch=%s\n' "$RELEASE_PR_BRANCH" >> "$GITHUB_OUTPUT"
+          printf 'number=%s\n' "$RELEASE_PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+  candidate:
+    name: Build release candidate
+    needs: release-please
+    if: needs.release-please.outputs.pr_created == 'true'
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/release-candidate.yml
+    with:
+      branch: ${{ needs.release-please.outputs.pr_branch }}
+      pr_number: ${{ fromJSON(needs.release-please.outputs.pr_number) }}
+    secrets:
+      RELEASE_BOT_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_APP_RELEASE_NOTES_AI_GATEWAY_API_TOKEN: ${{ secrets.CLOUDFLARE_APP_RELEASE_NOTES_AI_GATEWAY_API_TOKEN }}
+      CLOUDFLARE_APP_RELEASE_NOTES_AI_GATEWAY_ID: ${{ secrets.CLOUDFLARE_APP_RELEASE_NOTES_AI_GATEWAY_ID }}
+      APPLE_SIGNING_ENCRYPTION_PASSWORD: ${{ secrets.APPLE_SIGNING_ENCRYPTION_PASSWORD }}
+      APPLE_SIGNING_REPOSITORY_AUTH: ${{ secrets.APPLE_SIGNING_REPOSITORY_AUTH }}

@@ -1,7 +1,7 @@
-import 'package:cataqui_app/core/dtos/job_enums.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:locale/locale.dart';
 
 void main() {
   late Translations i18n;
@@ -13,7 +13,14 @@ void main() {
   group('JobPaymentDto', () {
     group('JSON parsing', () {
       test('when parsing a job payment, it should map the minimum amount', () {
-        final payment = JobPaymentDto.fixture().copyWith(minAmount: 120);
+        final payment = JobPaymentDto.fromJson(const <String, Object?>{
+          'type': 'FIXED',
+          'min_amount': 120,
+          'max_amount': 200,
+          'amount_period': 'SINGLE',
+          'currency': 'BRL',
+          'note': '',
+        });
 
         expect(payment.minAmount, 120);
       });

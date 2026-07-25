@@ -1,9 +1,9 @@
 import 'package:cataqui_app/core/dtos/job_category_dto.dart';
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
-import 'package:cataqui_app/core/dtos/job_enums.dart';
+import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
 import 'package:cataqui_app/core/dtos/job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'job_dto.freezed.dart';
@@ -15,7 +15,7 @@ abstract class JobDto with _$JobDto {
     @JsonKey(name: 'job_id') required String jobId,
     required String title,
     required String description,
-    required JobContactDto contact,
+    @JsonKey(name: 'contact_reference') required JobContactReferenceDto contactReference,
     required JobLocationDto location,
     required JobCategoryDto category,
     required JobPaymentDto payment,
@@ -30,12 +30,12 @@ abstract class JobDto with _$JobDto {
   factory JobDto.fixture() => JobDto(
     jobId: 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
     title: 'Mock: ajudante para descarregar caminhão',
-    description: 'Mock job for staging QA. Need one person to help unload '
+    description:
+        'Mock job for staging QA. Need one person to help unload '
         'boxes from a small truck for about two hours near Centro. This is test '
         'data and should not be treated as a real opportunity.',
-    contact: const JobContactDto(
-      name: 'Cataqui Teste',
-      phoneNumber: '+5511999999999',
+    contactReference: const JobContactReferenceDto(
+      contactId: 'cm3x-contact-1',
       contactMethod: JobContactMethod.whatsapp,
     ),
     location: JobLocationDto(
@@ -49,11 +49,7 @@ abstract class JobDto with _$JobDto {
       mapConfig: MapConfigDto.fixture(),
       street: 'Rua das Flores, 123',
     ),
-    category: const JobCategoryDto(
-      categoryId: 'afdfd9b2-203d-4528-8a1c-82b6b139039b',
-      name: 'Outro',
-      slug: 'other',
-    ),
+    category: const JobCategoryDto(categoryId: 'afdfd9b2-203d-4528-8a1c-82b6b139039b', name: 'Outro', slug: 'other'),
     payment: const JobPaymentDto(
       type: JobPaymentType.fixed,
       minAmount: 120,

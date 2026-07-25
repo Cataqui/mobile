@@ -2,17 +2,17 @@
 
 ## Purpose
 
-`app` is the monorepo's **application entry point** — the primary mobile app for the Cataquí platform. It is the **sole consumer** of `qui` design system components and `oh_my_flutter` superpower utils.
+`app` is the monorepo's **application entry point** — the primary mobile app for the Cataquí platform. It uses the [Mateo Mobile design-system](https://github.com/Ventairy/mateo) components and `oh_my_flutter` utilities.
 
-Unlike the `qui` package (which must be portable and publicly distributable), the `app` package is **internal and single-purpose**. It orchestrates screens, widgets, services, and state specific to the Cataquí mobile experience.
+The `app` package is **internal and single-purpose**. It orchestrates screens, widgets, services, and state specific to the Cataquí mobile experience.
 
 ## No Documentation for Internal Code
 
 Code inside `app/` is **not a public API**. It is consumed exclusively by this application itself and by AI agents working on this repository.
 
 - **No dartdoc (`///`) needed** on any class, method, field, or variable inside the `app` package. The code should be self-explanatory through naming, structure, and conventions alone.
-- **No `@Preview` annotations** — they are only required in the `qui` package.
-- Dartdoc is reserved for `qui` and `oh_my_flutter`, which may be published as standalone packages on pub.dev.
+- **No `@Preview` annotations** — they belong in the Mateo package.
+- Dartdoc is reserved for public packages such as `mateo_mobile` and `oh_my_flutter`.
 
 ## Structure
 
@@ -24,18 +24,19 @@ app/lib/
 │   ├── dtos/          # Freezed JSON DTOs (generated)
 │   └── providers.dart # App-level Riverpod providers
 ├── gen/               # FlutterGen generated assets (do not edit, gitignored)
-├── i18n/              # Slang translation files (pt-BR)
 ├── views/             # Screen-level widgets (pages/routes)
 └── widgets/           # Reusable app-level widgets
 ```
 
 ## i18n (Translations)
 
-Internationalization uses **slang** (`package:slang`) for type-safe translations
-with JSON source files and code generation.
+Internationalization uses the workspace's `locale` package for type-safe **slang** (`package:slang`) translations.
 
-- **Source files:** Translation strings live in `app/lib/i18n/` as JSON files
-  (e.g., `pt-BR.i18n.json`). Run `melos gen:all` after editing them.
+- **Source files:** Translation strings live in
+  `packages/locale/lib/i18n/` as JSON files (e.g., `pt-BR.i18n.json`). Run
+  `melos gen` from the repository root after editing them.
+- **Imports:** Import translations through `package:locale/locale.dart`; never
+  import generated files directly.
 - **Access pattern:** Read translations via Riverpod:
   ```dart
   final i18n = ref.watch(translationProvider);
@@ -59,6 +60,35 @@ Feature state/data classes are the exception — the `@riverpod` notifier and it
 data class must live at the same level as their view for easier finding and
 management.
 
+### Provider Style — Always Use Code Generation
+
+All providers in `providers.dart` **must** use the `@riverpod` annotation syntax
+(top-level function with `Ref ref` parameter), not `final xxxProvider = Provider<...>`:
+
+```dart
+@Riverpod(keepAlive: true)  // shared singleton — survives navigation
+AppConfig appConfig(Ref ref) {
+  return AppConfig(environment: Env.environment, cataquiApiUrl: Env.cataquiApiUrl);
+}
+
+@riverpod                      // auto-dispose — scoped to consumer lifecycle
+OmfWhatsapp omfWhatsapp(Ref ref) {
+  return OmfWhatsapp();
+}
+```
+
+- `@Riverpod(keepAlive: true)` when the provider holds app-wide shared state
+  (config, repositories, singleton services, Dio, GoRouter, translations).
+- `@riverpod` (auto-dispose) when the instance is cheap to recreate and has no
+  lasting state (utilities like `OmfWhatsapp`, `OmfTelephony`).
+
+The function name without the `Provider` suffix determines the generated
+provider name: `appConfig(Ref ref)` → `appConfigProvider`. Do NOT use
+`final xxxProvider = ...` variable syntax.
+
+Use uppercase `@Riverpod` only when passing arguments like `keepAlive: true`.
+Use lowercase `@riverpod` for the plain auto-dispose form.
+
 ### Feature State/Data Conventions
 
 Feature-level Riverpod notifiers follow a two-class naming convention:
@@ -77,11 +107,34 @@ Each Riverpod feature notifier and its data class get their own files:
 
 Tests mirror the source at `app/test/views/<feature>/<feature>_state_test.dart`.
 
+## Routing (Type-Safe)
+
+Every screen-level view in `app/lib/views/<feature>/` must have a companion
+`<feature>_route.dart` declaring a `@TypedGoRoute<XxxRoute>` class
+`extends GoRouteData with $XxxRoute` with a `part '<feature>_route.g.dart'`.
+
+- **Parameters:** Path params, query params, and `$extra` are declared as typed
+  constructor fields. Path param names must match the `:param` placeholders in
+  the route path.
+- **Navigation:** Navigate ONLY via the generated typed API:
+  `XxxRoute(...).go(context)` / `.push<T>(context)` / `.pushReplacement(context)`
+  / `.replace(context)`. Never build route location strings by hand.
+- **Registration:** `app/lib/core/providers.dart` registers routes via the
+  generated `$xxxRoute` getters (e.g. `GoRouter(routes: [$feedRoute, $jobRoute])`).
+  Do NOT use `$appRoutes` — it is per-library and would collide across multiple
+  route files.
+- **Custom transitions:** Override `buildPage()` to return a `Page<void>` for
+  custom page types / transitions. Otherwise override `build()` and let go_router
+  supply the default `MaterialPage`.
+- **Engine:** Navigation is powered by `go_router` + `go_router_builder` code
+  generation. The routing algorithm is exposed as a `GoRouter` via
+  `goRouterProvider` (keepAlive).`
+
 ## DTOs
 
 - **Code Generation:** The `app` package is configured with **Freezed** and
   **json_serializable** for immutable API DTOs and type-safe JSON conversion.
-  Run `melos gen:all` after adding or changing generated DTOs. Generated
+  Run `melos gen` after adding or changing generated DTOs. Generated
   `.freezed.dart` and `.g.dart` files under `app/lib/core/dtos/` are ignored.
 - **File Structure:** Keep exactly one DTO class per Dart source file.
   Shared enums may live in a dedicated non-DTO enum file.
@@ -100,7 +153,7 @@ The app uses **flutter_gen** for type-safe asset access.
 - **Adding a new asset:**
   1. Place the file in the appropriate directory under `app/assets/`.
   2. Declare the directory in `app/pubspec.yaml` under `flutter: assets:`.
-  3. Run `melos gen:all` from the repository root to regenerate.
+  3. Run `melos gen` from the repository root to regenerate.
 - **Access pattern:** Import `package:cataqui_app/gen/assets.gen.dart` and use
   the `Assets.<category>.<name>` accessor directly. For SVGs, call `.svg()`; for
   raster images, call `.image()`.
@@ -108,8 +161,17 @@ The app uses **flutter_gen** for type-safe asset access.
   ```dart
   Assets.logos.cataqui.svg(width: 120, height: 120);
   ```
-- **Facades:** The app does **not** use branded facades like `qui`'s
-  `QuiIcons`/`Qui3d` — access the `Assets` entry point directly.
+- **Facades:** The app does **not** use Mateo for app specific assets — access the
+  app's `Assets` entry point directly.
+
+## Mobile Version
+
+`pubspec.yaml` is the single source for the shipped iOS and Android version.
+Keep the Flutter `version` in `<semantic-version>+<build-number>` form. Release
+builds must consume it directly; never pass `--build-name` or `--build-number`.
+Release Please updates the semantic version and increments the existing numeric
+build suffix. The candidate workflow preserves that number or raises it when
+TestFlight requires a higher build.
 
 ## Repositories
 

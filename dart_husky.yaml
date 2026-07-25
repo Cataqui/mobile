@@ -4,8 +4,11 @@ dart_husky:
 pre-commit:
   parallel: false
   commands:
+    format:
+      run: melos format && git add .
     analyze:
       run: melos analyze
+      staged_only: true
     test:
       preset: melos
       staged_only: true
@@ -16,4 +19,4 @@ commit-msg:
       preset: conventional
       types:
         append: [agent, ui]
-      only_small_case: true
+      only_small_case: false

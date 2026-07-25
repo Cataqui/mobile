@@ -1,6 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:dio/dio.dart';
 
 class JobRepository {
@@ -8,17 +8,18 @@ class JobRepository {
 
   final Dio dio;
 
-  Future<ApiEnvelopeDto<JobDto>> getJob({required String jobId, required AppLocale locale}) async {
-    final response = await dio.get<Map<String, Object?>>(
-      '/job/$jobId',
-      options: Options(headers: <String, String>{
-        'accept-language': locale.languageTag,
-      }),
-    );
+  Future<ApiEnvelopeDto<JobDto>> getJob({required String jobId}) async {
+    final response = await dio.get<Map<String, Object?>>('/job/$jobId');
 
-    return ApiEnvelopeDto<JobDto>.fromJson(
+    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+  }
+
+  Future<ApiEnvelopeDto<JobContactDto>> getJobContact({required String jobId, required String contactId}) async {
+    final response = await dio.get<Map<String, Object?>>('/job/$jobId/contact/$contactId');
+
+    return ApiEnvelopeDto<JobContactDto>.fromJson(
       response.data!,
-      (json) => JobDto.fromJson(json! as Map<String, Object?>),
+      (json) => JobContactDto.fromJson(json! as Map<String, Object?>),
     );
   }
 }

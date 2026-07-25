@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('JobLocationDto', () {
     test('when parsing a job location, it should map the street', () {
-      final location = JobLocationDto.fixture().copyWith(street: 'Rua das Flores, 123');
+      final location = JobLocationDto.fromJson({...JobLocationDto.fixture().toJson(), 'street': 'Rua das Flores, 123'});
 
       expect(location.street, 'Rua das Flores, 123');
     });
@@ -35,9 +35,10 @@ void main() {
     });
 
     test('when parsing a job location, it should map the map config version', () {
-      final location = JobLocationDto.fixture().copyWith(
-        mapConfig: MapConfigDto.fixture().copyWith(mapVersion: '2.3.1'),
-      );
+      final location = JobLocationDto.fromJson({
+        ...JobLocationDto.fixture().toJson(),
+        'map_config': MapConfigDto.fixture().copyWith(mapVersion: '2.3.1').toJson(),
+      });
 
       expect(location.mapConfig.mapVersion, '2.3.1');
     });

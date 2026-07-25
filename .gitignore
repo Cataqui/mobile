@@ -18,6 +18,9 @@ build/
 **/android/.gradle/
 **/android/local.properties
 **/android/key.properties
+**/android/keystores/
+**/*.jks
+**/*.keystore
 *.iml
 .idea/
 
@@ -29,6 +32,10 @@ coverage/
 
 # Environment
 .env
+
+# Local package resolution
+pubspec_overrides.yaml
+pubspec_overrides.yaml.disabled
 
 # Golden tests
 **/test/**/goldens/linux/
