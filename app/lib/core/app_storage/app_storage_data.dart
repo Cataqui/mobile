@@ -7,8 +7,6 @@ class AppStorageData {
   final bool hasSeenSwipeFeedHint;
 
   AppStorageData copyWith({bool? hasSeenSwipeFeedHint}) {
-    return AppStorageData(
-      hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? this.hasSeenSwipeFeedHint,
-    );
+    return AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? this.hasSeenSwipeFeedHint);
   }
 }

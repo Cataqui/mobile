@@ -5,10 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('JobLocationDto', () {
     test('when parsing a job location, it should map the street', () {
-      final location = JobLocationDto.fromJson({
-        ...JobLocationDto.fixture().toJson(),
-        'street': 'Rua das Flores, 123',
-      });
+      final location = JobLocationDto.fromJson({...JobLocationDto.fixture().toJson(), 'street': 'Rua das Flores, 123'});
 
       expect(location.street, 'Rua das Flores, 123');
     });

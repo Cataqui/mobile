@@ -4,6 +4,8 @@ dart_husky:
 pre-commit:
   parallel: false
   commands:
+    format:
+      run: melos format && git add .
     analyze:
       run: melos analyze
       staged_only: true

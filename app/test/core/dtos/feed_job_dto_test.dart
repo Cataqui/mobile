@@ -5,10 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('FeedJobDto', () {
     test('when parsing a feed job, it should map the title', () {
-      final job = FeedJobDto.fromJson({
-        ...FeedJobDto.fixture().toJson(),
-        'title': 'Descarregar Caminhão',
-      });
+      final job = FeedJobDto.fromJson({...FeedJobDto.fixture().toJson(), 'title': 'Descarregar Caminhão'});
 
       expect(job.title, 'Descarregar Caminhão');
     });

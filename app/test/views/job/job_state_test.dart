@@ -13,9 +13,7 @@ void main() {
 
   setUp(() {
     repository = MockJobRepository();
-    when(
-      () => repository.getJob(jobId: any(named: 'jobId')),
-    ).thenAnswer((_) async => _envelope());
+    when(() => repository.getJob(jobId: any(named: 'jobId'))).thenAnswer((_) async => _envelope());
   });
 
   group('JobState', () {
@@ -39,9 +37,7 @@ void main() {
       final container = _container(repository: repository);
       await container.read(jobStateProvider('retry-test-id').future);
       final secondJob = JobDto.fixture().copyWith(jobId: 'second-fetch-job');
-      when(
-        () => repository.getJob(jobId: any(named: 'jobId')),
-      ).thenAnswer((_) async => _envelope(job: secondJob));
+      when(() => repository.getJob(jobId: any(named: 'jobId'))).thenAnswer((_) async => _envelope(job: secondJob));
 
       await container.read(jobStateProvider('retry-test-id').notifier).retry();
 
@@ -51,9 +47,7 @@ void main() {
     test('when retry fails after a successful load, it should expose an AsyncError', () async {
       final container = _container(repository: repository);
       await container.read(jobStateProvider('retry-fail-id').future);
-      when(
-        () => repository.getJob(jobId: any(named: 'jobId')),
-      ).thenThrow(StateError('retry failed'));
+      when(() => repository.getJob(jobId: any(named: 'jobId'))).thenThrow(StateError('retry failed'));
 
       await container.read(jobStateProvider('retry-fail-id').notifier).retry();
 
@@ -62,23 +56,16 @@ void main() {
 
     test('when the initial fetch fails, it should expose an AsyncError', () async {
       final failingRepository = MockJobRepository();
-      when(
-        () => failingRepository.getJob(jobId: any(named: 'jobId')),
-      ).thenThrow(StateError('initial fetch failed'));
+      when(() => failingRepository.getJob(jobId: any(named: 'jobId'))).thenThrow(StateError('initial fetch failed'));
       final container = _container(repository: failingRepository);
 
-      await expectLater(
-        container.read(jobStateProvider('fail-id').future),
-        throwsA(isA<StateError>()),
-      );
+      await expectLater(container.read(jobStateProvider('fail-id').future), throwsA(isA<StateError>()));
     });
   });
 }
 
 ProviderContainer _container({required MockJobRepository repository}) {
-  final container = ProviderContainer(overrides: [
-    jobRepositoryProvider.overrideWithValue(repository),
-  ]);
+  final container = ProviderContainer(overrides: [jobRepositoryProvider.overrideWithValue(repository)]);
   addTearDown(container.dispose);
   return container;
 }

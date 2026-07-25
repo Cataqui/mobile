@@ -16,10 +16,7 @@ void main() {
       builder: () => withClock(
         _fixedClock,
         () => ProviderScope(
-          child: SizedBox(
-            width: 360,
-            child: FeedJobCard(feedJob: FeedJobDto.fixture()),
-          ),
+          child: SizedBox(width: 360, child: FeedJobCard(feedJob: FeedJobDto.fixture())),
         ),
       ),
     );
