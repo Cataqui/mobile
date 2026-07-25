@@ -60,8 +60,8 @@ keeps contributor ownership intact while granting the project rights to use,
 defend, and relicense the combined work. This avoids relying only on
 inbound-equals-outbound terms, which could leave the project without the
 flexibility needed to protect or relicense contributor-owned code. A
-read-only GitHub Actions check requires the acceptance box and signer's legal
-name in each pull request.
+read-only GitHub Actions check requires the acceptance box, and the pull
+request template records the signer's legal name for maintainer review.
 
 ## What this cannot protect
 

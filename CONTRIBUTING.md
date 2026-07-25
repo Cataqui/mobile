@@ -31,8 +31,8 @@ their first pull request. The agreement:
 Pull requests without a valid acceptance cannot be merged. If your employer or
 another organization owns the contribution, an authorized representative of
 that organization must accept the agreement. The contributor-agreement check
-records the pull request acceptance and legal name; editing the pull request
-re-runs the check.
+requires the acceptance box; maintainers also verify the legal name recorded in
+the pull request. Editing the pull request re-runs the check.
 
 ## Submit a change
 

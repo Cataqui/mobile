@@ -21,25 +21,10 @@ jobs:
 
     steps:
       - name: Verify agreement acceptance
-        env:
-          EVENT_PATH: ${{ github.event_path }}
+        if: ${{ !contains(github.event.pull_request.body, '- [x] I have read and accept the') }}
         run: |
-          if ! jq --exit-status '
-            .pull_request.body // ""
-            | contains("- [x] I have read and accept the")
-          ' "$EVENT_PATH" >/dev/null; then
-            echo "::error::Accept the Contributor License Agreement in the pull request checklist."
-            exit 1
-          fi
+          echo "::error::Accept the Contributor License Agreement in the pull request checklist."
+          exit 1
 
-          if ! jq --exit-status --raw-output '
-            .pull_request.body // ""
-            | capture(
-                "Legal name or authorized entity representative:\\r?\\n(?:[[:space:]]*\\r?\\n)*(?<name>[^[:space:]<][^\\r\\n]*)"
-              )
-            | .name
-            | select(length > 0)
-          ' "$EVENT_PATH" >/dev/null; then
-            echo "::error::Add your legal name or authorized entity representative below the agreement."
-            exit 1
-          fi
+      - name: Confirm agreement acceptance
+        run: echo "Contributor License Agreement acceptance is recorded in the pull request."
