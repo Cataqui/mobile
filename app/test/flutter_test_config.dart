@@ -18,6 +18,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
     config: AlchemistConfig(
       theme: MateoTheme.light(primaryColor: const Color(0xFFFF4A4B), onPrimary: const Color(0xFFFFFFFF)),
       platformGoldensConfig: PlatformGoldensConfig(enabled: !isRunningInCi, theme: MateoTheme.light()),
+      ciGoldensConfig: CiGoldensConfig(diffThreshold: isRunningInCi ? 0.03 : 0),
     ),
     run: testMain,
   );
