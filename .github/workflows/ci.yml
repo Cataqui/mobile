@@ -66,16 +66,17 @@ jobs:
       - name: Configure build environment
         run: cp .env.example .env
 
-      - name: Resolve and generate
-        run: |
-          fvm flutter pub get
-          melos run gen --no-select
+      - name: Resolve dependencies
+        run: fvm flutter pub get
 
       - name: Verify lockfile is committed and current
         run: git diff --exit-code -- pubspec.lock
 
       - name: Check formatting
         run: melos format --output=none --set-exit-if-changed
+
+      - name: Generate code
+        run: melos run gen --no-select
 
       - name: Analyze
         run: melos analyze
