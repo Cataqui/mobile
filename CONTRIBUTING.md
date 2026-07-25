@@ -2,9 +2,7 @@
 
 Thank you for helping make nearby work easier to discover.
 
-Start with the setup and workspace commands in [README.md](README.md), then
-follow the engineering rules in [AGENTS.md](AGENTS.md) and any more-specific
-`AGENTS.md` in the directory you change.
+Start with the setup and workspace commands in [README.md](README.md).
 
 ## Before you contribute
 
