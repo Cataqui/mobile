@@ -1,0 +1,128 @@
+name: Safety checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: safety-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workflows:
+    name: Validate GitHub Actions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      checks: write
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Validate workflows
+        uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
+        with:
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-check' || 'github-check' }}
+          filter_mode: nofilter
+          fail_level: error
+
+  validate:
+    name: Analyze, test, and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version-file: .fvmrc
+          channel: stable
+          cache: true
+
+      - name: Install pinned workspace tools
+        run: |
+          dart pub global activate fvm 4.1.2
+          dart pub global activate melos 8.2.2
+          fvm install
+
+      - name: Configure build environment
+        run: cp .env.example .env
+
+      - name: Resolve and generate
+        run: |
+          fvm flutter pub get
+          melos run gen --no-select
+
+      - name: Verify lockfile is committed and current
+        run: git diff --exit-code -- pubspec.lock
+
+      - name: Check formatting
+        run: melos format --output=none --set-exit-if-changed
+
+      - name: Analyze
+        run: melos analyze
+
+      - name: Test workspace
+        run: melos run test:no-coverage --no-select
+
+      - name: Build Android debug APK
+        working-directory: app
+        run: fvm flutter build apk --debug
+
+  ios:
+    name: iOS simulator build
+    runs-on: macos-26
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Verify release Xcode
+        run: xcodebuild -version | grep -E '^Xcode 26\.'
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version-file: .fvmrc
+          channel: stable
+          cache: true
+
+      - name: Install pinned workspace tools
+        run: |
+          dart pub global activate fvm 4.1.2
+          dart pub global activate melos 8.2.2
+          fvm install
+
+      - name: Configure, resolve, and generate
+        run: |
+          cp .env.example .env
+          fvm flutter pub get
+          melos run gen --no-select
+
+      - name: Verify lockfile is committed and current
+        run: git diff --exit-code -- pubspec.lock
+
+      - name: Build iOS simulator app
+        working-directory: app
+        run: fvm flutter build ios --simulator --debug

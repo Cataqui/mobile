@@ -57,9 +57,6 @@ lib/core/config/env.g.dart
 # Generated States
 lib/**/*_state.g.dart
 
-# Generated i18n files
-lib/i18n/**/*.g.dart
-
 # Generated Routes
 lib/**/*_route.g.dart
 

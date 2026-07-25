@@ -1,9 +1,9 @@
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locale/locale.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 class CataquiApp extends ConsumerWidget {
@@ -18,8 +18,18 @@ class CataquiApp extends ConsumerWidget {
       title: i18n.app.name,
       color: (primary: const Color(0xFFFF4A4B), onPrimary: const Color(0xFFFFFFFF)),
       routerConfig: goRouter,
-      locale: i18n.$meta.locale.flutterLocale,
-      supportedLocales: AppLocaleUtils.supportedLocales,
+      locale: Locale.fromSubtags(
+        languageCode: i18n.$meta.locale.languageCode,
+        scriptCode: i18n.$meta.locale.scriptCode,
+        countryCode: i18n.$meta.locale.countryCode,
+      ),
+      supportedLocales: AppLocaleUtils.instance.locales.map(
+        (locale) => Locale.fromSubtags(
+          languageCode: locale.languageCode,
+          scriptCode: locale.scriptCode,
+          countryCode: locale.countryCode,
+        ),
+      ),
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (context, child) {
         return AppAnimatedSplash(child: child ?? const SizedBox.shrink());

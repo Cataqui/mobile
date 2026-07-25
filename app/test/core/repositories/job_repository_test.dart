@@ -93,7 +93,7 @@ void main() {
 
   group('jobRepositoryProvider', () {
     test('when reading the provider, it should expose a job repository', () {
-      final container = ProviderContainer(overrides: [cataquiDioProvider.overrideWithValue(MockDio())]);
+      final container = ProviderContainer(overrides: [cataquiApiV1DioProvider.overrideWithValue(MockDio())]);
       addTearDown(container.dispose);
 
       final result = container.read(jobRepositoryProvider);

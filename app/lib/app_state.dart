@@ -1,5 +1,5 @@
 import 'package:cataqui_app/app_data.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
+import 'package:locale/locale.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_state.g.dart';

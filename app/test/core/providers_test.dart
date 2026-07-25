@@ -6,8 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 void main() {
-  group('cataquiDioProvider', () {
-    test('when read, it should use the configured Cataqui API base URL', () {
+  group('cataquiApiV1DioProvider', () {
+    test('when read, it should prefix the configured Cataquí API root URL with v1', () {
       final container = ProviderContainer(
         overrides: [
           appConfigProvider.overrideWithValue(
@@ -18,9 +18,28 @@ void main() {
 
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiDioProvider);
+      final dio = container.read(cataquiApiV1DioProvider);
 
-      expect(dio.options.baseUrl, 'https://api.test.cataqui.com');
+      expect(dio.options.baseUrl, 'https://api.test.cataqui.com/v1');
+    });
+
+    test('when resolving an endpoint, it should keep the v1 API prefix', () {
+      final container = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(
+            const AppConfig(environment: 'development', cataquiApiUrl: 'https://api.test.cataqui.com'),
+          ),
+        ],
+      );
+
+      addTearDown(container.dispose);
+
+      final dio = container.read(cataquiApiV1DioProvider);
+
+      expect(
+        RequestOptions(baseUrl: dio.options.baseUrl, path: '/feed').uri.toString(),
+        'https://api.test.cataqui.com/v1/feed',
+      );
     });
 
     test('when read, it should include the accept-language header from the current locale', () {
@@ -34,7 +53,7 @@ void main() {
 
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiDioProvider);
+      final dio = container.read(cataquiApiV1DioProvider);
 
       expect(dio.options.headers['accept-language'], 'pt-BR');
     });
@@ -49,7 +68,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiDioProvider);
+      final dio = container.read(cataquiApiV1DioProvider);
 
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isTrue);
     });
@@ -64,7 +83,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiDioProvider);
+      final dio = container.read(cataquiApiV1DioProvider);
 
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isFalse);
     });
@@ -79,7 +98,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiDioProvider);
+      final dio = container.read(cataquiApiV1DioProvider);
 
       expect(dio.interceptors.any((interceptor) => interceptor is OfflineErrorDioInterceptor), isTrue);
     });

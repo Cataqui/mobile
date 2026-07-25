@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:locale/locale.dart';
 
 import 'feed_view_test_helpers.dart';
 

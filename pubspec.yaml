@@ -1,15 +1,17 @@
-name: cataqui_workspace
+name: cataqui_workspce
 publish_to: none
 environment:
   sdk: ">=3.12.0 <4.0.0"
 
 workspace:
   - app
+  - packages/locale
+  - packages/release
 
 dev_dependencies:
   build_runner: ^2.15.0
   dart_husky: ^1.5.0
-  melos: ^7.8.0
+  melos: 8.2.2
   very_good_analysis: ^7.0.0
 
 melos:
@@ -17,41 +19,33 @@ melos:
 
   scripts:
     analyze:
-      description: Run static analysis across all workspace members
+      description: Run static analysis
       run: fvm flutter analyze
 
     test:
-      description: Run tests with coverage, generate HTML report, and open in browser
-      run: |
-        fvm flutter test --coverage && \
-        if [ -s coverage/lcov.info ]; then \
-          remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$' && \
-          awk '/^name:/ {print $2; exit}' pubspec.yaml | xargs -I {} genhtml coverage/lcov.info \
-            --output-directory coverage/html \
-            --rc branch_coverage=1 \
-            --title "{}" && \
-            open coverage/html/index.html; \
-        fi
+      description: Run tests with coverage
       exec:
+        command: |
+          fvm flutter test --coverage && \
+          if [ -s coverage/lcov.info ]; then \
+            remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$' && \
+            awk '/^name:/ {print $2; exit}' pubspec.yaml | xargs -I {} genhtml coverage/lcov.info \
+              --output-directory coverage/html \
+              --rc branch_coverage=1 \
+              --title "{}" && \
+              open coverage/html/index.html; \
+          fi
         concurrency: 1
       packageFilters:
         dirExists: test
-
-    test:all:
-      description: Run tests with coverage for all workspace members (no prompt) and open each report
-      run: melos run test --no-select
 
     test:no-coverage:
-      description: Run tests without coverage (for pre-commit hook)
-      run: fvm flutter test
+      description: Run tests without coverage
       exec:
+        command: fvm flutter test
         concurrency: 1
       packageFilters:
         dirExists: test
-
-    coverage:
-      description: Run tests with coverage, generate HTML, and open (all workspace members, no prompt)
-      run: melos run test --no-select
 
     coverage:clean:
       description: Remove all coverage artifacts
@@ -60,80 +54,72 @@ melos:
 
     coverage:collect:
       description: Run tests with --coverage (no HTML report)
-      run: |
-        fvm flutter test --coverage && \
-        if [ -s coverage/lcov.info ]; then \
-          remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$'; \
-        fi
       exec:
+        command: |
+          fvm flutter test --coverage && \
+          if [ -s coverage/lcov.info ]; then \
+            remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$'; \
+          fi
         concurrency: 1
       packageFilters:
         dirExists: test
 
     goldens:update:
-      description: Update approved golden files (asks which package/app)
-      run: fvm flutter test --update-goldens
+      description: Update approved golden files
       exec:
+        command: fvm flutter test --update-goldens
         concurrency: 1
       packageFilters:
         fileExists: dart_test.yaml
 
-    goldens:update:all:
-      description: Update approved golden files for all workspace members (no prompt)
-      run: melos run goldens:update --no-select
-
     setup:
       description: Set up workspace and activate global packages
       run: |
+        fvm install && \
         fvm flutter pub get && \
+        fvm dart pub global activate flutter_launcher_icons 0.14.4 && \
         fvm dart pub global activate remove_from_coverage && \
         fvm dart run dart_husky install && \
-        melos run gen:all && \
-        melos run goldens:update:all
+        melos run gen --no-select && \
+        melos run goldens:update --no-select
 
     get:
       description: Install dependencies for a package
-      run: fvm flutter pub get
       exec:
+        command: fvm flutter pub get
         concurrency: 1
 
     generate_app_icons:
       description: Run app icon generation
-      run: melos exec --scope=app -- fvm dart run flutter_launcher_icons
+      run: melos exec --scope=cataqui_app -- fvm dart pub global run flutter_launcher_icons
 
     generate_splash:
       description: Generate native splash screen assets
       run: melos exec --scope=cataqui_app -- fvm dart run vector_graphics_compiler -i assets/splash/animated_splash_icon.svg -o assets/splash/animated_splash_icon.svg.vec && melos exec --scope=cataqui_app -- fvm dart run flutter_native_splash:create
 
-    i18n:configure:
-      description: Sync native locale configs (iOS/Android) with translation files
-      run: melos exec --scope=app -- fvm dart run slang configure
-      packageFilters:
-        dirExists: lib/i18n
-
-    gen:all:
-      description: Run code generation across the workspace
-      run: melos run gen:i18n && fvm dart run build_runner build --workspace
-
-    gen:all:watch:
-      description: Watch and regenerate code across the workspace
-      run: fvm dart run build_runner watch --workspace
-
     gen:i18n:
-      description: Generate i18n translations (slang)
-      run: fvm dart run slang && melos run i18n:configure
+      description: Generate translations and sync native iOS locales
+      private: true
       exec:
+        command: fvm dart run slang && fvm dart run slang configure --source-dirs=../../app
         concurrency: 1
       packageFilters:
-        depends-on: slang_build_runner
+        scope: locale
         dirExists: lib/i18n
 
     gen:
-      description: Run code generation for selected workspace members (interactive)
-      run: |
-        ln -sf ../.env .env 2>/dev/null || true
-        fvm dart run build_runner build
+      description: Generate translations, native locales, and Dart code
+      steps:
+        - gen:i18n
+        - gen:code
+
+    gen:code:
+      description: Run Dart code generation for selected workspace members
+      private: true
       exec:
+        command: |
+          ln -sf ../.env .env 2>/dev/null || true
+          fvm dart run build_runner build
         concurrency: 1
       packageFilters:
         depends-on: build_runner

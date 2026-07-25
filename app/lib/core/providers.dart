@@ -3,13 +3,13 @@ import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/config/env.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:locale/locale.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,13 +33,13 @@ SharedPreferencesAsync sharedPreferencesAsync(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-Dio cataquiDio(Ref ref) {
+Dio cataquiApiV1Dio(Ref ref) {
   final appConfig = ref.read(appConfigProvider);
   final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
 
   final dio = Dio(
     BaseOptions(
-      baseUrl: appConfig.cataquiApiUrl,
+      baseUrl: '${appConfig.cataquiApiUrl}/v1',
       connectTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 30),
@@ -64,7 +64,7 @@ Dio cataquiDio(Ref ref) {
 
 @Riverpod(keepAlive: true)
 FeedRepository feedRepository(Ref ref) {
-  return FeedRepository(dio: ref.watch(cataquiDioProvider));
+  return FeedRepository(dio: ref.watch(cataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)
@@ -74,7 +74,7 @@ GoRouter goRouter(Ref ref) {
 
 @Riverpod(keepAlive: true)
 JobRepository jobRepository(Ref ref) {
-  return JobRepository(dio: ref.watch(cataquiDioProvider));
+  return JobRepository(dio: ref.watch(cataquiApiV1DioProvider));
 }
 
 @riverpod

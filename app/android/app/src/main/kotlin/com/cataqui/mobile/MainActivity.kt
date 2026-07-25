@@ -1,4 +1,4 @@
-package com.cataqui.app
+package com.cataqui.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

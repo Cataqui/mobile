@@ -1,7 +1,7 @@
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:locale/locale.dart';
 
 void main() {
   late Translations i18n;

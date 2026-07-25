@@ -1,0 +1,3 @@
+.dart_tool/
+/coverage/
+lib/i18n/**/*.g.dart

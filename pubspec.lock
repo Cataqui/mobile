@@ -165,18 +165,18 @@ packages:
     dependency: transitive
     description:
       name: cli_launcher
-      sha256: "35cf15a3ffaeb9c11849eaa0afba761bb76dceb42d050532bfd3e1299c9748cd"
+      sha256: "96883f87648524292e24e2cc6a369fbdf64883473fe3e3ddadd3d857bf16a484"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.3+1"
+    version: "0.3.3+2"
   cli_util:
     dependency: transitive
     description:
       name: cli_util
-      sha256: ff6785f7e9e3c38ac98b2fb035701789de90154024a75b6cb926445e83197d1c
+      sha256: "71e43f1976c3eae2d9468a5b4d6600bf8cae61508b87f27fa1799228935d48ab"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.2"
+    version: "0.5.2"
   clock:
     dependency: transitive
     description:
@@ -387,14 +387,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.14.1"
-  flutter_launcher_icons:
-    dependency: transitive
-    description:
-      name: flutter_launcher_icons
-      sha256: "10f13781741a2e3972126fae08393d3c4e01fa4cd7473326b94b72cf594195e7"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.14.4"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -688,10 +680,10 @@ packages:
     dependency: "direct dev"
     description:
       name: melos
-      sha256: "9dcac9ca25da86540d1e843f85fffb29967cc5c79d76ca1aacddb57590cee84e"
+      sha256: "2d588cd21b34ea4cadf5a20542bcd5042a60833aa3eae09ecdc319291cd06f69"
       url: "https://pub.dev"
     source: hosted
-    version: "7.8.0"
+    version: "8.2.2"
   meta:
     dependency: transitive
     description:
@@ -1022,22 +1014,6 @@ packages:
     description:
       name: slang
       sha256: fe12e1eeb1fae0dd8e4e453ef6bb39dabb1fa2460a33ebfcdd3f84c8748d28b6
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.16.0"
-  slang_build_runner:
-    dependency: transitive
-    description:
-      name: slang_build_runner
-      sha256: c148e493b8edc528feebb71814c95219ac5d5cc060230bac220100f469cfeb48
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.16.0"
-  slang_flutter:
-    dependency: transitive
-    description:
-      name: slang_flutter
-      sha256: ee9dbb86bc58994eb0a5cd5f17de484daa70e7224c62cc69b8620065b213dc73
       url: "https://pub.dev"
     source: hosted
     version: "4.16.0"

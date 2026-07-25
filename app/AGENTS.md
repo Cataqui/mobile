@@ -24,18 +24,19 @@ app/lib/
 │   ├── dtos/          # Freezed JSON DTOs (generated)
 │   └── providers.dart # App-level Riverpod providers
 ├── gen/               # FlutterGen generated assets (do not edit, gitignored)
-├── i18n/              # Slang translation files (pt-BR)
 ├── views/             # Screen-level widgets (pages/routes)
 └── widgets/           # Reusable app-level widgets
 ```
 
 ## i18n (Translations)
 
-Internationalization uses **slang** (`package:slang`) for type-safe translations
-with JSON source files and code generation.
+Internationalization uses the workspace's `locale` package for type-safe **slang** (`package:slang`) translations.
 
-- **Source files:** Translation strings live in `app/lib/i18n/` as JSON files
-  (e.g., `pt-BR.i18n.json`). Run `melos gen:all` after editing them.
+- **Source files:** Translation strings live in
+  `packages/locale/lib/i18n/` as JSON files (e.g., `pt-BR.i18n.json`). Run
+  `melos gen` from the repository root after editing them.
+- **Imports:** Import translations through `package:locale/locale.dart`; never
+  import generated files directly.
 - **Access pattern:** Read translations via Riverpod:
   ```dart
   final i18n = ref.watch(translationProvider);
@@ -133,7 +134,7 @@ Every screen-level view in `app/lib/views/<feature>/` must have a companion
 
 - **Code Generation:** The `app` package is configured with **Freezed** and
   **json_serializable** for immutable API DTOs and type-safe JSON conversion.
-  Run `melos gen:all` after adding or changing generated DTOs. Generated
+  Run `melos gen` after adding or changing generated DTOs. Generated
   `.freezed.dart` and `.g.dart` files under `app/lib/core/dtos/` are ignored.
 - **File Structure:** Keep exactly one DTO class per Dart source file.
   Shared enums may live in a dedicated non-DTO enum file.
@@ -152,7 +153,7 @@ The app uses **flutter_gen** for type-safe asset access.
 - **Adding a new asset:**
   1. Place the file in the appropriate directory under `app/assets/`.
   2. Declare the directory in `app/pubspec.yaml` under `flutter: assets:`.
-  3. Run `melos gen:all` from the repository root to regenerate.
+  3. Run `melos gen` from the repository root to regenerate.
 - **Access pattern:** Import `package:cataqui_app/gen/assets.gen.dart` and use
   the `Assets.<category>.<name>` accessor directly. For SVGs, call `.svg()`; for
   raster images, call `.image()`.
@@ -162,6 +163,15 @@ The app uses **flutter_gen** for type-safe asset access.
   ```
 - **Facades:** The app does **not** use Mateo for app specific assets — access the
   app's `Assets` entry point directly.
+
+## Mobile Version
+
+`pubspec.yaml` is the single source for the shipped iOS and Android version.
+Keep the Flutter `version` in `<semantic-version>+<build-number>` form. Release
+builds must consume it directly; never pass `--build-name` or `--build-number`.
+Release Please updates the semantic version and increments the existing numeric
+build suffix. The candidate workflow preserves that number or raises it when
+TestFlight requires a higher build.
 
 ## Repositories
 

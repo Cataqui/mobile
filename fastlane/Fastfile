@@ -1,0 +1,167 @@
+require "fileutils"
+require "plist"
+require "yaml"
+
+opt_out_usage
+default_platform(:ios)
+
+IOS_APP_IDENTIFIER = "com.cataqui.mobile"
+
+def apple_api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+    issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+    key_content: ENV.fetch("APP_STORE_CONNECT_API_KEY_BASE64"),
+    is_key_content_base64: true
+  )
+end
+
+def app_version
+  YAML.safe_load(File.read("app/pubspec.yaml")).fetch("version").to_s
+end
+
+def app_version_name
+  app_version.split("+", 2).fetch(0)
+end
+
+def app_version_build_number
+  Integer(app_version.split("+", 2).fetch(1), 10)
+end
+
+def store_release_notes
+  root = File.expand_path("..", __dir__)
+  source_root = File.join(
+    root,
+    "distribution",
+    "releases",
+    "v#{app_version_name}"
+  )
+  release_notes = Dir[File.join(source_root, "*.txt")].sort.to_h do |file|
+    [File.basename(file, ".txt"), file]
+  end
+  if release_notes.empty?
+    UI.user_error!("Missing localized store release notes in #{source_root}")
+  end
+
+  release_notes
+end
+
+def store_release_notes_path
+  root = File.expand_path("..", __dir__)
+  destination_root = File.join(root, "build", "release-metadata")
+  FileUtils.rm_rf(destination_root)
+
+  store_release_notes.each do |locale, file|
+    destination = File.join(
+      destination_root,
+      locale,
+      "release_notes.txt"
+    )
+    FileUtils.mkdir_p(File.dirname(destination))
+    FileUtils.cp(file, destination)
+  end
+  destination_root
+end
+
+def localized_testflight_build_info
+  store_release_notes.to_h do |locale, file|
+    [
+      locale,
+      {
+        whats_new: File.read(file).strip
+      }
+    ]
+  end
+end
+
+def ios_export_options_plist_path
+  profile_mapping = lane_context[
+    SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING
+  ]
+
+  if profile_mapping.nil? || profile_mapping.empty?
+    UI.user_error!("Match did not provide an App Store provisioning profile")
+  end
+
+  root = File.expand_path("..", __dir__)
+  path = File.join(root, "build", "ios", "ExportOptions.plist")
+  FileUtils.mkdir_p(File.dirname(path))
+  File.write(
+    path,
+    {
+      method: "app-store-connect",
+      signingStyle: "manual",
+      teamID: ENV.fetch("APPLE_DEVELOPER_TEAM_ID"),
+      uploadSymbols: true,
+      provisioningProfiles: profile_mapping
+    }.to_plist
+  )
+  path
+end
+
+platform :ios do
+  desc "Write the latest TestFlight build number to GitHub Actions output"
+  lane :latest_testflight_build do
+    latest = latest_testflight_build_number(
+      api_key: apple_api_key,
+      app_identifier: IOS_APP_IDENTIFIER,
+      version: app_version_name,
+      initial_build_number: 0
+    )
+    File.write(
+      ENV.fetch("GITHUB_OUTPUT"),
+      "latest_build_number=#{latest}\n",
+      mode: "a"
+    )
+  end
+
+  desc "Build the pubspec version and upload it to internal TestFlight"
+  lane :upload_release_candidate_to_testflight do
+    api_key = apple_api_key
+    setup_ci if is_ci
+    match(
+      type: "appstore",
+      readonly: true,
+      api_key: api_key,
+      app_identifier: IOS_APP_IDENTIFIER
+    )
+    Dir.chdir("app") do
+      sh("fvm", "flutter", "pub", "get")
+      sh(
+        "fvm",
+        "flutter",
+        "build",
+        "ipa",
+        "--release",
+        "--export-options-plist=#{ios_export_options_plist_path}"
+      )
+    end
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: Dir["app/build/ios/ipa/*.ipa"].fetch(0),
+      app_identifier: IOS_APP_IDENTIFIER,
+      distribute_external: false,
+      localized_build_info: localized_testflight_build_info,
+      uses_non_exempt_encryption: false,
+      skip_waiting_for_build_processing: false
+    )
+  end
+
+  desc "Submit the already-tested TestFlight build for review"
+  lane :submit_to_app_store do
+    upload_to_app_store(
+      api_key: apple_api_key,
+      app_identifier: IOS_APP_IDENTIFIER,
+      app_version: app_version_name,
+      build_number: app_version_build_number,
+      metadata_path: store_release_notes_path,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: true,
+      run_precheck_before_submit: true,
+      precheck_include_in_app_purchases: false,
+      force: true
+    )
+  end
+end

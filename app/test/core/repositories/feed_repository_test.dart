@@ -30,9 +30,7 @@ void main() {
 
       await repository.getFeedJobs();
 
-      verify(
-        () => dio.get<Map<String, Object?>>('/feed', queryParameters: any(named: 'queryParameters')),
-      ).called(1);
+      verify(() => dio.get<Map<String, Object?>>('/feed', queryParameters: any(named: 'queryParameters'))).called(1);
     });
 
     test('when requesting feed jobs, it should send the latest sort mode', () async {
@@ -113,7 +111,7 @@ void main() {
 
   group('feedRepositoryProvider', () {
     test('when reading the provider, it should expose a feed repository', () {
-      final container = ProviderContainer(overrides: [cataquiDioProvider.overrideWithValue(MockDio())]);
+      final container = ProviderContainer(overrides: [cataquiApiV1DioProvider.overrideWithValue(MockDio())]);
       addTearDown(container.dispose);
 
       final repository = container.read(feedRepositoryProvider);

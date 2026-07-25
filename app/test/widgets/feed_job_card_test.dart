@@ -3,12 +3,12 @@ import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
-import 'package:cataqui_app/i18n/strings.g.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:locale/locale.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 import '../utils/test_app.dart';

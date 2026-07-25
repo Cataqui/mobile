@@ -1,162 +1,150 @@
-# Cataquí — Mobile
+<p align="center">
+  <img src="app/assets/logos/cataqui.svg" width="96" alt="Cataquí logo">
+</p>
 
-Cataquí is the real-time opportunity layer of the city: a fast, frictionless, hyperlocal feed for quick jobs, side hustles, informal work, and temporary tasks.
+<h1 align="center">Cataquí Mobile</h1>
 
-## Prerequisites
+<p align="center">
+  The real-time opportunity layer of the city.
+  Open Cataquí and immediately discover work happening nearby.
+</p>
 
-| Tool    | Version                  | Install                          |
-| ------- | ------------------------ | -------------------------------- |
-| Flutter | `3.44.0` (via fvm)       | [fvm.dev](https://fvm.dev)       |
-| Dart    | Bundled with Flutter SDK | via fvm                          |
-| melos   | `^7.8.0` (global)        | `dart pub global activate melos` |
+Cataquí is a fast, hyperlocal feed for quick jobs, side hustles, informal work,
+and temporary tasks. The product loop is deliberately short:
+**post an opportunity → discover it in the feed → make contact**.
 
-### PATH setup
+This repository contains the Flutter client for Android and iOS plus the
+internal tooling used by it. The current mobile experience focuses on
+discovery: swipe through nearby opportunities, open the full job, then contact
+the poster through WhatsApp or a phone call.
 
-Add the Dart pub cache bin directory to your shell config:
+## What guides the product
+
+| Principle            | What it means for contributors                                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Immediate            | Startup work stays behind the native splash and the feed request begins early.                                          |
+| Hyperlocal           | Opportunities are organized around neighborhoods and a privacy-preserving location radius, not an exact street address. |
+| Low-end first        | Every screen, map, animation, and dependency must run well on the 2–4 GB devices common across Latin America.           |
+| Human, not corporate | Language and UI should feel local, direct, and trustworthy, never like enterprise recruiting software.                  |
+| Resilient            | Loading, offline, retry, pagination, empty, and end-of-feed states are first-class product states.                      |
+
+## Run the app
+
+### 1. Install the toolchain
+
+| Tool                                                              | Version used by the project  | Notes                                                                                                |
+| ----------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [FVM](https://fvm.app/documentation/getting-started/installation) | latest                       | Installs and runs the pinned Flutter SDK.                                                            |
+| Flutter                                                           | `3.44.0`                     | Declared in [`.fvmrc`](.fvmrc); do not use an untracked global SDK.                                  |
+| Dart                                                              | Bundled with Flutter         | Run it through `fvm dart`.                                                                           |
+| [Melos](https://melos.invertase.dev/getting-started)              | `8.2.2`                      | Orchestrates the Dart workspace from the repository root.                                            |
+| Android or iOS tooling                                            | Current Flutter requirements | Follow Flutter's [platform setup](https://docs.flutter.dev/install). iOS development requires macOS. |
+
+Ruby is only needed for local Fastlane work; most contributors do not need it.
+See [Installing Ruby](https://www.ruby-lang.org/en/documentation/installation/)
+when working on releases.
+
+### 2. Clone and configure
+
+```bash
+git clone https://github.com/Cataqui/mobile.git
+cd mobile
+
+fvm install
+fvm dart pub global activate melos 8.2.2
+cp .env.example .env
+```
+
+If `melos` is not found afterward, add the Dart global executable directory to
+your shell:
 
 ```zsh
-export PATH="$PATH":"$HOME/.pub-cache/bin"
+export PATH="$PATH:$HOME/.pub-cache/bin"
 ```
 
-## Setup
+Edit `.env` and choose exactly one environment:
+
+```dotenv
+ENVIRONMENT=development
+CATAQUI_API_URL=https://your-development-api.example.com
+```
+
+The URL in `.env.example` is intentionally a placeholder. It is sufficient for
+code generation, but it will produce the app's network error state instead of
+a live feed. The optional Fastlane values are needed only for local signing and
+release administration. Never commit `.env` or credentials.
+
+### 3. Set up and launch
+
+Run workspace commands from the repository root unless a command explicitly
+changes directories:
 
 ```bash
-# Install Flutter version
-fvm install
-
-# Configure local environment variables
-cp .env.example .env
-
 melos setup
+
+cd app
+fvm flutter run
 ```
 
-Before running the app, set the local environment variables in `.env`. Use `.env.example` as the committed template.
+`melos setup` is the canonical repository setup command. It installs
+everything needed to work in this repository.
 
-Regenerate code after changing environment values so [Envied](https://pub.dev/packages/envied) can refresh the generated Dart config.
+Run `fvm flutter doctor` if launch fails and resolve any issue for the platform
+you intend to use.
 
-## Development
+The first successful launch keeps the native splash visible while essential
+local state loads, then opens the feed. To select a device explicitly:
 
 ```bash
-# Run tests with coverage (interactive package selection)
-melos test
-
-# Run tests without coverage (fast, for pre-commit hook)
-melos test:no-coverage
-
-# Run tests for all workspace members (no prompt)
-melos coverage
-
-# Individual steps:
-melos coverage:clean        # Remove all coverage artifacts
-melos coverage:collect       # Run tests with --coverage (no HTML)
-
-# Static analysis
-melos analyze
-
-# Code generation (workspace-wide)
-melos gen:all
-
-# Code generation (interactive package selection)
-melos gen
-
-# Resolve public packages from sibling checkouts for local development
-melos public-packages:local
-
-# Disable the local Mateo override and restore the committed remote lock
-melos public-packages:remote-lock
-
-# Regenerate the iOS and Android native splash resources
-melos generate_splash
-
-# Update approved visual goldens after intentional UI changes
-melos goldens:update         # asks which package/app
-melos goldens:update:all     # updates all workspace members
+cd app
+fvm flutter devices
+fvm flutter run -d <device-id>
 ```
 
-### Public package development
+> [!TIP]
+> VS Code users can select **App (Debug)** from the checked-in launch
+> configurations. The workspace already points the Dart extension at the FVM
+> SDK.
 
-Mobile resolves `dotdart`, `oh_my_flutter`, and `mateo_mobile` from pub.dev.
-For local Mateo work, run `melos public-packages:local`; the ignored root
-`pubspec_overrides.yaml` then resolves
-`../../mateo/packages/flutter/mateo-mobile-flutter`.
+## Understand the codebase
 
-Running Pub while the override is active changes `pubspec.lock` to a path
-resolution. Before committing, testing a release checkout, or releasing Mobile,
-run `melos public-packages:remote-lock`. That command temporarily disables the
-override, regenerates the lock from pub.dev, and leaves the override parked in
-the ignored `pubspec_overrides.yaml.disabled` file so editor-driven Pub
-resolution cannot rewrite the lock. Run `melos public-packages:local` to
-reactivate it. The committed lockfile must resolve `dotdart`, `oh_my_flutter`,
-and `mateo_mobile` from pub.dev, never from local paths.
+The app uses feature-oriented slices. A typical request follows this path:
 
-### Git Hooks
-
-This project uses [dart_husky](https://pub.dev/packages/dart_husky) to enforce code quality and commit conventions.
-
-**Hooks run automatically on every commit:**
-
-- `pre-commit` — runs `melos analyze` (static analysis across all workspace members) and tests only on workspace members with staged files (via `preset: melos` with `staged_only: true`). The commit is blocked if either fails.
-- `commit-msg` — validates commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format.
-
-Hooks are automatically installed via `melos setup`. To install manually:
-
-```bash
-fvm dart run dart_husky install
+```text
+route → view → Riverpod state → repository → Dio → Cataquí API
+                  ↓
+              typed DTOs
 ```
 
-To bypass hooks for an emergency commit (e.g. WIP):
+The main technical boundaries are:
 
-```bash
-git commit --no-verify -m "message"
-```
+- [Riverpod](https://riverpod.dev/) with generated providers for state and dependency injection.
+- [Dio](https://pub.dev/packages/dio) repositories for network access.
+- [go_router](https://pub.dev/packages/go_router) with generated typed routes.
+- Freezed and JSON serialization for API models.
+- [slang](https://pub.dev/packages/slang) in `packages/locale` for the shared app and release locale catalog.
+- [Mateo Mobile](https://github.com/Ventairy/mateo/tree/main/mobile/packages/mateo_mobile_flutter) for the design system.
+- [Alchemist](https://pub.dev/packages/alchemist) for golden testing
 
----
+### Everyday commands
 
-### Commit Conventions
+| Task                           | Command                |
+| ------------------------------ | ---------------------- |
+| Regenerate generated code      | `melos gen`            |
+| Format code                    | `melos format`         |
+| Analyze every workspace member | `melos analyze`        |
+| Run the test suite             | `melos test`           |
+| Update goldens                 | `melos goldens:update` |
 
-All commits must follow the Conventional Commits format:
+`melos format` is built into Melos and formats every package in the workspace,
+including packages added later. No path list needs to be maintained.
 
-```
-<type>(<optional scope>): <subject>
-```
+Run `melos gen` after changing environment fields, Riverpod providers, routes,
+DTOs, generated assets, or translation sources under
+`packages/locale/lib/i18n`. It also synchronizes native iOS locales. Generated
+Dart files are git ignored; source definitions are the reviewable contract.
 
-| Type       | When to use                                                         |
-| ---------- | ------------------------------------------------------------------- |
-| `feat`     | A new feature                                                       |
-| `fix`      | A bug fix                                                           |
-| `chore`    | Maintenance, deps, tooling                                          |
-| `docs`     | Documentation only                                                  |
-| `style`    | Formatting, whitespace                                              |
-| `refactor` | Code change, no feature or fix                                      |
-| `test`     | Adding or fixing tests                                              |
-| `build`    | Build system changes                                                |
-| `ci`       | CI configuration                                                    |
-| `perf`     | Performance improvement                                             |
-| `revert`   | Revert a previous commit                                            |
-| `agent`    | Agent-related files (`AGENTS.md`, `.agents/`, `.opencode/`, skills) |
-
-**Examples:**
-
-```bash
-git commit -m "feat(feed): add location radius map"
-git commit -m "fix: resolve null pointer in feed"
-git commit -m "agent: add flutter-riverpod-expert skill"
-git commit -m "chore(deps): update riverpod to 3.3.0"
-git commit -m "test: add regression test for feed pagination"
-```
-
-## Project Structure
-
-```
-Mobile/
-├── app/                      # Main Flutter application
-│   ├── lib/
-│   ├── test/
-│   └── pubspec.yaml
-├── pubspec.yaml              # Workspace root
-└── .fvmrc                    # Flutter version pin
-```
-
-Internal packages are not currently part of this repository. To add one back,
-create the package directory, add it to the root `pubspec.yaml` `workspace`
-list, and depend on it from consumers with an exact relative `path:`.
+`melos test` additionally produces HTML coverage reports. It is a local
+convenience command that requires LCOV's `genhtml` and currently opens the
+report with the macOS `open` command. The no-coverage command above is the
+portable pre-submit gate used by CI.

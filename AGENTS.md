@@ -2,19 +2,19 @@
 
 ## 0. Mission & Core Philosophy
 
-You are operating within the **Cataquí Mobile Repository**, a high-performance Flutter app workspace built using Flutter and Dart.
+You are operating within the **Cataquí Mobile Repository**, a high-performance Flutter workspace.
 
 Cataquí is the real-time opportunity layer of the city: a fast, frictionless, hyperlocal feed for quick jobs, side hustles, informal work, and temporary tasks.
 
 ### The Core Product Promise
 
-> Open Cataquí and immediately see real opportunities happening near you right now.
+> Open Cataquí and immediately see real work opportunities happening near you right now.
 
 ### Core Visual & Experience Anchors
 
 - **Ultralight & Fast:** Zero lag, instantaneous feed updates, smooth 60/120fps scrolling.
-- **Hyperlocal:** Geographically sorted, contextualized for the streets of São Paulo.
-- **Frictionless Loop:** Post an opportunity $\rightarrow$ Discover in feed $\rightarrow$ Tap Direct WhatsApp Contact.
+- **Hyperlocal:** Geographically sorted, contextualized for each region.
+- **Frictionless Loop:** Post an opportunity $\rightarrow$ Discover in feed $\rightarrow$ Tap Contact.
 - **Non-Corporate Brand:** Feels trustworthy, authentic, local, and premium—never look or behave like enterprise HR software, staffing ERPs, or corporate applicant tracking systems (ATS).
 - **Mass-Market by Default:** Cataquí is built for the masses — every line of code must prioritize broad device coverage across Latin America, where low-end devices dominate. Every architectural decision, dependency, animation, layout, and feature must be optimized to run well on low-end hardware, not just flagship phones. If a feature cannot be delivered performantly on low-end devices, it must be rethought or cut.
 
@@ -22,25 +22,27 @@ Cataquí is the real-time opportunity layer of the city: a fast, frictionless, h
 
 ## 1. Technical Stack & Environment
 
-This repository is structured as a **Flutter app workspace**. Shared packages that used to live in this repository now live in their own repositories and are consumed like normal external dependencies.
+This repository is structured as a **Flutter workspace** using melos:
+
+- Packages live at `packages/` folder
+- App live at `app/` folder
 
 ### Environment & Tooling
 
 - **Flutter Version Management:** Managed exclusively via **fvm** (`https://fvm.dev/`). Do **NOT** use global untracked Flutter installations.
 - **Determinism Rule:** The `pubspec.lock` file is the absolute source of truth for dependencies. **Never** add `pubspec.lock` to `.gitignore`. It must be committed on every dependency alteration to guarantee identical builds across all agent environments and the CI pipeline.
 - **SDK Constraints:** Always respect the minimum Flutter/Dart SDK constraints declared in `pubspec.yaml`.
-- **Environment Variables:** Keep local runtime configuration in the root
-  `.env` file, using `.env.example` as the committed template. The app reads
-  `ENVIRONMENT` and `CATAQUI_API_URL` through Envied-generated Dart code.
-  Regenerate code after changing `.env` values.
-- **Startup Splash:** Keep essential asynchronous startup work in
-  `AppBootstrap.setup()` so the native splash remains visible until bootstrap completes.
+- **Environment Variables:** Keep local runtime configuration in the root `.env` file, using `.env.example` as the committed template. The app reads the values through Envied-generated Dart code. Code must be generated after changing values. Optional Fastlane values in the same template are only for local signing and release administration.
+- **Startup Splash:** Keep essential asynchronous startup work in `AppBootstrap.setup()` so the native splash remains visible until bootstrap completes.
 
 ### Architecture & Frameworks
 
 - **State Management:** **Riverpod** (preferring code-generation workflows via `@riverpod`).
-- **Networking Layer:** **Dio** (configured with explicit interceptors for standardized error handling and clean timeout controls).
-- **Local Persistence:** High-performance local cache engine (e.g., Isar/Hive) used for offline-first geographic feed continuity.
+- **Networking Layer:** **Dio** (configured with explicit interceptors).
+
+### Design System
+
+- Cataquí uses [Mateo](https://github.com/Ventairy/mateo/tree/main/design-system) as its design system. When implementing any UI, always refer to Mateo for design guidelines and reusable components. When needing a component that doesn't exist in the design system yet, instead of re-creating it locally, analyse if it could be added to the design system and propose a new component by opening an [issue](https://github.com/Ventairy/mateo/issues). Components too specific to Cataquí context should not be proposed, only reusable components that can be useful for other apps
 
 ---
 
@@ -48,13 +50,15 @@ This repository is structured as a **Flutter app workspace**. Shared packages th
 
 To maintain absolute structural health across the workspace, follow these modularization rules:
 
-- **External Package Boundaries:** Shared packages are owned by their standalone repositories. Consume them through their published package APIs or explicitly configured local overrides for development.
-- **Design System:** Cataquí uses
-  [Mateo](https://github.com/Ventairy/mateo/tree/main/design-system) as its
-  design system. Reusable mobile UI belongs in the design system's Flutter package rather than in the application.
-- **Future Internal Packages:** If internal packages are added to this
-  repository, add each package explicitly to the root `pubspec.yaml` workspace
-  list and use exact relative paths from the consuming package:
+- **Packages** should always live at `packages/`, when implementing something think if it fits better to be a package or an internal app thing. Prefer to create packages when it's stuff that later could be decoupled from this repo and become an standalone package to be implemented in other apps and repositories
+
+- **Release Tooling:** `packages/release` is a package for internal tooling related to releasing the app. Keep all release logic in this package.
+
+- **Locales:** `packages/locale` owns the shared locale catalog and generated
+  translation API consumed by both the app and release tooling. Add languages
+  there so supported app and store locales remain one source of truth.
+
+- **Future Internal Packages:** If internal packages are added to this repository, add each package explicitly to the root `pubspec.yaml` workspace list and use exact relative paths from the consuming package:
 
 ```yaml
 dependencies:
@@ -74,6 +78,17 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 
 - **Bad:** `final p = await repo.find(id);`
 - **Good:** `final post = await _postsRepository.findById(postId: postId);`
+
+### Function Names Must Match Their Behavior
+
+- A function's name, responsibility, and return value must describe the same operation. Never name a function after
+  one action while returning the result of another.
+- Verification functions only verify. A function named `verify...` must return `void` or `Future<void>` and throw
+  when verification fails; it must not also retrieve or return data.
+- Functions that return values must be named for the value-producing operation, such as `read...`, `get...`,
+  `find...`, `create...`, or `parse...`.
+- Keep verification and value retrieval as separate operations. This preserves single responsibility and makes call
+  sites honest about what the code does.
 
 ### Strong Type Safety
 
@@ -144,7 +159,7 @@ widget or model that produces or consumes the data.
 
 ### Component Architecture (UI Layer)
 
-- **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility `ConsumerWidget` or `HookConsumerWidget` components.
+- **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility components.
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
 
 ### Method Ordering Within Classes
@@ -276,8 +291,7 @@ void _resumeOrSkipTransition() {
 
 **Never hardcode color values** (`Colors.blue`, `Color(0xFF...`) in widget code, tests, or any UI layer. Resolve colors from the active design-system theme:
 
-- **Semantic colors:** Prefer semantic roles such as background, primary text,
-  borders, and component states.
+- **Semantic colors:** Prefer semantic roles such as background, primary text, borders, and component states.
 - **Raw palette:** Use raw palette steps only when no semantic token exists.
 - **Import:** Use the design system's public package entrypoint.
 
@@ -297,7 +311,10 @@ Untested business logic is considered broken code.
 
 All testing, analysis, and build routines must run within the **fvm** environment wrapper.
 
-- **Run Tests:** `melos test` — interactive package selection, runs tests with per-package coverage HTML report
+- **Run Tests:** `melos test` — run tests with coverage for the selected
+  workspace members. The default first selection runs all members.
+- **Format Code:** `melos format` — format every workspace member
+  automatically; do not maintain a manual path list.
 - **Analyze Code:** `melos analyze`
 
 ### Strict Regression Rule
@@ -432,10 +449,10 @@ visual regression guard.
   variant).
 - CI goldens (`test/**/goldens/ci/`) are committed to source control.
   Platform goldens (`test/**/goldens/macos/`, etc.) are gitignored.
-- Run `melos goldens:update` (asks which package) or `melos goldens:update:all`
-  (all workspace members) from the repository root to regenerate after
+- Run `melos goldens:update` from the repository root to regenerate after
   intentional visual changes. The script filters to workspace members with
-  `dart_test.yaml` and prompts for package selection like `melos test`.
+  `dart_test.yaml` and prompts for package selection like `melos test`; the
+  default first selection runs all eligible members.
   Review the diff before committing.
 - Golden tests do not replace unit tests for non-visual logic. They
   complement them.
@@ -528,3 +545,15 @@ When executing modifications inside this repository as an AI agent, you must str
 10. **Debug Before Fixing:** When the root cause of a bug is not immediately clear, do not attempt a speculative fix. Instead, first work with the human to understand the environment and reproduce the issue. Add diagnostic logging (`debugPrint`, `log`, or similar) to the relevant code paths, then ask the human to run the app, reproduce the bug, and share the log output. Only propose a fix after the logs have revealed the actual cause. This applies even when you think you know the fix — if you cannot explain the root cause with evidence, you are guessing, and guessing is not fixing.
 11. **No Unsolicited Changes:** Never modify, rename, delete, or create files that the human did not directly ask about. If you think something should be changed, ask permission first. Only make changes that are explicitly requested or directly required to fulfill the requested task.
 12. **Fix Lints, Don't Suppress Them:** When the analyzer reports a warning or info-level lint, always fix the underlying code first. Only add `ignore_for_file` as a last resort when the lint is a known false positive (e.g., `cascade_invocations` on `void`-returning methods) or when the pattern is genuinely intentional and documented with a comment explaining why. Every `ignore_for_file` must have a comment immediately above it explaining why the lint cannot be fixed.
+
+## 8. Release Work
+
+- Read `RELEASES.md` before changing release tooling, versioning, distribution
+  metadata, signing, or publishing workflows. It is the shared release contract
+  for humans and agents.
+- Keep `RELEASES.md` synchronized whenever release behavior, prerequisites,
+  configuration, or recovery steps change.
+- Use the workspace commands documented there to validate release changes.
+- Preparing or validating a release does not authorize merging a release PR,
+  tagging, publishing, submitting an app for review, or changing legal and
+  store declarations.
