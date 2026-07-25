@@ -1,0 +1,55 @@
+name: Contributor agreement
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    name: Acceptance recorded
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+
+    steps:
+      - name: Verify agreement acceptance
+        env:
+          EVENT_PATH: ${{ github.event_path }}
+        run: |
+          ruby -rjson -e '
+            body = JSON.parse(File.read(ENV.fetch("EVENT_PATH")))
+              .dig("pull_request", "body")
+              .to_s
+
+            accepted = body.match?(
+              /^- \[[xX]\] I have read and accept the$/,
+            )
+
+            marker = "Legal name or authorized entity representative:"
+            legal_name = body
+              .split(marker, 2)
+              .fetch(1, "")
+              .lines
+              .map(&:strip)
+              .find do |line|
+                !line.empty? && !line.start_with?("<!--")
+              end
+
+            unless accepted
+              warn "::error::Accept the Contributor License Agreement in the pull request checklist."
+              exit 1
+            end
+
+            if legal_name.nil?
+              warn "::error::Add your legal name or authorized entity representative below the agreement."
+              exit 1
+            end
+          '

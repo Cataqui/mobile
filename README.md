@@ -148,3 +148,18 @@ Dart files are git ignored; source definitions are the reviewable contract.
 convenience command that requires LCOV's `genhtml` and currently opens the
 report with the macOS `open` command. The no-coverage command above is the
 portable pre-submit gate used by CI.
+
+## License and contributions
+
+Cataquí Mobile is **source-available**, not OSI-approved open source. The
+[PolyForm Shield License 1.0.0](LICENSE) lets you inspect, modify, and share the
+software for permitted purposes, but does not permit using it to provide a
+competing product—even when that product is free.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+Contributors retain ownership of their work and must accept the
+[Contributor License Agreement](CONTRIBUTOR_LICENSE_AGREEMENT.md) so Cataquí
+can use, protect, and continue licensing the combined project.
+
+The software license does not grant rights to Cataquí names, logos, or other
+brand identifiers. See [TRADEMARKS.md](TRADEMARKS.md).
