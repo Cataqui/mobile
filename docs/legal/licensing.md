@@ -8,7 +8,8 @@
 
 License Cataquí-authored material under the
 [PolyForm Shield License 1.0.0](../../LICENSE).
-Ventairy Inc., Cataquí's parent company, is the owner and licensor.
+Ventairy Inc. is the owner and licensor and is intended to serve as Cataquí's
+parent company once the corporate-governance update is complete.
 
 This is a **source-available license**, not an Open Source Initiative-approved
 open-source license. Cataquí must describe the repository accordingly.
