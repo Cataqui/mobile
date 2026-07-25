@@ -9,7 +9,7 @@ void main() {
       'when rendering visual states, it should match the approved goldens',
       fileName: 'offline_error_state_states',
       builder: () => GoldenTestGroup(
-        scenarioConstraints: const BoxConstraints(maxWidth: 400),
+        scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 400),
         children: [
           GoldenTestScenario(
             name: 'full',
