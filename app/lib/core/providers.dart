@@ -24,7 +24,7 @@ Translations translation(Ref ref) {
 
 @Riverpod(keepAlive: true)
 AppConfig appConfig(Ref ref) {
-  return AppConfig(environment: Env.environment, cataquiApiUrl: Env.cataquiApiUrl);
+  return AppConfig(environment: Env.environment);
 }
 
 @Riverpod(keepAlive: true)

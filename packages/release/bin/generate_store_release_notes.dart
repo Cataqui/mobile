@@ -1,14 +1,12 @@
-import 'dart:io';
-
 import 'package:http/http.dart' as http;
 import 'package:release/src/ai_release_notes_generator.dart';
 import 'package:release/src/app_version.dart';
+import 'package:release/src/directories/directories.dart';
 import 'package:release/src/environment_variables.dart';
-import 'package:release/src/repository_paths/repository_paths.dart';
 
 final class GenerateStoreReleaseNotesCommand {
   static Future<void> run() async {
-    final environment = EnvironmentVariables(values: Platform.environment);
+    final environment = EnvironmentVariables.current();
     final httpClient = http.Client();
 
     try {

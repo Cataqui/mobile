@@ -1,4 +1,4 @@
-part of 'repository_paths.dart';
+part of 'directories.dart';
 
 final class DistributionDirectory {
   DistributionDirectory._({required Directory repositoryRoot})

@@ -1,4 +1,4 @@
-part of 'repository_paths.dart';
+part of 'directories.dart';
 
 final class AppDirectory {
   AppDirectory._({required Directory repositoryRoot}) : _directory = Directory(path.join(repositoryRoot.path, 'app'));
@@ -7,6 +7,7 @@ final class AppDirectory {
 
   final Directory _directory;
 
+  String get absolutePath => _directory.path;
   File get pubspecFile => File(path.join(_directory.path, 'pubspec.yaml'));
   File get changelogFile => File(path.join(_directory.path, 'CHANGELOG.md'));
 

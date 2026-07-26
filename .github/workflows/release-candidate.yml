@@ -7,10 +7,6 @@ on:
         description: Release Please branch to prepare
         required: true
         type: string
-      pr_number:
-        description: Release Please pull request number
-        required: true
-        type: number
     secrets:
       RELEASE_BOT_PRIVATE_KEY:
         required: true
@@ -34,7 +30,6 @@ on:
 permissions:
   actions: read
   contents: read
-  pull-requests: write
 
 defaults:
   run:
@@ -57,24 +52,11 @@ jobs:
     timeout-minutes: 60
     environment: production
     outputs:
-      api_url: ${{ steps.api.outputs.url }}
       branch: ${{ inputs.branch }}
       commit_hash: ${{ steps.commit.outputs.commit_hash }}
       version: ${{ steps.version.outputs.version }}
 
     steps:
-      - name: Read production API URL
-        id: api
-        env:
-          PRODUCTION_API_URL: ${{ vars.CATAQUI_API_URL }}
-        run: |
-          if [[ ! "$PRODUCTION_API_URL" =~ ^https://[A-Za-z0-9.-]+(:[0-9]+)?/?$ ]]; then
-            echo "::error::The production CATAQUI_API_URL must be an HTTPS origin without a path."
-            exit 1
-          fi
-
-          printf 'url=%s\n' "${PRODUCTION_API_URL%/}" >> "$GITHUB_OUTPUT"
-
       - name: Create release bot token
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -181,12 +163,10 @@ jobs:
           printf 'commit_hash=%s\n' "$commit_hash" >> "$GITHUB_OUTPUT"
 
   android:
-    name: Android APK candidate
+    name: Build Android candidate
     needs: prepare
     runs-on: ubuntu-24.04
     timeout-minutes: 35
-    outputs:
-      apk_artifact_url: ${{ steps.artifact.outputs.artifact-url }}
 
     steps:
       - name: Check out candidate
@@ -215,52 +195,40 @@ jobs:
           fvm install
 
       - name: Configure app
-        env:
-          PRODUCTION_API_URL: ${{ needs.prepare.outputs.api_url }}
-        run: printf 'ENVIRONMENT=production\nCATAQUI_API_URL=%s\n' "$PRODUCTION_API_URL" > .env
+        run: printf 'ENVIRONMENT=production\n' > .env
 
       - name: Resolve and generate
         run: |
           fvm flutter pub get
           melos run gen --no-select
 
-      - name: Build APK from pubspec
+      - name: Configure disposable Android release signing
+        run: |
+          keytool -genkeypair \
+            -keystore "$RUNNER_TEMP/cataqui-ci-signing.p12" \
+            -storepass cataqui-ci-signing \
+            -keypass cataqui-ci-signing \
+            -alias cataqui-ci-signing \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -storetype PKCS12 \
+            -dname "CN=Cataqui CI" \
+            -noprompt
+          printf '%s\n' \
+            "storeFile=$RUNNER_TEMP/cataqui-ci-signing.p12" \
+            "storePassword=cataqui-ci-signing" \
+            "keyAlias=cataqui-ci-signing" \
+            "keyPassword=cataqui-ci-signing" \
+            > app/android/aab-signing.properties
+
+      - name: Build Android release App Bundle
         working-directory: app
-        run: fvm flutter build apk --release
+        run: fvm flutter build appbundle --release
 
-      - name: Upload Android candidate
-        id: artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: cataqui-android-${{ needs.prepare.outputs.version }}
-          path: app/build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
-          retention-days: 90
-
-  share-android:
-    name: Share Android candidate
-    needs:
-      - prepare
-      - android
-      - record
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-
-    steps:
-      - name: Comment APK artifact on release PR
-        continue-on-error: true
-        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
-        with:
-          number_force: ${{ inputs.pr_number }}
-          header: android-candidate
-          skip_unchanged: true
-          message: |
-            ### Android candidate
-
-            [Download APK artifact](${{ needs.android.outputs.apk_artifact_url }})
-
-            - Version: `${{ needs.prepare.outputs.version }}`
-            - Commit: `${{ needs.prepare.outputs.commit_hash }}`
+      - name: Lint Android release
+        working-directory: app/android
+        run: ./gradlew :app:lintRelease
 
   ios:
     name: Internal TestFlight candidate
@@ -297,9 +265,7 @@ jobs:
           bundler-cache: true
 
       - name: Configure app
-        env:
-          PRODUCTION_API_URL: ${{ needs.prepare.outputs.api_url }}
-        run: printf 'ENVIRONMENT=production\nCATAQUI_API_URL=%s\n' "$PRODUCTION_API_URL" > .env
+        run: printf 'ENVIRONMENT=production\n' > .env
 
       - name: Resolve and generate
         run: |
@@ -354,12 +320,6 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0
 
-      - name: Download Android candidate
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: cataqui-android-${{ needs.prepare.outputs.version }}
-          path: build/candidate
-
       - name: Install Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
@@ -378,8 +338,6 @@ jobs:
       - name: Write candidate manifest
         env:
           CANDIDATE_COMMIT_HASH: ${{ needs.prepare.outputs.commit_hash }}
-          CANDIDATE_API_URL: ${{ needs.prepare.outputs.api_url }}
-          ANDROID_APK_PATH: build/candidate/app-release.apk
         run: fvm dart run release:write_candidate_manifest.dart
 
       - name: Commit candidate manifest

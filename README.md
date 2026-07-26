@@ -66,13 +66,9 @@ Edit `.env` and choose exactly one environment:
 
 ```dotenv
 ENVIRONMENT=development
-CATAQUI_API_URL=https://your-development-api.example.com
 ```
 
-The URL in `.env.example` is intentionally a placeholder. It is sufficient for
-code generation, but it will produce the app's network error state instead of
-a live feed. The optional Fastlane values are needed only for local signing and
-release administration. Never commit `.env` or credentials.
+The optional Android App Bundle and Fastlane values are needed only for local aab signing and release administration.
 
 ### 3. Set up and launch
 

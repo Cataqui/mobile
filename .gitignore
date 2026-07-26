@@ -18,6 +18,7 @@ build/
 **/android/.gradle/
 **/android/local.properties
 **/android/key.properties
+**/android/aab-signing.properties
 **/android/keystores/
 **/*.jks
 **/*.keystore

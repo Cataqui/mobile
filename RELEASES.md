@@ -62,24 +62,16 @@ type and breaking-change marker do.
 
 Every successful candidate records
 `distribution/releases/v<version>/manifest.json`. It links the version,
-candidate source commit, release-input tree hash, workflow run, TestFlight
-build, and Android APK checksum. The tree hash covers the app, locale
-package, workspace manifests and lockfile, and pinned Flutter version. Only
-tracked source files participate, so generated and ignored runner files cannot
-make verification platform-dependent. The manifest also records the production
-environment and API URL embedded in both binaries.
-
-The candidate workflow requires the environment variable `CATAQUI_API_URL` to
-contain the public HTTPS production API base URL. Missing, non-HTTPS, or
-whitespace-containing values fail before either platform builds.
+candidate source commit, release-input tree hash, and production configuration.
+The tree hash covers the app, locale package, workspace manifests and lockfile,
+and pinned Flutter version. Only tracked source files participate, so generated
+and ignored runner files cannot make verification platform-dependent.
 
 The publication workflow promotes the tested iOS candidate:
 
 - the existing TestFlight build is submitted for App Review.
 
-Android store publication is not configured. Candidate APKs are release-mode
-builds signed with a non-production debug certificate for direct testing from
-the release PR. They are not attached to the GitHub Release.
+Android store distribution is not configured.
 
 Production publications are serialized so two versions cannot be submitted at
 the same time. The workflow does not rebuild the app after approval. Any source
@@ -100,7 +92,7 @@ and calls the candidate workflow. The candidate workflow then:
 1. updates `app/pubspec.yaml` and `app/CHANGELOG.md`;
 2. reconciles the numeric build number;
 3. generates localized store notes;
-4. builds a release-mode Android APK and links its artifact from the release PR;
+4. runs a signed Android release build and release lint with a disposable CI certificate;
 5. uploads the matching iOS build to internal TestFlight;
 6. records the candidate manifest in the release PR.
 
@@ -114,7 +106,7 @@ Before merging the release PR, verify:
 - the proposed version and changelog describe the intended release;
 - all candidate workflow jobs passed;
 - the recorded candidate version matches `app/pubspec.yaml`;
-- the internal TestFlight build and Android APK were tested;
+- the internal TestFlight build was tested;
 - every localized “What’s New” file is accurate;
 - no app or locale source changed after the recorded candidate was built.
 
@@ -171,6 +163,8 @@ about artifact identity, create and test a new candidate.
 | Release Please behavior                 | `release-please-config.json` and `.release-please-manifest.json` |
 | Release Please orchestration            | `.github/workflows/release-please.yml`                           |
 | Candidate build and recording           | `.github/workflows/release-candidate.yml`                        |
+| Android code checks                      | `.github/workflows/ci.yml`                                       |
+| Build Android App Bundle                | `fvm dart run release:build_aab`                                 |
 | Production publication                  | `.github/workflows/release.yml`                                  |
 | Store upload lanes                      | `fastlane/Fastfile`                                              |
 | Locale catalog                          | `packages/locale/lib/i18n/`                                      |

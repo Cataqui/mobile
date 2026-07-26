@@ -61,6 +61,12 @@
       "skillPath": "skills/flutter-fix-layout-issues/SKILL.md",
       "computedHash": "1aaba922c951159118f9b141788f7bb7b8167bdc0bd5c6f0738ebb90c29b9532"
     },
+    "flutter-release": {
+      "source": "nylo-core/claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/flutter-release/SKILL.md",
+      "computedHash": "d0f311bf79dae50500744e4bd83a45afd02a678e25ae7c58d77d3480af53e004"
+    },
     "flutter-riverpod-expert": {
       "source": "juparave/dotfiles",
       "sourceType": "github",

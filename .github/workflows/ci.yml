@@ -90,9 +90,33 @@ jobs:
       - name: Test workspace
         run: melos run test:no-coverage --no-select
 
-      - name: Build Android debug APK
+      - name: Configure disposable Android release signing
+        run: |
+          keytool -genkeypair \
+            -keystore "$RUNNER_TEMP/cataqui-ci-signing.p12" \
+            -storepass cataqui-ci-signing \
+            -keypass cataqui-ci-signing \
+            -alias cataqui-ci-signing \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -storetype PKCS12 \
+            -dname "CN=Cataqui CI" \
+            -noprompt
+          printf '%s\n' \
+            "storeFile=$RUNNER_TEMP/cataqui-ci-signing.p12" \
+            "storePassword=cataqui-ci-signing" \
+            "keyAlias=cataqui-ci-signing" \
+            "keyPassword=cataqui-ci-signing" \
+            > app/android/aab-signing.properties
+
+      - name: Build Android release App Bundle
         working-directory: app
-        run: fvm flutter build apk --debug
+        run: fvm flutter build appbundle --release
+
+      - name: Lint Android release
+        working-directory: app/android
+        run: ./gradlew :app:lintRelease
 
   ios:
     name: iOS simulator build

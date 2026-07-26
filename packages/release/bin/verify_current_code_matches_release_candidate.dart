@@ -1,5 +1,5 @@
+import 'package:release/src/directories/directories.dart';
 import 'package:release/src/release_candidate_manifest.dart';
-import 'package:release/src/repository_paths/repository_paths.dart';
 
 final class VerifyCurrentCodeMatchesReleaseCandidateCommand {
   static Future<void> run() async {

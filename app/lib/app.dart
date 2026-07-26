@@ -18,6 +18,7 @@ class CataquiApp extends ConsumerWidget {
       title: i18n.app.name,
       color: (primary: const Color(0xFFFF4A4B), onPrimary: const Color(0xFFFFFFFF)),
       routerConfig: goRouter,
+      debugShowCheckedModeBanner: true,
       locale: Locale.fromSubtags(
         languageCode: i18n.$meta.locale.languageCode,
         scriptCode: i18n.$meta.locale.scriptCode,

@@ -1,10 +1,14 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:release/src/repository_paths/repository_paths.dart';
+import 'package:release/src/directories/directories.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('when accessing the app absolute path, it should return the app directory path', () {
+    expect(Directories.app.absolutePath, path.join(Directories.root.path, 'app'));
+  });
+
   test('when accessing the app pubspec, it should return the app pubspec file', () {
     expect(Directories.app.pubspecFile.path, path.join(Directories.root.path, 'app', 'pubspec.yaml'));
   });

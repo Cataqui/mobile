@@ -25,7 +25,6 @@ jobs:
     outputs:
       pr_created: ${{ steps.release.outputs.prs_created }}
       pr_branch: ${{ steps.pr.outputs.branch }}
-      pr_number: ${{ steps.pr.outputs.number }}
 
     steps:
       - name: Create release bot token
@@ -54,15 +53,9 @@ jobs:
           RELEASE_PRS: ${{ steps.release.outputs.prs }}
         run: |
           release_pr_branch="$(jq --exit-status --raw-output '.[0].headBranchName' <<< "$RELEASE_PRS")"
-          release_pr_number="$(jq --exit-status --raw-output '.[0].number' <<< "$RELEASE_PRS")"
 
           git check-ref-format --branch "$release_pr_branch"
-          if [[ ! "$release_pr_number" =~ ^[1-9][0-9]*$ ]]; then
-            echo "::error::Release Please did not return a valid PR number."
-            exit 1
-          fi
           printf 'branch=%s\n' "$release_pr_branch" >> "$GITHUB_OUTPUT"
-          printf 'number=%s\n' "$release_pr_number" >> "$GITHUB_OUTPUT"
 
   candidate:
     name: Build release candidate
@@ -71,11 +64,9 @@ jobs:
     permissions:
       actions: read
       contents: read
-      pull-requests: write
     uses: ./.github/workflows/release-candidate.yml
     with:
       branch: ${{ needs.release-please.outputs.pr_branch }}
-      pr_number: ${{ fromJSON(needs.release-please.outputs.pr_number) }}
     secrets:
       RELEASE_BOT_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
       APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}

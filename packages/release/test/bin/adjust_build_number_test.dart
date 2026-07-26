@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:release/src/repository_paths/repository_paths.dart';
+import 'package:release/src/directories/directories.dart';
 import 'package:test/test.dart';
 
 import '../../bin/adjust_build_number.dart';

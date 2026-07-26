@@ -68,7 +68,7 @@ All providers in `providers.dart` **must** use the `@riverpod` annotation syntax
 ```dart
 @Riverpod(keepAlive: true)  // shared singleton — survives navigation
 AppConfig appConfig(Ref ref) {
-  return AppConfig(environment: Env.environment, cataquiApiUrl: Env.cataquiApiUrl);
+  return AppConfig(environment: Env.environment);
 }
 
 @riverpod                      // auto-dispose — scoped to consumer lifecycle

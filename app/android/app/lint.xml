@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Flutter pins the compatible Gradle wrapper for this SDK version. -->
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+
+    <!-- flutter_native_splash emits newer Android theme attributes in these generated base styles. -->
+    <issue id="NewApi">
+        <ignore path="src/main/res/values/styles.xml" />
+        <ignore path="src/main/res/values-night/styles.xml" />
+    </issue>
+
+    <!-- flutter_native_splash intentionally emits identical day/night assets. -->
+    <issue id="IconDuplicatesConfig">
+        <ignore path="src/main/res/drawable-night-hdpi/android12splash.png" />
+        <ignore path="src/main/res/drawable-night-mdpi/android12splash.png" />
+        <ignore path="src/main/res/drawable-night-xhdpi/android12splash.png" />
+        <ignore path="src/main/res/drawable-night-xxhdpi/android12splash.png" />
+        <ignore path="src/main/res/drawable-night-xxxhdpi/android12splash.png" />
+    </issue>
+
+    <!-- The generated 1x1 splash background is deliberately density-independent. -->
+    <issue id="IconLocation">
+        <ignore path="src/main/res/drawable/background.png" />
+    </issue>
+
+    <!-- The white brand mark is intentionally shared by foreground and monochrome layers. -->
+    <issue id="IconDuplicates">
+        <ignore path="src/main/res/drawable-mdpi/ic_launcher_monochrome.png" />
+    </issue>
+
+    <!-- The source marker removes MapLibre's service; the artifact verifier checks the merged component allowlist. -->
+    <issue id="NotificationPermission">
+        <ignore path="src/main/AndroidManifest.xml" />
+    </issue>
+</lint>

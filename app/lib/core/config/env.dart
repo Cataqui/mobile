@@ -6,7 +6,4 @@ part 'env.g.dart';
 abstract final class Env {
   @EnviedField()
   static final String environment = _Env.environment;
-
-  @EnviedField()
-  static final String cataquiApiUrl = _Env.cataquiApiUrl;
 }

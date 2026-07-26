@@ -19,14 +19,31 @@ void main() {
   group('AppBootstrap.setup', () {
     group('when startupProvider loads successfully', () {
       late MockSharedPreferencesAsync prefs;
+      late MockFeedRepository feedRepository;
 
       setUp(() {
         prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+
+        feedRepository = MockFeedRepository();
+        when(() => feedRepository.getFeedJobs()).thenAnswer(
+          (_) async => ApiEnvelopeDto<List<FeedJobDto>>(
+            data: [FeedJobDto.fixture()],
+            requestId: 'test-request-id',
+            timestamp: DateTime.now(),
+            endpoint: '/feed',
+            pagination: ApiPaginationDto.fixture(),
+          ),
+        );
       });
 
       ProviderContainer _buildFeedContainer() {
-        final container = ProviderContainer(overrides: [sharedPreferencesAsyncProvider.overrideWithValue(prefs)]);
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+            feedRepositoryProvider.overrideWithValue(feedRepository),
+          ],
+        );
         addTearDown(container.dispose);
         return container;
       }

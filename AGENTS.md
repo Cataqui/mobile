@@ -32,7 +32,12 @@ This repository is structured as a **Flutter workspace** using melos:
 - **Flutter Version Management:** Managed exclusively via **fvm** (`https://fvm.dev/`). Do **NOT** use global untracked Flutter installations.
 - **Determinism Rule:** The `pubspec.lock` file is the absolute source of truth for dependencies. **Never** add `pubspec.lock` to `.gitignore`. It must be committed on every dependency alteration to guarantee identical builds across all agent environments and the CI pipeline.
 - **SDK Constraints:** Always respect the minimum Flutter/Dart SDK constraints declared in `pubspec.yaml`.
-- **Environment Variables:** Keep local runtime configuration in the root `.env` file, using `.env.example` as the committed template. The app reads the values through Envied-generated Dart code. Code must be generated after changing values. Optional Fastlane values in the same template are only for local signing and release administration.
+- **Environment Variables:** Keep local runtime and needed release configuration in
+  the root `.env` file, using `.env.example` as the committed template. The app
+  reads only its declared runtime values through Envied-generated Dart code.
+  Code must be generated after changing runtime values. Optional Android App
+  Bundle and Fastlane values remain release-tooling inputs and must never be
+  exposed to app code.
 - **Startup Splash:** Keep essential asynchronous startup work in `AppBootstrap.setup()` so the native splash remains visible until bootstrap completes.
 
 ### Architecture & Frameworks
@@ -52,7 +57,9 @@ To maintain absolute structural health across the workspace, follow these modula
 
 - **Packages** should always live at `packages/`, when implementing something think if it fits better to be a package or an internal app thing. Prefer to create packages when it's stuff that later could be decoupled from this repo and become an standalone package to be implemented in other apps and repositories
 
-- **Release Tooling:** `packages/release` is a package for internal tooling related to releasing the app. Keep all release logic in this package.
+- **Release Tooling:** `packages/release` is a package for internal tooling related to releasing the app. Keep all
+  release logic in this package and implement its commands in Dart rather than shell scripts. Platform-native
+  Fastlane lanes remain Ruby.
 
 - **Locales:** `packages/locale` owns the shared locale catalog and generated
   translation API consumed by both the app and release tooling. Add languages

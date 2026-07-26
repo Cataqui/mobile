@@ -1,5 +1,5 @@
 import 'package:release/src/app_version.dart';
-import 'package:release/src/repository_paths/repository_paths.dart';
+import 'package:release/src/directories/directories.dart';
 
 final class Changelog {
   Changelog._();

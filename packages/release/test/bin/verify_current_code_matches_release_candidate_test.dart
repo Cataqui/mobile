@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:release/src/directories/directories.dart';
 import 'package:release/src/release_candidate_manifest.dart';
-import 'package:release/src/repository_paths/repository_paths.dart';
 import 'package:test/test.dart';
 
 import '../../bin/verify_current_code_matches_release_candidate.dart';
@@ -14,8 +14,6 @@ void main() {
   final lockfile = File(path.join(repository.path, 'pubspec.lock'));
   final localeDirectory = Directory(path.join(repository.path, 'packages', 'locale'));
   final localePubspec = File(path.join(localeDirectory.path, 'pubspec.yaml'));
-  final apk = File(path.join(repository.path, 'app.apk'));
-
   setUpAll(() {
     appDirectory.createSync(recursive: true);
     localeDirectory.createSync(recursive: true);
@@ -28,7 +26,6 @@ void main() {
     appPubspec.writeAsStringSync('version: 1.3.0+42\n');
     lockfile.writeAsStringSync('packages: {}\n');
     localePubspec.writeAsStringSync('name: locale\nversion: 1.0.0\n');
-    apk.writeAsStringSync('apk');
     Process.runSync('git', [
       'add',
       '.fvmrc',
@@ -47,11 +44,7 @@ void main() {
     await Directories.runWithRootForTesting(
       root: repository,
       body: () async {
-        await ReleaseCandidateManifest.write(
-          commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          apiUrl: 'https://api.example.com',
-          apk: apk,
-        );
+        await ReleaseCandidateManifest.write(commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
 
         expect(VerifyCurrentCodeMatchesReleaseCandidateCommand.run(), completes);
       },
@@ -61,11 +54,7 @@ void main() {
   test('when app code differs from the release candidate, it should reject the code', () async {
     await Directories.runWithRootForTesting(
       root: repository,
-      body: () => ReleaseCandidateManifest.write(
-        commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        apiUrl: 'https://api.example.com',
-        apk: apk,
-      ),
+      body: () => ReleaseCandidateManifest.write(commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
     );
     appPubspec.writeAsStringSync('version: 1.3.0+43\n');
 
@@ -78,11 +67,7 @@ void main() {
   test('when locale code differs from the release candidate, it should reject the code', () async {
     await Directories.runWithRootForTesting(
       root: repository,
-      body: () => ReleaseCandidateManifest.write(
-        commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        apiUrl: 'https://api.example.com',
-        apk: apk,
-      ),
+      body: () => ReleaseCandidateManifest.write(commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
     );
     localePubspec.writeAsStringSync('name: locale\nversion: 1.0.1\n');
 
@@ -95,11 +80,7 @@ void main() {
   test('when the dependency lock differs from the release candidate, it should reject the code', () async {
     await Directories.runWithRootForTesting(
       root: repository,
-      body: () => ReleaseCandidateManifest.write(
-        commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        apiUrl: 'https://api.example.com',
-        apk: apk,
-      ),
+      body: () => ReleaseCandidateManifest.write(commitHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
     );
     lockfile.writeAsStringSync('packages: changed\n');
 
