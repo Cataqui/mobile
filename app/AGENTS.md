@@ -30,12 +30,14 @@ app/lib/
 
 ## i18n (Translations)
 
-Internationalization uses the workspace's `locale` package for type-safe **slang** (`package:slang`) translations.
+Internationalization is app-owned and uses **slang** (`package:slang`) for
+type-safe translations.
 
 - **Source files:** Translation strings live in
-  `packages/locale/lib/i18n/` as JSON files (e.g., `pt-BR.i18n.json`). Run
+  `lib/i18n/` as JSON files (e.g., `pt-BR.i18n.json`). Run
   `melos gen` from the repository root after editing them.
-- **Imports:** Import translations through `package:locale/locale.dart`; never
+- **Imports:** Import translations through
+  `package:cataqui_app/i18n/locale.dart`; never
   import generated files directly.
 - **Access pattern:** Read translations via Riverpod:
   ```dart
@@ -68,7 +70,7 @@ All providers in `providers.dart` **must** use the `@riverpod` annotation syntax
 ```dart
 @Riverpod(keepAlive: true)  // shared singleton — survives navigation
 AppConfig appConfig(Ref ref) {
-  return AppConfig(environment: Env.environment);
+  return const AppConfig(flavor: appFlavor ?? 'development');
 }
 
 @riverpod                      // auto-dispose — scoped to consumer lifecycle
@@ -163,15 +165,6 @@ The app uses **flutter_gen** for type-safe asset access.
   ```
 - **Facades:** The app does **not** use Mateo for app specific assets — access the
   app's `Assets` entry point directly.
-
-## Mobile Version
-
-`pubspec.yaml` is the single source for the shipped iOS and Android version.
-Keep the Flutter `version` in `<semantic-version>+<build-number>` form. Release
-builds must consume it directly; never pass `--build-name` or `--build-number`.
-Release Please updates the semantic version and increments the existing numeric
-build suffix. The candidate workflow preserves that number or raises it when
-TestFlight requires a higher build.
 
 ## Repositories
 

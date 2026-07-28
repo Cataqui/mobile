@@ -1,9 +1,9 @@
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locale/locale.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 class CataquiApp extends ConsumerWidget {

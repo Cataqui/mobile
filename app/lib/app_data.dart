@@ -1,4 +1,4 @@
-import 'package:locale/locale.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 
 class AppData {
   const AppData({required this.currentLocale});

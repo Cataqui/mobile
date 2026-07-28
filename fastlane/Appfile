@@ -1,2 +1,0 @@
-app_identifier("com.cataqui.mobile")
-team_id(ENV.fetch("APPLE_DEVELOPER_TEAM_ID"))

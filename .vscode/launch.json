@@ -2,25 +2,70 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "App (Debug)",
+            "name": "Production - Debug",
             "program": "app/lib/main.dart",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "debug"
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "production"
+            ]
         },
         {
-            "name": "App (Profile)",
+            "name": "Production - Release",
             "program": "app/lib/main.dart",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "production"
+            ]
         },
         {
-            "name": "App (Release)",
+            "name": "Production - Profile",
             "program": "app/lib/main.dart",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "production"
+            ]
+        },
+        {
+            "name": "Development - Debug",
+            "program": "app/lib/main.dart",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "development"
+            ]
+        },
+        {
+            "name": "Development - Profile",
+            "program": "app/lib/main.dart",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "development"
+            ]
+        },
+        {
+            "name": "Development - Release",
+            "program": "app/lib/main.dart",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "development"
+            ]
         }
     ]
 }

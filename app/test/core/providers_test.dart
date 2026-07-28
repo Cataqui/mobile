@@ -9,7 +9,7 @@ void main() {
   group('cataquiApiV1DioProvider', () {
     test('when read, it should prefix the configured Cataquí API root URL with v1', () {
       final container = ProviderContainer(
-        overrides: [appConfigProvider.overrideWithValue(const AppConfig(environment: 'development'))],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
 
       addTearDown(container.dispose);
@@ -21,7 +21,7 @@ void main() {
 
     test('when resolving an endpoint, it should keep the v1 API prefix', () {
       final container = ProviderContainer(
-        overrides: [appConfigProvider.overrideWithValue(const AppConfig(environment: 'development'))],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
 
       addTearDown(container.dispose);
@@ -36,7 +36,7 @@ void main() {
 
     test('when read, it should include the accept-language header from the current locale', () {
       final container = ProviderContainer(
-        overrides: [appConfigProvider.overrideWithValue(const AppConfig(environment: 'development'))],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
 
       addTearDown(container.dispose);
@@ -46,9 +46,9 @@ void main() {
       expect(dio.options.headers['accept-language'], 'pt-BR');
     });
 
-    test('when environment is development, it should include request logging', () {
+    test('when flavor is development, it should include request logging', () {
       final container = ProviderContainer(
-        overrides: [appConfigProvider.overrideWithValue(const AppConfig(environment: 'development'))],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
       addTearDown(container.dispose);
 
@@ -57,9 +57,9 @@ void main() {
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isTrue);
     });
 
-    test('when environment is production, it should skip request logging', () {
+    test('when flavor is production, it should skip request logging', () {
       final container = ProviderContainer(
-        overrides: [appConfigProvider.overrideWithValue(const AppConfig(environment: 'production'))],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production'))],
       );
       addTearDown(container.dispose);
 
@@ -68,9 +68,9 @@ void main() {
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isFalse);
     });
 
-    test('when environment is production, it should register the offline error interceptor', () {
+    test('when flavor is production, it should register the offline error interceptor', () {
       final container = ProviderContainer(
-        overrides: [appConfigProvider.overrideWithValue(const AppConfig(environment: 'production'))],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production'))],
       );
       addTearDown(container.dispose);
 

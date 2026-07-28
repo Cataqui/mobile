@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
@@ -8,7 +9,6 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:locale/locale.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 

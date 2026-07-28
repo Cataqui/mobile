@@ -40,7 +40,7 @@ jobs:
           fail_level: error
 
   validate:
-    name: Analyze, test, and build
+    name: Analyze and test
     runs-on: ubuntu-24.04
     timeout-minutes: 35
 
@@ -49,12 +49,6 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-
-      - name: Install Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
-        with:
-          distribution: temurin
-          java-version-file: .java-version
 
       - name: Install Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -68,9 +62,6 @@ jobs:
           dart pub global activate fvm 4.1.2
           dart pub global activate melos 8.2.2
           fvm install
-
-      - name: Configure build environment
-        run: cp .env.example .env
 
       - name: Resolve dependencies
         run: fvm flutter pub get
@@ -90,34 +81,6 @@ jobs:
       - name: Test workspace
         run: melos run test:no-coverage --no-select
 
-      - name: Configure disposable Android release signing
-        run: |
-          keytool -genkeypair \
-            -keystore "$RUNNER_TEMP/cataqui-ci-signing.p12" \
-            -storepass cataqui-ci-signing \
-            -keypass cataqui-ci-signing \
-            -alias cataqui-ci-signing \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 1 \
-            -storetype PKCS12 \
-            -dname "CN=Cataqui CI" \
-            -noprompt
-          printf '%s\n' \
-            "storeFile=$RUNNER_TEMP/cataqui-ci-signing.p12" \
-            "storePassword=cataqui-ci-signing" \
-            "keyAlias=cataqui-ci-signing" \
-            "keyPassword=cataqui-ci-signing" \
-            > app/android/aab-signing.properties
-
-      - name: Build Android release App Bundle
-        working-directory: app
-        run: fvm flutter build appbundle --release
-
-      - name: Lint Android release
-        working-directory: app/android
-        run: ./gradlew :app:lintRelease
-
   ios:
     name: iOS simulator build
     runs-on: macos-26
@@ -129,7 +92,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Verify release Xcode
+      - name: Verify Xcode
         run: xcodebuild -version | grep -E '^Xcode 26\.'
 
       - name: Install Flutter
@@ -147,7 +110,6 @@ jobs:
 
       - name: Configure, resolve, and generate
         run: |
-          cp .env.example .env
           fvm flutter pub get
           melos run gen --no-select
 
@@ -156,4 +118,4 @@ jobs:
 
       - name: Build iOS simulator app
         working-directory: app
-        run: fvm flutter build ios --simulator --debug
+        run: fvm flutter build ios --simulator --debug --flavor development
