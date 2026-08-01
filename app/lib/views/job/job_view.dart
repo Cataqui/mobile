@@ -183,9 +183,12 @@ class _JobViewState extends ConsumerState<JobView> {
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: _buildWhenRouteSettled(
-                    child: MateoViewBackButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
+                    child: MateoFloatingActionButton(
                       semanticLabel: i18n.navigation.back,
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      iconBuilder: (state) => MateoIcon.arrowLeft(color: state.foregroundColor),
+                      backgroundColor: context.mateo.colorScheme.background,
+                      foregroundColor: context.mateo.colorScheme.text.primary,
                     ),
                   ),
                 ),
