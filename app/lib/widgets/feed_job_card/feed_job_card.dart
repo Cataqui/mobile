@@ -76,7 +76,7 @@ class FeedJobCard extends ConsumerWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     switchThreshold: 0.8,
-                    style: TextStyle(fontSize: 16, color: colorScheme.text.secondary, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 15, color: colorScheme.text.secondary, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
