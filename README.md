@@ -68,7 +68,10 @@ Always pass a flavor explicitly; this prevents an unintentional production run
 or a development build carrying the production identity.
 
 Release automation, artifact signing, and store submission are intentionally
-not configured in this repository.
+not configured in this repository. Android development builds use the local
+debug certificate in every build mode so `fvm flutter run --release --flavor
+development` can be installed on a device. Production release artifacts remain
+unsigned until store signing is configured.
 
 ### 3. Set up and launch
 
@@ -95,6 +98,12 @@ local state loads, then opens the feed. To select a device explicitly:
 cd app
 fvm flutter devices
 fvm flutter run --flavor development -d <device-id>
+```
+
+To exercise optimized Android code locally, keep the development flavor:
+
+```bash
+fvm flutter run --release --flavor development -d <device-id>
 ```
 
 > [!TIP]
