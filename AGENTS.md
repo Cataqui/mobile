@@ -34,6 +34,10 @@ This repository is structured as a **Flutter workspace** using melos:
 - **SDK Constraints:** Always respect the minimum Flutter/Dart SDK constraints declared in `pubspec.yaml`.
 - **Runtime Environments:** The Flutter flavor selects the runtime environment.
   Use `development` for staging API behavior and `production` for production
+- **Android Local Release Runs:** The `development` flavor uses Android's local
+  debug certificate in every build mode so release-mode builds can be installed
+  on development devices. The `production` release variant remains unsigned
+  until store signing is configured.
 - **Startup Splash:** Keep essential asynchronous startup work in `AppBootstrap.setup()` so the native splash remains visible until bootstrap completes.
 
 ### Architecture & Frameworks
