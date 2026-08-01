@@ -28,6 +28,7 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".development"
             resValue("string", "app_name", "Cataquí Dev")
+            signingConfig = signingConfigs.getByName("debug")
         }
 
         create("production") {
