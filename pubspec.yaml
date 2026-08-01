@@ -5,8 +5,6 @@ environment:
 
 workspace:
   - app
-  - packages/locale
-  - packages/release
 
 dev_dependencies:
   build_runner: ^2.15.0
@@ -98,17 +96,17 @@ melos:
       run: melos exec --scope=cataqui_app -- fvm dart run vector_graphics_compiler -i assets/splash/animated_splash_icon.svg -o assets/splash/animated_splash_icon.svg.vec && melos exec --scope=cataqui_app -- fvm dart run flutter_native_splash:create
 
     gen:i18n:
-      description: Generate translations and sync native iOS locales
+      description: Generate translations and sync native locales
       private: true
       exec:
-        command: fvm dart run slang && fvm dart run slang configure --source-dirs=../../app
+        command: fvm dart run slang && fvm dart run slang configure
         concurrency: 1
       packageFilters:
-        scope: locale
+        scope: cataqui_app
         dirExists: lib/i18n
 
     gen:
-      description: Generate translations, native locales, and Dart code
+      description: run build runner and code generations
       steps:
         - gen:i18n
         - gen:code
@@ -117,9 +115,7 @@ melos:
       description: Run Dart code generation for selected workspace members
       private: true
       exec:
-        command: |
-          ln -sf ../.env .env 2>/dev/null || true
-          fvm dart run build_runner build
+        command: fvm dart run build_runner build
         concurrency: 1
       packageFilters:
         depends-on: build_runner

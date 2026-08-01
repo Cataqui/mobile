@@ -51,14 +51,14 @@ lib/core/dtos/**/*.g.dart
 # Generated Providers
 lib/core/providers.g.dart
 
-# Generated environment files
-lib/core/config/env.g.dart
-
 # Generated States
 lib/**/*_state.g.dart
 
 # Generated Routes
 lib/**/*_route.g.dart
+
+# Generated translations
+lib/i18n/**/*.g.dart
 
 # FlutterGen assets
 lib/gen/

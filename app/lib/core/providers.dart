@@ -1,15 +1,15 @@
 import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
-import 'package:cataqui_app/core/config/env.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart' show appFlavor;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:locale/locale.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,7 +24,7 @@ Translations translation(Ref ref) {
 
 @Riverpod(keepAlive: true)
 AppConfig appConfig(Ref ref) {
-  return AppConfig(environment: Env.environment, cataquiApiUrl: Env.cataquiApiUrl);
+  return const AppConfig(flavor: appFlavor ?? 'development');
 }
 
 @Riverpod(keepAlive: true)

@@ -32,7 +32,8 @@ This repository is structured as a **Flutter workspace** using melos:
 - **Flutter Version Management:** Managed exclusively via **fvm** (`https://fvm.dev/`). Do **NOT** use global untracked Flutter installations.
 - **Determinism Rule:** The `pubspec.lock` file is the absolute source of truth for dependencies. **Never** add `pubspec.lock` to `.gitignore`. It must be committed on every dependency alteration to guarantee identical builds across all agent environments and the CI pipeline.
 - **SDK Constraints:** Always respect the minimum Flutter/Dart SDK constraints declared in `pubspec.yaml`.
-- **Environment Variables:** Keep local runtime configuration in the root `.env` file, using `.env.example` as the committed template. The app reads the values through Envied-generated Dart code. Code must be generated after changing values. Optional Fastlane values in the same template are only for local signing and release administration.
+- **Runtime Environments:** The Flutter flavor selects the runtime environment.
+  Use `development` for staging API behavior and `production` for production
 - **Startup Splash:** Keep essential asynchronous startup work in `AppBootstrap.setup()` so the native splash remains visible until bootstrap completes.
 
 ### Architecture & Frameworks
@@ -52,11 +53,8 @@ To maintain absolute structural health across the workspace, follow these modula
 
 - **Packages** should always live at `packages/`, when implementing something think if it fits better to be a package or an internal app thing. Prefer to create packages when it's stuff that later could be decoupled from this repo and become an standalone package to be implemented in other apps and repositories
 
-- **Release Tooling:** `packages/release` is a package for internal tooling related to releasing the app. Keep all release logic in this package.
-
-- **Locales:** `packages/locale` owns the shared locale catalog and generated
-  translation API consumed by both the app and release tooling. Add languages
-  there so supported app and store locales remain one source of truth.
+- **Locales:** The app owns its locale catalog and generated translation API in
+  `app/lib/i18n/`.
 
 - **Future Internal Packages:** If internal packages are added to this repository, add each package explicitly to the root `pubspec.yaml` workspace list and use exact relative paths from the consuming package:
 
@@ -546,15 +544,3 @@ When executing modifications inside this repository as an AI agent, you must str
 11. **No Unsolicited Changes:** Never modify, rename, delete, or create files that the human did not directly ask about. If you think something should be changed, ask permission first. Only make changes that are explicitly requested or directly required to fulfill the requested task.
 12. **Fix Lints, Don't Suppress Them:** When the analyzer reports a warning or info-level lint, always fix the underlying code first. Only add `ignore_for_file` as a last resort when the lint is a known false positive (e.g., `cascade_invocations` on `void`-returning methods) or when the pattern is genuinely intentional and documented with a comment explaining why. Every `ignore_for_file` must have a comment immediately above it explaining why the lint cannot be fixed.
 13. **License and Contribution Boundaries:** Cataquí Mobile is source-available under the PolyForm Shield License 1.0.0, not OSI-approved open source. Preserve `LICENSE`, every `Required Notice:` and `Licensor Line of Business:` line in `NOTICE`, third-party notices, and the trademark boundary. External contributions use the same PolyForm Shield terms under GitHub's inbound-equals-outbound contribution model; do not merge a contribution with unclear ownership or incompatible terms.
-
-## 8. Release Work
-
-- Read `RELEASES.md` before changing release tooling, versioning, distribution
-  metadata, signing, or publishing workflows. It is the shared release contract
-  for humans and agents.
-- Keep `RELEASES.md` synchronized whenever release behavior, prerequisites,
-  configuration, or recovery steps change.
-- Use the workspace commands documented there to validate release changes.
-- Preparing or validating a release does not authorize merging a release PR,
-  tagging, publishing, submitting an app for review, or changing legal and
-  store declarations.

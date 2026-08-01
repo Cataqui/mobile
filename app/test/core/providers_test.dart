@@ -9,27 +9,19 @@ void main() {
   group('cataquiApiV1DioProvider', () {
     test('when read, it should prefix the configured Cataquí API root URL with v1', () {
       final container = ProviderContainer(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(environment: 'development', cataquiApiUrl: 'https://api.test.cataqui.com'),
-          ),
-        ],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
 
       addTearDown(container.dispose);
 
       final dio = container.read(cataquiApiV1DioProvider);
 
-      expect(dio.options.baseUrl, 'https://api.test.cataqui.com/v1');
+      expect(dio.options.baseUrl, 'https://staging.api.cataqui.com/v1');
     });
 
     test('when resolving an endpoint, it should keep the v1 API prefix', () {
       final container = ProviderContainer(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(environment: 'development', cataquiApiUrl: 'https://api.test.cataqui.com'),
-          ),
-        ],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
 
       addTearDown(container.dispose);
@@ -38,17 +30,13 @@ void main() {
 
       expect(
         RequestOptions(baseUrl: dio.options.baseUrl, path: '/feed').uri.toString(),
-        'https://api.test.cataqui.com/v1/feed',
+        'https://staging.api.cataqui.com/v1/feed',
       );
     });
 
     test('when read, it should include the accept-language header from the current locale', () {
       final container = ProviderContainer(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(environment: 'development', cataquiApiUrl: 'https://api.test.cataqui.com'),
-          ),
-        ],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
 
       addTearDown(container.dispose);
@@ -58,13 +46,9 @@ void main() {
       expect(dio.options.headers['accept-language'], 'pt-BR');
     });
 
-    test('when environment is development, it should include request logging', () {
+    test('when flavor is development, it should include request logging', () {
       final container = ProviderContainer(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(environment: 'development', cataquiApiUrl: 'https://api.test.cataqui.com'),
-          ),
-        ],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
       );
       addTearDown(container.dispose);
 
@@ -73,13 +57,9 @@ void main() {
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isTrue);
     });
 
-    test('when environment is production, it should skip request logging', () {
+    test('when flavor is production, it should skip request logging', () {
       final container = ProviderContainer(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(environment: 'production', cataquiApiUrl: 'https://api.test.cataqui.com'),
-          ),
-        ],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production'))],
       );
       addTearDown(container.dispose);
 
@@ -88,13 +68,9 @@ void main() {
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isFalse);
     });
 
-    test('when environment is production, it should register the offline error interceptor', () {
+    test('when flavor is production, it should register the offline error interceptor', () {
       final container = ProviderContainer(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(environment: 'production', cataquiApiUrl: 'https://api.test.cataqui.com'),
-          ),
-        ],
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production'))],
       );
       addTearDown(container.dispose);
 

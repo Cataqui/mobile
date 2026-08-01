@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_data.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
@@ -10,7 +11,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:locale/locale.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 

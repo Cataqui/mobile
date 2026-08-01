@@ -30,9 +30,6 @@ build/
 # Coverage
 coverage/
 
-# Environment
-.env
-
 # Local package resolution
 pubspec_overrides.yaml
 pubspec_overrides.yaml.disabled

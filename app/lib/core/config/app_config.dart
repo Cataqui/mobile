@@ -1,8 +1,13 @@
 final class AppConfig {
-  const AppConfig({required this.environment, required this.cataquiApiUrl});
+  const AppConfig({required this.flavor});
 
-  final String environment;
-  final String cataquiApiUrl;
+  final String flavor;
 
-  bool get isDevelopment => environment == 'development';
+  String get cataquiApiUrl => switch (flavor) {
+    'development' => 'https://staging.api.cataqui.com',
+    'production' => 'https://api.cataqui.com',
+    _ => throw StateError('Unsupported app flavor: $flavor.'),
+  };
+
+  bool get isDevelopment => flavor == 'development';
 }

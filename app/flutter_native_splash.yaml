@@ -2,6 +2,7 @@ flutter_native_splash:
   color: "#FF4A4B"
   image: assets/splash/native_splash_icon.png
   android: true
+  android_min_sdk: 24
   ios: true
   web: false
   android_gravity: center

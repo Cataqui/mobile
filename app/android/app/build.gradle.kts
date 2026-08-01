@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -9,6 +8,8 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    flavorDimensions += "environment"
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -16,18 +17,33 @@ android {
 
     defaultConfig {
         applicationId = "com.cataqui.mobile"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
+    productFlavors {
+        create("development") {
+            dimension = "environment"
+            applicationIdSuffix = ".development"
+            resValue("string", "app_name", "Cataquí Dev")
         }
+
+        create("production") {
+            dimension = "environment"
+            resValue("string", "app_name", "Cataquí")
+        }
+    }
+
+    buildFeatures {
+        resValues = true
+    }
+
+    lint {
+        abortOnError = true
+        lintConfig = file("lint.xml")
+        warningsAsErrors = true
     }
 }
 

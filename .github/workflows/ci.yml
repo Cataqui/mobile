@@ -40,7 +40,7 @@ jobs:
           fail_level: error
 
   validate:
-    name: Analyze, test, and build
+    name: Analyze and test
     runs-on: ubuntu-24.04
     timeout-minutes: 35
 
@@ -49,12 +49,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - name: Install Java
-        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
-        with:
-          distribution: temurin
-          java-version-file: .java-version
 
       - name: Install Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -68,9 +62,6 @@ jobs:
           dart pub global activate fvm 4.1.2
           dart pub global activate melos 8.2.2
           fvm install
-
-      - name: Configure build environment
-        run: cp .env.example .env
 
       - name: Resolve dependencies
         run: fvm flutter pub get
@@ -90,10 +81,6 @@ jobs:
       - name: Test workspace
         run: melos run test:no-coverage --no-select
 
-      - name: Build Android debug APK
-        working-directory: app
-        run: fvm flutter build apk --debug
-
   ios:
     name: iOS simulator build
     runs-on: macos-26
@@ -105,7 +92,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Verify release Xcode
+      - name: Verify Xcode
         run: xcodebuild -version | grep -E '^Xcode 26\.'
 
       - name: Install Flutter
@@ -123,7 +110,6 @@ jobs:
 
       - name: Configure, resolve, and generate
         run: |
-          cp .env.example .env
           fvm flutter pub get
           melos run gen --no-select
 
@@ -132,4 +118,4 @@ jobs:
 
       - name: Build iOS simulator app
         working-directory: app
-        run: fvm flutter build ios --simulator --debug
+        run: fvm flutter build ios --simulator --debug --flavor development

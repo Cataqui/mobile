@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/three_d.g.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
@@ -9,7 +10,6 @@ import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locale/locale.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 

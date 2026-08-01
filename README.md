@@ -13,10 +13,9 @@ Cataquí is a fast, hyperlocal feed for quick jobs, side hustles, informal work,
 and temporary tasks. The product loop is deliberately short:
 **post an opportunity → discover it in the feed → make contact**.
 
-This repository contains the Flutter client for Android and iOS plus the
-internal tooling used by it. The current mobile experience focuses on
-discovery: swipe through nearby opportunities, open the full job, then contact
-the poster through WhatsApp or a phone call.
+This repository contains the Flutter client for Android and iOS. The current
+mobile experience focuses on discovery: swipe through nearby opportunities,
+open the full job, then contact the poster through WhatsApp or a phone call.
 
 ## What guides the product
 
@@ -40,10 +39,6 @@ the poster through WhatsApp or a phone call.
 | [Melos](https://melos.invertase.dev/getting-started)              | `8.2.2`                      | Orchestrates the Dart workspace from the repository root.                                            |
 | Android or iOS tooling                                            | Current Flutter requirements | Follow Flutter's [platform setup](https://docs.flutter.dev/install). iOS development requires macOS. |
 
-Ruby is only needed for local Fastlane work; most contributors do not need it.
-See [Installing Ruby](https://www.ruby-lang.org/en/documentation/installation/)
-when working on releases.
-
 ### 2. Clone and configure
 
 ```bash
@@ -52,7 +47,6 @@ cd mobile
 
 fvm install
 fvm dart pub global activate melos 8.2.2
-cp .env.example .env
 ```
 
 If `melos` is not found afterward, add the Dart global executable directory to
@@ -62,17 +56,19 @@ your shell:
 export PATH="$PATH:$HOME/.pub-cache/bin"
 ```
 
-Edit `.env` and choose exactly one environment:
+The Flutter flavor selects the app runtime environment:
 
-```dotenv
-ENVIRONMENT=development
-CATAQUI_API_URL=https://your-development-api.example.com
-```
+- `development` uses the staging API, installs as `Cataquí Dev`, and uses
+  `com.cataqui.mobile.development`.
+- `production` uses the production API, installs as `Cataquí`, and keeps the
+  store identifier `com.cataqui.mobile`.
 
-The URL in `.env.example` is intentionally a placeholder. It is sufficient for
-code generation, but it will produce the app's network error state instead of
-a live feed. The optional Fastlane values are needed only for local signing and
-release administration. Never commit `.env` or credentials.
+The separate identifiers let both variants stay installed on the same device.
+Always pass a flavor explicitly; this prevents an unintentional production run
+or a development build carrying the production identity.
+
+Release automation, artifact signing, and store submission are intentionally
+not configured in this repository.
 
 ### 3. Set up and launch
 
@@ -83,7 +79,7 @@ changes directories:
 melos setup
 
 cd app
-fvm flutter run
+fvm flutter run --flavor development
 ```
 
 `melos setup` is the canonical repository setup command. It installs
@@ -98,7 +94,7 @@ local state loads, then opens the feed. To select a device explicitly:
 ```bash
 cd app
 fvm flutter devices
-fvm flutter run -d <device-id>
+fvm flutter run --flavor development -d <device-id>
 ```
 
 > [!TIP]
@@ -122,7 +118,7 @@ The main technical boundaries are:
 - [Dio](https://pub.dev/packages/dio) repositories for network access.
 - [go_router](https://pub.dev/packages/go_router) with generated typed routes.
 - Freezed and JSON serialization for API models.
-- [slang](https://pub.dev/packages/slang) in `packages/locale` for the shared app and release locale catalog.
+- [slang](https://pub.dev/packages/slang) in `app/lib/i18n` for app-owned translations.
 - [Mateo Mobile](https://github.com/Ventairy/mateo/tree/main/mobile/packages/mateo_mobile_flutter) for the design system.
 - [Alchemist](https://pub.dev/packages/alchemist) for golden testing
 
@@ -139,9 +135,9 @@ The main technical boundaries are:
 `melos format` is built into Melos and formats every package in the workspace,
 including packages added later. No path list needs to be maintained.
 
-Run `melos gen` after changing environment fields, Riverpod providers, routes,
-DTOs, generated assets, or translation sources under
-`packages/locale/lib/i18n`. It also synchronizes native iOS locales. Generated
+Run `melos gen` after changing Riverpod providers, routes, DTOs, generated
+assets, or translation sources under
+`app/lib/i18n`. It also synchronizes native iOS locales. Generated
 Dart files are git ignored; source definitions are the reviewable contract.
 
 `melos test` additionally produces HTML coverage reports. It is a local

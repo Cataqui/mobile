@@ -159,7 +159,7 @@ Tests must never assert on hardcoded Portuguese string literals that are transla
 Build the `Translations` instance once per test file and name the variable `i18n` (per `app/AGENTS.md`):
 
 ```dart
-import 'package:locale/locale.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 
 late Translations i18n;
 
