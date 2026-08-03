@@ -3,15 +3,16 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class _MockSharedPreferencesAsync extends Mock implements SharedPreferencesAsync {}
+import '../../mocks.dart';
 
 void main() {
-  late _MockSharedPreferencesAsync prefs;
+  late MockSharedPreferencesAsync prefs;
 
   setUp(() {
-    prefs = _MockSharedPreferencesAsync();
+    prefs = MockSharedPreferencesAsync();
+    when(() => prefs.getBool(any())).thenAnswer((_) async => null);
+    when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
   });
 
   ProviderContainer buildContainer() {
@@ -20,43 +21,30 @@ void main() {
     return container;
   }
 
-  test('when the swipe feed hint flag was never stored, it should load hasSeenSwipeFeedHint as false', () async {
-    when(() => prefs.getBool(any())).thenAnswer((_) async => null);
-
-    final container = buildContainer();
-    final data = await container.read(appStorageStateProvider.future);
+  test('when the swipe feed hint flag was never stored, it should load it as false', () async {
+    final data = await buildContainer().read(appStorageStateProvider.future);
 
     expect(data.hasSeenSwipeFeedHint, isFalse);
   });
 
-  test('when the swipe feed hint flag is stored as true, it should load hasSeenSwipeFeedHint as true', () async {
+  test('when the swipe feed hint flag is stored as true, it should load it as true', () async {
     when(() => prefs.getBool('seen_swipe_feed_hint')).thenAnswer((_) async => true);
 
-    final container = buildContainer();
-    final data = await container.read(appStorageStateProvider.future);
+    final data = await buildContainer().read(appStorageStateProvider.future);
 
     expect(data.hasSeenSwipeFeedHint, isTrue);
   });
 
-  test(
-    'when setting the swipe feed hint flag to true, it should persist the value to SharedPreferencesAsync',
-    () async {
-      when(() => prefs.getBool(any())).thenAnswer((_) async => null);
-      when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+  test('when setting the swipe feed hint flag to true, it should persist the value', () async {
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
 
-      final container = buildContainer();
-      await container.read(appStorageStateProvider.future);
+    await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
 
-      await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
+    verify(() => prefs.setBool('seen_swipe_feed_hint', true)).called(1);
+  });
 
-      verify(() => prefs.setBool('seen_swipe_feed_hint', true)).called(1);
-    },
-  );
-
-  test('when setting the swipe feed hint flag to true, it should update the state to reflect the new value', () async {
-    when(() => prefs.getBool(any())).thenAnswer((_) async => false);
-    when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
-
+  test('when setting the swipe feed hint flag to true, it should update the in-memory value', () async {
     final container = buildContainer();
     await container.read(appStorageStateProvider.future);
 
@@ -65,39 +53,77 @@ void main() {
     expect(container.read(appStorageStateProvider).value!.hasSeenSwipeFeedHint, isTrue);
   });
 
-  test(
-    'when setting the swipe feed hint flag to false, it should persist the value to SharedPreferencesAsync',
-    () async {
-      when(() => prefs.getBool(any())).thenAnswer((_) async => true);
-      when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+  test('when setting the swipe feed hint flag to false, it should persist the value', () async {
+    when(() => prefs.getBool('seen_swipe_feed_hint')).thenAnswer((_) async => true);
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
 
-      final container = buildContainer();
-      await container.read(appStorageStateProvider.future);
+    await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: false);
 
-      await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: false);
+    verify(() => prefs.setBool('seen_swipe_feed_hint', false)).called(1);
+  });
 
-      verify(() => prefs.setBool('seen_swipe_feed_hint', false)).called(1);
-    },
-  );
+  test('when setting the swipe feed hint flag to its current value, it should not persist again', () async {
+    when(() => prefs.getBool('seen_swipe_feed_hint')).thenAnswer((_) async => true);
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
 
-  test(
-    'when setting the swipe feed hint flag to the same value as the current state, it should not persist and not notify watchers',
-    () async {
-      when(() => prefs.getBool(any())).thenAnswer((_) async => true);
-      when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+    await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
 
-      final container = buildContainer();
-      await container.read(appStorageStateProvider.future);
+    verifyNever(() => prefs.setBool(any(), any()));
+  });
 
-      var notificationCount = 0;
-      container.listen(appStorageStateProvider, (_, __) {
-        notificationCount++;
-      });
+  test('when setting the swipe feed hint flag to its current value, it should not notify watchers', () async {
+    when(() => prefs.getBool('seen_swipe_feed_hint')).thenAnswer((_) async => true);
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
+    var notificationCount = 0;
+    container.listen(appStorageStateProvider, (_, __) => notificationCount++);
 
-      await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
+    await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
 
-      verifyNever(() => prefs.setBool(any(), any()));
-      expect(notificationCount, equals(0));
-    },
-  );
+    expect(notificationCount, 0);
+  });
+
+  test('when onboarding completion was never stored, it should load it as false', () async {
+    final data = await buildContainer().read(appStorageStateProvider.future);
+
+    expect(data.hasCompletedOnboarding, isFalse);
+  });
+
+  test('when onboarding completion is stored as true, it should load it as true', () async {
+    when(() => prefs.getBool('completed_onboarding')).thenAnswer((_) async => true);
+
+    final data = await buildContainer().read(appStorageStateProvider.future);
+
+    expect(data.hasCompletedOnboarding, isTrue);
+  });
+
+  test('when completing onboarding, it should persist the completion flag', () async {
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
+
+    await container.read(appStorageStateProvider.notifier).completeOnboarding();
+
+    verify(() => prefs.setBool('completed_onboarding', true)).called(1);
+  });
+
+  test('when completing onboarding, it should update the in-memory completion flag', () async {
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
+
+    await container.read(appStorageStateProvider.notifier).completeOnboarding();
+
+    expect(container.read(appStorageStateProvider).value!.hasCompletedOnboarding, isTrue);
+  });
+
+  test('when completing onboarding after it is already complete, it should not persist again', () async {
+    when(() => prefs.getBool('completed_onboarding')).thenAnswer((_) async => true);
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
+
+    await container.read(appStorageStateProvider.notifier).completeOnboarding();
+
+    verifyNever(() => prefs.setBool(any(), any()));
+  });
 }

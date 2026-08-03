@@ -120,12 +120,12 @@ void main() {
         expect(text.style!.color, equals(MateoColorScheme.light().text.profit));
       });
 
-      testWidgets('when created, the description should use 15.7px font size', (tester) async {
+      testWidgets('when created, the description should use 15px font size', (tester) async {
         await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
-        expect(text.style!.fontSize, equals(16));
+        expect(text.style!.fontSize, equals(15));
       });
 
       testWidgets('when created, the description should use secondary text color', (tester) async {

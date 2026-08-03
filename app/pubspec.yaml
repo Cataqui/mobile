@@ -52,6 +52,8 @@ dotdart:
   output: lib/gen/
   image:
     - assets/three_d/
+  lottie:
+    - assets/lotties/
 
 flutter_gen:
   output: lib/gen/

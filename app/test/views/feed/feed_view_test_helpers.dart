@@ -62,7 +62,7 @@ class FixedAppStorageState extends AppStorageState {
 
   @override
   Future<AppStorageData> build() {
-    final data = AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint);
+    final data = AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint, hasCompletedOnboarding: false);
     state = AsyncData(data);
     return Future<AppStorageData>.value(data);
   }

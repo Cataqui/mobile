@@ -9,13 +9,24 @@ Duration? _noRetry(int retryCount, Object error) => null;
 @Riverpod(keepAlive: true, retry: _noRetry)
 class AppStorageState extends _$AppStorageState {
   static const _seenSwipeFeedHintKey = 'seen_swipe_feed_hint';
+  static const _completedOnboardingKey = 'completed_onboarding';
 
   @override
   Future<AppStorageData> build() async {
     final prefs = ref.read(sharedPreferencesAsyncProvider);
     final hasSeenSwipeFeedHint = await prefs.getBool(_seenSwipeFeedHintKey) ?? false;
+    final hasCompletedOnboarding = await prefs.getBool(_completedOnboardingKey) ?? false;
 
-    return AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint);
+    return AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint, hasCompletedOnboarding: hasCompletedOnboarding);
+  }
+
+  Future<void> completeOnboarding() async {
+    if (state.value!.hasCompletedOnboarding) return;
+
+    final prefs = ref.read(sharedPreferencesAsyncProvider);
+    await prefs.setBool(_completedOnboardingKey, true);
+
+    state = AsyncData(state.value!.copyWith(hasCompletedOnboarding: true));
   }
 
   Future<void> setSeenSwipeFeedHint({required bool value}) async {

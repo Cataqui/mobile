@@ -130,7 +130,7 @@ void main() {
         jobState: JobViewTestHelpers.loadingState(),
       );
 
-      expect(find.byType(MateoViewBackButton), findsOneWidget);
+      expect(find.byType(MateoFloatingActionButton), findsOneWidget);
     });
 
     testWidgets('when motion is enabled and the screen starts opening, it should keep the Mateo back button hidden', (
@@ -145,7 +145,10 @@ void main() {
 
       final fadeTransition = tester.widget<FadeTransition>(
         find
-            .ancestor(of: find.byType(MateoViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
+            .ancestor(
+              of: find.byType(MateoFloatingActionButton, skipOffstage: false),
+              matching: find.byType(FadeTransition),
+            )
             .first,
       );
       expect(fadeTransition.opacity.value, equals(0));
@@ -166,7 +169,7 @@ void main() {
 
         final hasVisibleFade = tester.widgetList<FadeTransition>(
           find.ancestor(
-            of: find.byType(MateoViewBackButton, skipOffstage: false),
+            of: find.byType(MateoFloatingActionButton, skipOffstage: false),
             matching: find.byType(FadeTransition),
           ),
         );
@@ -186,12 +189,15 @@ void main() {
         disableAnimations: false,
       );
 
-      await tester.tap(find.byType(MateoViewBackButton));
+      await tester.tap(find.byType(MateoFloatingActionButton));
       await tester.pump();
 
       final fadeTransition = tester.widget<FadeTransition>(
         find
-            .ancestor(of: find.byType(MateoViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
+            .ancestor(
+              of: find.byType(MateoFloatingActionButton, skipOffstage: false),
+              matching: find.byType(FadeTransition),
+            )
             .first,
       );
       expect(fadeTransition.opacity.value, equals(0));
@@ -211,7 +217,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 560));
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump();
-        await tester.tap(find.byType(MateoViewBackButton));
+        await tester.tap(find.byType(MateoFloatingActionButton));
         await tester.pump();
 
         expect(
@@ -371,7 +377,10 @@ void main() {
 
       final fadeTransition = tester.widget<FadeTransition>(
         find
-            .ancestor(of: find.byType(MateoViewBackButton, skipOffstage: false), matching: find.byType(FadeTransition))
+            .ancestor(
+              of: find.byType(MateoFloatingActionButton, skipOffstage: false),
+              matching: find.byType(FadeTransition),
+            )
             .first,
       );
       expect(fadeTransition.opacity.value, equals(1));
