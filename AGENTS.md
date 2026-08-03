@@ -168,6 +168,12 @@ widget or model that produces or consumes the data.
 
 Every class must follow a consistent top-to-bottom method ordering so that related concerns are easy to find.
 
+#### Riverpod Classes
+
+For Riverpod notifier classes, keep the overridden `build` method at the top of
+the class's methods, before all other instance methods. This is an explicit
+exception to the general rule that places overrides after instance methods.
+
 #### General Classes (Non-Widgets)
 
 1. **Constructor fields** — `final` instance fields initialized via `this.xxx` in the constructor. List public fields first, then private fields. These are the class's primary inputs.

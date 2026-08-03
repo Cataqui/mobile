@@ -91,5 +91,46 @@
         "offlineMessage": "Tá sem internet parece. Dá uma olhada e tenta de novo"
       }
     }
+  },
+  "onboarding": {
+    "headline": "Pra achar trabalho.\nPra achar alguém.\nPerto de você",
+    "sceneAccessibilityLabel": "Exemplos de trabalhos perto de você",
+    "actions": {
+      "viewJobs": "Ver trabalhos",
+      "postJob": "Postar trabalho"
+    },
+    "jobCards": {
+      "postedTime": "Exemplo",
+      "card1": {
+        "title": "Ajudante de mudança",
+        "amount": "R$240/dia",
+        "description": "Preciso de ajuda para carregar móveis no Campo Limpo. Sábado, 8h às 16h. Almoço incluso."
+      },
+      "card2": {
+        "title": "Atendente de loja",
+        "amount": "R$2.100/mês",
+        "description": "Preciso de atendente para uma loja na Lapa. Terça a sábado, 10h às 18h. 1h de almoço. A gente treina."
+      },
+      "card3": {
+        "title": "Garçom para evento",
+        "amount": "R$220",
+        "description": "Preciso de garçom para aniversário em Itaquera. Sábado, 18h às 23h. Jantar incluso."
+      },
+      "card4": {
+        "title": "Diarista",
+        "amount": "R$200",
+        "description": "Preciso de limpeza num apê de 2 quartos em Santana. Quinta, 8h às 15h. Material no local."
+      },
+      "card5": {
+        "title": "Ajudante de obra",
+        "amount": "R$200/dia",
+        "description": "Preciso de ajuda para preparar massa numa obra em São Mateus. Sexta, 7h às 16h. 1h de almoço."
+      },
+      "card6": {
+        "title": "Auxiliar de cozinha",
+        "amount": "R$180",
+        "description": "Preciso de ajuda no preparo e na louça na Vila Mariana. Domingo, 10h às 18h. Almoço incluso."
+      }
+    }
   }
 }

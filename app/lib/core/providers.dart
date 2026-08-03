@@ -1,10 +1,12 @@
 import 'package:cataqui_app/app_state.dart';
+import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
+import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:flutter/widgets.dart';
@@ -69,7 +71,20 @@ FeedRepository feedRepository(Ref ref) {
 
 @Riverpod(keepAlive: true)
 GoRouter goRouter(Ref ref) {
-  return GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
+  final appStorage = ref.read(appStorageStateProvider).requireValue;
+
+  return GoRouter(
+    initialLocation: appStorage.hasCompletedOnboarding ? const FeedRoute().location : const OnboardingRoute().location,
+    redirect: (context, state) {
+      if (state.matchedLocation != const OnboardingRoute().location) return null;
+
+      final hasCompletedOnboarding = ref.read(appStorageStateProvider).requireValue.hasCompletedOnboarding;
+      if (!hasCompletedOnboarding) return null;
+
+      return const FeedRoute().location;
+    },
+    routes: [$onboardingRoute, $feedRoute, $jobRoute],
+  );
 }
 
 @Riverpod(keepAlive: true)
