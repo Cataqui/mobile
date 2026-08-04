@@ -14,10 +14,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
+import '../../widgets/job_location_map/google_maps_test_renderer.dart';
 
 // FakeFeedState exists because _$FeedState (from riverpod_generator) is
 // library-private and cannot be accessed by mocktail outside feed_state.dart.
@@ -87,12 +89,11 @@ class FeedViewTestHelpers {
     );
   }
 
-  static void mockMapChannels() {
-    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      ..setMockMethodCallHandler(SystemChannels.platform_views, _handlePlatformViewCall);
-    for (var id = 0; id < 20; id++) {
-      messenger.setMockMethodCallHandler(MethodChannel('plugins.flutter.io/maplibre_gl_$id'), _handleMapLibreCall);
-    }
+  static void mockGoogleMapsPlatform() {
+    if (GoogleMapsFlutterPlatform.instance is GoogleMapsTestRenderer) return;
+
+    final renderer = GoogleMapsTestRenderer(renderMapSurface: false)..install();
+    addTearDown(renderer.restore);
   }
 
   static Future<Object?> _handlePlatformViewCall(MethodCall call) async {
@@ -100,13 +101,6 @@ class FeedViewTestHelpers {
       'create' => 1,
       'resize' => const <String, double>{'width': 390, 'height': 540},
       'dispose' || 'offset' || 'setDirection' || 'clearFocus' || 'touch' => null,
-      _ => null,
-    };
-  }
-
-  static Future<Object?> _handleMapLibreCall(MethodCall call) async {
-    return switch (call.method) {
-      'map#waitForMap' => null,
       _ => null,
     };
   }
@@ -162,6 +156,7 @@ class FeedViewTestHelpers {
   }) async {
     mockHapticFeedback(tester);
     mockPlatformViews(tester);
+    mockGoogleMapsPlatform();
     await tester.pumpWidget(
       buildApp(
         child: buildScope(
@@ -233,8 +228,8 @@ class FeedViewTestHelpers {
     return feedDataWithJobs(count: 1).copyWith(paginationError: offlineDioException());
   }
 
-  static Future<void> swipeAwayCurrentJob(WidgetTester tester) async {
-    await tester.drag(find.text('Descarregar Caminhão'), const Offset(0, -800));
+  static Future<void> swipeAwayCurrentJob(WidgetTester tester, {String title = 'Descarregar Caminhão'}) async {
+    await tester.drag(find.text(title), const Offset(0, -800));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 800));

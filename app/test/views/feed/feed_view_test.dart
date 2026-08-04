@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -630,10 +630,10 @@ void main() {
       );
     });
 
-    group('map gating', () {
-      setUp(FeedViewTestHelpers.mockMapChannels);
+    group('map preparation', () {
+      setUp(FeedViewTestHelpers.mockGoogleMapsPlatform);
 
-      testWidgets('when the swipe-up hint appear animation is running, it should not mount the first card map', (
+      testWidgets('when the swipe-up hint is appearing, it should prepare the current and next job maps behind it', (
         tester,
       ) async {
         final prefs = MockSharedPreferencesAsync();
@@ -648,12 +648,11 @@ void main() {
         // Let the hint appear animation start (post frame callback)
         await tester.pump();
 
-        // Hint appear animation is running — maps should be gated
-        expect(find.byType(MapLibreMap), findsNothing);
+        expect(find.byType(GoogleMap), findsNWidgets(2));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when the swipe-up hint appear animation completes, it should mount the first card map', (
+      testWidgets('when the swipe-up hint finishes appearing, it should prepare the current and next job maps', (
         tester,
       ) async {
         final prefs = MockSharedPreferencesAsync();
@@ -674,13 +673,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         await tester.pump(const Duration(milliseconds: 900));
 
-        // Maps should now mount
-        expect(find.byType(MapLibreMap), findsOneWidget);
+        // The current and next maps should now mount.
+        expect(find.byType(GoogleMap), findsNWidgets(2));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
       testWidgets(
-        'when the user swipes before the hint appear animation completes, it should mount the next card map immediately',
+        'when the user swipes before the hint finishes appearing, it should show the next job location map immediately',
         (tester) async {
           final prefs = MockSharedPreferencesAsync();
           when(() => prefs.getBool(any())).thenAnswer((_) async => false);
@@ -699,7 +698,7 @@ void main() {
           await tester.pump();
 
           // Map should mount immediately (gate released by notification)
-          expect(find.byType(MapLibreMap), findsAtLeastNWidgets(1));
+          expect(find.byType(GoogleMap), findsAtLeastNWidgets(1));
           await FeedViewTestHelpers.pumpAndCleanUp(tester);
         },
       );

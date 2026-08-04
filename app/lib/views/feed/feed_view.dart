@@ -10,6 +10,7 @@ import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
+import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
@@ -103,7 +104,6 @@ class _FeedViewState extends ConsumerState<FeedView> {
                 controller: _feedController,
                 cardBorderRadius: _cardBorderRadius,
                 feedInCurve: _feedInCurve,
-                isHintActiveNotifier: _isHintActiveNotifier,
                 onAdjustAreaPressed: _showLocationAvailabilitySheet,
               ),
             ),

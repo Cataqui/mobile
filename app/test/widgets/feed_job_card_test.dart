@@ -1,7 +1,6 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
-import 'package:cataqui_app/core/dtos/map_config_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
@@ -29,12 +28,11 @@ FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionS
           currency: 'BRL',
           note: '',
         ),
-    location: FeedJobLocationDto(
+    location: const FeedJobLocationDto(
       neighborhood: 'Pinheiros',
       latitude: -23.556391,
       longitude: -46.844076,
       areaRadius: 2000,
-      mapConfig: MapConfigDto.fixture(),
     ),
     descriptionSummary: descriptionSummary ?? 'Experiente em atendimento ao cliente.',
   );

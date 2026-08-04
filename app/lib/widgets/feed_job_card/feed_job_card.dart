@@ -33,7 +33,13 @@ class FeedJobCard extends ConsumerWidget {
       child: MateoHeroBackground(
         tag: backgroundHeroKey(feedJob.jobId),
         width: double.infinity,
-        decoration: BoxDecoration(color: colorScheme.background, borderRadius: BorderRadius.circular(38)),
+        decoration: BoxDecoration(
+          color: colorScheme.background,
+          borderRadius: BorderRadius.circular(38),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 42, offset: const Offset(0, 4)),
+          ],
+        ),
         edgeFade: const MateoHeroEdgeFade(switchThreshold: 1),
         padding: const EdgeInsets.all(24),
         child: MateoSkeleton(

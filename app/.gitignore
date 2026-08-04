@@ -45,8 +45,8 @@ app.*.map.json
 /android/app/release
 
 # Generated DTO files
-lib/core/dtos/**/*.freezed.dart
-lib/core/dtos/**/*.g.dart
+lib/**/*.freezed.dart
+lib/**/*.g.dart
 
 # Generated Providers
 lib/core/providers.g.dart

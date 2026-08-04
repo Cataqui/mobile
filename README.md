@@ -31,13 +31,13 @@ open the full job, then contact the poster through WhatsApp or a phone call.
 
 ### 1. Install the toolchain
 
-| Tool                                                              | Version used by the project  | Notes                                                                                                |
-| ----------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [FVM](https://fvm.app/documentation/getting-started/installation) | latest                       | Installs and runs the pinned Flutter SDK.                                                            |
-| Flutter                                                           | `3.44.0`                     | Declared in [`.fvmrc`](.fvmrc); do not use an untracked global SDK.                                  |
-| Dart                                                              | Bundled with Flutter         | Run it through `fvm dart`.                                                                           |
-| [Melos](https://melos.invertase.dev/getting-started)              | `8.2.2`                      | Orchestrates the Dart workspace from the repository root.                                            |
-| Android or iOS tooling                                            | Current Flutter requirements | Follow Flutter's [platform setup](https://docs.flutter.dev/install). iOS development requires macOS. |
+| Tool                                                              | Version used by the project | Notes                                                                                                |
+| ----------------------------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [FVM](https://fvm.app/documentation/getting-started/installation) | latest                      | Installs and runs the pinned Flutter SDK.                                                            |
+| Flutter                                                           | `3.44.8`                    | Declared in [`.fvmrc`](.fvmrc); do not use an untracked global SDK.                                  |
+| Dart                                                              | Bundled with Flutter        | Run it through `fvm dart`.                                                                           |
+| [Melos](https://melos.invertase.dev/getting-started)              | `8.2.2`                     | Orchestrates the Dart workspace from the repository root.                                            |
+| Android or iOS tooling                                            | Android SDK 24+ or iOS 15+  | Follow Flutter's [platform setup](https://docs.flutter.dev/install). iOS development requires macOS. |
 
 ### 2. Clone and configure
 
@@ -73,7 +73,47 @@ debug certificate in every build mode so `fvm flutter run --release --flavor
 development` can be installed on a device. Production release artifacts remain
 unsigned until store signing is configured.
 
-### 3. Set up and launch
+### 3. Configure Google Maps
+
+The feed map uses the native Google Maps SDK on both platforms. In a Google
+Cloud project with billing enabled, enable **Maps SDK for Android** and
+**Maps SDK for iOS**. The mobile SDKs authenticate with API keys; no end-user
+OAuth flow is required.
+
+Create four separate keys and apply both an application restriction and an API
+restriction to each one:
+
+| Key                 | Application restriction                                                               | API restriction      |
+| ------------------- | ------------------------------------------------------------------------------------- | -------------------- |
+| Android development | Package `com.cataqui.mobile.development` and the local debug certificate SHA-1        | Maps SDK for Android |
+| Android production  | Package `com.cataqui.mobile` and the production or Play App Signing certificate SHA-1 | Maps SDK for Android |
+| iOS development     | Bundle ID `com.cataqui.mobile.development`                                            | Maps SDK for iOS     |
+| iOS production      | Bundle ID `com.cataqui.mobile`                                                        | Maps SDK for iOS     |
+
+Copy the tracked templates to their ignored local files:
+
+```bash
+cp app/android/secrets.properties.example \
+  app/android/secrets.properties
+cp app/ios/Flutter/Secrets.xcconfig.example \
+  app/ios/Flutter/Secrets.xcconfig
+```
+
+Each secrets file exposes one `GOOGLE_MAPS_API_KEY`. Paste the Android or iOS
+key for the environment you intend to build. Local development normally uses
+the development keys; production build infrastructure must replace them with
+the production keys before building the store artifacts. Native configuration
+fails when its secrets file is missing; Android build configuration and iOS
+startup also reject a missing, empty, or template Google Maps API key.
+
+> [!CAUTION]
+> Keep the four Google Cloud keys separate, never commit either local secrets
+> file, and do not remove their application or Maps SDK API restrictions. A key
+> restricted to one environment will not work in the other environment.
+> Production Android restrictions must be updated with the final signing
+> certificate fingerprints when store signing is configured.
+
+### 4. Set up and launch
 
 Run workspace commands from the repository root unless a command explicitly
 changes directories:

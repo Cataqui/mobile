@@ -225,7 +225,7 @@ class JobViewGoldenTestHelpers {
   static Future<void> prepareRoutedFeed(WidgetTester tester) async {
     await withClock(fixedClock(), () async {
       FeedViewTestHelpers.mockPlatformViews(tester);
-      FeedViewTestHelpers.mockMapChannels();
+      FeedViewTestHelpers.mockGoogleMapsPlatform();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 900));
       await tester.pump();

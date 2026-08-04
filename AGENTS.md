@@ -554,3 +554,11 @@ When executing modifications inside this repository as an AI agent, you must str
 11. **No Unsolicited Changes:** Never modify, rename, delete, or create files that the human did not directly ask about. If you think something should be changed, ask permission first. Only make changes that are explicitly requested or directly required to fulfill the requested task.
 12. **Fix Lints, Don't Suppress Them:** When the analyzer reports a warning or info-level lint, always fix the underlying code first. Only add `ignore_for_file` as a last resort when the lint is a known false positive (e.g., `cascade_invocations` on `void`-returning methods) or when the pattern is genuinely intentional and documented with a comment explaining why. Every `ignore_for_file` must have a comment immediately above it explaining why the lint cannot be fixed.
 13. **License and Contribution Boundaries:** Cataquí Mobile is source-available under the PolyForm Shield License 1.0.0, not OSI-approved open source. Preserve `LICENSE`, every `Required Notice:` and `Licensor Line of Business:` line in `NOTICE`, third-party notices, and the trademark boundary. External contributions use the same PolyForm Shield terms under GitHub's inbound-equals-outbound contribution model; do not merge a contribution with unclear ownership or incompatible terms.
+14. **Keep Agent Guidance Durable:** Add to `AGENTS.md` only information future
+    agents need to remember, such as rules, structural boundaries, and
+    non-obvious conventions. Do not duplicate implementation details or facts
+    that can be found quickly by searching the repository. This file should
+    guide decisions, not document every aspect of the codebase.
+15. **No Unrequested Staging or Commits:** Never stage or commit changes unless
+    the human explicitly asks you to do so. Implementing or validating a change
+    does not imply permission to modify the Git index or create a commit.

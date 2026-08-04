@@ -57,7 +57,7 @@ void main() {
       i18n = await AppLocale.ptBr.build();
     });
 
-    setUp(FeedViewTestHelpers.mockMapChannels);
+    setUp(FeedViewTestHelpers.mockGoogleMapsPlatform);
 
     goldenTest(
       'when rendering visual states, it should match the approved goldens',

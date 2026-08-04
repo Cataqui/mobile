@@ -12,6 +12,40 @@ dev_dependencies:
   melos: 8.2.2
   very_good_analysis: ^7.0.0
 
+# Use the reviewed fork until https://github.com/flutter/packages/pull/12357
+# is split, published, and available from pub.dev.
+dependency_overrides:
+  google_maps_flutter:
+    git:
+      url: https://github.com/RyanHolanda/packages.git
+      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
+      path: packages/google_maps_flutter/google_maps_flutter
+  google_maps_flutter_android:
+    git:
+      url: https://github.com/RyanHolanda/packages.git
+      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
+      path: packages/google_maps_flutter/google_maps_flutter_android
+  google_maps_flutter_ios:
+    git:
+      url: https://github.com/RyanHolanda/packages.git
+      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
+      path: packages/google_maps_flutter/google_maps_flutter_ios
+  google_maps_flutter_ios_sdk9:
+    git:
+      url: https://github.com/RyanHolanda/packages.git
+      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
+      path: packages/google_maps_flutter/google_maps_flutter_ios_sdk9
+  google_maps_flutter_platform_interface:
+    git:
+      url: https://github.com/RyanHolanda/packages.git
+      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
+      path: packages/google_maps_flutter/google_maps_flutter_platform_interface
+  google_maps_flutter_web:
+    git:
+      url: https://github.com/RyanHolanda/packages.git
+      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
+      path: packages/google_maps_flutter/google_maps_flutter_web
+
 melos:
   name: cataqui
 

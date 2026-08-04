@@ -4,6 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('JobDto', () {
+    test('when category is absent, it should parse the detailed job', () {
+      final json = JobDto.fixture().copyWith(jobId: 'job-without-category').toJson()..remove('category');
+      final job = JobDto.fromJson(json);
+
+      expect(job.jobId, 'job-without-category');
+    });
+
     test('when parsing a detailed job, it should map the job id', () {
       final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'job_id': 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502'});
 

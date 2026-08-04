@@ -5,14 +5,12 @@ class _FeedViewBody extends ConsumerStatefulWidget {
     required this.controller,
     required this.cardBorderRadius,
     required this.feedInCurve,
-    required this.isHintActiveNotifier,
     required this.onAdjustAreaPressed,
   });
 
   final MateoYSnapListController controller;
   final BorderRadius cardBorderRadius;
   final CurveTween feedInCurve;
-  final ValueNotifier<bool> isHintActiveNotifier;
   final VoidCallback onAdjustAreaPressed;
 
   @override
@@ -20,11 +18,11 @@ class _FeedViewBody extends ConsumerStatefulWidget {
 }
 
 class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
-  final ValueNotifier<int> _mapMountLimitNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<int> _currentMapIndexNotifier = ValueNotifier<int>(0);
 
   @override
   void dispose() {
-    _mapMountLimitNotifier.dispose();
+    _currentMapIndexNotifier.dispose();
     super.dispose();
   }
 
@@ -57,22 +55,13 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             provider: (i) => feedData.jobs[i],
             keyBuilder: (job, index) => job.jobId,
           ),
-          onNext: (feedJob, index) {
-            final newCurrentIndex = index + 1;
-
-            if (_mapMountLimitNotifier.value < newCurrentIndex) _mapMountLimitNotifier.value = newCurrentIndex;
-          },
-          onPrevious: (feedJob, index) {
-            final newCurrentIndex = index - 1;
-
-            if (_mapMountLimitNotifier.value < newCurrentIndex) _mapMountLimitNotifier.value = newCurrentIndex;
-          },
+          onNext: (feedJob, index) => _currentMapIndexNotifier.value = index + 1,
+          onPrevious: (feedJob, index) => _currentMapIndexNotifier.value = index - 1,
           onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
           loadMoreErrorBuilder: feedData.paginationError == null ? null : _buildLoadMoreError,
           endBuilder: _buildEnd,
           builder: (context, job, index) {
             final location = job.location;
-            final mapConfig = location.mapConfig;
 
             return ClipRRect(
               borderRadius: widget.cardBorderRadius,
@@ -80,10 +69,11 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                 fit: StackFit.expand,
                 children: [
                   ListenableBuilder(
-                    listenable: Listenable.merge([_mapMountLimitNotifier, widget.isHintActiveNotifier]),
+                    listenable: _currentMapIndexNotifier,
                     builder: (context, _) {
-                      final effectiveLimit = widget.isHintActiveNotifier.value ? -1 : _mapMountLimitNotifier.value;
-                      if (index > effectiveLimit) return ColoredBox(color: colorScheme.map.background);
+                      if ((index - _currentMapIndexNotifier.value).abs() > 1) {
+                        return ColoredBox(color: colorScheme.map.background);
+                      }
 
                       const mapRadiusOffsetMultiplier = 1000;
                       const mapRadiusReferenceHeight = 100;
@@ -93,23 +83,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                             (math.pow(MediaQuery.sizeOf(context).height / mapRadiusReferenceHeight, 2)),
                       );
 
-                      return MateoLocationRadiusMap(
-                        maximumMapFps: 30,
-                        tileUrlTemplate: mapConfig.authenticatedTileUrl,
+                      return JobLocationMap(
                         location: (latitude: location.latitude, longitude: location.longitude),
-                        radiusInMeters: location.areaRadius.toDouble(),
-                        fontConfig: (fontStack: mapConfig.fontstack, glyphUrlTemplate: mapConfig.authenticatedGlyphUrl),
-                        tileMinZoom: mapConfig.tileMinZoom.toInt(),
-                        tileMaxZoom: mapConfig.tileMaxZoom.toInt(),
-                        zoom: 12.8,
+                        areaDiameterInMeters: location.areaRadius.toDouble(),
                         offset: mapRadiusOffset,
-                        radiusStyle: (color: context.mateo.colorScheme.map.locationRadius),
-                        onMapLoad: () {
-                          final next = index + 1;
-                          if (_mapMountLimitNotifier.value < next) {
-                            _mapMountLimitNotifier.value = next;
-                          }
-                        },
                       );
                     },
                   ),

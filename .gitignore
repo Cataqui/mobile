@@ -21,6 +21,10 @@ build/
 **/android/keystores/
 **/*.jks
 **/*.keystore
+
+# Google Maps API keys
+/app/android/secrets.properties
+/app/ios/Flutter/Secrets.xcconfig
 *.iml
 .idea/
 

@@ -13,7 +13,7 @@ class FeedRoute extends GoRouteData with $FeedRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     return MateoPage(
-      transition: MateoPageTransition.fadeSlide(
+      transition: MateoPageTransition.push(
         duration: const Duration(milliseconds: 550),
         direction: MateoPageTransitionDirection.up,
       ),

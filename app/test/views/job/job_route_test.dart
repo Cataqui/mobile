@@ -26,7 +26,7 @@ class JobRouteTestHelpers {
   static Future<void> pumpDeepLinkedJobRoute(WidgetTester tester, {required String jobId}) async {
     FeedViewTestHelpers.mockHapticFeedback(tester);
     FeedViewTestHelpers.mockPlatformViews(tester);
-    FeedViewTestHelpers.mockMapChannels();
+    FeedViewTestHelpers.mockGoogleMapsPlatform();
     final jobRepository = MockJobRepository();
     when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(

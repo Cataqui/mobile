@@ -128,12 +128,14 @@ class _JobViewState extends ConsumerState<JobView> {
                               if (feedJob != null)
                                 jobState.when(
                                   data: (_) => const SizedBox.shrink(),
-                                  error: (error, _) => _buildWhenRouteSettled(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(top: 40),
-                                      child: _buildError(context, i18n, error),
-                                    ),
-                                  ),
+                                  error: (error, _) {
+                                    return _buildWhenRouteSettled(
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 40),
+                                        child: _buildError(context, i18n, error),
+                                      ),
+                                    );
+                                  },
                                   loading: () => _buildWhenRouteSettled(
                                     child: MateoSkeleton(
                                       style: const MateoSkeletonStyle(effect: MateoSkeletonFadeEffect()),
@@ -162,10 +164,12 @@ class _JobViewState extends ConsumerState<JobView> {
                                     ),
                                   ),
                                 ),
-                                error: (error, _) => SizedBox(
-                                  height: MediaQuery.of(context).size.height * 0.6,
-                                  child: _buildError(context, i18n, error),
-                                ),
+                                error: (error, _) {
+                                  return SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.6,
+                                    child: _buildError(context, i18n, error),
+                                  );
+                                },
                                 data: (_) => const SizedBox.shrink(),
                               ),
                             ],

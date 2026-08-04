@@ -1,6 +1,25 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+val secrets = Properties()
+val secretsFile = rootProject.file("secrets.properties")
+
+require(secretsFile.isFile) {
+    "Missing app/android/secrets.properties. Copy secrets.properties.example and configure it."
+}
+secretsFile.inputStream().use { secrets.load(it) }
+
+val googleMapsApiKey =
+    requireNotNull(secrets.getProperty("GOOGLE_MAPS_API_KEY")?.trim()) {
+        "Missing GOOGLE_MAPS_API_KEY in app/android/secrets.properties."
+    }
+
+require(googleMapsApiKey.isNotEmpty() && googleMapsApiKey != "PASTE_ANDROID_API_KEY_HERE") {
+    "GOOGLE_MAPS_API_KEY must be configured in app/android/secrets.properties."
 }
 
 android {
@@ -21,6 +40,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
     }
 
     productFlavors {
