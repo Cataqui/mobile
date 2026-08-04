@@ -5,6 +5,8 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_view.dart';
+import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
+import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_view/poster_onboarding_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +26,7 @@ abstract final class OnboardingRouteTestHelpers {
           builder: (context, state) => const Scaffold(key: ValueKey('onboarding_feed_destination')),
         ),
         $onboardingRoute,
+        $posterOnboardingRoute,
       ],
     );
   }
@@ -80,6 +83,91 @@ void main() {
     );
 
     expect(find.byType(OnboardingView), findsOneWidget);
+  });
+
+  testWidgets('when tapping post work, it should open poster onboarding', (tester) async {
+    final goRouter = OnboardingRouteTestHelpers.router();
+    addTearDown(goRouter.dispose);
+    await OnboardingRouteTestHelpers.pumpRouter(
+      tester: tester,
+      goRouter: goRouter,
+      disableAnimations: true,
+      prefs: prefs,
+    );
+    await tester.tap(find.byKey(const ValueKey('onboarding_post_job_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PosterOnboardingView), findsOneWidget);
+  });
+
+  testWidgets('when poster onboarding covers onboarding, it should dispose the hidden onboarding screen', (
+    tester,
+  ) async {
+    final goRouter = OnboardingRouteTestHelpers.router();
+    addTearDown(goRouter.dispose);
+    await OnboardingRouteTestHelpers.pumpRouter(
+      tester: tester,
+      goRouter: goRouter,
+      disableAnimations: true,
+      prefs: prefs,
+    );
+    await tester.tap(find.byKey(const ValueKey('onboarding_post_job_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OnboardingView, skipOffstage: false), findsNothing);
+  });
+
+  testWidgets('when returning from poster onboarding, it should show the original onboarding screen', (tester) async {
+    final goRouter = OnboardingRouteTestHelpers.router();
+    addTearDown(goRouter.dispose);
+    await OnboardingRouteTestHelpers.pumpRouter(
+      tester: tester,
+      goRouter: goRouter,
+      disableAnimations: true,
+      prefs: prefs,
+    );
+    await tester.tap(find.byKey(const ValueKey('onboarding_post_job_button')));
+    await tester.pumpAndSettle();
+    goRouter.pop();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OnboardingView), findsOneWidget);
+  });
+
+  testWidgets('when tapping the poster onboarding back button, it should return to the original onboarding screen', (
+    tester,
+  ) async {
+    final goRouter = OnboardingRouteTestHelpers.router();
+    addTearDown(goRouter.dispose);
+    await OnboardingRouteTestHelpers.pumpRouter(
+      tester: tester,
+      goRouter: goRouter,
+      disableAnimations: true,
+      prefs: prefs,
+    );
+    await tester.tap(find.byKey(const ValueKey('onboarding_post_job_button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('poster_onboarding_back_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('poster_onboarding_back_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OnboardingView), findsOneWidget);
+  });
+
+  testWidgets('when tapping post work, it should not mark onboarding as completed', (tester) async {
+    final goRouter = OnboardingRouteTestHelpers.router();
+    addTearDown(goRouter.dispose);
+    await OnboardingRouteTestHelpers.pumpRouter(
+      tester: tester,
+      goRouter: goRouter,
+      disableAnimations: true,
+      prefs: prefs,
+    );
+    await tester.tap(find.byKey(const ValueKey('onboarding_post_job_button')));
+    await tester.pumpAndSettle();
+
+    verifyNever(() => prefs.setBool('completed_onboarding', true));
   });
 
   testWidgets('when the intro is still playing, tapping the hidden view-jobs action should not leave onboarding', (

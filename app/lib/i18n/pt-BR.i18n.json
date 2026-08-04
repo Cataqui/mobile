@@ -132,5 +132,70 @@
         "description": "Preciso de ajuda no preparo e na louça na Vila Mariana. Domingo, 10h às 18h. Almoço incluso."
       }
     }
+  },
+  "posterOnboarding": {
+    "sceneAccessibilityLabel": "Exemplo de um trabalho publicado e pessoas interessadas",
+    "jobCard": {
+      "postedTime": "Exemplo",
+      "currencyCode": "BRL"
+    },
+    "jobs": {
+      "movingHelper": {
+        "title": "Ajudar numa mudança",
+        "amount": "180",
+        "description": "Mudança na Mooca. Sábado, 8h às 13h. Carregar caixas e móveis. Prédio com elevador",
+        "interest": "Posso no sábado"
+      },
+      "storeAttendant": {
+        "title": "Atendente de loja",
+        "amount": "2300",
+        "description": "Loja em Itaquera. Terça a sábado, 10h às 18h. 1h de almoço. Carteira assinada",
+        "interest": "Moro em Itaquera"
+      },
+      "kitchenHelper": {
+        "title": "Auxiliar de cozinha",
+        "amount": "190",
+        "description": "Buffet na Vila Mariana. Domingo, 10h às 18h, com 1h de almoço. Refeição inclusa",
+        "interest": "Já trabalhei em buffet"
+      },
+      "waiter": {
+        "title": "Garçom para casamento",
+        "amount": "240",
+        "description": "Casamento em Santana. Sábado, 16h às 23h, com 1h de intervalo. Transporte pago",
+        "interest": "Tenho experiência"
+      },
+      "postConstructionCleaner": {
+        "title": "Limpeza pós-obra",
+        "amount": "350",
+        "description": "Apê de 30 m² na Bela Vista, sem entulho. Quinta, 9h às 15h. Material e luvas no local",
+        "interest": "Já fiz pós-obra"
+      },
+      "dogWalker": {
+        "title": "Passear com 2 cachorros",
+        "amount": "80",
+        "description": "Dois cachorros de porte médio no Ipiranga. Terça a quinta, 8h às 9h",
+        "interest": "Já cuidei de cachorro"
+      },
+      "furnitureAssembler": {
+        "title": "Montar guarda-roupa",
+        "amount": "300",
+        "description": "Guarda-roupa de 6 portas e cômoda em Pirituba. Sábado, 9h às 14h. Levar ferramentas",
+        "interest": "Tenho as ferramentas"
+      },
+      "constructionHelper": {
+        "title": "Ajudante de obra",
+        "amount": "200",
+        "description": "Campo Limpo. Sexta, 7h às 16h. Preparar massa. 1h de almoço. Capacete e luvas no local",
+        "interest": "Já trabalhei em obra"
+      },
+      "eventPhotographer": {
+        "title": "Fotógrafo para festa",
+        "amount": "650",
+        "description": "Festa infantil em São Mateus. Sábado, 14h às 18h. Levar câmera. 80 fotos editadas",
+        "interest": "Tenho câmera própria"
+      }
+    },
+    "headline": "Você posta.\nQuem se interessar,\nte chama",
+    "loginWithWhatsapp": "Entrar com whatsapp"
   }
 }

@@ -7,6 +7,7 @@ import 'package:cataqui_app/gen/lotties.g.dart';
 import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -175,7 +176,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                               leadingIconBuilder: (state) {
                                 return MateoIcon.boxPen(color: state.foregroundColor);
                               },
-                              onPressed: null,
+                              onPressed: () => unawaited(const PosterOnboardingRoute().push<void>(context)),
                             ),
                           ],
                         ),
