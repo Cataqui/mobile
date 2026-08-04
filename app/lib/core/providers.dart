@@ -7,6 +7,7 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
+import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:flutter/widgets.dart';
@@ -83,7 +84,7 @@ GoRouter goRouter(Ref ref) {
 
       return const FeedRoute().location;
     },
-    routes: [$onboardingRoute, $feedRoute, $jobRoute],
+    routes: [$onboardingRoute, $posterOnboardingRoute, $feedRoute, $jobRoute],
   );
 }
 

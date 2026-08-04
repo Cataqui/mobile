@@ -332,10 +332,10 @@ void main() {
       );
     });
 
-    testWidgets('when posting is unavailable, it should render the post-work action disabled', (tester) async {
+    testWidgets('when the onboarding screen opens, it should make the post-work action available', (tester) async {
       await OnboardingViewTestHelpers.pumpView(tester: tester);
 
-      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('onboarding_post_job_button'))).onPressed, isNull);
+      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('onboarding_post_job_button'))).onPressed, isNotNull);
     });
 
     testWidgets('when the onboarding screen opens, it should keep the button panel 12 pixels from the phone edge', (
