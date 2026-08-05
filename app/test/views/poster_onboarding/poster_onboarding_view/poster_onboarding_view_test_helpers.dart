@@ -35,6 +35,7 @@ abstract final class PosterOnboardingViewTestHelpers {
     double width = 390,
     double height = 844,
     double textScaler = 1,
+    double bottomSafeArea = 0,
     bool disableAnimations = true,
   }) async {
     _configureView(tester: tester, width: width, height: height);
@@ -46,6 +47,8 @@ abstract final class PosterOnboardingViewTestHelpers {
           mediaQueryData: MediaQueryData(
             size: Size(width, height),
             textScaler: TextScaler.linear(textScaler),
+            padding: EdgeInsets.only(bottom: bottomSafeArea),
+            viewPadding: EdgeInsets.only(bottom: bottomSafeArea),
             disableAnimations: disableAnimations,
           ),
           child: const PosterOnboardingView(),

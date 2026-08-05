@@ -29,5 +29,17 @@ void main() {
       },
       builder: () => PosterOnboardingViewTestHelpers.goldenScenario(width: 320, height: 568, textScaler: 1.5),
     );
+
+    goldenTest(
+      'when poster onboarding opens on a wide phone, it should extend the marquee to both screen edges',
+      fileName: 'poster_onboarding_view_wide',
+      constraints: const BoxConstraints.tightFor(width: 440, height: 956),
+      whilePerforming: (tester) async {
+        await PosterOnboardingViewTestHelpers.prepareGoldenCapture(tester: tester);
+
+        return null;
+      },
+      builder: () => PosterOnboardingViewTestHelpers.goldenScenario(width: 440, height: 956),
+    );
   });
 }

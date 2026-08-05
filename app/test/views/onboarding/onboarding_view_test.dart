@@ -361,12 +361,85 @@ void main() {
       expect(tester.getTopLeft(find.byKey(const ValueKey('onboarding_intro_headline'))).dy, initialHeadlineTop);
     });
 
-    testWidgets('when the screen is compact, it should keep the job scene at its minimum useful height', (
+    testWidgets('when the screen is compact, it should shrink the job scene to leave room for the message', (
       tester,
     ) async {
       await OnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568);
 
-      expect(tester.getSize(find.byKey(const ValueKey('onboarding_job_scene_size'))).height, 340);
+      expect(tester.getSize(find.byKey(const ValueKey('onboarding_job_scene_size'))).height, lessThan(340));
+    });
+
+    testWidgets('when the screen is compact, it should use a smaller headline that remains readable', (tester) async {
+      await OnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568);
+
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(of: find.byKey(const ValueKey('onboarding_intro_headline')), matching: find.byType(Text)),
+            )
+            .style
+            ?.fontSize,
+        lessThan(30),
+      );
+    });
+
+    testWidgets('when the screen is compact, it should keep the full message above the fixed actions', (tester) async {
+      await OnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568);
+
+      expect(
+        tester.getBottomLeft(find.byKey(const ValueKey('onboarding_intro_headline'))).dy,
+        lessThanOrEqualTo(tester.getTopLeft(find.byType(MateoButtonPanel)).dy),
+      );
+    });
+
+    testWidgets('when a small phone includes system insets, it should shrink the job scene more strongly', (
+      tester,
+    ) async {
+      await OnboardingViewTestHelpers.pumpView(
+        tester: tester,
+        width: 360,
+        height: 640,
+        padding: const EdgeInsets.only(top: 24, bottom: 24),
+      );
+
+      expect(tester.getSize(find.byKey(const ValueKey('onboarding_job_scene_size'))).height, lessThan(300));
+    });
+
+    testWidgets('when a small phone includes system insets, it should keep the headline at the compact size', (
+      tester,
+    ) async {
+      await OnboardingViewTestHelpers.pumpView(
+        tester: tester,
+        width: 360,
+        height: 640,
+        padding: const EdgeInsets.only(top: 24, bottom: 24),
+      );
+
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(of: find.byKey(const ValueKey('onboarding_intro_headline')), matching: find.byType(Text)),
+            )
+            .style
+            ?.fontSize,
+        24,
+      );
+    });
+
+    testWidgets('when a small phone includes system insets, it should leave space between the message and actions', (
+      tester,
+    ) async {
+      await OnboardingViewTestHelpers.pumpView(
+        tester: tester,
+        width: 360,
+        height: 640,
+        padding: const EdgeInsets.only(top: 24, bottom: 24),
+      );
+
+      expect(
+        tester.getBottomLeft(find.byKey(const ValueKey('onboarding_intro_headline'))).dy,
+        lessThanOrEqualTo(tester.getTopLeft(find.byType(MateoButtonPanel)).dy - 24),
+      );
     });
 
     testWidgets('when the screen is tall, it should cap the job scene at its maximum useful height', (tester) async {

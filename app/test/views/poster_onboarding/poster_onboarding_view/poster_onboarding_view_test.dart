@@ -55,22 +55,75 @@ void main() {
     expect(find.byType(PosterOnboardingView), findsOneWidget);
   });
 
-  testWidgets('when text is enlarged on a compact phone, it should remain scrollable without layout errors', (
+  testWidgets('when text is enlarged on a compact phone, it should keep all content visible without layout errors', (
     tester,
   ) async {
     await PosterOnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568, textScaler: 2);
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('poster_onboarding_whatsapp_button')), 300);
-    await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('when the poster onboarding opens, its top edge fade should remain above the scrolling content', (
+  testWidgets('when the poster onboarding opens, it should not expose scrollable content', (tester) async {
+    await PosterOnboardingViewTestHelpers.pumpView(tester: tester);
+
+    expect(find.byType(Scrollable), findsNothing);
+  });
+
+  testWidgets('when the poster onboarding opens on a compact phone, it should keep the job scene prominent', (
+    tester,
+  ) async {
+    await PosterOnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568);
+
+    expect(tester.getSize(find.byKey(const ValueKey('poster_onboarding_job_scene'))).height, 210);
+  });
+
+  testWidgets('when the poster onboarding opens on a compact phone, it should keep the promise comfortably readable', (
+    tester,
+  ) async {
+    await PosterOnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568);
+    final headline = tester.widget<TextMotion>(find.byKey(const ValueKey('poster_onboarding_headline_motion'))).child;
+
+    expect(headline.style?.fontSize, 24);
+  });
+
+  testWidgets('when text is enlarged on a compact phone, it should keep the poster promise on three readable lines', (
+    tester,
+  ) async {
+    await PosterOnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568, textScaler: 2);
+
+    expect(tester.getSize(find.byKey(const ValueKey('poster_onboarding_headline'))).height, lessThan(120));
+  });
+
+  testWidgets('when text is enlarged on a compact phone, it should keep the WhatsApp action on screen', (tester) async {
+    await PosterOnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568, textScaler: 2);
+
+    expect(
+      tester.getBottomRight(find.byKey(const ValueKey('poster_onboarding_whatsapp_button'))).dy,
+      lessThanOrEqualTo(568),
+    );
+  });
+
+  testWidgets('when the phone has a bottom safe area, it should inset the actions by another 12 pixels', (
+    tester,
+  ) async {
+    await PosterOnboardingViewTestHelpers.pumpView(tester: tester, width: 320, height: 568, bottomSafeArea: 24);
+
+    expect(tester.getBottomRight(find.byKey(const ValueKey('poster_onboarding_whatsapp_button'))).dy, 532);
+  });
+
+  testWidgets('when poster onboarding opens on a wide phone, it should extend the marquee to both device borders', (
+    tester,
+  ) async {
+    await PosterOnboardingViewTestHelpers.pumpView(tester: tester, width: 600, height: 844);
+
+    expect(tester.getSize(find.byKey(const ValueKey('poster_onboarding_job_scene'))).width, 600);
+  });
+
+  testWidgets('when the poster onboarding opens on a standard phone, it should keep the full-size job scene', (
     tester,
   ) async {
     await PosterOnboardingViewTestHelpers.pumpView(tester: tester);
-    final stack = tester.widget<Stack>(find.descendant(of: find.byType(Scaffold), matching: find.byType(Stack)).first);
 
-    expect(stack.children.last.key, const ValueKey('poster_onboarding_top_edge_fade_layer'));
+    expect(tester.getSize(find.byKey(const ValueKey('poster_onboarding_job_scene'))).height, 420);
   });
 }

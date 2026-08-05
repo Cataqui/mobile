@@ -26,6 +26,7 @@ abstract final class OnboardingViewTestHelpers {
     required WidgetTester tester,
     double width = 390,
     double height = 844,
+    EdgeInsets padding = EdgeInsets.zero,
     bool disableAnimations = true,
   }) async {
     tester.view.devicePixelRatio = 1;
@@ -36,7 +37,11 @@ abstract final class OnboardingViewTestHelpers {
       ProviderScope(
         overrides: [translationProvider.overrideWithValue(AppLocale.ptBr.buildSync())],
         child: TestApp.screen(
-          mediaQueryData: MediaQueryData(size: Size(width, height), disableAnimations: disableAnimations),
+          mediaQueryData: MediaQueryData(
+            size: Size(width, height),
+            padding: padding,
+            disableAnimations: disableAnimations,
+          ),
           child: const OnboardingView(),
         ),
       ),
@@ -49,15 +54,15 @@ abstract final class OnboardingViewTestHelpers {
     await tester.pumpAndSettle();
   }
 
-  static Widget goldenScenario() {
+  static Widget goldenScenario({double width = 390, double height = 844, EdgeInsets padding = EdgeInsets.zero}) {
     return ProviderScope(
       overrides: [translationProvider.overrideWithValue(AppLocale.ptBr.buildSync())],
-      child: const SizedBox(
-        width: 390,
-        height: 844,
+      child: SizedBox(
+        width: width,
+        height: height,
         child: TestApp.screen(
-          mediaQueryData: MediaQueryData(size: Size(390, 844), disableAnimations: true),
-          child: OnboardingView(),
+          mediaQueryData: MediaQueryData(size: Size(width, height), padding: padding, disableAnimations: true),
+          child: const OnboardingView(),
         ),
       ),
     );

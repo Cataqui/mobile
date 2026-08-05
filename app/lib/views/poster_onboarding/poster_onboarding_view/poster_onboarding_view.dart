@@ -19,97 +19,90 @@ class PosterOnboardingView extends ConsumerWidget {
 
   static const maximumContentWidth = 420.0;
 
+  static const _compactAvailableHeight = 536.0;
+  static const _regularAvailableHeight = 812.0;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final i18n = ref.watch(translationProvider);
 
     return Scaffold(
       backgroundColor: context.mateo.colorScheme.background,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return _buildScrollView(context: context, constraints: constraints, i18n: i18n);
-              },
-            ),
-          ),
-          Positioned(
-            key: const ValueKey('poster_onboarding_top_edge_fade_layer'),
-            top: 0,
-            left: 0,
-            right: 0,
-            child: MateoEdgeFade(
-              position: MateoEdgeFadePosition.top,
-              style: MateoEdgeFadeStyle(color: context.mateo.colorScheme.background),
-            ),
-          ),
-        ],
+      body: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(0, 20, 0, 12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final sceneHeight = _layoutValue(
+              availableHeight: constraints.maxHeight,
+              compactValue: 210,
+              regularValue: 420,
+            );
+            final headlineFontSize = _layoutValue(
+              availableHeight: constraints.maxHeight,
+              compactValue: 24,
+              regularValue: 28,
+            );
+            final headlineHorizontalPadding = _layoutValue(
+              availableHeight: constraints.maxHeight,
+              compactValue: 12,
+              regularValue: 24,
+            );
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                PosterOnboardingJobScene(i18n: i18n, viewportWidth: constraints.maxWidth, height: sceneHeight),
+                _buildHeadline(
+                  context: context,
+                  i18n: i18n,
+                  fontSize: headlineFontSize,
+                  horizontalPadding: headlineHorizontalPadding,
+                ),
+                _buildActionsEntrance(context: context, i18n: i18n),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildScrollView({
+  Widget _buildHeadline({
     required BuildContext context,
-    required BoxConstraints constraints,
     required Translations i18n,
+    required double fontSize,
+    required double horizontalPadding,
   }) {
-    final safeAreaPadding = MediaQuery.paddingOf(context);
-
-    return CustomScrollView(
-      key: const ValueKey('poster_onboarding_scroll_view'),
-      primary: false,
-      slivers: [
-        SliverToBoxAdapter(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight, maxWidth: maximumContentWidth),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, safeAreaPadding.top + 20, 0, safeAreaPadding.bottom + 12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    PosterOnboardingJobScene(i18n: i18n, viewportWidth: constraints.maxWidth),
-                    const SizedBox(height: 60),
-                    _buildHeadline(context: context, i18n: i18n),
-                    const SizedBox(height: 32),
-                    _buildActionsEntrance(context: context, i18n: i18n),
-                  ],
-                ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: maximumContentWidth),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        child: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.2,
+          child: TextMotion.list(
+            key: const ValueKey('poster_onboarding_headline_motion'),
+            stagger: const Duration(milliseconds: 40),
+            effects: const [
+              MoveMotionEffect(
+                begin: Offset(0, 5),
+                end: Offset.zero,
+                duration: Duration(milliseconds: 180),
+                delay: Duration(milliseconds: 600),
+                curve: Curves.easeOut,
+              ),
+              FadeInMotionEffect(duration: Duration(milliseconds: 180), delay: Duration(milliseconds: 600)),
+            ],
+            child: Text(
+              key: const ValueKey('poster_onboarding_headline'),
+              i18n.posterOnboarding.headline,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.mateo.colorScheme.text.primary,
+                fontSize: fontSize,
+                height: 1.16,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeadline({required BuildContext context, required Translations i18n}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: TextMotion.list(
-        key: const ValueKey('poster_onboarding_headline_motion'),
-        stagger: const Duration(milliseconds: 40),
-        effects: const [
-          MoveMotionEffect(
-            begin: Offset(0, 5),
-            end: Offset.zero,
-            duration: Duration(milliseconds: 180),
-            delay: Duration(milliseconds: 600),
-            curve: Curves.easeOut,
-          ),
-          FadeInMotionEffect(duration: Duration(milliseconds: 180), delay: Duration(milliseconds: 600)),
-        ],
-        child: Text(
-          key: const ValueKey('poster_onboarding_headline'),
-          i18n.posterOnboarding.headline,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: context.mateo.colorScheme.text.primary,
-            fontSize: 28,
-            height: 1.16,
-            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -117,17 +110,20 @@ class PosterOnboardingView extends ConsumerWidget {
   }
 
   Widget _buildActionsEntrance({required BuildContext context, required Translations i18n}) {
-    return Motion(
-      effect: const FadeInMotionEffect(delay: Duration(milliseconds: 780)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return MediaQuery.withClampedTextScaling(
-              maxScaleFactor: constraints.maxWidth <= 280 ? 1 : 1.4,
-              child: _buildActions(context: context, i18n: i18n),
-            );
-          },
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: maximumContentWidth),
+      child: Motion(
+        effect: const FadeInMotionEffect(delay: Duration(milliseconds: 780)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return MediaQuery.withClampedTextScaling(
+                maxScaleFactor: constraints.maxWidth <= 280 ? 1 : 1.4,
+                child: _buildActions(context: context, i18n: i18n),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -166,5 +162,11 @@ class PosterOnboardingView extends ConsumerWidget {
         return MateoIcon.whatsapp(width: 22, height: 22, color: state.foregroundColor);
       },
     );
+  }
+
+  double _layoutValue({required double availableHeight, required double compactValue, required double regularValue}) {
+    final progress = ((availableHeight - _compactAvailableHeight) / (_regularAvailableHeight - _compactAvailableHeight))
+        .clamp(0.0, 1.0);
+    return compactValue + (regularValue - compactValue) * progress;
   }
 }

@@ -29,10 +29,8 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
   static const _entranceDuration = Duration(milliseconds: 576);
   static const _introCompleteDelay = Duration(milliseconds: 2624 + 576);
 
-  static const _contentTopSpacing = 36.0;
-  static const _headlineTopPadding = 28.0;
-  static const _headlineBottomPadding = 24.0;
-  static const _headlineFontSize = 30.0;
+  static const _compactAvailableHeight = 616.0;
+  static const _regularAvailableHeight = 820.0;
   static const _headlineLineHeight = 1.16;
 
   bool _actionsAvailable = false;
@@ -70,15 +68,30 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
   }
 
   double _sceneHeight(BoxConstraints constraints) {
-    final heightBasedSceneHeight = constraints.maxHeight * 0.5;
+    final heightBasedSceneHeight =
+        constraints.maxHeight *
+        _layoutValue(availableHeight: constraints.maxHeight, compactValue: 0.43, regularValue: 0.5);
     final widthBasedSceneHeight = constraints.maxWidth * 1.18;
-    return math.min(heightBasedSceneHeight, widthBasedSceneHeight).clamp(340.0, 460.0);
+    return math.min(heightBasedSceneHeight, widthBasedSceneHeight).clamp(0.0, 460.0);
   }
 
-  double _initialHeadlineOffset({required double viewportHeight, required double sceneHeight}) {
-    const headlineTextHeight = _headlineFontSize * _headlineLineHeight * 3;
-    const headlineHeight = _headlineTopPadding + headlineTextHeight + _headlineBottomPadding;
-    final headlineFinalCenter = _contentTopSpacing + sceneHeight + headlineHeight / 2;
+  double _layoutValue({required double availableHeight, required double compactValue, required double regularValue}) {
+    final progress = ((availableHeight - _compactAvailableHeight) / (_regularAvailableHeight - _compactAvailableHeight))
+        .clamp(0.0, 1.0);
+    return compactValue + (regularValue - compactValue) * progress;
+  }
+
+  double _initialHeadlineOffset({
+    required double viewportHeight,
+    required double sceneHeight,
+    required double contentTopSpacing,
+    required double headlineTopPadding,
+    required double headlineBottomPadding,
+    required double headlineFontSize,
+  }) {
+    final headlineTextHeight = headlineFontSize * _headlineLineHeight * 3;
+    final headlineHeight = headlineTopPadding + headlineTextHeight + headlineBottomPadding;
+    final headlineFinalCenter = contentTopSpacing + sceneHeight + headlineHeight / 2;
     return viewportHeight / 2 - headlineFinalCenter;
   }
 
@@ -97,9 +110,33 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final sceneHeight = _sceneHeight(constraints);
+                  final contentTopSpacing = _layoutValue(
+                    availableHeight: constraints.maxHeight,
+                    compactValue: 14,
+                    regularValue: 36,
+                  );
+                  final headlineTopPadding = _layoutValue(
+                    availableHeight: constraints.maxHeight,
+                    compactValue: 12,
+                    regularValue: 28,
+                  );
+                  final headlineBottomPadding = _layoutValue(
+                    availableHeight: constraints.maxHeight,
+                    compactValue: 10,
+                    regularValue: 24,
+                  );
+                  final headlineFontSize = _layoutValue(
+                    availableHeight: constraints.maxHeight,
+                    compactValue: 24,
+                    regularValue: 30,
+                  );
                   final initialHeadlineOffset = _initialHeadlineOffset(
                     viewportHeight: constraints.maxHeight,
                     sceneHeight: sceneHeight,
+                    contentTopSpacing: contentTopSpacing,
+                    headlineTopPadding: headlineTopPadding,
+                    headlineBottomPadding: headlineBottomPadding,
+                    headlineFontSize: headlineFontSize,
                   );
 
                   return OverflowBox(
@@ -113,9 +150,15 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(height: _contentTopSpacing),
+                          SizedBox(height: contentTopSpacing),
                           _buildScene(i18n: i18n, height: sceneHeight),
-                          _buildHeadline(i18n: i18n, initialOffset: initialHeadlineOffset),
+                          _buildHeadline(
+                            i18n: i18n,
+                            initialOffset: initialHeadlineOffset,
+                            topPadding: headlineTopPadding,
+                            bottomPadding: headlineBottomPadding,
+                            fontSize: headlineFontSize,
+                          ),
                         ],
                       ),
                     ),
@@ -293,7 +336,13 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
     );
   }
 
-  Widget _buildHeadline({required Translations i18n, required double initialOffset}) {
+  Widget _buildHeadline({
+    required Translations i18n,
+    required double initialOffset,
+    required double topPadding,
+    required double bottomPadding,
+    required double fontSize,
+  }) {
     return Motion.list(
       key: const ValueKey('onboarding_intro_headline_motion'),
       effects: [
@@ -320,13 +369,13 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
       ],
       child: Padding(
         key: const ValueKey('onboarding_intro_headline'),
-        padding: const EdgeInsets.fromLTRB(24, _headlineTopPadding, 24, _headlineBottomPadding),
+        padding: EdgeInsets.fromLTRB(24, topPadding, 24, bottomPadding),
         child: Text(
           i18n.onboarding.headline,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: context.mateo.palette.neutral[11],
-            fontSize: _headlineFontSize,
+            fontSize: fontSize,
             fontWeight: FontWeight.w600,
             height: _headlineLineHeight,
           ),
