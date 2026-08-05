@@ -338,12 +338,12 @@ void main() {
       expect(tester.widget<MateoButton>(find.byKey(const ValueKey('onboarding_post_job_button'))).onPressed, isNotNull);
     });
 
-    testWidgets('when the onboarding screen opens, it should keep the button panel 12 pixels from the phone edge', (
+    testWidgets('when the phone has a bottom safe area, it should inset the button panel by another 12 pixels', (
       tester,
     ) async {
-      await OnboardingViewTestHelpers.pumpView(tester: tester);
+      await OnboardingViewTestHelpers.pumpView(tester: tester, padding: const EdgeInsets.only(bottom: 24));
 
-      expect(tester.getBottomLeft(find.byType(MateoButtonPanel)).dy, 844 - 12);
+      expect(tester.getBottomLeft(find.byType(MateoButtonPanel)).dy, 844 - 24 - 12);
     });
 
     testWidgets('when the onboarding screen opens, it should not expose scrollable content', (tester) async {

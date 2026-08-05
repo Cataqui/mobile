@@ -172,7 +172,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
             child: SafeArea(
               minimum: const EdgeInsets.only(bottom: 12),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: ExcludeSemantics(
