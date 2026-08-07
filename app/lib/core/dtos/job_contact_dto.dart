@@ -7,8 +7,7 @@ part 'job_contact_dto.g.dart';
 @freezed
 abstract class JobContactDto with _$JobContactDto {
   const factory JobContactDto({
-    @JsonKey(name: 'contact_method', unknownEnumValue: JobContactMethod.unknown)
-    required JobContactMethod contactMethod,
+    @JsonKey(unknownEnumValue: JobContactMethod.unknown) required JobContactMethod contactMethod,
     required String identifier,
   }) = _JobContactDto;
 

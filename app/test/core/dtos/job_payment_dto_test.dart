@@ -15,9 +15,9 @@ void main() {
       test('when parsing a job payment, it should map the minimum amount', () {
         final payment = JobPaymentDto.fromJson(const <String, Object?>{
           'type': 'FIXED',
-          'min_amount': 120,
-          'max_amount': 200,
-          'amount_period': 'SINGLE',
+          'minAmount': 120,
+          'maxAmount': 200,
+          'amountPeriod': 'SINGLE',
           'currency': 'BRL',
           'note': '',
         });
@@ -28,9 +28,9 @@ void main() {
       test('when parsing an unknown payment type, it should use unknown', () {
         final payment = JobPaymentDto.fromJson(const <String, Object?>{
           'type': 'BONUS',
-          'min_amount': 120,
-          'max_amount': 200,
-          'amount_period': 'SINGLE',
+          'minAmount': 120,
+          'maxAmount': 200,
+          'amountPeriod': 'SINGLE',
           'currency': 'BRL',
           'note': '',
         });
@@ -38,10 +38,10 @@ void main() {
         expect(payment.type, JobPaymentType.unknown);
       });
 
-      test('when min_amount is missing from JSON, it should default to null', () {
+      test('when minAmount is missing from JSON, it should default to null', () {
         final payment = JobPaymentDto.fromJson(const <String, Object?>{
           'type': 'FLEXIBLE',
-          'amount_period': 'SINGLE',
+          'amountPeriod': 'SINGLE',
           'currency': 'BRL',
           'note': '',
         });
@@ -49,15 +49,21 @@ void main() {
         expect(payment.minAmount, isNull);
       });
 
-      test('when max_amount is missing from JSON, it should default to null', () {
+      test('when maxAmount is missing from JSON, it should default to null', () {
         final payment = JobPaymentDto.fromJson(const <String, Object?>{
           'type': 'FLEXIBLE',
-          'amount_period': 'SINGLE',
+          'amountPeriod': 'SINGLE',
           'currency': 'BRL',
           'note': '',
         });
 
         expect(payment.maxAmount, isNull);
+      });
+
+      test('when serializing a job payment, it should use camelCase keys', () {
+        final json = JobPaymentDto.fixture().toJson();
+
+        expect(json.keys, containsAll(<String>['amountPeriod', 'minAmount', 'maxAmount']));
       });
     });
 

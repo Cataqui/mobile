@@ -9,12 +9,12 @@ part 'feed_job_dto.g.dart';
 @freezed
 abstract class FeedJobDto with _$FeedJobDto {
   const factory FeedJobDto({
-    @JsonKey(name: 'job_id') required String jobId,
+    required String jobId,
     required String title,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
+    required DateTime createdAt,
     required JobPaymentDto payment,
     required FeedJobLocationDto location,
-    @JsonKey(name: 'description_summary') required String descriptionSummary,
+    required String descriptionSummary,
   }) = _FeedJobDto;
 
   const FeedJobDto._();

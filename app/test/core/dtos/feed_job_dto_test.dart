@@ -18,5 +18,11 @@ void main() {
 
       expect(job.location.neighborhood, 'Pinheiros');
     });
+
+    test('when serializing a feed job, it should use camelCase keys', () {
+      final json = FeedJobDto.fixture().toJson();
+
+      expect(json.keys, containsAll(<String>['jobId', 'createdAt', 'descriptionSummary']));
+    });
   });
 }

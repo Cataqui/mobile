@@ -8,7 +8,7 @@ part 'api_envelope_dto.g.dart';
 abstract class ApiEnvelopeDto<T> with _$ApiEnvelopeDto<T> {
   const factory ApiEnvelopeDto({
     required T data,
-    @JsonKey(name: 'request_id') required String requestId,
+    required String requestId,
     required DateTime timestamp,
     required String endpoint,
     ApiPaginationDto? pagination,

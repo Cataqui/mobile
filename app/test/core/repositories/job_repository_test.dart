@@ -15,7 +15,7 @@ const _testContactId = 'contact-001';
 
 final _jobEnvelopeJson = <String, Object?>{
   'data': JobDto.fixture().toJson(),
-  'request_id': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
+  'requestId': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
   'timestamp': '2026-06-06T00:37:46.623Z',
   'endpoint': '/job/$_testJobId',
 };
@@ -27,7 +27,7 @@ final _contact = JobContactDto.fixture().copyWith(
 
 final _contactEnvelopeJson = <String, Object?>{
   'data': _contact.toJson(),
-  'request_id': 'contact-req-001',
+  'requestId': 'contact-req-001',
   'timestamp': '2026-06-06T00:37:46.623Z',
   'endpoint': '/job/$_testJobId/contact/$_testContactId',
 };

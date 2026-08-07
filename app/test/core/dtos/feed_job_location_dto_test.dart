@@ -8,10 +8,16 @@ void main() {
         'neighborhood': 'Centro',
         'latitude': -23.556391,
         'longitude': -46.844076,
-        'area_radius': 2000,
+        'areaRadius': 2000,
       });
 
       expect(location.neighborhood, 'Centro');
+    });
+
+    test('when serializing a feed job location, it should use camelCase keys', () {
+      final json = FeedJobLocationDto.fixture().toJson();
+
+      expect(json, containsPair('areaRadius', 2000));
     });
   });
 }

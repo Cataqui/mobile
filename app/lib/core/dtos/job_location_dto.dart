@@ -12,7 +12,7 @@ abstract class JobLocationDto with _$JobLocationDto {
     required String country,
     required double latitude,
     required double longitude,
-    @JsonKey(name: 'area_radius') required num areaRadius,
+    required num areaRadius,
     String? street,
   }) = _JobLocationDto;
 

@@ -17,10 +17,16 @@ void main() {
         'country': 'BR',
         'latitude': -23.556391,
         'longitude': -46.844076,
-        'area_radius': 2000,
+        'areaRadius': 2000,
       });
 
       expect(location.street, isNull);
+    });
+
+    test('when serializing a job location, it should use camelCase keys', () {
+      final json = JobLocationDto.fixture().toJson();
+
+      expect(json, containsPair('areaRadius', 2000));
     });
   });
 }

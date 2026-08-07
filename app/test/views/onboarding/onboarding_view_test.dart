@@ -92,22 +92,13 @@ void main() {
       expect(tester.getCenter(find.byKey(const ValueKey('onboarding_intro_headline'))).dy, closeTo(844 / 2, 24));
     });
 
-    testWidgets('when the intro begins, it should keep the job scene invisible behind the headline', (tester) async {
+    testWidgets('when the intro begins, it should delay the job scene until the headline has appeared', (tester) async {
       await OnboardingViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
       await tester.pump(const Duration(milliseconds: 250));
+      final motion = tester.widget<Motion>(find.byKey(const ValueKey('onboarding_intro_scene')));
+      final fadeEffect = motion.effects!.whereType<FadeInMotionEffect>().single;
 
-      expect(
-        tester
-            .widget<FadeTransition>(
-              find.descendant(
-                of: find.byKey(const ValueKey('onboarding_intro_scene')),
-                matching: find.byType(FadeTransition),
-              ),
-            )
-            .opacity
-            .value,
-        0,
-      );
+      expect(fadeEffect.delay, const Duration(milliseconds: 2048));
     });
 
     testWidgets('when the job scene waits to appear, it should pause its card animation until the reveal', (
@@ -118,24 +109,15 @@ void main() {
       expect(tester.widget<PauseAnimations>(find.byType(PauseAnimations)).duration, const Duration(milliseconds: 2048));
     });
 
-    testWidgets('when the intro begins, it should keep the button panel invisible', (tester) async {
+    testWidgets('when the intro begins, it should delay the button panel until the other reveals finish', (
+      tester,
+    ) async {
       await OnboardingViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
       await tester.pump(const Duration(milliseconds: 250));
+      final motion = tester.widget<Motion>(find.byKey(const ValueKey('onboarding_intro_button_panel')));
+      final fadeEffect = motion.effects!.whereType<FadeInMotionEffect>().single;
 
-      expect(
-        tester
-            .widget<FadeTransition>(
-              find
-                  .descendant(
-                    of: find.byKey(const ValueKey('onboarding_intro_button_panel')),
-                    matching: find.byType(FadeTransition),
-                  )
-                  .first,
-            )
-            .opacity
-            .value,
-        0,
-      );
+      expect(fadeEffect.delay, const Duration(milliseconds: 2624));
     });
 
     testWidgets('when the headline finishes appearing, it should stay centered long enough to be read', (tester) async {
@@ -162,25 +144,16 @@ void main() {
       );
     });
 
-    testWidgets('when the intro reaches the scene reveal, it should show the job cards and floating props', (
+    testWidgets('when the intro reaches the scene reveal, it should fade in the job cards and floating props', (
       tester,
     ) async {
       await OnboardingViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
       await tester.pump(const Duration(milliseconds: 2048));
       await tester.pump(const Duration(milliseconds: 704));
+      final motion = tester.widget<Motion>(find.byKey(const ValueKey('onboarding_intro_scene')));
+      final fadeEffect = motion.effects!.whereType<FadeInMotionEffect>().single;
 
-      expect(
-        tester
-            .widget<FadeTransition>(
-              find.descendant(
-                of: find.byKey(const ValueKey('onboarding_intro_scene')),
-                matching: find.byType(FadeTransition),
-              ),
-            )
-            .opacity
-            .value,
-        1,
-      );
+      expect(fadeEffect.duration, const Duration(milliseconds: 704));
     });
 
     testWidgets('when the intro completes, it should show the fixed button panel', (tester) async {

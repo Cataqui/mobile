@@ -12,7 +12,7 @@ void main() {
     });
 
     test('when parsing a detailed job, it should map the job id', () {
-      final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'job_id': 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502'});
+      final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'jobId': 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502'});
 
       expect(job.jobId, 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502');
     });
@@ -30,7 +30,7 @@ void main() {
     });
 
     test('when parsing a detailed job, it should map the created timestamp', () {
-      final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'created_at': '2026-06-06T00:36:46.623Z'});
+      final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'createdAt': '2026-06-06T00:36:46.623Z'});
 
       expect(job.createdAt, DateTime.parse('2026-06-06T00:36:46.623Z'));
     });
@@ -39,6 +39,12 @@ void main() {
       final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'status': 'PAUSED'});
 
       expect(job.status, JobStatus.unknown);
+    });
+
+    test('when serializing a detailed job, it should use camelCase keys', () {
+      final json = JobDto.fixture().toJson();
+
+      expect(json.keys, containsAll(<String>['jobId', 'contactReference', 'createdAt', 'updatedAt']));
     });
   });
 }

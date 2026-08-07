@@ -9,7 +9,7 @@ abstract class FeedJobLocationDto with _$FeedJobLocationDto {
     required String neighborhood,
     required double latitude,
     required double longitude,
-    @JsonKey(name: 'area_radius') required num areaRadius,
+    required num areaRadius,
   }) = _FeedJobLocationDto;
 
   factory FeedJobLocationDto.fromJson(Map<String, Object?> json) => _$FeedJobLocationDtoFromJson(json);

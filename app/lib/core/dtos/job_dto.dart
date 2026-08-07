@@ -10,16 +10,16 @@ part 'job_dto.g.dart';
 @freezed
 abstract class JobDto with _$JobDto {
   const factory JobDto({
-    @JsonKey(name: 'job_id') required String jobId,
+    required String jobId,
     required String title,
     required String description,
-    @JsonKey(name: 'contact_reference') required JobContactReferenceDto contactReference,
+    required JobContactReferenceDto contactReference,
     required JobLocationDto location,
     required JobPaymentDto payment,
     @JsonKey(unknownEnumValue: JobStatus.unknown) required JobStatus status,
     @JsonKey(unknownEnumValue: JobType.unknown) required JobType type,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
-    @JsonKey(name: 'updated_at') required DateTime updatedAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
   }) = _JobDto;
 
   factory JobDto.fromJson(Map<String, Object?> json) => _$JobDtoFromJson(json);

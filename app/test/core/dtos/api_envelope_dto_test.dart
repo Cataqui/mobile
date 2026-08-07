@@ -51,5 +51,11 @@ void main() {
 
       expect(envelope.pagination?.nextCursor, ApiPaginationDto.fixture().nextCursor);
     });
+
+    test('when serializing an API envelope, it should use camelCase keys', () {
+      final envelope = ApiEnvelopeDto<JobDto>.fixture(data: JobDto.fixture());
+
+      expect(envelope.toJson((job) => job.toJson()), containsPair('requestId', 'req-fixture'));
+    });
   });
 }

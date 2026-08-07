@@ -11,7 +11,7 @@ import '../../mocks.dart';
 
 final _feedEnvelopeJson = <String, Object?>{
   'data': [FeedJobDto.fixture().toJson()],
-  'request_id': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
+  'requestId': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
   'timestamp': '2026-06-06T00:37:46.623Z',
   'endpoint': '/feed',
   'pagination': ApiPaginationDto.fixture().toJson(),

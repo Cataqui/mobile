@@ -10,12 +10,11 @@ part 'job_payment_dto.g.dart';
 sealed class JobPaymentDto with _$JobPaymentDto {
   const factory JobPaymentDto({
     @JsonKey(unknownEnumValue: JobPaymentType.unknown) required JobPaymentType type,
-    @JsonKey(name: 'amount_period', unknownEnumValue: JobPaymentAmountPeriod.unknown)
-    required JobPaymentAmountPeriod amountPeriod,
+    @JsonKey(unknownEnumValue: JobPaymentAmountPeriod.unknown) required JobPaymentAmountPeriod amountPeriod,
     required String currency,
-    @JsonKey(name: 'min_amount') num? minAmount,
-    @JsonKey(name: 'max_amount') num? maxAmount,
-    @JsonKey(name: 'note') @Default('') String note,
+    num? minAmount,
+    num? maxAmount,
+    @Default('') String note,
   }) = _JobPaymentDto;
 
   const JobPaymentDto._();
