@@ -24,7 +24,7 @@ void main() {
   group('AuthRepository', () {
     group('registerIntent', () {
       test('when registering a WhatsApp auth intent, it should post the supported backend channel', () async {
-        await repository.registerIntent(channel: AuthChannel.whatsapp);
+        await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
         verify(
           () => dio.post<Map<String, Object?>>(
@@ -35,37 +35,37 @@ void main() {
       });
 
       test('when receiving a registered auth intent, it should map the intent token', () async {
-        final envelope = await repository.registerIntent(channel: AuthChannel.whatsapp);
+        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.data.intentToken, _AuthRepositoryTestData.intentToken);
       });
 
       test('when receiving a registered auth intent, it should map the authentication code', () async {
-        final envelope = await repository.registerIntent(channel: AuthChannel.whatsapp);
+        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.data.code, 'AUTH-K7F9Q2M8VD');
       });
 
       test('when receiving a registered auth intent, it should map the expiration timestamp', () async {
-        final envelope = await repository.registerIntent(channel: AuthChannel.whatsapp);
+        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.data.expiresAt, DateTime.parse('2026-08-10T15:15:00.000Z'));
       });
 
       test('when receiving a registered auth intent, it should preserve the request id', () async {
-        final envelope = await repository.registerIntent(channel: AuthChannel.whatsapp);
+        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.requestId, 'auth-intent-request-001');
       });
 
       test('when receiving a registered auth intent, it should preserve the response timestamp', () async {
-        final envelope = await repository.registerIntent(channel: AuthChannel.whatsapp);
+        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.timestamp, DateTime.parse('2026-08-10T15:00:00.000Z'));
       });
 
       test('when receiving a registered auth intent, it should preserve the endpoint', () async {
-        final envelope = await repository.registerIntent(channel: AuthChannel.whatsapp);
+        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.endpoint, '/v1/auth/inbound-message/intents');
       });
@@ -75,7 +75,7 @@ void main() {
       test('when exchanging an auth intent, it should post the intent token to the exchange endpoint', () async {
         _AuthRepositoryTestData.stubIssuedSessionExchangeRequest(dio: dio);
 
-        await repository.exchangeIntent(intentToken: _AuthRepositoryTestData.intentToken);
+        await repository.exchangeInboundMessageAuthIntent(intentToken: _AuthRepositoryTestData.intentToken);
 
         verify(
           () => dio.post<Map<String, Object?>>(
@@ -94,7 +94,9 @@ void main() {
             onRequest: () => requestCount += 1,
           );
 
-          final envelope = await repository.exchangeIntent(intentToken: _AuthRepositoryTestData.intentToken);
+          final envelope = await repository.exchangeInboundMessageAuthIntent(
+            intentToken: _AuthRepositoryTestData.intentToken,
+          );
 
           expect(
             (session: envelope.data, requestCount: requestCount),
@@ -110,7 +112,7 @@ void main() {
         Object? thrownError;
 
         try {
-          await repository.exchangeIntent(intentToken: _AuthRepositoryTestData.intentToken);
+          await repository.exchangeInboundMessageAuthIntent(intentToken: _AuthRepositoryTestData.intentToken);
         } on Object catch (error) {
           thrownError = error;
         }
@@ -138,7 +140,7 @@ void main() {
         Object? thrownError;
 
         try {
-          await repository.exchangeIntent(intentToken: _AuthRepositoryTestData.intentToken);
+          await repository.exchangeInboundMessageAuthIntent(intentToken: _AuthRepositoryTestData.intentToken);
         } on Object catch (error) {
           thrownError = error;
         }

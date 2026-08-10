@@ -12,7 +12,9 @@ class AuthRepository {
   final Dio dio;
   final Duration exchangeIntentTimeout;
 
-  Future<ApiEnvelopeDto<RegisteredAuthIntentDto>> registerIntent({required AuthChannel channel}) async {
+  Future<ApiEnvelopeDto<RegisteredAuthIntentDto>> registerInboundMessageAuthIntent({
+    required AuthChannel channel,
+  }) async {
     final inboundMessageAuthChannel = switch (channel) {
       AuthChannel.whatsapp => 'WHATSAPP',
     };
@@ -28,7 +30,7 @@ class AuthRepository {
     );
   }
 
-  Future<ApiEnvelopeDto<IssuedAuthSessionDto>> exchangeIntent({required String intentToken}) async {
+  Future<ApiEnvelopeDto<IssuedAuthSessionDto>> exchangeInboundMessageAuthIntent({required String intentToken}) async {
     final exchangeStopwatch = Stopwatch()..start();
 
     while (true) {
