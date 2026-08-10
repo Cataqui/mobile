@@ -1,0 +1,1 @@
+enum AuthChannel { whatsapp }

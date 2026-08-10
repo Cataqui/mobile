@@ -1,6 +1,7 @@
 import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
+import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -63,6 +64,11 @@ Dio cataquiApiV1Dio(Ref ref) {
   dio.interceptors.add(OfflineErrorDioInterceptor());
 
   return dio;
+}
+
+@Riverpod(keepAlive: true)
+AuthRepository authRepository(Ref ref) {
+  return AuthRepository(dio: ref.watch(cataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)

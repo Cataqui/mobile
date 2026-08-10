@@ -31,13 +31,13 @@ open the full job, then contact the poster through WhatsApp or a phone call.
 
 ### 1. Install the toolchain
 
-| Tool                                                              | Version used by the project | Notes                                                                                                |
-| ----------------------------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [FVM](https://fvm.app/documentation/getting-started/installation) | latest                      | Installs and runs the pinned Flutter SDK.                                                            |
-| Flutter                                                           | `3.44.8`                    | Declared in [`.fvmrc`](.fvmrc); do not use an untracked global SDK.                                  |
-| Dart                                                              | Bundled with Flutter        | Run it through `fvm dart`.                                                                           |
-| [Melos](https://melos.invertase.dev/getting-started)              | `8.2.2`                     | Orchestrates the Dart workspace from the repository root.                                            |
-| Android or iOS tooling                                            | Android SDK 24+ or iOS 15+  | Follow Flutter's [platform setup](https://docs.flutter.dev/install). iOS development requires macOS. |
+| Tool                                                              | Version used by the project            | Notes                                                                                                                                                                    |
+| ----------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [FVM](https://fvm.app/documentation/getting-started/installation) | latest                                 | Installs and runs the pinned Flutter SDK.                                                                                                                                |
+| Flutter                                                           | `3.44.8`                               | Declared in [`.fvmrc`](.fvmrc); do not use an untracked global SDK.                                                                                                      |
+| Dart                                                              | Bundled with Flutter                   | Run it through `fvm dart`.                                                                                                                                               |
+| [Melos](https://melos.invertase.dev/getting-started)              | `8.2.2`                                | Orchestrates the Dart workspace from the repository root.                                                                                                                |
+| Android or iOS tooling                                            | Flutter-managed Android SDK or iOS 15+ | Android uses Flutter's configured minimum and compile SDK versions. Follow Flutter's [platform setup](https://docs.flutter.dev/install). iOS development requires macOS. |
 
 ### 2. Clone and configure
 
@@ -165,6 +165,7 @@ The main technical boundaries are:
 
 - [Riverpod](https://riverpod.dev/) with generated providers for state and dependency injection.
 - [Dio](https://pub.dev/packages/dio) repositories for network access.
+- [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) for persisted refresh credentials. Access tokens remain in memory and are renewed through the API.
 - [go_router](https://pub.dev/packages/go_router) with generated typed routes.
 - Freezed and JSON serialization for API models.
 - [slang](https://pub.dev/packages/slang) in `app/lib/i18n` for app-owned translations.

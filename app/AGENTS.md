@@ -98,16 +98,26 @@ Feature-level Riverpod notifiers follow a two-class naming convention:
 - **`XxxState`** — the `@riverpod` notifier class (e.g., `FeedState extends _$FeedState`, generates `feedStateProvider`).
 - **`XxxData`** — the immutable value class held by the notifier (e.g., `FeedData` with `copyWith`).
 
-The notifier and its data class reside together in `app/lib/views/<feature>/`.
+Riverpod state attached to a view must live in the same directory as that view.
+Name the notifier file after the view subject with the `*_state.dart` suffix.
+For example, `poster_onboarding_view.dart` owns
+`poster_onboarding_state.dart` in
+`app/lib/views/poster_onboarding/poster_onboarding_view/`. Do not create a
+separate sibling directory for view-owned state.
+
+State shared by multiple views may live at their closest shared feature
+directory instead.
 
 ### State Files Per Feature
 
-Each Riverpod feature notifier and its data class get their own files:
+Each Riverpod notifier and its data class get their own files. For state owned
+by a view, both files live beside the view:
 
-- `app/lib/views/<feature>/<feature>_state.dart` — the `@riverpod` notifier + generated `.g.dart`
-- `app/lib/views/<feature>/<feature>_data.dart` — the immutable data class
+- `app/lib/views/<feature>/<view>_view/<view>_state.dart` — the `@riverpod` notifier + generated `.g.dart`
+- `app/lib/views/<feature>/<view>_view/<view>_data.dart` — the immutable data class
 
-Tests mirror the source at `app/test/views/<feature>/<feature>_state_test.dart`.
+Tests mirror the source at
+`app/test/views/<feature>/<view>_view/<view>_state_test.dart`.
 
 ## Routing (Type-Safe)
 

@@ -102,10 +102,24 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 - Always use **named parameters** for functions and constructors containing more than a single primitive parameter.
 - Enforce immutability on domain models (`@immutable` or code-generated immutable data classes) using deep `copyWith` patterns for state transitions.
 
+### DTO-Owned Logic
+
+- Prefer to keep behavior that belongs exclusively to a DTO inside the DTO class itself. This includes parsing,
+  serialization, representation validation, and conversions to or from the DTO's persisted or transported format.
+- Callers should ask the DTO to interpret or encode its own representation instead of duplicating DTO-specific field,
+  JSON, or format knowledge in repositories, storage classes, state notifiers, or widgets.
+- Keep orchestration and infrastructure behavior with their appropriate owners. DTOs should not absorb unrelated
+  business logic merely to reduce code at a call site.
+
 ### Enums Over Constant Objects
 
 - Prefer Dart `enum` structures over arbitrary `const` objects or magic strings for state variations, domain constants, and error codes. Use switches over enums to guarantee compile-time exhaustiveness.
-- Keep enums in a separate enum-specific `part` file instead of placing them at the top of the primary implementation file. Name the file after the owner plus `_enums.dart`, for example `app_button_enums.dart`, not a generic `*_types.dart` file. The main file must declare the matching `part` directive, and the enum file must use `part of` so the public API stays cohesive while the implementation file remains focused.
+- Keep exactly one enum in each enum file. Name the file after the enum in snake case, for example
+  `auth_channel.dart`; never group multiple enums into a generic `*_enums.dart` file.
+- Place enums shared across unrelated features in `app/lib/core/enums/`.
+- Place enums owned by a specific feature, component, or class in an `enums/` directory beside that owner. For
+  example, an enum used only by `app/lib/views/feed/` belongs in `app/lib/views/feed/enums/`.
+- Import enum files normally. Do not use `part` or `part of` solely to attach an enum to its owner.
 - **Enum-owning logic over static helpers:** When logic is determined solely by an enum value (color resolution, label text, icon selection, etc.), put the getter or method on the enum itself rather than writing a static function on an implementation class. This keeps the resolution logic with the value that drives it, makes it discoverable from any call site via `myValue.method()`, and eliminates duplicate switch statements across consumers. The enum member is the single source of truth for its own behavior.
 
 ### Exhaustive Switch Over Enums
@@ -346,16 +360,38 @@ This guarantees the regression test is valid and not vacuously passing. If the e
 
 ### Dedicated Test Files
 
-Each source file must have its own dedicated test file. Do not collect unrelated
-coverage in shared catch-all test files; place tests in a path that mirrors the
-source owner, for example `lib/src/extensions/color_extension.dart` maps to
-`test/extensions/color_extension_test.dart`.
+Organize tests around observable cases and behavior owners, not around source
+line coverage. Do not require a dedicated test file for a source file whose
+behavior is already exercised completely through a broader public workflow.
 
-**Hard rule:** Tests for a given source file must always live in the test file
-that mirrors it. e.g Never place tests for `color_extension.dart` in
-`omf_oklch_test.dart` or any other file. If a source file adds a new public
-method, the test for that method goes in the existing corresponding test file —
-never in a different file.
+When behavior needs direct testing, place it in a dedicated path that mirrors
+its source owner. Do not collect unrelated coverage in shared catch-all test
+files. For example, direct tests for `lib/src/extensions/color_extension.dart`
+belong in `test/extensions/color_extension_test.dart`.
+
+### Do Not Test the Same Outcome Twice
+
+- Treat tests as user-visible or contract-level cases, not as checks for every
+  implementation line or layer involved in a case.
+- Keep the test that covers the outcome through the most complete realistic
+  path. A repository test that parses an API response into a DTO already covers
+  that DTO parsing for the response fields it asserts; do not repeat the same
+  field-parsing assertions in a DTO test.
+- Add a narrower test only for behavior the broader case does not exercise,
+  such as a separate factory or parsing entry point, a validation edge case, or
+  a distinct failure mode.
+- Duplicate an outcome only when an explicit boundary-level regression test is
+  needed and the broader test would not make that contract or failure clear.
+  The test description must identify the distinct case being protected.
+- Remove tests for generated or incidental behavior that production does not
+  use merely to increase line coverage.
+- Coverage ownership must migrate with the architecture. Before removing or
+  replacing a feature whose tests provide the only coverage for behavior in a
+  lower layer, identify every still-required case and move it to the next most
+  complete active workflow. If no broader workflow remains, restore focused
+  tests at the narrowest boundary that exercises the behavior. Perform this
+  migration in the same change so removing a feature never creates a silent
+  test gap.
 
 ### DTO Fixture Tests Must Override Under Test
 
@@ -556,9 +592,10 @@ When executing modifications inside this repository as an AI agent, you must str
 13. **License and Contribution Boundaries:** Cataquí Mobile is source-available under the PolyForm Shield License 1.0.0, not OSI-approved open source. Preserve `LICENSE`, every `Required Notice:` and `Licensor Line of Business:` line in `NOTICE`, third-party notices, and the trademark boundary. External contributions use the same PolyForm Shield terms under GitHub's inbound-equals-outbound contribution model; do not merge a contribution with unclear ownership or incompatible terms.
 14. **Keep Agent Guidance Durable:** Add to `AGENTS.md` only information future
     agents need to remember, such as rules, structural boundaries, and
-    non-obvious conventions. Do not duplicate implementation details or facts
-    that can be found quickly by searching the repository. This file should
-    guide decisions, not document every aspect of the codebase.
+    non-obvious conventions. Do not add implementation details, such as how
+    authentication credentials are stored, or other facts agents can discover
+    quickly by searching the repository. This file should guide decisions, not
+    document every aspect of the codebase.
 15. **No Unrequested Staging or Commits:** Never stage or commit changes unless
     the human explicitly asks you to do so. Implementing or validating a change
     does not imply permission to modify the Git index or create a commit.
