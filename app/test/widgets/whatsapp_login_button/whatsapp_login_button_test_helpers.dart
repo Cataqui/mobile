@@ -77,7 +77,10 @@ abstract final class WhatsappLoginButtonTestHelpers {
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {
     when(
-      () => authRepository.exchangeInboundMessageAuthIntent(intentToken: intentToken),
+      () => authRepository.exchangeInboundMessageAuthIntent(
+        intentToken: intentToken,
+        timeoutStart: any(named: 'timeoutStart'),
+      ),
     ).thenAnswer((_) async => issuedSessionEnvelope);
   }
 

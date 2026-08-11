@@ -55,8 +55,10 @@ void main() {
       whilePerforming: (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () =>
-              authRepository.exchangeInboundMessageAuthIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
+          () => authRepository.exchangeInboundMessageAuthIntent(
+            intentToken: WhatsappLoginButtonTestHelpers.intentToken,
+            timeoutStart: any(named: 'timeoutStart'),
+          ),
         ).thenAnswer((_) => exchangeCompleter.future);
         await WhatsappLoginButtonTestHelpers.startLogin(tester: tester);
         await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);

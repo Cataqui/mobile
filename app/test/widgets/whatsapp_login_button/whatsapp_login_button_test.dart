@@ -60,8 +60,10 @@ void main() {
       (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () =>
-              authRepository.exchangeInboundMessageAuthIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
+          () => authRepository.exchangeInboundMessageAuthIntent(
+            intentToken: WhatsappLoginButtonTestHelpers.intentToken,
+            timeoutStart: any(named: 'timeoutStart'),
+          ),
         ).thenAnswer((_) => exchangeCompleter.future);
         await WhatsappLoginButtonTestHelpers.pumpButton(
           tester: tester,
@@ -91,8 +93,10 @@ void main() {
       (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () =>
-              authRepository.exchangeInboundMessageAuthIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
+          () => authRepository.exchangeInboundMessageAuthIntent(
+            intentToken: WhatsappLoginButtonTestHelpers.intentToken,
+            timeoutStart: any(named: 'timeoutStart'),
+          ),
         ).thenAnswer((_) => exchangeCompleter.future);
 
         await WhatsappLoginButtonTestHelpers.pumpButton(
@@ -183,12 +187,34 @@ void main() {
       expect(deliveredSession, WhatsappLoginButtonTestHelpers.authSession);
     });
 
+    testWidgets('when the app resumes twice after login succeeds, it should deliver the session only once', (
+      tester,
+    ) async {
+      var successCount = 0;
+      await WhatsappLoginButtonTestHelpers.pumpButton(
+        tester: tester,
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+        onSuccess: (_) => successCount += 1,
+      );
+      await WhatsappLoginButtonTestHelpers.startLogin(tester: tester);
+
+      await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);
+      await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);
+      await tester.pump();
+
+      expect(successCount, 1);
+    });
+
     testWidgets('when the button is disposed while checking login, it should remove the checking toast', (
       tester,
     ) async {
       final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
       when(
-        () => authRepository.exchangeInboundMessageAuthIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
+        () => authRepository.exchangeInboundMessageAuthIntent(
+          intentToken: WhatsappLoginButtonTestHelpers.intentToken,
+          timeoutStart: any(named: 'timeoutStart'),
+        ),
       ).thenAnswer((_) => exchangeCompleter.future);
       await WhatsappLoginButtonTestHelpers.pumpButton(
         tester: tester,

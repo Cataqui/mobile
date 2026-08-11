@@ -129,30 +129,90 @@ void main() {
         );
       });
 
-      test('when the exchange endpoint fails, it should propagate the error without polling again', () async {
-        final terminalError = DioException(
-          requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
-          response: Response<void>(
-            requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
-            statusCode: 404,
-          ),
-        );
+      test('when the exchange deadline has not started, it should keep polling until the session is issued', () async {
+        repository = AuthRepository(dio: dio, exchangeIntentTimeout: Duration.zero);
+        final exchangeTimeoutStart = Completer<void>();
         var requestCount = 0;
-        _AuthRepositoryTestData.stubFailingExchangeRequest(
+        _AuthRepositoryTestData.stubPendingThenIssuedSessionExchangeRequest(
           dio: dio,
-          error: terminalError,
           onRequest: () => requestCount += 1,
         );
-        Object? thrownError;
 
-        try {
-          await repository.exchangeInboundMessageAuthIntent(intentToken: _AuthRepositoryTestData.intentToken);
-        } on Object catch (error) {
-          thrownError = error;
-        }
+        final envelope = await repository.exchangeInboundMessageAuthIntent(
+          intentToken: _AuthRepositoryTestData.intentToken,
+          timeoutStart: exchangeTimeoutStart.future,
+        );
 
-        expect((error: thrownError, requestCount: requestCount), (error: terminalError, requestCount: 1));
+        expect(
+          (session: envelope.data, requestCount: requestCount),
+          (session: AuthIntentExchangeResultDto.issuedSessionFixture(), requestCount: 2),
+        );
       });
+
+      test('when an exchange request succeeds after the deadline, it should return the issued session', () async {
+        repository = AuthRepository(dio: dio, exchangeIntentTimeout: Duration.zero);
+        final responseCompleter = Completer<Response<Map<String, Object?>>>();
+        when(
+          () => dio.post<Map<String, Object?>>(
+            '/auth/inbound-message/intents/exchange',
+            data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
+          ),
+        ).thenAnswer((_) => responseCompleter.future);
+
+        final exchange = repository.exchangeInboundMessageAuthIntent(
+          intentToken: _AuthRepositoryTestData.intentToken,
+          timeoutStart: Future<void>.value(),
+        );
+        await Future<void>.delayed(Duration.zero);
+        responseCompleter.complete(
+          Response<Map<String, Object?>>(
+            data: _AuthRepositoryTestData.issuedSessionResponseJson,
+            requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+          ),
+        );
+
+        expect((await exchange).data, AuthIntentExchangeResultDto.issuedSessionFixture());
+      });
+
+      test(
+        'when an in-flight exchange fails after the deadline, it should propagate the error without polling again',
+        () async {
+          repository = AuthRepository(dio: dio, exchangeIntentTimeout: Duration.zero);
+          final terminalError = DioException(
+            requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+            response: Response<void>(
+              requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+              statusCode: 404,
+            ),
+          );
+          var requestCount = 0;
+          final responseCompleter = Completer<Response<Map<String, Object?>>>();
+          when(
+            () => dio.post<Map<String, Object?>>(
+              '/auth/inbound-message/intents/exchange',
+              data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
+            ),
+          ).thenAnswer((_) {
+            requestCount += 1;
+            return responseCompleter.future;
+          });
+          Object? thrownError;
+
+          try {
+            final exchange = repository.exchangeInboundMessageAuthIntent(
+              intentToken: _AuthRepositoryTestData.intentToken,
+              timeoutStart: Future<void>.value(),
+            );
+            await Future<void>.delayed(Duration.zero);
+            responseCompleter.completeError(terminalError);
+            await exchange;
+          } on Object catch (error) {
+            thrownError = error;
+          }
+
+          expect((error: thrownError, requestCount: requestCount), (error: terminalError, requestCount: 1));
+        },
+      );
     });
   });
 
@@ -266,22 +326,6 @@ class _AuthRepositoryTestData {
         data: pendingResponseJson,
         requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
       );
-    });
-  }
-
-  static void stubFailingExchangeRequest({
-    required MockDio dio,
-    required DioException error,
-    required void Function() onRequest,
-  }) {
-    when(
-      () => dio.post<Map<String, Object?>>(
-        '/auth/inbound-message/intents/exchange',
-        data: <String, String>{'intentToken': intentToken},
-      ),
-    ).thenAnswer((_) {
-      onRequest();
-      throw error;
     });
   }
 }

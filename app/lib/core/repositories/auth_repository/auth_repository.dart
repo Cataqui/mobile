@@ -30,8 +30,17 @@ class AuthRepository {
     );
   }
 
-  Future<ApiEnvelopeDto<IssuedAuthSessionDto>> exchangeInboundMessageAuthIntent({required String intentToken}) async {
-    final exchangeStopwatch = Stopwatch()..start();
+  Future<ApiEnvelopeDto<IssuedAuthSessionDto>> exchangeInboundMessageAuthIntent({
+    required String intentToken,
+    Future<void>? timeoutStart,
+  }) async {
+    final exchangeStopwatch = Stopwatch();
+
+    if (timeoutStart == null) {
+      exchangeStopwatch.start();
+    } else {
+      unawaited(timeoutStart.then((_) => exchangeStopwatch.start()));
+    }
 
     while (true) {
       final response = await dio.post<Map<String, Object?>>(
@@ -48,7 +57,7 @@ class AuthRepository {
         case PendingAuthIntentExchangeDto(:final retryAfterSeconds):
           await Future<void>.delayed(Duration(seconds: retryAfterSeconds));
 
-          if (exchangeStopwatch.elapsed >= exchangeIntentTimeout) {
+          if (exchangeStopwatch.isRunning && exchangeStopwatch.elapsed >= exchangeIntentTimeout) {
             throw TimeoutException(
               'Auth intent exchange did not complete within $exchangeIntentTimeout.',
               exchangeIntentTimeout,

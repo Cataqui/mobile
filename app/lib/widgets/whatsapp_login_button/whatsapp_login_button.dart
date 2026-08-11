@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button_state.dart';
+import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -20,11 +20,15 @@ class WhatsappLoginButton extends ConsumerStatefulWidget {
 
 class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with WidgetsBindingObserver {
   Timer? _checkingToastTimer;
+  Completer<void>? _appReturnCompleter;
   VoidCallback? _dismissCheckingToast;
   bool _isCheckingToastVisible = false;
 
   void _startLogin() {
-    unawaited(ref.read(whatsappLoginButtonStateProvider.notifier).openWhatsappWithCode());
+    final appReturn = Completer<void>();
+    _appReturnCompleter = appReturn;
+
+    unawaited(ref.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future));
   }
 
   void _cancelCheckingToastTimer() {
@@ -39,7 +43,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
       _checkingToastTimer = null;
       if (!mounted) return;
 
-      final loginState = ref.read(whatsappLoginButtonStateProvider.notifier);
+      final loginState = ref.read(whatsappLoginStateProvider.notifier);
       if (!loginState.isExchangingIntent) return;
 
       _isCheckingToastVisible = true;
@@ -65,6 +69,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
         if (session == null) return;
 
         _cancelCheckingToastTimer();
+        _appReturnCompleter = null;
         _isCheckingToastVisible = false;
 
         MateoToast.show(
@@ -77,6 +82,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
       },
       error: (_, __) {
         _cancelCheckingToastTimer();
+        _appReturnCompleter = null;
         _isCheckingToastVisible = false;
         MateoToast.show(context, message: ref.read(translationProvider).whatsappLoginButton.error);
       },
@@ -110,19 +116,20 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed || !mounted) return;
 
-    final loginState = ref.read(whatsappLoginButtonStateProvider.notifier);
-    if (!loginState.shouldTryExchangeAfterAppResume) return;
+    final loginState = ref.read(whatsappLoginStateProvider.notifier);
+    final appReturn = _appReturnCompleter;
+    if (!loginState.isExchangingIntent || appReturn == null || appReturn.isCompleted) return;
 
+    appReturn.complete();
     _scheduleCheckingToast();
-    unawaited(ref.read(whatsappLoginButtonStateProvider.notifier).exchangeIntent());
   }
 
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
-    final isLoading = ref.watch(whatsappLoginButtonStateProvider.select((state) => state.isLoading));
+    final isLoading = ref.watch(whatsappLoginStateProvider.select((state) => state.isLoading));
 
-    ref.listen(whatsappLoginButtonStateProvider, _handleStateChange);
+    ref.listen(whatsappLoginStateProvider, _handleStateChange);
 
     return MateoButton(
       key: const ValueKey('whatsapp_login_button_action'),
