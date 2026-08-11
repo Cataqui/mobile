@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cataqui_app/core/auth/auth_state.dart';
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
@@ -86,7 +86,7 @@ void main() {
       expect(
         (
           loginIsLoading: container.read(whatsappLoginStateProvider) is AsyncLoading<AuthSessionDto?>,
-          global: container.read(authStateProvider),
+          global: container.read(appAuthStateProvider),
         ),
         (loginIsLoading: true, global: null),
       );
@@ -100,7 +100,7 @@ void main() {
       final publishedSession = container.read(whatsappLoginStateProvider).value;
 
       expect(
-        (published: publishedSession, global: container.read(authStateProvider)),
+        (published: publishedSession, global: container.read(appAuthStateProvider)),
         (published: _WhatsappLoginStateTestData.authSession, global: _WhatsappLoginStateTestData.authSession),
       );
     });

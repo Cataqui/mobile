@@ -5,10 +5,10 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:clock/clock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'auth_state.g.dart';
+part 'app_auth_state.g.dart';
 
 @Riverpod(keepAlive: true)
-class AuthState extends _$AuthState {
+class AppAuthState extends _$AppAuthState {
   @override
   AuthSessionDto? build() => null;
 

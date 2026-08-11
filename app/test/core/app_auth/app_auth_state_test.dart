@@ -1,5 +1,5 @@
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
-import 'package:cataqui_app/core/auth/auth_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_credentials_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
@@ -42,9 +42,9 @@ void main() {
 
   tearDown(() => container.dispose());
 
-  group('AuthState', () {
+  group('AppAuthState', () {
     test('when first read, it should expose an unauthenticated session', () {
-      final session = container.read(authStateProvider);
+      final session = container.read(appAuthStateProvider);
 
       expect(session, isNull);
     });
@@ -52,20 +52,20 @@ void main() {
     test('when setting an authenticated session, it should expose the complete session', () async {
       final session = AuthSessionDto.fixture();
 
-      await container.read(authStateProvider.notifier).setSession(session);
+      await container.read(appAuthStateProvider.notifier).setSession(session);
 
-      expect(container.read(authStateProvider), session);
+      expect(container.read(appAuthStateProvider), session);
     });
 
     test('when the auth state has no active listeners, it should retain the authenticated session', () async {
-      final subscription = container.listen(authStateProvider, (_, __) {}, fireImmediately: true);
+      final subscription = container.listen(appAuthStateProvider, (_, __) {}, fireImmediately: true);
       final session = AuthSessionDto.fixture();
-      await container.read(authStateProvider.notifier).setSession(session);
+      await container.read(appAuthStateProvider.notifier).setSession(session);
 
       subscription.close();
       await container.pump();
 
-      expect(container.read(authStateProvider), session);
+      expect(container.read(appAuthStateProvider), session);
     });
 
     test('when secure persistence fails, it should keep the authenticated session in memory', () async {
@@ -77,9 +77,9 @@ void main() {
         ),
       ).thenThrow(StateError('secure storage unavailable'));
 
-      await container.read(authStateProvider.notifier).setSession(session);
+      await container.read(appAuthStateProvider.notifier).setSession(session);
 
-      expect(container.read(authStateProvider), session);
+      expect(container.read(appAuthStateProvider), session);
     });
 
     test(
@@ -107,13 +107,13 @@ void main() {
         });
 
         await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
-          await container.read(authStateProvider.notifier).refreshSession();
+          await container.read(appAuthStateProvider.notifier).refreshSession();
         });
 
         expect(
           (
             requestedRefreshToken: requestedRefreshToken,
-            session: container.read(authStateProvider),
+            session: container.read(appAuthStateProvider),
             credentials: container.read(appStorageStateProvider).value!.authCredentials,
           ),
           (
@@ -133,17 +133,17 @@ void main() {
           value: any(named: 'value'),
         ),
       ).thenThrow(StateError('secure storage unavailable'));
-      await container.read(authStateProvider.notifier).setSession(currentSession);
+      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
       var requestCount = 0;
       when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
         requestCount += 1;
         return ApiEnvelopeDto.fixture(data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
       });
 
-      await container.read(authStateProvider.notifier).refreshSession();
+      await container.read(appAuthStateProvider.notifier).refreshSession();
 
       expect(
-        (session: container.read(authStateProvider), requestCount: requestCount),
+        (session: container.read(appAuthStateProvider), requestCount: requestCount),
         (session: currentSession, requestCount: 0),
       );
     });
@@ -156,7 +156,7 @@ void main() {
           refreshToken: 'expired-refresh-token',
           refreshTokenExpiresAt: currentTime,
         );
-        await container.read(authStateProvider.notifier).setSession(currentSession);
+        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
         var requestCount = 0;
         when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
           requestCount += 1;
@@ -166,11 +166,11 @@ void main() {
         });
 
         await withClock(Clock.fixed(currentTime), () async {
-          await container.read(authStateProvider.notifier).refreshSession();
+          await container.read(appAuthStateProvider.notifier).refreshSession();
         });
 
         expect(
-          (session: container.read(authStateProvider), requestCount: requestCount),
+          (session: container.read(appAuthStateProvider), requestCount: requestCount),
           (session: currentSession, requestCount: 0),
         );
       },
@@ -181,21 +181,21 @@ void main() {
         refreshToken: 'saved-refresh-token',
         refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
       );
-      await container.read(authStateProvider.notifier).setSession(currentSession);
+      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
       final refreshError = StateError('refresh failed');
       when(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).thenThrow(refreshError);
       Object? thrownError;
 
       try {
         await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
-          await container.read(authStateProvider.notifier).refreshSession();
+          await container.read(appAuthStateProvider.notifier).refreshSession();
         });
       } catch (error) {
         thrownError = error;
       }
 
       expect(
-        (error: thrownError, session: container.read(authStateProvider)),
+        (error: thrownError, session: container.read(appAuthStateProvider)),
         (error: refreshError, session: currentSession),
       );
     });

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cataqui_app/core/auth/auth_state.dart';
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -56,7 +56,7 @@ class WhatsappLoginState extends _$WhatsappLoginState {
 
       _isExchangeActive = false;
 
-      await ref.read(authStateProvider.notifier).setSession(session);
+      await ref.read(appAuthStateProvider.notifier).setSession(session);
       if (!ref.mounted) return;
 
       state = AsyncData(session);
