@@ -13,7 +13,6 @@ abstract class JobLocationDto with _$JobLocationDto {
     required double latitude,
     required double longitude,
     required num areaRadius,
-    String? street,
   }) = _JobLocationDto;
 
   factory JobLocationDto.fromJson(Map<String, Object?> json) => _$JobLocationDtoFromJson(json);
@@ -26,6 +25,5 @@ abstract class JobLocationDto with _$JobLocationDto {
     latitude: -23.556391,
     longitude: -46.844076,
     areaRadius: 2000,
-    street: 'Rua das Flores, 123',
   );
 }

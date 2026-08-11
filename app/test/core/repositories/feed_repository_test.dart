@@ -13,7 +13,7 @@ final _feedEnvelopeJson = <String, Object?>{
   'data': [FeedJobDto.fixture().toJson()],
   'requestId': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
   'timestamp': '2026-06-06T00:37:46.623Z',
-  'endpoint': '/feed',
+  'endpoint': '/v1/feed',
   'pagination': ApiPaginationDto.fixture().toJson(),
 };
 
@@ -33,19 +33,14 @@ void main() {
       verify(() => dio.get<Map<String, Object?>>('/feed', queryParameters: any(named: 'queryParameters'))).called(1);
     });
 
-    test('when requesting feed jobs, it should send the latest sort mode', () async {
+    test('when requesting the first feed page, it should omit removed query parameters', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
       final repository = FeedRepository(unauthenticatedDio: dio);
 
       await repository.getFeedJobs();
 
-      verify(
-        () => dio.get<Map<String, Object?>>(
-          any(),
-          queryParameters: any(named: 'queryParameters', that: containsPair('sort', 'LATEST')),
-        ),
-      ).called(1);
+      verify(() => dio.get<Map<String, Object?>>(any(), queryParameters: <String, Object?>{})).called(1);
     });
 
     test('when requesting the first feed page, it should omit cursor', () async {

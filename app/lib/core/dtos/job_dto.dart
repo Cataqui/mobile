@@ -13,6 +13,7 @@ abstract class JobDto with _$JobDto {
     required String jobId,
     required String title,
     required String description,
+    required String descriptionSummary,
     required JobContactReferenceDto contactReference,
     required JobLocationDto location,
     required JobPaymentDto payment,
@@ -31,8 +32,9 @@ abstract class JobDto with _$JobDto {
         'Mock job for staging QA. Need one person to help unload '
         'boxes from a small truck for about two hours near Centro. This is test '
         'data and should not be treated as a real opportunity.',
+    descriptionSummary: 'Trabalho rápido para ajudar a descarregar caixas no Centro.',
     contactReference: const JobContactReferenceDto(
-      contactId: 'cm3x-contact-1',
+      contactId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       contactMethod: JobContactMethod.whatsapp,
     ),
     location: const JobLocationDto(
@@ -43,7 +45,6 @@ abstract class JobDto with _$JobDto {
       latitude: -23.556391,
       longitude: -46.844076,
       areaRadius: 2000,
-      street: 'Rua das Flores, 123',
     ),
     payment: const JobPaymentDto(
       type: JobPaymentType.fixed,

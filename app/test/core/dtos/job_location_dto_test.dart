@@ -3,13 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('JobLocationDto', () {
-    test('when parsing a job location, it should map the street', () {
-      final location = JobLocationDto.fromJson({...JobLocationDto.fixture().toJson(), 'street': 'Rua das Flores, 123'});
-
-      expect(location.street, 'Rua das Flores, 123');
-    });
-
-    test('when map config and street are absent, it should parse the job location with a null street', () {
+    test('when parsing the public backend location, it should accept only the exposed location fields', () {
       final location = JobLocationDto.fromJson(const <String, Object?>{
         'neighborhood': 'Centro',
         'city': 'São Paulo',
@@ -20,13 +14,13 @@ void main() {
         'areaRadius': 2000,
       });
 
-      expect(location.street, isNull);
+      expect(location, JobLocationDto.fixture());
     });
 
     test('when serializing a job location, it should use camelCase keys', () {
       final json = JobLocationDto.fixture().toJson();
 
-      expect(json, containsPair('areaRadius', 2000));
+      expect(json.keys, isNot(contains('street')));
     });
   });
 }

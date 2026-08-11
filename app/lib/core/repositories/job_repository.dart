@@ -9,13 +9,13 @@ class JobRepository {
   final Dio unauthenticatedDio;
 
   Future<ApiEnvelopeDto<JobDto>> getJob({required String jobId}) async {
-    final response = await unauthenticatedDio.get<Map<String, Object?>>('/job/$jobId');
+    final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId');
 
     return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
   }
 
   Future<ApiEnvelopeDto<JobContactDto>> getJobContact({required String jobId, required String contactId}) async {
-    final response = await unauthenticatedDio.get<Map<String, Object?>>('/job/$jobId/contact/$contactId');
+    final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId/contact/$contactId');
 
     return ApiEnvelopeDto<JobContactDto>.fromJson(
       response.data!,

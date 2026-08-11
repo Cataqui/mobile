@@ -6,16 +6,16 @@ void main() {
   group('JobContactReferenceDto', () {
     test('when parsing a contact reference, it should map the contact id', () {
       final ref = JobContactReferenceDto.fromJson(const <String, Object?>{
-        'contactId': 'cm3x-contact-1',
+        'contactId': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         'contactMethod': 'WHATSAPP',
       });
 
-      expect(ref.contactId, 'cm3x-contact-1');
+      expect(ref.contactId, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
     });
 
     test('when parsing a contact reference, it should map the contact method', () {
       final ref = JobContactReferenceDto.fromJson(const <String, Object?>{
-        'contactId': 'cm3x-contact-1',
+        'contactId': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         'contactMethod': 'WHATSAPP',
       });
 
@@ -24,7 +24,7 @@ void main() {
 
     test('when parsing an unknown contact method, it should use unknown', () {
       final ref = JobContactReferenceDto.fromJson(const <String, Object?>{
-        'contactId': 'cm3x-contact-1',
+        'contactId': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         'contactMethod': 'SMS',
       });
 

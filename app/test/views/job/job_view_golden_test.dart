@@ -207,7 +207,7 @@ class JobViewGoldenTestHelpers {
         data: job(),
         requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
         timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-        endpoint: '/job/${goldenFeedJob.jobId}',
+        endpoint: '/v1/jobs/${goldenFeedJob.jobId}',
       ),
     );
 

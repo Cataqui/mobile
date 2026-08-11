@@ -34,7 +34,7 @@ void main() {
             data: [FeedJobDto.fixture()],
             requestId: 'test-request-id',
             timestamp: DateTime.now(),
-            endpoint: '/feed',
+            endpoint: '/v1/feed',
             pagination: ApiPaginationDto.fixture(),
           ),
         );
@@ -110,7 +110,7 @@ void main() {
             data: [FeedJobDto.fixture()],
             requestId: 'test-request-id',
             timestamp: DateTime.now(),
-            endpoint: '/feed',
+            endpoint: '/v1/feed',
             pagination: ApiPaginationDto.fixture(),
           ),
         );

@@ -13,7 +13,6 @@ late MockFeedRepository repository;
 
 setUp(() {
   repository = MockFeedRepository();
-  registerFallbackValue(FeedSort.latest);
 });
 ```
 
@@ -26,14 +25,13 @@ Define the default `when` stubs in `setUp` so every test starts with a working b
 ```dart
 setUp(() {
   repository = MockFeedRepository();
-  registerFallbackValue(FeedSort.latest);
-  when(() => repository.getFeedJobs(cursor: any(named: 'cursor'), sort: any(named: 'sort')))
+  when(() => repository.getFeedJobs(cursor: any(named: 'cursor')))
       .thenAnswer((_) async => feedEnvelope());
 });
 
 // Test only overrides what differs:
 testWidgets('when the API fails, it should show error', (tester) async {
-  when(() => repository.getFeedJobs(cursor: any(named: 'cursor'), sort: any(named: 'sort')))
+  when(() => repository.getFeedJobs(cursor: any(named: 'cursor')))
       .thenThrow(Exception('fail'));
   ...
 });

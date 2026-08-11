@@ -11,7 +11,7 @@ void main() {
         data: JobDto.fixture(),
         requestId: 'req_001',
         timestamp: DateTime(2026, 6, 6, 0, 37, 46),
-        endpoint: '/jobs/dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
+        endpoint: '/v1/jobs/dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
       );
 
       expect(envelope.data.title, JobDto.fixture().title);
@@ -22,7 +22,7 @@ void main() {
         data: JobDto.fixture(),
         requestId: 'req_001',
         timestamp: DateTime(2026, 6, 6, 0, 37, 46),
-        endpoint: '/jobs/dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
+        endpoint: '/v1/jobs/dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
       );
 
       expect(envelope.requestId, 'req_001');
@@ -33,7 +33,7 @@ void main() {
         data: [FeedJobDto.fixture()],
         requestId: 'req_002',
         timestamp: DateTime(2026, 6, 6, 0, 37, 46),
-        endpoint: '/feed',
+        endpoint: '/v1/feed',
         pagination: ApiPaginationDto.fixture(),
       );
 
@@ -45,7 +45,7 @@ void main() {
         data: [FeedJobDto.fixture()],
         requestId: 'req_002',
         timestamp: DateTime(2026, 6, 6, 0, 37, 46),
-        endpoint: '/feed',
+        endpoint: '/v1/feed',
         pagination: ApiPaginationDto.fixture(),
       );
 

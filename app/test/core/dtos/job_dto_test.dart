@@ -17,6 +17,15 @@ void main() {
       expect(job.jobId, 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502');
     });
 
+    test('when parsing a detailed job, it should map the backend description summary', () {
+      final job = JobDto.fromJson({
+        ...JobDto.fixture().toJson(),
+        'descriptionSummary': 'Turno curto no centro com pagamento no mesmo dia.',
+      });
+
+      expect(job.descriptionSummary, 'Turno curto no centro com pagamento no mesmo dia.');
+    });
+
     test('when parsing a detailed job, it should map the job status', () {
       final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'status': 'ACTIVE'});
 
@@ -44,7 +53,10 @@ void main() {
     test('when serializing a detailed job, it should use camelCase keys', () {
       final json = JobDto.fixture().toJson();
 
-      expect(json.keys, containsAll(<String>['jobId', 'contactReference', 'createdAt', 'updatedAt']));
+      expect(
+        json.keys,
+        containsAll(<String>['jobId', 'descriptionSummary', 'contactReference', 'createdAt', 'updatedAt']),
+      );
     });
   });
 }

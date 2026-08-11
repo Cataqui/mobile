@@ -32,7 +32,7 @@ void main() {
         data: JobViewTestHelpers.job(),
         requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
         timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-        endpoint: '/job/job_123',
+        endpoint: '/v1/jobs/job_123',
       ),
     );
   });
@@ -342,7 +342,7 @@ void main() {
             data: JobViewTestHelpers.job(description: description),
             requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
             timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-            endpoint: '/job/job_123',
+            endpoint: '/v1/jobs/job_123',
           ),
         );
 

@@ -1,6 +1,5 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/enums/feed_sort.dart';
 import 'package:dio/dio.dart';
 
 class FeedRepository {
@@ -8,10 +7,10 @@ class FeedRepository {
 
   final Dio unauthenticatedDio;
 
-  Future<ApiEnvelopeDto<List<FeedJobDto>>> getFeedJobs({String? cursor, FeedSort sort = FeedSort.latest}) async {
+  Future<ApiEnvelopeDto<List<FeedJobDto>>> getFeedJobs({String? cursor}) async {
     final response = await unauthenticatedDio.get<Map<String, Object?>>(
       '/feed',
-      queryParameters: <String, Object?>{'sort': sort.apiValue, if (cursor != null) 'cursor': cursor},
+      queryParameters: <String, Object?>{if (cursor != null) 'cursor': cursor},
     );
 
     return ApiEnvelopeDto<List<FeedJobDto>>.fromJson(

@@ -75,6 +75,6 @@ ApiEnvelopeDto<JobDto> _envelope({JobDto? job}) {
     data: job ?? JobDto.fixture().copyWith(jobId: 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502'),
     requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
     timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-    endpoint: '/job/test-id',
+    endpoint: '/v1/jobs/test-id',
   );
 }

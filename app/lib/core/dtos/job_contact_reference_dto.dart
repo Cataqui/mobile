@@ -13,6 +13,8 @@ abstract class JobContactReferenceDto with _$JobContactReferenceDto {
 
   factory JobContactReferenceDto.fromJson(Map<String, Object?> json) => _$JobContactReferenceDtoFromJson(json);
 
-  factory JobContactReferenceDto.fixture() =>
-      const JobContactReferenceDto(contactId: 'cm3x-contact-1', contactMethod: JobContactMethod.whatsapp);
+  factory JobContactReferenceDto.fixture() => const JobContactReferenceDto(
+    contactId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    contactMethod: JobContactMethod.whatsapp,
+  );
 }

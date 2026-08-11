@@ -33,7 +33,7 @@ class JobRouteTestHelpers {
         data: JobViewTestHelpers.job(),
         requestId: 'test-request-id',
         timestamp: DateTime(2026, 6, 30),
-        endpoint: '/job/$jobId',
+        endpoint: '/v1/jobs/$jobId',
       ),
     );
     await tester.pumpWidget(
@@ -91,7 +91,7 @@ void main() {
           data: JobViewTestHelpers.job(),
           requestId: 'test-request-id',
           timestamp: DateTime(2026, 6, 30),
-          endpoint: '/job/job_123',
+          endpoint: '/v1/jobs/job_123',
         ),
       );
     });
@@ -190,7 +190,7 @@ void main() {
           data: JobViewTestHelpers.job(),
           requestId: 'test-request-id',
           timestamp: DateTime(2026, 6, 30),
-          endpoint: '/job/job_123',
+          endpoint: '/v1/jobs/job_123',
         ),
       );
     });

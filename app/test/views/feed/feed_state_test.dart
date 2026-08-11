@@ -1,7 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/enums/feed_sort.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +10,6 @@ import 'package:mocktail/mocktail.dart';
 import '../../mocks.dart';
 
 void main() {
-  setUpAll(() {
-    registerFallbackValue(FeedSort.latest);
-  });
-
   group('FeedState', () {
     test('when first loaded, it should expose feed jobs', () async {
       final repository = MockFeedRepository();
@@ -35,12 +30,7 @@ void main() {
 
       await container.read(feedStateProvider.future);
 
-      verify(
-        () => repository.getFeedJobs(
-          cursor: any(named: 'cursor'),
-          sort: any(named: 'sort'),
-        ),
-      ).called(1);
+      verify(() => repository.getFeedJobs(cursor: any(named: 'cursor'))).called(1);
     });
 
     test('when first loaded with no jobs, it should expose full-screen empty state', () async {
@@ -166,12 +156,7 @@ void main() {
 
       await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
-      verify(
-        () => repository.getFeedJobs(
-          cursor: any(named: 'cursor'),
-          sort: any(named: 'sort'),
-        ),
-      ).called(1);
+      verify(() => repository.getFeedJobs(cursor: any(named: 'cursor'))).called(1);
     });
   });
 }
@@ -191,12 +176,7 @@ void _stubFeedJobs({
 }) {
   var callCount = 0;
 
-  when(
-    () => repository.getFeedJobs(
-      cursor: any(named: 'cursor'),
-      sort: any(named: 'sort'),
-    ),
-  ).thenAnswer((_) async {
+  when(() => repository.getFeedJobs(cursor: any(named: 'cursor'))).thenAnswer((_) async {
     callCount += 1;
 
     if (callCount == 1 && firstError != null) {
@@ -224,7 +204,7 @@ ApiEnvelopeDto<List<FeedJobDto>> _feedEnvelope({
     data: jobs ?? <FeedJobDto>[_feedJob()],
     requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
     timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
-    endpoint: '/feed',
+    endpoint: '/v1/feed',
     pagination: ApiPaginationDto(hasMore: hasMore, nextCursor: nextCursor),
   );
 }

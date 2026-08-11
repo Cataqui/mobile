@@ -11,13 +11,13 @@ import 'package:mocktail/mocktail.dart';
 import '../../mocks.dart';
 
 const _testJobId = 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502';
-const _testContactId = 'contact-001';
+const _testContactId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 final _jobEnvelopeJson = <String, Object?>{
   'data': JobDto.fixture().toJson(),
   'requestId': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
   'timestamp': '2026-06-06T00:37:46.623Z',
-  'endpoint': '/job/$_testJobId',
+  'endpoint': '/v1/jobs/$_testJobId',
 };
 
 final _contact = JobContactDto.fixture().copyWith(
@@ -29,7 +29,7 @@ final _contactEnvelopeJson = <String, Object?>{
   'data': _contact.toJson(),
   'requestId': 'contact-req-001',
   'timestamp': '2026-06-06T00:37:46.623Z',
-  'endpoint': '/job/$_testJobId/contact/$_testContactId',
+  'endpoint': '/v1/jobs/$_testJobId/contact/$_testContactId',
 };
 
 void main() {
@@ -48,7 +48,7 @@ void main() {
       test('when requesting a job, it should call the job detail endpoint with the job id', () async {
         await repository.getJob(jobId: _testJobId);
 
-        verify(() => dio.get<Map<String, Object?>>('/job/$_testJobId')).called(1);
+        verify(() => dio.get<Map<String, Object?>>('/jobs/$_testJobId')).called(1);
       });
 
       test('when receiving a job, it should map the job dto data', () async {
@@ -68,7 +68,7 @@ void main() {
       test('when requesting a job contact, it should call the contact endpoint with the job and contact ids', () async {
         await repository.getJobContact(jobId: _testJobId, contactId: _testContactId);
 
-        verify(() => dio.get<Map<String, Object?>>('/job/$_testJobId/contact/$_testContactId')).called(1);
+        verify(() => dio.get<Map<String, Object?>>('/jobs/$_testJobId/contact/$_testContactId')).called(1);
       });
 
       test('when receiving a job contact, it should map the contact method from the dto', () async {
@@ -108,16 +108,16 @@ void _stubJobRequest({required MockDio dio, Map<String, Object?>? responseJson})
   when(() => dio.get<Map<String, Object?>>(any())).thenAnswer(
     (_) async => Response<Map<String, Object?>>(
       data: responseJson ?? _jobEnvelopeJson,
-      requestOptions: RequestOptions(path: '/job/$_testJobId'),
+      requestOptions: RequestOptions(path: '/jobs/$_testJobId'),
     ),
   );
 }
 
 void _stubJobContactRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
-  when(() => dio.get<Map<String, Object?>>('/job/$_testJobId/contact/$_testContactId')).thenAnswer(
+  when(() => dio.get<Map<String, Object?>>('/jobs/$_testJobId/contact/$_testContactId')).thenAnswer(
     (_) async => Response<Map<String, Object?>>(
       data: responseJson ?? _contactEnvelopeJson,
-      requestOptions: RequestOptions(path: '/job/$_testJobId/contact/$_testContactId'),
+      requestOptions: RequestOptions(path: '/jobs/$_testJobId/contact/$_testContactId'),
     ),
   );
 }
