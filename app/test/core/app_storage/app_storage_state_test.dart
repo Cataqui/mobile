@@ -17,6 +17,12 @@ void main() {
     when(() => prefs.getBool(any())).thenAnswer((_) async => null);
     when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
     when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
+    when(
+      () => secureStorage.write(
+        key: any(named: 'key'),
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
   });
 
@@ -170,6 +176,19 @@ void main() {
     await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
 
     expect(container.read(appStorageStateProvider).value!.authCredentials, loadedData.authCredentials);
+  });
+
+  test('when authentication credentials are saved, it should expose the new credentials in memory', () async {
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
+    final credentials = AuthCredentialsDto.fixture().copyWith(
+      refreshToken: 'new-refresh-token',
+      refreshTokenExpiresAt: DateTime.parse('2027-10-12T18:30:00.000Z'),
+    );
+
+    await container.read(appStorageStateProvider.notifier).setAuthCredentials(credentials: credentials);
+
+    expect(container.read(appStorageStateProvider).value!.authCredentials, credentials);
   });
 
   test('when completing onboarding, it should persist the completion flag', () async {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -214,6 +215,44 @@ void main() {
         },
       );
     });
+
+    group('refreshSession', () {
+      test('when refreshing a session, it should post the refresh token to the session refresh endpoint', () async {
+        _AuthRepositoryTestData.stubRefreshSessionRequest(dio: dio);
+
+        await repository.refreshSession(refreshToken: 'saved-refresh-token');
+
+        verify(
+          () => dio.post<Map<String, Object?>>(
+            '/auth/sessions/refresh',
+            data: <String, String>{'refreshToken': 'saved-refresh-token'},
+          ),
+        ).called(1);
+      });
+
+      test('when receiving a refreshed session, it should map the complete issued-session envelope', () async {
+        _AuthRepositoryTestData.stubRefreshSessionRequest(dio: dio);
+
+        final envelope = await repository.refreshSession(refreshToken: 'saved-refresh-token');
+
+        expect(
+          envelope,
+          ApiEnvelopeDto<IssuedAuthSessionDto>(
+            data: IssuedAuthSessionDto(
+              accessToken: 'refreshed-access-token-12345678901234567890',
+              tokenType: 'Bearer',
+              expiresAt: DateTime.utc(2026, 8, 11, 15, 15),
+              refreshToken: 'rotated-refresh-token',
+              refreshExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
+              userId: '4963fef0-b62a-4760-9f99-675fdc42a896',
+            ),
+            requestId: 'auth-refresh-request-003',
+            timestamp: DateTime.utc(2026, 8, 11, 15),
+            endpoint: '/v1/auth/sessions/refresh',
+          ),
+        );
+      });
+    });
   });
 
   group('authRepositoryProvider', () {
@@ -264,6 +303,20 @@ class _AuthRepositoryTestData {
     'requestId': 'auth-exchange-request-001',
     'timestamp': '2026-08-10T15:00:00.000Z',
     'endpoint': '/v1/auth/inbound-message/intents/exchange',
+  };
+
+  static final refreshSessionResponseJson = <String, Object?>{
+    'data': <String, Object?>{
+      'accessToken': 'refreshed-access-token-12345678901234567890',
+      'tokenType': 'Bearer',
+      'expiresAt': '2026-08-11T15:15:00.000Z',
+      'refreshToken': 'rotated-refresh-token',
+      'refreshExpiresAt': '2026-09-10T15:15:00.000Z',
+      'userId': '4963fef0-b62a-4760-9f99-675fdc42a896',
+    },
+    'requestId': 'auth-refresh-request-003',
+    'timestamp': '2026-08-11T15:00:00.000Z',
+    'endpoint': '/v1/auth/sessions/refresh',
   };
 
   static void stubRegisteredAuthIntentRequest({required MockDio dio}) {
@@ -327,5 +380,19 @@ class _AuthRepositoryTestData {
         requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
       );
     });
+  }
+
+  static void stubRefreshSessionRequest({required MockDio dio}) {
+    when(
+      () => dio.post<Map<String, Object?>>(
+        '/auth/sessions/refresh',
+        data: <String, String>{'refreshToken': 'saved-refresh-token'},
+      ),
+    ).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
+        data: refreshSessionResponseJson,
+        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
+      ),
+    );
   }
 }

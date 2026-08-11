@@ -75,4 +75,16 @@ class AuthRepository {
       }
     }
   }
+
+  Future<ApiEnvelopeDto<IssuedAuthSessionDto>> refreshSession({required String refreshToken}) async {
+    final response = await dio.post<Map<String, Object?>>(
+      '/auth/sessions/refresh',
+      data: <String, String>{'refreshToken': refreshToken},
+    );
+
+    return ApiEnvelopeDto<IssuedAuthSessionDto>.fromJson(
+      response.data!,
+      (json) => IssuedAuthSessionDto.fromJson(json! as Map<String, Object?>),
+    );
+  }
 }

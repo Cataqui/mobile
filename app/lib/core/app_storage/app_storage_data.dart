@@ -13,9 +13,13 @@ class AppStorageData {
   final bool hasSeenSwipeFeedHint;
   final bool hasCompletedOnboarding;
 
-  AppStorageData copyWith({bool? hasSeenSwipeFeedHint, bool? hasCompletedOnboarding}) {
+  AppStorageData copyWith({
+    AuthCredentialsDto? authCredentials,
+    bool? hasSeenSwipeFeedHint,
+    bool? hasCompletedOnboarding,
+  }) {
     return AppStorageData(
-      authCredentials: authCredentials,
+      authCredentials: authCredentials ?? this.authCredentials,
       hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? this.hasSeenSwipeFeedHint,
       hasCompletedOnboarding: hasCompletedOnboarding ?? this.hasCompletedOnboarding,
     );

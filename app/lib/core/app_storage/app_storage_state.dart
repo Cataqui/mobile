@@ -38,6 +38,8 @@ class AppStorageState extends _$AppStorageState {
 
   Future<void> setAuthCredentials({required AuthCredentialsDto credentials}) async {
     await ref.read(secureStorageProvider).write(key: _authCredentialsKey, value: credentials.toSecureStorageValue());
+
+    state = AsyncData(state.value!.copyWith(authCredentials: credentials));
   }
 
   Future<void> setSeenSwipeFeedHint({required bool value}) async {
