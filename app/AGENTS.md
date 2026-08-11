@@ -6,13 +6,10 @@
 
 The `app` package is **internal and single-purpose**. It orchestrates screens, widgets, services, and state specific to the Cataquí mobile experience.
 
-## No Documentation for Internal Code
+## No Widget Previews
 
-Code inside `app/` is **not a public API**. It is consumed exclusively by this application itself and by AI agents working on this repository.
-
-- **No dartdoc (`///`) needed** on any class, method, field, or variable inside the `app` package. The code should be self-explanatory through naming, structure, and conventions alone.
-- **No `@Preview` annotations** — they belong in the Mateo package.
-- Dartdoc is reserved for public packages such as `mateo_mobile` and `oh_my_flutter`.
+Do not add `@Preview` annotations inside the app. Widget previews belong in the
+Mateo package.
 
 ## Structure
 
@@ -93,31 +90,63 @@ Use lowercase `@riverpod` for the plain auto-dispose form.
 
 ### Feature State/Data Conventions
 
-Feature-level Riverpod notifiers follow a two-class naming convention:
+Feature-level Riverpod notifiers are named after the domain responsibility or
+workflow they own, not after the widget, view, or screen that currently consumes
+them. A widget may be domain-specific while still being only one presentation
+of the underlying state.
 
-- **`XxxState`** — the `@riverpod` notifier class (e.g., `FeedState extends _$FeedState`, generates `feedStateProvider`).
-- **`XxxData`** — the immutable value class held by the notifier (e.g., `FeedData` with `copyWith`).
+Use the following two-class naming convention:
+
+- **`<Domain>State`** — the `@riverpod` notifier class (for example,
+  `WhatsappLoginState extends _$WhatsappLoginState`, which generates
+  `whatsappLoginStateProvider`).
+- **`<Domain>Data`** — the immutable domain value held by the notifier when a
+  dedicated value class is necessary (for example, `WhatsappLoginData`).
+
+Do not include presentation suffixes such as `Button`, `Widget`, `View`, or
+`Screen` in a Riverpod state or data class merely because that UI currently
+owns or consumes the provider. For example, use `WhatsappLoginState`, not
+`WhatsappLoginButtonState`. UI-specific interactive state belongs in the
+widget or view under the UI ownership rule below.
 
 Riverpod state attached to a view must live in the same directory as that view.
-Name the notifier file after the view subject with the `*_state.dart` suffix.
-For example, `poster_onboarding_view.dart` owns
-`poster_onboarding_state.dart` in
-`app/lib/views/poster_onboarding/poster_onboarding_view/`. Do not create a
-separate sibling directory for view-owned state.
+Name the notifier file after its domain subject with the `*_state.dart` suffix,
+even when it lives beside the only view or widget that currently uses it. For
+example, a WhatsApp login notifier beside `whatsapp_login_button.dart` is named
+`whatsapp_login_state.dart`, not `whatsapp_login_button_state.dart`. Do not
+create a separate sibling directory solely for view-owned state.
 
 State shared by multiple views may live at their closest shared feature
 directory instead.
 
+### UI Ownership vs. Riverpod State
+
+Anything that exists to control or react to the interface belongs in the UI
+layer, normally the owning widget or view. This includes `BuildContext` usage,
+app and widget lifecycle handling, toasts, dialogs, navigation, focus,
+animations, presentation timers, and deciding which visual feedback to show.
+Keep these concerns out of Riverpod notifier classes.
+
+Riverpod state classes should primarily own non-interactive application logic:
+calling repositories, coordinating data workflows, transforming results, and
+publishing domain data plus standard loading and error state. Prefer
+Riverpod's existing state types, such as `AsyncValue`, when they already
+describe the observable result. Do not add custom notifier phases or data
+variants solely to tell a widget which UI treatment to render; derive that
+presentation in the widget or view from the notifier's domain state.
+
 ### State Files Per Feature
 
-Each Riverpod notifier and its data class get their own files. For state owned
-by a view, both files live beside the view:
+Each Riverpod notifier and its data class get their own files. When one view or
+widget owns the domain workflow, both files live beside that UI while retaining
+domain names:
 
-- `app/lib/views/<feature>/<view>_view/<view>_state.dart` — the `@riverpod` notifier + generated `.g.dart`
-- `app/lib/views/<feature>/<view>_view/<view>_data.dart` — the immutable data class
+- `<ui-directory>/<domain>_state.dart` — the `@riverpod` notifier plus its
+  generated `.g.dart`
+- `<ui-directory>/<domain>_data.dart` — the immutable data class, when needed
 
 Tests mirror the source at
-`app/test/views/<feature>/<view>_view/<view>_state_test.dart`.
+`<matching-test-directory>/<domain>_state_test.dart`.
 
 ## Routing (Type-Safe)
 

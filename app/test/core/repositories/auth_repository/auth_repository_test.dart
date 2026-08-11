@@ -46,6 +46,12 @@ void main() {
         expect(envelope.data.code, 'AUTH-K7F9Q2M8VD');
       });
 
+      test('when receiving a registered auth intent, it should map the code receiver', () async {
+        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+
+        expect(envelope.data.codeReceiver, '5511988887777');
+      });
+
       test('when receiving a registered auth intent, it should map the expiration timestamp', () async {
         final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
 
@@ -171,6 +177,7 @@ class _AuthRepositoryTestData {
     'data': <String, Object?>{
       'intentToken': intentToken,
       'code': 'AUTH-K7F9Q2M8VD',
+      'codeReceiver': '5511988887777',
       'expiresAt': '2026-08-10T15:15:00.000Z',
     },
     'requestId': 'auth-intent-request-001',

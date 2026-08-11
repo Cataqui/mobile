@@ -1,8 +1,7 @@
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_view/poster_onboarding_view.dart';
+import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import 'poster_onboarding_view_test_helpers.dart';
@@ -39,20 +38,10 @@ void main() {
     }
   });
 
-  testWidgets('when the poster onboarding opens, it should keep the WhatsApp draft action enabled', (tester) async {
+  testWidgets('when the poster onboarding opens, it should use the reusable WhatsApp login action', (tester) async {
     await PosterOnboardingViewTestHelpers.pumpView(tester: tester);
-    final button = tester.widget<MateoButton>(find.byKey(const ValueKey('poster_onboarding_whatsapp_button')));
 
-    expect(button.onPressed, isNotNull);
-  });
-
-  testWidgets('when tapping the WhatsApp login draft button, it should remain on poster onboarding', (tester) async {
-    await PosterOnboardingViewTestHelpers.pumpView(tester: tester);
-    await tester.ensureVisible(find.byKey(const ValueKey('poster_onboarding_whatsapp_button')));
-    await tester.tap(find.byKey(const ValueKey('poster_onboarding_whatsapp_button')));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(PosterOnboardingView), findsOneWidget);
+    expect(find.byType(WhatsappLoginButton), findsOneWidget);
   });
 
   testWidgets('when text is enlarged on a compact phone, it should keep all content visible without layout errors', (

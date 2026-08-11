@@ -1,3 +1,4 @@
+import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'auth_session_dto.freezed.dart';
@@ -14,6 +15,14 @@ abstract class AuthSessionDto with _$AuthSessionDto {
   }) = _AuthSessionDto;
 
   factory AuthSessionDto.fromJson(Map<String, Object?> json) => _$AuthSessionDtoFromJson(json);
+
+  factory AuthSessionDto.fromIssuedAuthSession(IssuedAuthSessionDto issuedSession) => AuthSessionDto(
+    accessToken: issuedSession.accessToken,
+    accessTokenExpiresAt: issuedSession.expiresAt,
+    refreshToken: issuedSession.refreshToken,
+    refreshTokenExpiresAt: issuedSession.refreshExpiresAt,
+    userId: issuedSession.userId,
+  );
 
   factory AuthSessionDto.fixture() => AuthSessionDto(
     accessToken: 'a' * 43,

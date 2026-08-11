@@ -317,11 +317,26 @@ void _resumeOrSkipTransition() {
 - **Raw palette:** Use raw palette steps only when no semantic token exists.
 - **Import:** Use the design system's public package entrypoint.
 
-### Dart Documentation
+### Dartdoc Only for pub.dev Packages
 
-- **Public API requires Dart doc.** Every declaration visible outside its library (public classes, public members, public typedefs, top-level constants) must have a `///` doc comment explaining what it does, when to use it, and what callers must know.
-- **Internal code does not need Dart doc.** Private declarations (`_`-prefixed), library-internal declarations (in packages, anything not exported via `library` or `export`), and any symbol that cannot be reached from outside its owning file or package does not require a doc comment. The code itself — clear naming, strong types, small functions — is the documentation.
-- When in doubt about whether something is public API, check whether it is exported by the package's main barrel file or referenced in another package's imports. If it is not reachable from outside, treat it as internal and skip the doc comment.
+Dartdoc (`///`) is reserved exclusively for public APIs in packages intended
+for publication on pub.dev. A declaration being public within a Dart library
+does not by itself make it a published API.
+
+- Add Dartdoc only to declarations exported as part of a pub.dev package's
+  supported public API. Explain what callers need to know to use that API.
+- Never add Dartdoc to application code or unpublished internal packages,
+  including their public classes, constructors, methods, fields, typedefs,
+  providers, and widgets.
+- Inside a pub.dev package, do not add Dartdoc to private or unexported
+  implementation details merely for coverage or consistency.
+- Make internal code understandable through descriptive names, small focused
+  implementations, and clear structure. Use a regular implementation comment
+  (`//`) only when non-obvious context or a design reason cannot be expressed
+  by the code itself; do not mechanically replace omitted Dartdoc with regular
+  comments.
+- When the publication boundary is unclear, inspect the package metadata and
+  public barrel exports before deciding that a declaration requires Dartdoc.
 
 ---
 

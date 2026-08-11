@@ -6,6 +6,7 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/assets.gen.dart';
 import 'package:cataqui_app/gen/svg.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -142,25 +143,9 @@ class PosterOnboardingView extends ConsumerWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildWhatsappButton(context: context, i18n: i18n),
+          child: WhatsappLoginButton(key: const ValueKey('poster_onboarding_whatsapp_button'), onSuccess: (_) {}),
         ),
       ],
-    );
-  }
-
-  Widget _buildWhatsappButton({required BuildContext context, required Translations i18n}) {
-    return MateoButton(
-      key: const ValueKey('poster_onboarding_whatsapp_button'),
-      variant: MateoButtonVariant.primary,
-      fit: MateoButtonFit.expand,
-      label: i18n.posterOnboarding.loginWithWhatsapp,
-      colorScheme: context.mateo.colorScheme.buttons.whatsapp.tertiary,
-      leadingIconSpacing: 6,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-      onPressed: () {},
-      leadingIconBuilder: (state) {
-        return MateoIcon.whatsapp(width: 22, height: 22, color: state.foregroundColor);
-      },
     );
   }
 

@@ -195,7 +195,12 @@
         "interest": "Tenho câmera própria"
       }
     },
-    "headline": "Você posta.\nQuem se interessar,\nte chama",
-    "loginWithWhatsapp": "Entrar com Whatsapp"
+    "headline": "Você posta.\nQuem se interessar,\nte chama"
+  },
+  "whatsappLoginButton": {
+    "label": "Entrar com WhatsApp",
+    "checking": "Estamos vendo se você mandou o código certinho",
+    "error": "Não deu. Tenta de novo",
+    "success": "Tá dentro!"
   }
 }
