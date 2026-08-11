@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
@@ -29,7 +30,7 @@ void main() {
     });
   });
 
-  group('cataquiApiV1DioProvider', () {
+  group('unauthenticatedCataquiApiV1DioProvider', () {
     test('when read, it should prefix the configured Cataquí API root URL with v1', () {
       final container = ProviderContainer(
         overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'development'))],
@@ -37,7 +38,7 @@ void main() {
 
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiApiV1DioProvider);
+      final dio = container.read(unauthenticatedCataquiApiV1DioProvider);
 
       expect(dio.options.baseUrl, 'https://staging.api.cataqui.com/v1');
     });
@@ -49,7 +50,7 @@ void main() {
 
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiApiV1DioProvider);
+      final dio = container.read(unauthenticatedCataquiApiV1DioProvider);
 
       expect(
         RequestOptions(baseUrl: dio.options.baseUrl, path: '/feed').uri.toString(),
@@ -64,7 +65,7 @@ void main() {
 
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiApiV1DioProvider);
+      final dio = container.read(unauthenticatedCataquiApiV1DioProvider);
 
       expect(dio.options.headers['accept-language'], 'pt-BR');
     });
@@ -75,7 +76,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiApiV1DioProvider);
+      final dio = container.read(unauthenticatedCataquiApiV1DioProvider);
 
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isTrue);
     });
@@ -86,7 +87,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiApiV1DioProvider);
+      final dio = container.read(unauthenticatedCataquiApiV1DioProvider);
 
       expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isFalse);
     });
@@ -97,9 +98,64 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final dio = container.read(cataquiApiV1DioProvider);
+      final dio = container.read(unauthenticatedCataquiApiV1DioProvider);
 
       expect(dio.interceptors.any((interceptor) => interceptor is OfflineErrorDioInterceptor), isTrue);
+    });
+
+    test('when read, it should not include authenticated request handling', () {
+      final container = ProviderContainer(
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production'))],
+      );
+      addTearDown(container.dispose);
+
+      final dio = container.read(unauthenticatedCataquiApiV1DioProvider);
+
+      expect(dio.interceptors.any((interceptor) => interceptor is AuthInterceptor), isFalse);
+    });
+  });
+
+  group('authenticatedCataquiApiV1DioProvider', () {
+    test('when read, it should include authenticated request handling', () {
+      final container = ProviderContainer(
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production'))],
+      );
+      addTearDown(container.dispose);
+
+      final dio = container.read(authenticatedCataquiApiV1DioProvider);
+
+      expect(dio.interceptors.any((interceptor) => interceptor is AuthInterceptor), isTrue);
+    });
+
+    test('when read, it should share the unauthenticated API configuration', () {
+      final container = ProviderContainer(
+        overrides: [appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production'))],
+      );
+      addTearDown(container.dispose);
+
+      final authenticatedDio = container.read(authenticatedCataquiApiV1DioProvider);
+      final unauthenticatedDio = container.read(unauthenticatedCataquiApiV1DioProvider);
+
+      expect(
+        (
+          baseUrl: authenticatedDio.options.baseUrl,
+          accept: authenticatedDio.options.headers[Headers.acceptHeader],
+          contentType: authenticatedDio.options.headers[Headers.contentTypeHeader],
+          language: authenticatedDio.options.headers['accept-language'],
+          connectTimeout: authenticatedDio.options.connectTimeout,
+          sendTimeout: authenticatedDio.options.sendTimeout,
+          receiveTimeout: authenticatedDio.options.receiveTimeout,
+        ),
+        (
+          baseUrl: unauthenticatedDio.options.baseUrl,
+          accept: unauthenticatedDio.options.headers[Headers.acceptHeader],
+          contentType: unauthenticatedDio.options.headers[Headers.contentTypeHeader],
+          language: unauthenticatedDio.options.headers['accept-language'],
+          connectTimeout: unauthenticatedDio.options.connectTimeout,
+          sendTimeout: unauthenticatedDio.options.sendTimeout,
+          receiveTimeout: unauthenticatedDio.options.receiveTimeout,
+        ),
+      );
     });
   });
 

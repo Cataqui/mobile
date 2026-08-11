@@ -328,6 +328,186 @@ void main() {
       );
     });
 
+    test(
+      'when background refresh has no credentials, it should preserve the session without requesting login',
+      () async {
+        final currentSession = AuthSessionDto.fixture().copyWith(accessToken: 'still-valid-access-token');
+        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+        await container.read(appStorageStateProvider.notifier).clearAuthCredentials();
+        var refreshRequestCount = 0;
+        var loginRequestCount = 0;
+        when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
+          refreshRequestCount += 1;
+          return ApiEnvelopeDto.fixture(
+            data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
+          );
+        });
+        when(loginSheetController.show).thenAnswer((_) async {
+          loginRequestCount += 1;
+          return false;
+        });
+
+        await container.read(appAuthStateProvider.notifier).refreshSessionInBackground();
+
+        expect(
+          (
+            session: container.read(appAuthStateProvider),
+            refreshRequestCount: refreshRequestCount,
+            loginRequestCount: loginRequestCount,
+          ),
+          (session: currentSession, refreshRequestCount: 0, loginRequestCount: 0),
+        );
+      },
+    );
+
+    test('when background refresh is unauthorized, it should clear authentication without requesting login', () async {
+      final currentSession = AuthSessionDto.fixture().copyWith(
+        refreshToken: 'rejected-refresh-token',
+        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+      );
+      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+      final unauthorizedError = DioException(
+        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
+        response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+      );
+      var loginRequestCount = 0;
+      when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenThrow(unauthorizedError);
+      when(loginSheetController.show).thenAnswer((_) async {
+        loginRequestCount += 1;
+        return false;
+      });
+
+      await withClock(
+        Clock.fixed(DateTime.utc(2026, 8, 11, 15)),
+        () => container.read(appAuthStateProvider.notifier).refreshSessionInBackground(),
+      );
+
+      expect(
+        (
+          session: container.read(appAuthStateProvider),
+          credentials: container.read(appStorageStateProvider).value!.authCredentials,
+          loginRequestCount: loginRequestCount,
+        ),
+        (session: null, credentials: null, loginRequestCount: 0),
+      );
+    });
+
+    test('when background refresh fails outside authentication, it should preserve the current session', () async {
+      final currentSession = AuthSessionDto.fixture().copyWith(
+        refreshToken: 'saved-refresh-token',
+        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+      );
+      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+      when(
+        () => authRepository.refreshSession(refreshToken: 'saved-refresh-token'),
+      ).thenThrow(StateError('refresh unavailable'));
+      var loginRequestCount = 0;
+      when(loginSheetController.show).thenAnswer((_) async {
+        loginRequestCount += 1;
+        return false;
+      });
+
+      await withClock(
+        Clock.fixed(DateTime.utc(2026, 8, 11, 15)),
+        () => container.read(appAuthStateProvider.notifier).refreshSessionInBackground(),
+      );
+
+      expect(
+        (session: container.read(appAuthStateProvider), loginRequestCount: loginRequestCount),
+        (session: currentSession, loginRequestCount: 0),
+      );
+    });
+
+    test(
+      'when foreground login is active, background refresh should wait for the same authentication result',
+      () async {
+        final loginResult = Completer<bool>();
+        var loginRequestCount = 0;
+        when(loginSheetController.show).thenAnswer((_) {
+          loginRequestCount += 1;
+          return loginResult.future;
+        });
+
+        final foregroundRefresh = container.read(appAuthStateProvider.notifier).refreshSession();
+        await Future<void>.delayed(Duration.zero);
+        var backgroundCompleted = false;
+        final backgroundRefresh = container
+            .read(appAuthStateProvider.notifier)
+            .refreshSessionInBackground()
+            .whenComplete(() {
+              backgroundCompleted = true;
+            });
+        await Future<void>.delayed(Duration.zero);
+        final backgroundCompletedBeforeLogin = backgroundCompleted;
+        loginResult.complete(false);
+        final foregroundResult = await foregroundRefresh;
+        await backgroundRefresh;
+
+        expect(
+          (
+            backgroundCompletedBeforeLogin: backgroundCompletedBeforeLogin,
+            backgroundCompletedAfterLogin: backgroundCompleted,
+            foregroundResult: foregroundResult,
+            loginRequestCount: loginRequestCount,
+          ),
+          (
+            backgroundCompletedBeforeLogin: false,
+            backgroundCompletedAfterLogin: true,
+            foregroundResult: null,
+            loginRequestCount: 1,
+          ),
+        );
+      },
+    );
+
+    test(
+      'when foreground refresh joins a background request rejected as unauthorized, it should request login once',
+      () async {
+        final currentSession = AuthSessionDto.fixture().copyWith(
+          refreshToken: 'rejected-refresh-token',
+          refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+        );
+        final authenticatedSession = AuthSessionDto.fixture().copyWith(
+          accessToken: 'interactive-access-token',
+          refreshToken: 'interactive-refresh-token',
+        );
+        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+        final refreshResponse = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
+        var refreshRequestCount = 0;
+        var loginRequestCount = 0;
+        when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenAnswer((_) {
+          refreshRequestCount += 1;
+          return refreshResponse.future;
+        });
+        when(loginSheetController.show).thenAnswer((_) async {
+          loginRequestCount += 1;
+          await container.read(appAuthStateProvider.notifier).setSession(authenticatedSession);
+          return true;
+        });
+
+        late Future<void> backgroundRefresh;
+        late Future<AuthSessionDto?> foregroundRefresh;
+        await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
+          backgroundRefresh = container.read(appAuthStateProvider.notifier).refreshSessionInBackground();
+          await Future<void>.delayed(Duration.zero);
+          foregroundRefresh = container.read(appAuthStateProvider.notifier).refreshSession();
+          refreshResponse.completeError(
+            DioException(
+              requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
+              response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+            ),
+          );
+        });
+        final result = await foregroundRefresh;
+        await backgroundRefresh;
+
+        expect(
+          (result: result, refreshRequestCount: refreshRequestCount, loginRequestCount: loginRequestCount),
+          (result: authenticatedSession, refreshRequestCount: 1, loginRequestCount: 1),
+        );
+      },
+    );
+
     test('when refresh is already active, concurrent callers should share one request and session', () async {
       final storedCredentials = AuthCredentialsDto.fixture().copyWith(
         refreshToken: 'saved-refresh-token',

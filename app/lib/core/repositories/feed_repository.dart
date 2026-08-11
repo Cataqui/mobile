@@ -4,12 +4,12 @@ import 'package:cataqui_app/core/enums/feed_sort.dart';
 import 'package:dio/dio.dart';
 
 class FeedRepository {
-  const FeedRepository({required this.dio});
+  const FeedRepository({required this.unauthenticatedDio});
 
-  final Dio dio;
+  final Dio unauthenticatedDio;
 
   Future<ApiEnvelopeDto<List<FeedJobDto>>> getFeedJobs({String? cursor, FeedSort sort = FeedSort.latest}) async {
-    final response = await dio.get<Map<String, Object?>>(
+    final response = await unauthenticatedDio.get<Map<String, Object?>>(
       '/feed',
       queryParameters: <String, Object?>{'sort': sort.apiValue, if (cursor != null) 'cursor': cursor},
     );

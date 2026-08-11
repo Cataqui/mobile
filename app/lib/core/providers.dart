@@ -1,6 +1,9 @@
 import 'package:cataqui_app/app_state.dart';
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
+import 'package:cataqui_app/core/network/cataqui_api_v1_dio_factory.dart';
 import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
@@ -46,38 +49,34 @@ FlutterSecureStorage secureStorage(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-Dio cataquiApiV1Dio(Ref ref) {
+Dio unauthenticatedCataquiApiV1Dio(Ref ref) {
   final appConfig = ref.read(appConfigProvider);
   final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
 
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: '${appConfig.cataquiApiUrl}/v1',
-      connectTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: <String, String>{
-        Headers.acceptHeader: Headers.jsonContentType,
-        Headers.contentTypeHeader: Headers.jsonContentType,
-        'accept-language': locale.languageTag,
-      },
+  return CataquiApiV1DioFactory.create(appConfig: appConfig, languageTag: locale.languageTag);
+}
+
+@Riverpod(keepAlive: true)
+Dio authenticatedCataquiApiV1Dio(Ref ref) {
+  final appConfig = ref.read(appConfigProvider);
+  final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
+  final unauthenticatedDio = ref.watch(unauthenticatedCataquiApiV1DioProvider);
+
+  return CataquiApiV1DioFactory.create(
+    appConfig: appConfig,
+    languageTag: locale.languageTag,
+    authInterceptor: AuthInterceptor(
+      unauthenticatedDio: unauthenticatedDio,
+      readSession: () => ref.read(appAuthStateProvider),
+      refreshSession: () => ref.read(appAuthStateProvider.notifier).refreshSession(),
+      refreshSessionInBackground: () => ref.read(appAuthStateProvider.notifier).refreshSessionInBackground(),
     ),
   );
-
-  if (appConfig.isDevelopment) {
-    dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true, logPrint: (object) => debugPrint(object.toString())),
-    );
-  }
-
-  dio.interceptors.add(OfflineErrorDioInterceptor());
-
-  return dio;
 }
 
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
-  return AuthRepository(dio: ref.watch(cataquiApiV1DioProvider));
+  return AuthRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)
@@ -87,7 +86,7 @@ LoginSheetController loginSheetController(Ref ref) {
 
 @Riverpod(keepAlive: true)
 FeedRepository feedRepository(Ref ref) {
-  return FeedRepository(dio: ref.watch(cataquiApiV1DioProvider));
+  return FeedRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)
@@ -116,7 +115,7 @@ GlobalKey<NavigatorState> rootNavigatorKey(Ref ref) {
 
 @Riverpod(keepAlive: true)
 JobRepository jobRepository(Ref ref) {
-  return JobRepository(dio: ref.watch(cataquiApiV1DioProvider));
+  return JobRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
 }
 
 @riverpod

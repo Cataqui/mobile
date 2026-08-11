@@ -38,7 +38,7 @@ void main() {
 
   setUp(() {
     dio = MockDio();
-    repository = JobRepository(dio: dio);
+    repository = JobRepository(unauthenticatedDio: dio);
     _stubJobRequest(dio: dio);
     _stubJobContactRequest(dio: dio);
   });
@@ -92,13 +92,14 @@ void main() {
   });
 
   group('jobRepositoryProvider', () {
-    test('when reading the provider, it should expose a job repository', () {
-      final container = ProviderContainer(overrides: [cataquiApiV1DioProvider.overrideWithValue(MockDio())]);
+    test('when reading the provider, it should use the unauthenticated dio for every job endpoint', () {
+      final dio = MockDio();
+      final container = ProviderContainer(overrides: [unauthenticatedCataquiApiV1DioProvider.overrideWithValue(dio)]);
       addTearDown(container.dispose);
 
       final result = container.read(jobRepositoryProvider);
 
-      expect(result, isA<JobRepository>());
+      expect(result.unauthenticatedDio, same(dio));
     });
   });
 }

@@ -7,9 +7,9 @@ import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:dio/dio.dart';
 
 class AuthRepository {
-  const AuthRepository({required this.dio, this.exchangeIntentTimeout = const Duration(seconds: 30)});
+  const AuthRepository({required this.unauthenticatedDio, this.exchangeIntentTimeout = const Duration(seconds: 30)});
 
-  final Dio dio;
+  final Dio unauthenticatedDio;
   final Duration exchangeIntentTimeout;
 
   Future<ApiEnvelopeDto<RegisteredAuthIntentDto>> registerInboundMessageAuthIntent({
@@ -19,7 +19,7 @@ class AuthRepository {
       AuthChannel.whatsapp => 'WHATSAPP',
     };
 
-    final response = await dio.post<Map<String, Object?>>(
+    final response = await unauthenticatedDio.post<Map<String, Object?>>(
       '/auth/inbound-message/intents',
       data: <String, String>{'channel': inboundMessageAuthChannel},
     );
@@ -43,7 +43,7 @@ class AuthRepository {
     }
 
     while (true) {
-      final response = await dio.post<Map<String, Object?>>(
+      final response = await unauthenticatedDio.post<Map<String, Object?>>(
         '/auth/inbound-message/intents/exchange',
         data: <String, String>{'intentToken': intentToken},
       );
@@ -77,7 +77,7 @@ class AuthRepository {
   }
 
   Future<ApiEnvelopeDto<IssuedAuthSessionDto>> refreshSession({required String refreshToken}) async {
-    final response = await dio.post<Map<String, Object?>>(
+    final response = await unauthenticatedDio.post<Map<String, Object?>>(
       '/auth/sessions/refresh',
       data: <String, String>{'refreshToken': refreshToken},
     );

@@ -26,7 +26,7 @@ void main() {
     test('when requesting feed jobs, it should call the feed jobs endpoint', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(dio: dio);
+      final repository = FeedRepository(unauthenticatedDio: dio);
 
       await repository.getFeedJobs();
 
@@ -36,7 +36,7 @@ void main() {
     test('when requesting feed jobs, it should send the latest sort mode', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(dio: dio);
+      final repository = FeedRepository(unauthenticatedDio: dio);
 
       await repository.getFeedJobs();
 
@@ -51,7 +51,7 @@ void main() {
     test('when requesting the first feed page, it should omit cursor', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(dio: dio);
+      final repository = FeedRepository(unauthenticatedDio: dio);
 
       await repository.getFeedJobs();
 
@@ -66,7 +66,7 @@ void main() {
     test('when requesting the next feed page, it should send cursor', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(dio: dio);
+      final repository = FeedRepository(unauthenticatedDio: dio);
 
       await repository.getFeedJobs(cursor: 'next-feed-cursor');
 
@@ -81,7 +81,7 @@ void main() {
     test('when receiving feed jobs, it should map feed job dto data', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(dio: dio);
+      final repository = FeedRepository(unauthenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -91,7 +91,7 @@ void main() {
     test('when receiving feed jobs, it should map pagination', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(dio: dio);
+      final repository = FeedRepository(unauthenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -101,7 +101,7 @@ void main() {
     test('when receiving an empty feed, it should map an empty job list', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio, responseJson: <String, Object?>{..._feedEnvelopeJson, 'data': <Object?>[]});
-      final repository = FeedRepository(dio: dio);
+      final repository = FeedRepository(unauthenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -110,13 +110,14 @@ void main() {
   });
 
   group('feedRepositoryProvider', () {
-    test('when reading the provider, it should expose a feed repository', () {
-      final container = ProviderContainer(overrides: [cataquiApiV1DioProvider.overrideWithValue(MockDio())]);
+    test('when reading the provider, it should use the unauthenticated dio', () {
+      final dio = MockDio();
+      final container = ProviderContainer(overrides: [unauthenticatedCataquiApiV1DioProvider.overrideWithValue(dio)]);
       addTearDown(container.dispose);
 
       final repository = container.read(feedRepositoryProvider);
 
-      expect(repository, isA<FeedRepository>());
+      expect(repository.unauthenticatedDio, same(dio));
     });
   });
 }

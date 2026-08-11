@@ -18,7 +18,7 @@ void main() {
 
   setUp(() {
     dio = MockDio();
-    repository = AuthRepository(dio: dio);
+    repository = AuthRepository(unauthenticatedDio: dio);
     _AuthRepositoryTestData.stubRegisteredAuthIntentRequest(dio: dio);
   });
 
@@ -113,7 +113,7 @@ void main() {
       );
 
       test('when the auth intent stays pending past the exchange deadline, it should throw a timeout', () async {
-        repository = AuthRepository(dio: dio, exchangeIntentTimeout: const Duration(milliseconds: 1));
+        repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: const Duration(milliseconds: 1));
         var requestCount = 0;
         _AuthRepositoryTestData.stubPendingExchangeRequest(dio: dio, onRequest: () => requestCount += 1);
         Object? thrownError;
@@ -131,7 +131,7 @@ void main() {
       });
 
       test('when the exchange deadline has not started, it should keep polling until the session is issued', () async {
-        repository = AuthRepository(dio: dio, exchangeIntentTimeout: Duration.zero);
+        repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: Duration.zero);
         final exchangeTimeoutStart = Completer<void>();
         var requestCount = 0;
         _AuthRepositoryTestData.stubPendingThenIssuedSessionExchangeRequest(
@@ -151,7 +151,7 @@ void main() {
       });
 
       test('when an exchange request succeeds after the deadline, it should return the issued session', () async {
-        repository = AuthRepository(dio: dio, exchangeIntentTimeout: Duration.zero);
+        repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: Duration.zero);
         final responseCompleter = Completer<Response<Map<String, Object?>>>();
         when(
           () => dio.post<Map<String, Object?>>(
@@ -178,7 +178,7 @@ void main() {
       test(
         'when an in-flight exchange fails after the deadline, it should propagate the error without polling again',
         () async {
-          repository = AuthRepository(dio: dio, exchangeIntentTimeout: Duration.zero);
+          repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: Duration.zero);
           final terminalError = DioException(
             requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
             response: Response<void>(
@@ -256,13 +256,13 @@ void main() {
   });
 
   group('authRepositoryProvider', () {
-    test('when reading the provider, it should expose an auth repository', () {
-      final container = ProviderContainer(overrides: [cataquiApiV1DioProvider.overrideWithValue(dio)]);
+    test('when reading the provider, it should use the unauthenticated dio', () {
+      final container = ProviderContainer(overrides: [unauthenticatedCataquiApiV1DioProvider.overrideWithValue(dio)]);
       addTearDown(container.dispose);
 
-      final result = container.read(authRepositoryProvider);
+      final repository = container.read(authRepositoryProvider);
 
-      expect(result, isA<AuthRepository>());
+      expect(repository.unauthenticatedDio, same(dio));
     });
   });
 }

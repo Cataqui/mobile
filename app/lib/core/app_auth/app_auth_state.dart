@@ -10,7 +10,8 @@ part 'app_auth_state.g.dart';
 
 @Riverpod(keepAlive: true)
 class AppAuthState extends _$AppAuthState {
-  Future<AuthSessionDto?>? _activeRefresh;
+  Future<AuthSessionDto?>? _activeCredentialRefresh;
+  Future<AuthSessionDto?>? _activeForegroundAuthentication;
 
   @override
   AuthSessionDto? build() => null;
@@ -30,27 +31,77 @@ class AppAuthState extends _$AppAuthState {
   }
 
   Future<AuthSessionDto?> refreshSession() {
-    final activeRefresh = _activeRefresh;
-    if (activeRefresh != null) return activeRefresh;
+    final activeForegroundAuthentication = _activeForegroundAuthentication;
+    if (activeForegroundAuthentication != null) return activeForegroundAuthentication;
 
-    late final Future<AuthSessionDto?> refresh;
+    late final Future<AuthSessionDto?> foregroundAuthentication;
 
-    refresh = _refreshSession().whenComplete(() {
-      if (identical(_activeRefresh, refresh)) _activeRefresh = null;
+    foregroundAuthentication = _refreshThenAuthenticateInteractively().whenComplete(() {
+      if (identical(_activeForegroundAuthentication, foregroundAuthentication)) {
+        _activeForegroundAuthentication = null;
+      }
     });
 
-    _activeRefresh = refresh;
+    _activeForegroundAuthentication = foregroundAuthentication;
 
-    return refresh;
+    return foregroundAuthentication;
   }
 
-  Future<AuthSessionDto?> _refreshSession() async {
+  Future<void> refreshSessionInBackground() async {
+    try {
+      final activeForegroundAuthentication = _activeForegroundAuthentication;
+
+      if (activeForegroundAuthentication != null) {
+        await activeForegroundAuthentication;
+        return;
+      }
+
+      await _refreshCredentials();
+    } on Object {
+      // Proactive refresh failures must not interrupt a completed authenticated request.
+    }
+  }
+
+  Future<AuthSessionDto?> _refreshCredentials() {
+    final activeCredentialRefresh = _activeCredentialRefresh;
+    if (activeCredentialRefresh != null) return activeCredentialRefresh;
+
+    late final Future<AuthSessionDto?> credentialRefresh;
+
+    credentialRefresh = _performCredentialRefresh().whenComplete(() {
+      if (identical(_activeCredentialRefresh, credentialRefresh)) {
+        _activeCredentialRefresh = null;
+      }
+    });
+
+    _activeCredentialRefresh = credentialRefresh;
+
+    return credentialRefresh;
+  }
+
+  Future<AuthSessionDto?> _refreshThenAuthenticateInteractively() async {
+    final session = await _refreshCredentials();
+    if (session != null) return session;
+
+    await _clearAuthenticationIfNeeded();
+
+    final didLogin = await ref.read(loginSheetControllerProvider).show();
+    if (!didLogin) return null;
+
+    final authenticatedSession = state;
+
+    if (authenticatedSession == null) {
+      throw StateError('The login sheet completed successfully without setting an authenticated session.');
+    }
+
+    return authenticatedSession;
+  }
+
+  Future<AuthSessionDto?> _performCredentialRefresh() async {
     final appStorage = await ref.read(appStorageStateProvider.future);
     final credentials = appStorage.authCredentials;
 
-    if (credentials == null || !credentials.refreshTokenExpiresAt.isAfter(clock.now())) {
-      return _authenticateInteractively();
-    }
+    if (credentials == null || !credentials.refreshTokenExpiresAt.isAfter(clock.now())) return null;
 
     try {
       final refreshedSession = await ref
@@ -64,23 +115,21 @@ class AppAuthState extends _$AppAuthState {
     } on DioException catch (error) {
       if (error.response?.statusCode != 401) rethrow;
 
-      return _authenticateInteractively();
+      await _clearAuthentication();
+
+      return null;
     }
   }
 
-  Future<AuthSessionDto?> _authenticateInteractively() async {
+  Future<void> _clearAuthenticationIfNeeded() async {
+    final storedCredentials = ref.read(appStorageStateProvider).requireValue.authCredentials;
+    if (state == null && storedCredentials == null) return;
+
+    await _clearAuthentication();
+  }
+
+  Future<void> _clearAuthentication() async {
     state = null;
     await ref.read(appStorageStateProvider.notifier).clearAuthCredentials();
-
-    final didLogin = await ref.read(loginSheetControllerProvider).show();
-    if (!didLogin) return null;
-
-    final session = state;
-
-    if (session == null) {
-      throw StateError('The login sheet completed successfully without setting an authenticated session.');
-    }
-
-    return session;
   }
 }
