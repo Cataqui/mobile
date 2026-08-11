@@ -12,6 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -64,7 +65,11 @@ class FixedAppStorageState extends AppStorageState {
 
   @override
   Future<AppStorageData> build() {
-    final data = AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint, hasCompletedOnboarding: false);
+    final data = AppStorageData(
+      authCredentials: null,
+      hasSeenSwipeFeedHint: hasSeenSwipeFeedHint,
+      hasCompletedOnboarding: false,
+    );
     state = AsyncData(data);
     return Future<AppStorageData>.value(data);
   }
@@ -118,33 +123,33 @@ class FeedViewTestHelpers {
     await tester.pump(const Duration(milliseconds: 100));
   }
 
-  static Widget buildApp({required Widget child, bool disableAnimations = false}) {
+  static Widget buildApp({
+    required Widget child,
+    bool disableAnimations = false,
+    List<Override> providerOverrides = const [],
+  }) {
     final mediaQueryData = const MediaQueryData(
       size: _surfaceSize,
       devicePixelRatio: 3,
       textScaler: TextScaler.noScaling,
     ).copyWith(disableAnimations: disableAnimations);
 
-    return TestApp.screen(mediaQueryData: mediaQueryData, child: child);
+    return TestApp.screen(mediaQueryData: mediaQueryData, providerOverrides: providerOverrides, child: child);
   }
 
-  static ProviderScope buildScope({
+  static List<Override> buildProviderOverrides({
     required FakeFeedState feedState,
-    required Widget child,
     GoRouter? goRouter,
     MockSharedPreferencesAsync? prefs,
     bool? hasSeenSwipeFeedHint,
   }) {
-    return ProviderScope(
-      overrides: [
-        feedStateProvider.overrideWith(() => feedState),
-        if (goRouter != null) goRouterProvider.overrideWithValue(goRouter),
-        if (prefs != null) sharedPreferencesAsyncProvider.overrideWithValue(prefs),
-        if (hasSeenSwipeFeedHint != null)
-          appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint)),
-      ],
-      child: child,
-    );
+    return [
+      feedStateProvider.overrideWith(() => feedState),
+      if (goRouter != null) goRouterProvider.overrideWithValue(goRouter),
+      if (prefs != null) sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+      if (hasSeenSwipeFeedHint != null)
+        appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint)),
+    ];
   }
 
   static Future<void> pumpFeedView({
@@ -159,13 +164,13 @@ class FeedViewTestHelpers {
     mockGoogleMapsPlatform();
     await tester.pumpWidget(
       buildApp(
-        child: buildScope(
+        providerOverrides: buildProviderOverrides(
           feedState: feedState,
           goRouter: goRouter,
           prefs: prefs,
           hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
-          child: const FeedView(),
         ),
+        child: const FeedView(),
       ),
     );
     await tester.pump(); // Microtask resolves, data arrives, exit starts
@@ -180,13 +185,13 @@ class FeedViewTestHelpers {
     bool? hasSeenSwipeFeedHint,
   }) {
     return buildApp(
-      child: buildScope(
+      providerOverrides: buildProviderOverrides(
         feedState: feedState,
         prefs: prefs,
         hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
-        child: const FeedView(),
       ),
       disableAnimations: disableAnimations,
+      child: const FeedView(),
     );
   }
 

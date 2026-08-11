@@ -125,7 +125,6 @@ class JobViewTestHelpers {
       devicePixelRatio: 3,
       textScaler: TextScaler.noScaling,
     ).copyWith(disableAnimations: disableAnimations);
-
     return ProviderScope(
       overrides: [jobStateProvider(resolvedJobId).overrideWith(() => jobState)],
       child: TestApp.screen(
@@ -146,15 +145,15 @@ class JobViewTestHelpers {
       devicePixelRatio: 3,
       textScaler: TextScaler.noScaling,
     ).copyWith(disableAnimations: disableAnimations);
-
-    return ProviderScope(
-      overrides: [
+    return TestApp.router(
+      routerConfig: goRouter,
+      mediaQueryData: mediaQueryData,
+      providerOverrides: [
         goRouterProvider.overrideWithValue(goRouter),
         feedStateProvider.overrideWith(feedState),
         jobRepositoryProvider.overrideWithValue(jobRepository),
         sharedPreferencesAsyncProvider.overrideWithValue(_seenPrefs()),
       ],
-      child: TestApp.router(routerConfig: goRouter, mediaQueryData: mediaQueryData),
     );
   }
 

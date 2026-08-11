@@ -20,7 +20,11 @@ class _FixedAppStorageState extends AppStorageState {
 
   @override
   Future<AppStorageData> build() {
-    final data = AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint, hasCompletedOnboarding: false);
+    final data = AppStorageData(
+      authCredentials: null,
+      hasSeenSwipeFeedHint: hasSeenSwipeFeedHint,
+      hasCompletedOnboarding: false,
+    );
     state = AsyncData(data);
     return Future<AppStorageData>.value(data);
   }
@@ -34,15 +38,11 @@ Widget _goldenScenario({required FakeFeedState feedState, bool hasSeenSwipeFeedH
       enabled: false,
       child: FeedViewTestHelpers.buildApp(
         disableAnimations: true,
-        child: ProviderScope(
-          overrides: [
-            feedStateProvider.overrideWith(() => feedState),
-            appStorageStateProvider.overrideWith(
-              () => _FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint),
-            ),
-          ],
-          child: const FeedView(),
-        ),
+        providerOverrides: [
+          feedStateProvider.overrideWith(() => feedState),
+          appStorageStateProvider.overrideWith(() => _FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint)),
+        ],
+        child: const FeedView(),
       ),
     ),
   );

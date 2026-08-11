@@ -37,9 +37,12 @@ abstract final class OnboardingRouteTestHelpers {
     required bool disableAnimations,
     required MockSharedPreferencesAsync prefs,
   }) async {
+    final secureStorage = MockFlutterSecureStorage();
+    when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
     final providerContainer = ProviderContainer(
       overrides: [
         sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+        secureStorageProvider.overrideWithValue(secureStorage),
         translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
       ],
     );

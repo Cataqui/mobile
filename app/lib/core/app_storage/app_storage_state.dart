@@ -18,8 +18,13 @@ class AppStorageState extends _$AppStorageState {
     final prefs = ref.read(sharedPreferencesAsyncProvider);
     final hasSeenSwipeFeedHint = await prefs.getBool(_seenSwipeFeedHintKey) ?? false;
     final hasCompletedOnboarding = await prefs.getBool(_completedOnboardingKey) ?? false;
+    final authCredentials = await _readAuthCredentials();
 
-    return AppStorageData(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint, hasCompletedOnboarding: hasCompletedOnboarding);
+    return AppStorageData(
+      authCredentials: authCredentials,
+      hasSeenSwipeFeedHint: hasSeenSwipeFeedHint,
+      hasCompletedOnboarding: hasCompletedOnboarding,
+    );
   }
 
   Future<void> completeOnboarding() async {
@@ -31,7 +36,7 @@ class AppStorageState extends _$AppStorageState {
     state = AsyncData(state.value!.copyWith(hasCompletedOnboarding: true));
   }
 
-  Future<void> saveAuthCredentials({required AuthCredentialsDto credentials}) async {
+  Future<void> setAuthCredentials({required AuthCredentialsDto credentials}) async {
     await ref.read(secureStorageProvider).write(key: _authCredentialsKey, value: credentials.toSecureStorageValue());
   }
 
@@ -42,5 +47,24 @@ class AppStorageState extends _$AppStorageState {
     await prefs.setBool(_seenSwipeFeedHintKey, value);
 
     state = AsyncData(state.value!.copyWith(hasSeenSwipeFeedHint: value));
+  }
+
+  Future<AuthCredentialsDto?> _readAuthCredentials() async {
+    final secureStorage = ref.read(secureStorageProvider);
+
+    try {
+      final storedCredentials = await secureStorage.read(key: _authCredentialsKey);
+      if (storedCredentials == null) return null;
+
+      return AuthCredentialsDto.fromSecureStorageValue(storedCredentials);
+    } catch (_) {
+      try {
+        await secureStorage.delete(key: _authCredentialsKey);
+      } catch (_) {
+        // Credential cleanup is best effort so secure storage cannot block app startup.
+      }
+
+      return null;
+    }
   }
 }

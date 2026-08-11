@@ -18,7 +18,7 @@ class AuthState extends _$AuthState {
     try {
       await ref
           .read(appStorageStateProvider.notifier)
-          .saveAuthCredentials(credentials: AuthCredentialsDto.fromAuthSession(session));
+          .setAuthCredentials(credentials: AuthCredentialsDto.fromAuthSession(session));
     } on Object {
       // The active in-memory session remains usable when secure persistence is unavailable.
     }

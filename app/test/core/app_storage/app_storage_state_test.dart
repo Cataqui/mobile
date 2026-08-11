@@ -1,4 +1,5 @@
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
+import 'package:cataqui_app/core/dtos/auth_credentials_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,15 +9,24 @@ import '../../mocks.dart';
 
 void main() {
   late MockSharedPreferencesAsync prefs;
+  late MockFlutterSecureStorage secureStorage;
 
   setUp(() {
     prefs = MockSharedPreferencesAsync();
+    secureStorage = MockFlutterSecureStorage();
     when(() => prefs.getBool(any())).thenAnswer((_) async => null);
     when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+    when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
+    when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
   });
 
   ProviderContainer buildContainer() {
-    final container = ProviderContainer(overrides: [sharedPreferencesAsyncProvider.overrideWithValue(prefs)]);
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+        secureStorageProvider.overrideWithValue(secureStorage),
+      ],
+    );
     addTearDown(container.dispose);
     return container;
   }
@@ -97,6 +107,69 @@ void main() {
     final data = await buildContainer().read(appStorageStateProvider.future);
 
     expect(data.hasCompletedOnboarding, isTrue);
+  });
+
+  test('when authentication credentials were never stored, it should load them as null', () async {
+    final data = await buildContainer().read(appStorageStateProvider.future);
+
+    expect(data.authCredentials, isNull);
+  });
+
+  test('when authentication credentials are stored, it should load the complete credentials', () async {
+    when(() => secureStorage.read(key: 'auth_credentials')).thenAnswer(
+      (_) async => '{"refreshToken":"stored-refresh-token","refreshTokenExpiresAt":"2027-09-12T18:30:00.000Z"}',
+    );
+    final expectedCredentials = AuthCredentialsDto.fixture().copyWith(
+      refreshToken: 'stored-refresh-token',
+      refreshTokenExpiresAt: DateTime.parse('2027-09-12T18:30:00.000Z'),
+    );
+
+    final data = await buildContainer().read(appStorageStateProvider.future);
+
+    expect(data.authCredentials, expectedCredentials);
+  });
+
+  test('when stored authentication credentials are malformed, it should clear them and load null', () async {
+    var didDeleteCredentials = false;
+    when(() => secureStorage.read(key: 'auth_credentials')).thenAnswer((_) async => '{malformed-json');
+    when(() => secureStorage.delete(key: 'auth_credentials')).thenAnswer((_) async {
+      didDeleteCredentials = true;
+    });
+
+    final data = await buildContainer().read(appStorageStateProvider.future);
+
+    expect(
+      (authCredentials: data.authCredentials, didDeleteCredentials: didDeleteCredentials),
+      (authCredentials: null, didDeleteCredentials: true),
+    );
+  });
+
+  test('when secure credentials cannot be read or cleared, it should still load them as null', () async {
+    var didAttemptToDeleteCredentials = false;
+    when(() => secureStorage.read(key: 'auth_credentials')).thenThrow(StateError('secure storage unavailable'));
+    when(() => secureStorage.delete(key: 'auth_credentials')).thenAnswer((_) async {
+      didAttemptToDeleteCredentials = true;
+      throw StateError('secure storage unavailable');
+    });
+
+    final data = await buildContainer().read(appStorageStateProvider.future);
+
+    expect(
+      (authCredentials: data.authCredentials, didAttemptToDeleteCredentials: didAttemptToDeleteCredentials),
+      (authCredentials: null, didAttemptToDeleteCredentials: true),
+    );
+  });
+
+  test('when storage flags change after credentials load, it should preserve the credentials', () async {
+    when(() => secureStorage.read(key: 'auth_credentials')).thenAnswer(
+      (_) async => '{"refreshToken":"stored-refresh-token","refreshTokenExpiresAt":"2027-09-12T18:30:00.000Z"}',
+    );
+    final container = buildContainer();
+    final loadedData = await container.read(appStorageStateProvider.future);
+
+    await container.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true);
+
+    expect(container.read(appStorageStateProvider).value!.authCredentials, loadedData.authCredentials);
   });
 
   test('when completing onboarding, it should persist the completion flag', () async {

@@ -413,15 +413,15 @@ void main() {
         FeedViewTestHelpers.mockPlatformViews(tester);
 
         await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
+          TestApp.router(
+            routerConfig: goRouter,
+            providerOverrides: [
               feedStateProvider.overrideWith(
                 () => FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
               ),
               sharedPreferencesAsyncProvider.overrideWithValue(prefs),
               goRouterProvider.overrideWithValue(goRouter),
             ],
-            child: TestApp.router(routerConfig: goRouter),
           ),
         );
         await tester.pump();

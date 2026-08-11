@@ -19,11 +19,14 @@ void main() {
   group('AppBootstrap.setup', () {
     group('when startupProvider loads successfully', () {
       late MockSharedPreferencesAsync prefs;
+      late MockFlutterSecureStorage secureStorage;
       late MockFeedRepository feedRepository;
 
       setUp(() {
         prefs = MockSharedPreferencesAsync();
+        secureStorage = MockFlutterSecureStorage();
         when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+        when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
 
         feedRepository = MockFeedRepository();
         when(() => feedRepository.getFeedJobs()).thenAnswer(
@@ -41,6 +44,7 @@ void main() {
         final container = ProviderContainer(
           overrides: [
             sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+            secureStorageProvider.overrideWithValue(secureStorage),
             feedRepositoryProvider.overrideWithValue(feedRepository),
           ],
         );
@@ -91,11 +95,14 @@ void main() {
 
     group('when feedStateProvider is initialized', () {
       late MockSharedPreferencesAsync prefs;
+      late MockFlutterSecureStorage secureStorage;
       late MockFeedRepository feedRepository;
 
       setUp(() {
         prefs = MockSharedPreferencesAsync();
+        secureStorage = MockFlutterSecureStorage();
         when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+        when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
 
         feedRepository = MockFeedRepository();
         when(() => feedRepository.getFeedJobs()).thenAnswer(
@@ -113,6 +120,7 @@ void main() {
         final container = ProviderContainer(
           overrides: [
             sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+            secureStorageProvider.overrideWithValue(secureStorage),
             feedRepositoryProvider.overrideWithValue(feedRepository),
           ],
         );
@@ -139,11 +147,14 @@ void main() {
 
     group('when feedStateProvider fails to load', () {
       late MockSharedPreferencesAsync prefs;
+      late MockFlutterSecureStorage secureStorage;
       late MockFeedRepository feedRepository;
 
       setUp(() {
         prefs = MockSharedPreferencesAsync();
+        secureStorage = MockFlutterSecureStorage();
         when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+        when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
 
         feedRepository = MockFeedRepository();
         when(() => feedRepository.getFeedJobs()).thenThrow(Exception('Network error'));
@@ -153,6 +164,7 @@ void main() {
         final container = ProviderContainer(
           overrides: [
             sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+            secureStorageProvider.overrideWithValue(secureStorage),
             feedRepositoryProvider.overrideWithValue(feedRepository),
           ],
         );

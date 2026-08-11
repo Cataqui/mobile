@@ -373,6 +373,23 @@ This guarantees the regression test is valid and not vacuously passing. If the e
 
 - Use `mocktail` for shared test mocks, stubs, and verifications. App-level. Reusable mocks must live in `/test/mocks.dart`.
 
+### Centralize Shared Test Setup
+
+- Do not repeat test setup, provider overrides, platform mocks, wrappers, fixtures,
+  or helper behavior across multiple test files when one shared test boundary can
+  own it.
+- When many tests require the same behavior, place it in the common test app,
+  harness, fixture, mock, or helper used by all of them. Prefer safe default
+  behavior that works out of the box, so unrelated tests do not need to know
+  about or configure the dependency.
+- Use an explicit shared helper or override parameter when the behavior must be
+  opt-in or varies by case. Tests that intentionally own a separate container or
+  lifecycle may configure it directly, but should still reuse the common setup
+  function instead of duplicating its implementation.
+- Shared defaults must be isolated to the current test lifecycle and disposed or
+  reset afterward. Never introduce mutable shared test state that can leak into
+  another test.
+
 ### Dedicated Test Files
 
 Organize tests around observable cases and behavior owners, not around source

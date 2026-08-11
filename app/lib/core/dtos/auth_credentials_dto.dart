@@ -15,6 +15,16 @@ abstract class AuthCredentialsDto with _$AuthCredentialsDto {
 
   factory AuthCredentialsDto.fromJson(Map<String, Object?> json) => _$AuthCredentialsDtoFromJson(json);
 
+  factory AuthCredentialsDto.fromSecureStorageValue(String value) {
+    final Object? decodedValue = jsonDecode(value);
+
+    if (decodedValue is! Map<String, Object?>) {
+      throw const FormatException('Stored authentication credentials must be a JSON object.');
+    }
+
+    return AuthCredentialsDto.fromJson(decodedValue);
+  }
+
   factory AuthCredentialsDto.fromAuthSession(AuthSessionDto session) {
     return AuthCredentialsDto(refreshToken: session.refreshToken, refreshTokenExpiresAt: session.refreshTokenExpiresAt);
   }
