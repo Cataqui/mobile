@@ -1,4 +1,5 @@
 import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
+import 'package:cataqui_app/core/dtos/auth_credentials_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -8,6 +9,7 @@ Duration? _noRetry(int retryCount, Object error) => null;
 
 @Riverpod(keepAlive: true, retry: _noRetry)
 class AppStorageState extends _$AppStorageState {
+  static const _authCredentialsKey = 'auth_credentials';
   static const _seenSwipeFeedHintKey = 'seen_swipe_feed_hint';
   static const _completedOnboardingKey = 'completed_onboarding';
 
@@ -27,6 +29,10 @@ class AppStorageState extends _$AppStorageState {
     await prefs.setBool(_completedOnboardingKey, true);
 
     state = AsyncData(state.value!.copyWith(hasCompletedOnboarding: true));
+  }
+
+  Future<void> saveAuthCredentials({required AuthCredentialsDto credentials}) async {
+    await ref.read(secureStorageProvider).write(key: _authCredentialsKey, value: credentials.toSecureStorageValue());
   }
 
   Future<void> setSeenSwipeFeedHint({required bool value}) async {

@@ -56,7 +56,9 @@ class WhatsappLoginState extends _$WhatsappLoginState {
 
       _isExchangeActive = false;
 
-      ref.read(authStateProvider.notifier).setSession(session);
+      await ref.read(authStateProvider.notifier).setSession(session);
+      if (!ref.mounted) return;
+
       state = AsyncData(session);
     } on Object catch (error, stackTrace) {
       await appReturn;

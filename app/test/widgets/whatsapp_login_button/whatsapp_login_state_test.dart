@@ -16,6 +16,7 @@ import '../../mocks.dart';
 
 void main() {
   late MockAuthRepository authRepository;
+  late MockFlutterSecureStorage secureStorage;
   late MockWhatsapp whatsapp;
   late ProviderContainer container;
   late ProviderSubscription<AsyncValue<AuthSessionDto?>> subscription;
@@ -23,10 +24,18 @@ void main() {
 
   setUp(() {
     authRepository = MockAuthRepository();
+    secureStorage = MockFlutterSecureStorage();
     whatsapp = MockWhatsapp();
+    when(
+      () => secureStorage.write(
+        key: any(named: 'key'),
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
     container = ProviderContainer(
       overrides: [
         authRepositoryProvider.overrideWithValue(authRepository),
+        secureStorageProvider.overrideWithValue(secureStorage),
         whatsappProvider.overrideWithValue(whatsapp),
       ],
     );

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude domain="sharedpref" path="cataqui_auth.xml" />
+    <exclude domain="sharedpref" path="FlutterSecureKeyStorage:cataqui_auth.xml" />
+    <exclude domain="sharedpref" path="FlutterSecureStorageConfiguration:cataqui_auth.xml" />
+</full-backup-content>

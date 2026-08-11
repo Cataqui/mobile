@@ -13,6 +13,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -34,6 +35,13 @@ AppConfig appConfig(Ref ref) {
 @Riverpod(keepAlive: true)
 SharedPreferencesAsync sharedPreferencesAsync(Ref ref) {
   return SharedPreferencesAsync();
+}
+
+@Riverpod(keepAlive: true)
+FlutterSecureStorage secureStorage(Ref ref) {
+  return const FlutterSecureStorage(
+    aOptions: AndroidOptions(storageNamespace: 'cataqui_auth', migrateWithBackup: true),
+  );
 }
 
 @Riverpod(keepAlive: true)

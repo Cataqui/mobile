@@ -14,6 +14,20 @@ import '../mocks.dart';
 import '../utils/test_app.dart';
 
 void main() {
+  group('secureStorageProvider', () {
+    test('when read, it should isolate and migrate the Cataquí authentication storage', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final androidOptions = container.read(secureStorageProvider).aOptions.toMap();
+
+      expect(
+        (namespace: androidOptions['storageNamespace'], migrateWithBackup: androidOptions['migrateWithBackup']),
+        (namespace: 'cataqui_auth', migrateWithBackup: 'true'),
+      );
+    });
+  });
+
   group('cataquiApiV1DioProvider', () {
     test('when read, it should prefix the configured Cataquí API root URL with v1', () {
       final container = ProviderContainer(

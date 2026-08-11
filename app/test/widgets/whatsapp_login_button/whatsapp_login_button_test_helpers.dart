@@ -8,6 +8,7 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -34,6 +35,7 @@ abstract final class WhatsappLoginButtonTestHelpers {
     required MockWhatsapp whatsapp,
     required void Function(AuthSessionDto session) onSuccess,
   }) async {
+    FlutterSecureStorage.setMockInitialValues({});
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -51,6 +53,7 @@ abstract final class WhatsappLoginButtonTestHelpers {
   }
 
   static Widget goldenScenario({required MockAuthRepository authRepository, required MockWhatsapp whatsapp}) {
+    FlutterSecureStorage.setMockInitialValues({});
     return ProviderScope(
       overrides: [
         translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
