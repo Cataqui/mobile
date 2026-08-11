@@ -191,6 +191,19 @@ void main() {
     expect(container.read(appStorageStateProvider).value!.authCredentials, credentials);
   });
 
+  test('when invalid credentials cannot be deleted securely, it should still remove them from memory', () async {
+    when(() => secureStorage.read(key: 'auth_credentials')).thenAnswer(
+      (_) async => '{"refreshToken":"stored-refresh-token","refreshTokenExpiresAt":"2027-09-12T18:30:00.000Z"}',
+    );
+    when(() => secureStorage.delete(key: 'auth_credentials')).thenThrow(StateError('secure storage unavailable'));
+    final container = buildContainer();
+    await container.read(appStorageStateProvider.future);
+
+    await container.read(appStorageStateProvider.notifier).clearAuthCredentials();
+
+    expect(container.read(appStorageStateProvider).value!.authCredentials, isNull);
+  });
+
   test('when completing onboarding, it should persist the completion flag', () async {
     final container = buildContainer();
     await container.read(appStorageStateProvider.future);

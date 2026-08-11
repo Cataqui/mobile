@@ -59,17 +59,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.text.secondary),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: MateoButton(
-                label: i18n.feed.locationAvailability.closeButtonTitle,
-                variant: MateoButtonVariant.primary,
-                fit: MateoButtonFit.expand,
-                padding: const EdgeInsetsGeometry.symmetric(vertical: 16, horizontal: 20),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

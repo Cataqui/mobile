@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_auth/login_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -28,7 +28,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
     final appReturn = Completer<void>();
     _appReturnCompleter = appReturn;
 
-    unawaited(ref.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future));
+    unawaited(ref.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future));
   }
 
   void _cancelCheckingToastTimer() {
@@ -43,7 +43,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
       _checkingToastTimer = null;
       if (!mounted) return;
 
-      final loginState = ref.read(whatsappLoginStateProvider.notifier);
+      final loginState = ref.read(loginStateProvider.notifier);
       if (!loginState.isExchangingIntent) return;
 
       _isCheckingToastVisible = true;
@@ -116,7 +116,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed || !mounted) return;
 
-    final loginState = ref.read(whatsappLoginStateProvider.notifier);
+    final loginState = ref.read(loginStateProvider.notifier);
     final appReturn = _appReturnCompleter;
     if (!loginState.isExchangingIntent || appReturn == null || appReturn.isCompleted) return;
 
@@ -127,9 +127,9 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
-    final isLoading = ref.watch(whatsappLoginStateProvider.select((state) => state.isLoading));
+    final isLoading = ref.watch(loginStateProvider.select((state) => state.isLoading));
 
-    ref.listen(whatsappLoginStateProvider, _handleStateChange);
+    ref.listen(loginStateProvider, _handleStateChange);
 
     return MateoButton(
       key: const ValueKey('whatsapp_login_button_action'),

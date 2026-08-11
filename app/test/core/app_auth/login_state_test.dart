@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
+import 'package:cataqui_app/core/app_auth/login_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/registered_auth_intent_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -39,10 +39,10 @@ void main() {
         whatsappProvider.overrideWithValue(whatsapp),
       ],
     );
-    subscription = container.listen(whatsappLoginStateProvider, (_, __) {}, fireImmediately: true);
+    subscription = container.listen(loginStateProvider, (_, __) {}, fireImmediately: true);
     appReturn = Completer<void>();
-    _WhatsappLoginStateTestData.stubSuccessfulRegistration(authRepository: authRepository, whatsapp: whatsapp);
-    _WhatsappLoginStateTestData.stubSuccessfulExchange(authRepository: authRepository);
+    _LoginStateTestData.stubSuccessfulRegistration(authRepository: authRepository, whatsapp: whatsapp);
+    _LoginStateTestData.stubSuccessfulExchange(authRepository: authRepository);
   });
 
   tearDown(() {
@@ -50,42 +50,39 @@ void main() {
     container.dispose();
   });
 
-  group('WhatsappLoginState', () {
+  group('LoginState', () {
     test('when starting a login, it should register a WhatsApp inbound-message intent', () async {
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verify(() => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).called(1);
     });
 
     test('when an intent is registered, it should open its receiver with the unchanged code', () async {
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verify(
-        () => whatsapp.launchChat(
-          number: _WhatsappLoginStateTestData.codeReceiver,
-          message: _WhatsappLoginStateTestData.code,
-        ),
+        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.code),
       ).called(1);
     });
 
     test('when WhatsApp opens, it should immediately exchange the exact intent with the deferred deadline', () async {
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verify(
         () => authRepository.exchangeInboundMessageAuthIntent(
-          intentToken: _WhatsappLoginStateTestData.intentToken,
+          intentToken: _LoginStateTestData.intentToken,
           timeoutStart: appReturn.future,
         ),
       ).called(1);
     });
 
     test('when exchange succeeds before the app returns, it should keep the session unpublished', () async {
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
       await Future<void>.delayed(Duration.zero);
 
       expect(
         (
-          loginIsLoading: container.read(whatsappLoginStateProvider) is AsyncLoading<AuthSessionDto?>,
+          loginIsLoading: container.read(loginStateProvider) is AsyncLoading<AuthSessionDto?>,
           global: container.read(appAuthStateProvider),
         ),
         (loginIsLoading: true, global: null),
@@ -93,15 +90,15 @@ void main() {
     });
 
     test('when the app returns after exchange succeeds, it should publish and globally store the session', () async {
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       appReturn.complete();
       await Future<void>.delayed(Duration.zero);
-      final publishedSession = container.read(whatsappLoginStateProvider).value;
+      final publishedSession = container.read(loginStateProvider).value;
 
       expect(
         (published: publishedSession, global: container.read(appAuthStateProvider)),
-        (published: _WhatsappLoginStateTestData.authSession, global: _WhatsappLoginStateTestData.authSession),
+        (published: _LoginStateTestData.authSession, global: _LoginStateTestData.authSession),
       );
     });
 
@@ -110,33 +107,27 @@ void main() {
         () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
       ).thenThrow(StateError('registration failed'));
 
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
-      expect(container.read(whatsappLoginStateProvider), isA<AsyncError<AuthSessionDto?>>());
+      expect(container.read(loginStateProvider), isA<AsyncError<AuthSessionDto?>>());
     });
 
     test('when WhatsApp cannot open, it should expose a retryable error', () async {
       when(
-        () => whatsapp.launchChat(
-          number: _WhatsappLoginStateTestData.codeReceiver,
-          message: _WhatsappLoginStateTestData.code,
-        ),
+        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.code),
       ).thenAnswer((_) async => false);
 
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
-      expect(container.read(whatsappLoginStateProvider), isA<AsyncError<AuthSessionDto?>>());
+      expect(container.read(loginStateProvider), isA<AsyncError<AuthSessionDto?>>());
     });
 
     test('when WhatsApp cannot open, it should not start exchanging the intent', () async {
       when(
-        () => whatsapp.launchChat(
-          number: _WhatsappLoginStateTestData.codeReceiver,
-          message: _WhatsappLoginStateTestData.code,
-        ),
+        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.code),
       ).thenAnswer((_) async => false);
 
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verifyNever(
         () => authRepository.exchangeInboundMessageAuthIntent(
@@ -149,13 +140,13 @@ void main() {
     test('when exchange fails before the app returns, it should expose the error only after returning', () async {
       when(
         () => authRepository.exchangeInboundMessageAuthIntent(
-          intentToken: _WhatsappLoginStateTestData.intentToken,
+          intentToken: _LoginStateTestData.intentToken,
           timeoutStart: appReturn.future,
         ),
       ).thenThrow(StateError('exchange failed'));
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
       await Future<void>.delayed(Duration.zero);
-      final stateBeforeReturn = container.read(whatsappLoginStateProvider);
+      final stateBeforeReturn = container.read(loginStateProvider);
 
       appReturn.complete();
       await Future<void>.delayed(Duration.zero);
@@ -163,7 +154,7 @@ void main() {
       expect(
         (
           beforeReturnIsLoading: stateBeforeReturn is AsyncLoading<AuthSessionDto?>,
-          afterReturnIsError: container.read(whatsappLoginStateProvider) is AsyncError<AuthSessionDto?>,
+          afterReturnIsError: container.read(loginStateProvider) is AsyncError<AuthSessionDto?>,
         ),
         (beforeReturnIsLoading: true, afterReturnIsError: true),
       );
@@ -174,18 +165,18 @@ void main() {
       when(() => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).thenAnswer((_) async {
         registrationCount += 1;
         if (registrationCount == 1) throw StateError('registration failed');
-        return _WhatsappLoginStateTestData.registeredIntentEnvelope;
+        return _LoginStateTestData.registeredIntentEnvelope;
       });
 
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
-      await container.read(whatsappLoginStateProvider.notifier).startLogin(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
+      await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       expect(registrationCount, 2);
     });
   });
 }
 
-abstract final class _WhatsappLoginStateTestData {
+abstract final class _LoginStateTestData {
   static const intentToken = 'kJ3YFf0SYkZp6gWlMTq3up5ELXWRw_zTuF8j0M5tJgI';
   static const code = 'AUTH-K7F9Q2M8VD';
   static const codeReceiver = '5511988887777';

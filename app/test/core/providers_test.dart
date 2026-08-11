@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
+import 'package:cataqui_app/widgets/login_sheet/login_sheet.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -166,6 +167,31 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
+    });
+
+    testWidgets('when login is requested globally, it should present the sheet through the root navigator', (
+      tester,
+    ) async {
+      final providerContainer = await buildContainer();
+      final goRouter = providerContainer.read(goRouterProvider);
+      addTearDown(goRouter.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: providerContainer,
+          child: TestApp.router(routerConfig: goRouter, mediaQueryData: const MediaQueryData(disableAnimations: true)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final presentation = providerContainer.read(loginSheetControllerProvider).show();
+      await tester.pumpAndSettle();
+
+      final sheetCount = find.byType(LoginSheet).evaluate().length;
+      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      await tester.pumpAndSettle();
+      await presentation;
+
+      expect(sheetCount, 1);
     });
 
     test('when onboarding completes after router creation, it should keep the same router instance', () async {

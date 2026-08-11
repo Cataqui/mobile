@@ -9,6 +9,7 @@ import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
 import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
+import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:flutter/widgets.dart';
@@ -80,6 +81,11 @@ AuthRepository authRepository(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
+LoginSheetController loginSheetController(Ref ref) {
+  return LoginSheetController(ref.watch(rootNavigatorKeyProvider));
+}
+
+@Riverpod(keepAlive: true)
 FeedRepository feedRepository(Ref ref) {
   return FeedRepository(dio: ref.watch(cataquiApiV1DioProvider));
 }
@@ -89,6 +95,7 @@ GoRouter goRouter(Ref ref) {
   final appStorage = ref.read(appStorageStateProvider).requireValue;
 
   return GoRouter(
+    navigatorKey: ref.watch(rootNavigatorKeyProvider),
     initialLocation: appStorage.hasCompletedOnboarding ? const FeedRoute().location : const OnboardingRoute().location,
     redirect: (context, state) {
       if (state.matchedLocation != const OnboardingRoute().location) return null;
@@ -100,6 +107,11 @@ GoRouter goRouter(Ref ref) {
     },
     routes: [$onboardingRoute, $posterOnboardingRoute, $feedRoute, $jobRoute],
   );
+}
+
+@Riverpod(keepAlive: true)
+GlobalKey<NavigatorState> rootNavigatorKey(Ref ref) {
+  return GlobalKey<NavigatorState>(debugLabel: 'root_navigator');
 }
 
 @Riverpod(keepAlive: true)

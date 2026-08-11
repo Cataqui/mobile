@@ -36,6 +36,16 @@ class AppStorageState extends _$AppStorageState {
     state = AsyncData(state.value!.copyWith(hasCompletedOnboarding: true));
   }
 
+  Future<void> clearAuthCredentials() async {
+    try {
+      await ref.read(secureStorageProvider).delete(key: _authCredentialsKey);
+    } catch (_) {
+      // Invalid credentials must stop authenticating this run even when secure storage cannot be cleaned up.
+    }
+
+    state = AsyncData(state.value!.copyWith(authCredentials: null));
+  }
+
   Future<void> setAuthCredentials({required AuthCredentialsDto credentials}) async {
     await ref.read(secureStorageProvider).write(key: _authCredentialsKey, value: credentials.toSecureStorageValue());
 

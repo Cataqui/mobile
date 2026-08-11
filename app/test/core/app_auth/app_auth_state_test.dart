@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
@@ -6,6 +8,7 @@ import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:clock/clock.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -15,12 +18,14 @@ import '../../mocks.dart';
 void main() {
   late MockAuthRepository authRepository;
   late MockFlutterSecureStorage secureStorage;
+  late MockLoginSheetController loginSheetController;
   late MockSharedPreferencesAsync sharedPreferences;
   late ProviderContainer container;
 
   setUp(() async {
     authRepository = MockAuthRepository();
     secureStorage = MockFlutterSecureStorage();
+    loginSheetController = MockLoginSheetController();
     sharedPreferences = MockSharedPreferencesAsync();
     when(() => sharedPreferences.getBool(any())).thenAnswer((_) async => null);
     when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
@@ -30,9 +35,12 @@ void main() {
         value: any(named: 'value'),
       ),
     ).thenAnswer((_) async {});
+    when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
+    when(loginSheetController.show).thenAnswer((_) async => false);
     container = ProviderContainer(
       overrides: [
         authRepositoryProvider.overrideWithValue(authRepository),
+        loginSheetControllerProvider.overrideWithValue(loginSheetController),
         secureStorageProvider.overrideWithValue(secureStorage),
         sharedPreferencesAsyncProvider.overrideWithValue(sharedPreferences),
       ],
@@ -83,7 +91,7 @@ void main() {
     });
 
     test(
-      'when valid credentials are saved, it should publish and persist the complete rotated session on refresh',
+      'when valid credentials are saved, refreshing should return and persist the complete rotated session',
       () async {
         final storedCredentials = AuthCredentialsDto.fixture().copyWith(
           refreshToken: 'saved-refresh-token',
@@ -106,26 +114,29 @@ void main() {
           return ApiEnvelopeDto.fixture(data: issuedSession);
         });
 
-        await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
-          await container.read(appAuthStateProvider.notifier).refreshSession();
+        final result = await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () {
+          return container.read(appAuthStateProvider.notifier).refreshSession();
         });
+        final expectedSession = AuthSessionDto.fromIssuedAuthSession(issuedSession);
 
         expect(
           (
             requestedRefreshToken: requestedRefreshToken,
+            result: result,
             session: container.read(appAuthStateProvider),
             credentials: container.read(appStorageStateProvider).value!.authCredentials,
           ),
           (
             requestedRefreshToken: 'saved-refresh-token',
-            session: AuthSessionDto.fromIssuedAuthSession(issuedSession),
-            credentials: AuthCredentialsDto.fromAuthSession(AuthSessionDto.fromIssuedAuthSession(issuedSession)),
+            result: expectedSession,
+            session: expectedSession,
+            credentials: AuthCredentialsDto.fromAuthSession(expectedSession),
           ),
         );
       },
     );
 
-    test('when no credentials are saved, it should preserve the current session without a refresh request', () async {
+    test('when no credentials are saved, refreshing should request login and return null when dismissed', () async {
       final currentSession = AuthSessionDto.fixture();
       when(
         () => secureStorage.write(
@@ -134,52 +145,169 @@ void main() {
         ),
       ).thenThrow(StateError('secure storage unavailable'));
       await container.read(appAuthStateProvider.notifier).setSession(currentSession);
-      var requestCount = 0;
+      var refreshRequestCount = 0;
+      var loginRequestCount = 0;
       when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
-        requestCount += 1;
+        refreshRequestCount += 1;
         return ApiEnvelopeDto.fixture(data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
       });
+      when(loginSheetController.show).thenAnswer((_) async {
+        loginRequestCount += 1;
+        return false;
+      });
 
-      await container.read(appAuthStateProvider.notifier).refreshSession();
+      final result = await container.read(appAuthStateProvider.notifier).refreshSession();
 
       expect(
-        (session: container.read(appAuthStateProvider), requestCount: requestCount),
-        (session: currentSession, requestCount: 0),
+        (
+          result: result,
+          session: container.read(appAuthStateProvider),
+          credentials: container.read(appStorageStateProvider).value!.authCredentials,
+          refreshRequestCount: refreshRequestCount,
+          loginRequestCount: loginRequestCount,
+        ),
+        (result: null, session: null, credentials: null, refreshRequestCount: 0, loginRequestCount: 1),
       );
     });
 
-    test(
-      'when saved credentials expire at the current time, it should preserve the session without a refresh request',
-      () async {
-        final currentTime = DateTime.utc(2026, 8, 11, 15);
-        final currentSession = AuthSessionDto.fixture().copyWith(
-          refreshToken: 'expired-refresh-token',
-          refreshTokenExpiresAt: currentTime,
-        );
-        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
-        var requestCount = 0;
-        when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
-          requestCount += 1;
-          return ApiEnvelopeDto.fixture(
-            data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
-          );
-        });
+    test('when saved credentials expire at the current time, refreshing should clear them and request login', () async {
+      final currentTime = DateTime.utc(2026, 8, 11, 15);
+      final currentSession = AuthSessionDto.fixture().copyWith(
+        refreshToken: 'expired-refresh-token',
+        refreshTokenExpiresAt: currentTime,
+      );
+      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+      var refreshRequestCount = 0;
+      var loginRequestCount = 0;
+      when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
+        refreshRequestCount += 1;
+        return ApiEnvelopeDto.fixture(data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
+      });
+      when(loginSheetController.show).thenAnswer((_) async {
+        loginRequestCount += 1;
+        return false;
+      });
 
-        await withClock(Clock.fixed(currentTime), () async {
-          await container.read(appAuthStateProvider.notifier).refreshSession();
-        });
+      final result = await withClock(Clock.fixed(currentTime), () {
+        return container.read(appAuthStateProvider.notifier).refreshSession();
+      });
 
-        expect(
-          (session: container.read(appAuthStateProvider), requestCount: requestCount),
-          (session: currentSession, requestCount: 0),
-        );
-      },
-    );
+      expect(
+        (
+          result: result,
+          session: container.read(appAuthStateProvider),
+          credentials: container.read(appStorageStateProvider).value!.authCredentials,
+          refreshRequestCount: refreshRequestCount,
+          loginRequestCount: loginRequestCount,
+        ),
+        (result: null, session: null, credentials: null, refreshRequestCount: 0, loginRequestCount: 1),
+      );
+    });
 
-    test('when the refresh request fails, it should rethrow the error and preserve the current session', () async {
+    test('when refresh is rejected as unauthorized, it should clear authentication and request login', () async {
+      final currentSession = AuthSessionDto.fixture().copyWith(
+        refreshToken: 'rejected-refresh-token',
+        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+      );
+      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+      final unauthorizedError = DioException(
+        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
+        response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+      );
+      var loginRequestCount = 0;
+      when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenThrow(unauthorizedError);
+      when(loginSheetController.show).thenAnswer((_) async {
+        loginRequestCount += 1;
+        return false;
+      });
+
+      final result = await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () {
+        return container.read(appAuthStateProvider.notifier).refreshSession();
+      });
+
+      expect(
+        (
+          result: result,
+          session: container.read(appAuthStateProvider),
+          credentials: container.read(appStorageStateProvider).value!.authCredentials,
+          loginRequestCount: loginRequestCount,
+        ),
+        (result: null, session: null, credentials: null, loginRequestCount: 1),
+      );
+    });
+
+    test('when login succeeds after credentials are unusable, refreshing should return the new session', () async {
+      final authenticatedSession = AuthSessionDto.fixture().copyWith(
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+      );
+      when(loginSheetController.show).thenAnswer((_) async {
+        await container.read(appAuthStateProvider.notifier).setSession(authenticatedSession);
+        return true;
+      });
+
+      final result = await container.read(appAuthStateProvider.notifier).refreshSession();
+
+      expect(
+        (
+          result: result,
+          session: container.read(appAuthStateProvider),
+          credentials: container.read(appStorageStateProvider).value!.authCredentials,
+        ),
+        (
+          result: authenticatedSession,
+          session: authenticatedSession,
+          credentials: AuthCredentialsDto.fromAuthSession(authenticatedSession),
+        ),
+      );
+    });
+
+    test('when refresh is forbidden, it should rethrow the error without requesting login', () async {
       final currentSession = AuthSessionDto.fixture().copyWith(
         refreshToken: 'saved-refresh-token',
-        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
+        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+      );
+      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+      final forbiddenError = DioException(
+        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
+        response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 403),
+      );
+      when(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).thenThrow(forbiddenError);
+      var loginRequestCount = 0;
+      when(loginSheetController.show).thenAnswer((_) async {
+        loginRequestCount += 1;
+        return false;
+      });
+      Object? thrownError;
+
+      try {
+        await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () {
+          return container.read(appAuthStateProvider.notifier).refreshSession();
+        });
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(
+        (
+          error: thrownError,
+          session: container.read(appAuthStateProvider),
+          credentials: container.read(appStorageStateProvider).value!.authCredentials,
+          loginRequestCount: loginRequestCount,
+        ),
+        (
+          error: forbiddenError,
+          session: currentSession,
+          credentials: AuthCredentialsDto.fromAuthSession(currentSession),
+          loginRequestCount: 0,
+        ),
+      );
+    });
+
+    test('when refresh fails outside authentication, it should rethrow and preserve the current session', () async {
+      final currentSession = AuthSessionDto.fixture().copyWith(
+        refreshToken: 'saved-refresh-token',
+        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
       );
       await container.read(appAuthStateProvider.notifier).setSession(currentSession);
       final refreshError = StateError('refresh failed');
@@ -187,8 +315,8 @@ void main() {
       Object? thrownError;
 
       try {
-        await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
-          await container.read(appAuthStateProvider.notifier).refreshSession();
+        await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () {
+          return container.read(appAuthStateProvider.notifier).refreshSession();
         });
       } catch (error) {
         thrownError = error;
@@ -197,6 +325,42 @@ void main() {
       expect(
         (error: thrownError, session: container.read(appAuthStateProvider)),
         (error: refreshError, session: currentSession),
+      );
+    });
+
+    test('when refresh is already active, concurrent callers should share one request and session', () async {
+      final storedCredentials = AuthCredentialsDto.fixture().copyWith(
+        refreshToken: 'saved-refresh-token',
+        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+      );
+      await container.read(appStorageStateProvider.notifier).setAuthCredentials(credentials: storedCredentials);
+      final issuedSession = AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto;
+      final responseCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
+      var refreshRequestCount = 0;
+      when(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).thenAnswer((_) {
+        refreshRequestCount += 1;
+        return responseCompleter.future;
+      });
+
+      late Future<AuthSessionDto?> firstRefresh;
+      late Future<AuthSessionDto?> secondRefresh;
+      await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
+        firstRefresh = container.read(appAuthStateProvider.notifier).refreshSession();
+        secondRefresh = container.read(appAuthStateProvider.notifier).refreshSession();
+        await Future<void>.delayed(Duration.zero);
+        responseCompleter.complete(ApiEnvelopeDto.fixture(data: issuedSession));
+      });
+      final results = await Future.wait([firstRefresh, secondRefresh]);
+      final expectedSession = AuthSessionDto.fromIssuedAuthSession(issuedSession);
+
+      expect(
+        (
+          sameFuture: identical(firstRefresh, secondRefresh),
+          refreshRequestCount: refreshRequestCount,
+          firstResult: results.first,
+          secondResult: results.last,
+        ),
+        (sameFuture: true, refreshRequestCount: 1, firstResult: expectedSession, secondResult: expectedSession),
       );
     });
   });

@@ -6,10 +6,10 @@ import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'whatsapp_login_state.g.dart';
+part 'login_state.g.dart';
 
 @riverpod
-class WhatsappLoginState extends _$WhatsappLoginState {
+class LoginState extends _$LoginState {
   bool _isExchangeActive = false;
 
   @override
@@ -17,7 +17,7 @@ class WhatsappLoginState extends _$WhatsappLoginState {
 
   bool get isExchangingIntent => _isExchangeActive;
 
-  Future<void> startLogin({required Future<void> appReturn}) async {
+  Future<void> loginWithWhatsapp({required Future<void> appReturn}) async {
     try {
       if (state.isLoading) return;
 

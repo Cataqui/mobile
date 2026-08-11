@@ -72,7 +72,7 @@ void main() {
         );
         await tester.tap(find.text(i18n.feed.locationAvailability.cityLabel));
         await tester.pumpAndSettle();
-        await tester.tap(find.text(i18n.feed.locationAvailability.closeButtonTitle));
+        await tester.tap(find.byKey(const Key('mateo_bottom_sheet_close_button')));
         await tester.pumpAndSettle();
 
         expect(find.text(i18n.feed.locationAvailability.message), findsNothing);

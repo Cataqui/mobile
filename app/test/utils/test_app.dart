@@ -8,13 +8,23 @@ import 'package:mocktail/mocktail.dart';
 import '../mocks.dart';
 
 class TestApp extends StatelessWidget {
-  const TestApp({required Widget this.child, super.key, this.mediaQueryData, this.providerOverrides = const []})
-    : routerConfig = null,
-      _wrapInScaffold = true;
+  const TestApp({
+    required Widget this.child,
+    super.key,
+    this.mediaQueryData,
+    this.navigatorKey,
+    this.providerOverrides = const [],
+  }) : routerConfig = null,
+       _wrapInScaffold = true;
 
-  const TestApp.screen({required Widget this.child, super.key, this.mediaQueryData, this.providerOverrides = const []})
-    : routerConfig = null,
-      _wrapInScaffold = false;
+  const TestApp.screen({
+    required Widget this.child,
+    super.key,
+    this.mediaQueryData,
+    this.navigatorKey,
+    this.providerOverrides = const [],
+  }) : routerConfig = null,
+       _wrapInScaffold = false;
 
   const TestApp.router({
     required RouterConfig<Object> this.routerConfig,
@@ -22,6 +32,7 @@ class TestApp extends StatelessWidget {
     this.mediaQueryData,
     this.providerOverrides = const [],
   }) : child = null,
+       navigatorKey = null,
        _wrapInScaffold = false;
 
   static const _color = (primary: Color(0xFFFF4A4B), onPrimary: Color(0xFFFFFFFF));
@@ -40,6 +51,7 @@ class TestApp extends StatelessWidget {
 
   final Widget? child;
   final MediaQueryData? mediaQueryData;
+  final GlobalKey<NavigatorState>? navigatorKey;
   final List<Override> providerOverrides;
   final RouterConfig<Object>? routerConfig;
   final bool _wrapInScaffold;
@@ -67,6 +79,7 @@ class TestApp extends StatelessWidget {
       child: MateoApp(
         title: 'Test App',
         color: _color,
+        navigatorKey: navigatorKey,
         home: _withMediaQuery(_wrapInScaffold ? Scaffold(body: Center(child: child)) : child),
       ),
     );

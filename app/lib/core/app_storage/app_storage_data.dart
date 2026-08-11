@@ -1,27 +1,13 @@
 import 'package:cataqui_app/core/dtos/auth_credentials_dto.dart';
-import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-@immutable
-class AppStorageData {
-  const AppStorageData({
-    required this.authCredentials,
-    required this.hasSeenSwipeFeedHint,
-    required this.hasCompletedOnboarding,
-  });
+part 'app_storage_data.freezed.dart';
 
-  final AuthCredentialsDto? authCredentials;
-  final bool hasSeenSwipeFeedHint;
-  final bool hasCompletedOnboarding;
-
-  AppStorageData copyWith({
-    AuthCredentialsDto? authCredentials,
-    bool? hasSeenSwipeFeedHint,
-    bool? hasCompletedOnboarding,
-  }) {
-    return AppStorageData(
-      authCredentials: authCredentials ?? this.authCredentials,
-      hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? this.hasSeenSwipeFeedHint,
-      hasCompletedOnboarding: hasCompletedOnboarding ?? this.hasCompletedOnboarding,
-    );
-  }
+@freezed
+abstract class AppStorageData with _$AppStorageData {
+  const factory AppStorageData({
+    required AuthCredentialsDto? authCredentials,
+    required bool hasSeenSwipeFeedHint,
+    required bool hasCompletedOnboarding,
+  }) = _AppStorageData;
 }
