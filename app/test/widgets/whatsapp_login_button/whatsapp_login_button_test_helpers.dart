@@ -16,7 +16,8 @@ import '../../utils/test_app.dart';
 abstract final class WhatsappLoginButtonTestHelpers {
   static const intentToken = 'kJ3YFf0SYkZp6gWlMTq3up5ELXWRw_zTuF8j0M5tJgI';
   static const code = 'AUTH-K7F9Q2M8VD';
-  static const codeReceiver = '5511988887777';
+  static const codeReceiver = '+5511988887777';
+  static const message = 'Entrar com o código $code.\n\nDepois de enviar só voltar pro app e esperar';
   static const buttonKey = ValueKey('whatsapp_login_button_action');
 
   static final registeredIntentEnvelope = ApiEnvelopeDto.fixture(
@@ -67,7 +68,7 @@ abstract final class WhatsappLoginButtonTestHelpers {
     when(
       () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
     ).thenAnswer((_) async => registeredIntentEnvelope);
-    when(() => whatsapp.launchChat(number: codeReceiver, message: code)).thenAnswer((_) async => true);
+    when(() => whatsapp.launchChat(number: codeReceiver, message: message)).thenAnswer((_) async => true);
   }
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {

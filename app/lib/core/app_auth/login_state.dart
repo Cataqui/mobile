@@ -29,7 +29,10 @@ class LoginState extends _$LoginState {
 
       final didOpenWhatsapp = await ref
           .read(whatsappProvider)
-          .launchChat(number: intent.codeReceiver, message: intent.code);
+          .launchChat(
+            number: intent.codeReceiver,
+            message: ref.read(translationProvider).whatsappLoginButton.message(code: intent.code),
+          );
 
       if (!didOpenWhatsapp) throw StateError('WhatsApp could not be opened.');
       if (!ref.mounted) return;

@@ -57,11 +57,11 @@ void main() {
       verify(() => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).called(1);
     });
 
-    test('when an intent is registered, it should open its receiver with the unchanged code', () async {
+    test('when an intent is registered, it should open its receiver with instructions containing the code', () async {
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verify(
-        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.code),
+        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.message),
       ).called(1);
     });
 
@@ -114,7 +114,7 @@ void main() {
 
     test('when WhatsApp cannot open, it should expose a retryable error', () async {
       when(
-        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.code),
+        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.message),
       ).thenAnswer((_) async => false);
 
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
@@ -124,7 +124,7 @@ void main() {
 
     test('when WhatsApp cannot open, it should not start exchanging the intent', () async {
       when(
-        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.code),
+        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.message),
       ).thenAnswer((_) async => false);
 
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
@@ -179,7 +179,8 @@ void main() {
 abstract final class _LoginStateTestData {
   static const intentToken = 'kJ3YFf0SYkZp6gWlMTq3up5ELXWRw_zTuF8j0M5tJgI';
   static const code = 'AUTH-K7F9Q2M8VD';
-  static const codeReceiver = '5511988887777';
+  static const codeReceiver = '+5511988887777';
+  static const message = 'Entrar com o código $code.\n\nDepois de enviar só voltar pro app e esperar';
   static final registeredIntentEnvelope = ApiEnvelopeDto.fixture(
     data: RegisteredAuthIntentDto.fixture().copyWith(intentToken: intentToken, code: code, codeReceiver: codeReceiver),
   );
@@ -192,7 +193,7 @@ abstract final class _LoginStateTestData {
     when(
       () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
     ).thenAnswer((_) async => registeredIntentEnvelope);
-    when(() => whatsapp.launchChat(number: codeReceiver, message: code)).thenAnswer((_) async => true);
+    when(() => whatsapp.launchChat(number: codeReceiver, message: message)).thenAnswer((_) async => true);
   }
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {

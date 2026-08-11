@@ -199,6 +199,7 @@
   },
   "whatsappLoginButton": {
     "label": "Entrar com WhatsApp",
+    "message": "Entrar com o código {code: String}.\n\nDepois de enviar só voltar pro app e esperar",
     "checking": "Estamos vendo se você mandou o código certinho",
     "error": "Não deu. Tenta de novo",
     "success": "Tá dentro!"
