@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/app_auth/login_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
+import 'package:cataqui_app/core/network/rate_limit/rate_limited_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,11 +81,17 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
 
         widget.onSuccess(session);
       },
-      error: (_, __) {
+      error: (error, _) {
         _cancelCheckingToastTimer();
         _appReturnCompleter = null;
         _isCheckingToastVisible = false;
-        MateoToast.show(context, message: ref.read(translationProvider).whatsappLoginButton.error);
+        final i18n = ref.read(translationProvider);
+        MateoToast.show(
+          context,
+          message: error is RateLimitedDioException
+              ? i18n.whatsappLoginButton.rateLimited
+              : i18n.whatsappLoginButton.error,
+        );
       },
       loading: () {},
     );

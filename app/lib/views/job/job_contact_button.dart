@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/network/rate_limit/rate_limited_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_state.dart';
@@ -24,6 +25,11 @@ class JobContactButton extends ConsumerWidget {
   }
 
   void _showErrorToast(BuildContext context, Translations i18n, Object error) {
+    if (error is RateLimitedDioException) {
+      MateoToast.show(context, message: i18n.job.contactButton.error.rateLimitedMessage);
+      return;
+    }
+
     if (error.isOfflineConnectionDioException) {
       MateoToast.show(
         context,

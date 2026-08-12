@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/network/rate_limit/rate_limited_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
@@ -374,6 +375,39 @@ void main() {
 
         verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
         verifyNever(() => telephony.call(number: any(named: 'number')));
+      });
+    });
+
+    group('when the contact fetch is rate limited', () {
+      testWidgets('when the person taps contact, it should ask them to wait before trying again', (tester) async {
+        when(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        ).thenThrow(
+          RateLimitedDioException(
+            requestOptions: RequestOptions(path: '/jobs/test/contact/test-contact'),
+            retryAfter: const Duration(seconds: 60),
+          ),
+        );
+
+        await tester.pumpWidget(
+          _ButtonTestHelpers.buildApp(
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            i18n: i18n,
+            repository: repository,
+            whatsapp: whatsapp,
+            telephony: telephony,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(i18n.job.contactButton.whatsapp));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        expect(find.text(i18n.job.contactButton.error.rateLimitedMessage), findsOneWidget);
       });
     });
   });

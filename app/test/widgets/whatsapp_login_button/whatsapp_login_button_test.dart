@@ -4,8 +4,10 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
+import 'package:cataqui_app/core/network/rate_limit/rate_limited_dio_exception.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -136,6 +138,26 @@ void main() {
         (errorToast: find.text(i18n.whatsappLoginButton.error).evaluate().length, enabled: button.onPressed != null),
         (errorToast: 1, enabled: true),
       );
+    });
+
+    testWidgets('when login is rate limited, it should ask the person to wait before trying again', (tester) async {
+      when(() => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).thenThrow(
+        RateLimitedDioException(
+          requestOptions: RequestOptions(path: '/auth/inbound-message/intents'),
+          retryAfter: const Duration(seconds: 60),
+        ),
+      );
+      await WhatsappLoginButtonTestHelpers.pumpButton(
+        tester: tester,
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+        onSuccess: (_) {},
+      );
+
+      await tester.tap(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
+      await tester.pump();
+
+      expect(find.text(i18n.whatsappLoginButton.rateLimited), findsOneWidget);
     });
 
     testWidgets('when login succeeds after returning from WhatsApp, it should show the success toast', (tester) async {

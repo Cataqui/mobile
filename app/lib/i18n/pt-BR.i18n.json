@@ -88,7 +88,8 @@
       "unknown": "Indisponível",
       "error": {
         "genericMessage": "Eita, não conseguimos abrir por algum erro. Tenta de novo",
-        "offlineMessage": "Tá sem internet parece. Dá uma olhada e tenta de novo"
+        "offlineMessage": "Tá sem internet parece. Dá uma olhada e tenta de novo",
+        "rateLimitedMessage": "Muita gente tentou agora. Espera um pouquinho e tenta de novo"
       }
     }
   },
@@ -202,6 +203,7 @@
     "message": "Entrar com o código {code: String}.\n\nDepois de enviar só voltar pro app e esperar",
     "checking": "Estamos vendo se você mandou o código certinho",
     "error": "Não deu. Tenta de novo",
+    "rateLimited": "Muita gente tentou agora. Espera um pouquinho e tenta de novo",
     "success": "Tá dentro!"
   },
   "loginSheet": {

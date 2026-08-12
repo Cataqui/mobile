@@ -13,6 +13,7 @@ import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
 import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:flutter/widgets.dart';
@@ -20,6 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,22 +51,37 @@ FlutterSecureStorage secureStorage(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
+Future<CookieJar> cataquiApiCookieJar(Ref ref) async {
+  try {
+    final applicationSupportDirectory = await getApplicationSupportDirectory();
+    final cookieJar = PersistCookieJar(storage: FileStorage('${applicationSupportDirectory.path}/cataqui_api_cookies'));
+    await cookieJar.forceInit();
+    return cookieJar;
+  } on Object {
+    return CookieJar();
+  }
+}
+
+@Riverpod(keepAlive: true)
 Dio unauthenticatedCataquiApiV1Dio(Ref ref) {
   final appConfig = ref.read(appConfigProvider);
   final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
+  final cookieJar = ref.watch(cataquiApiCookieJarProvider).requireValue;
 
-  return CataquiApiV1DioFactory.create(appConfig: appConfig, languageTag: locale.languageTag);
+  return CataquiApiV1DioFactory.create(appConfig: appConfig, languageTag: locale.languageTag, cookieJar: cookieJar);
 }
 
 @Riverpod(keepAlive: true)
 Dio authenticatedCataquiApiV1Dio(Ref ref) {
   final appConfig = ref.read(appConfigProvider);
   final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
+  final cookieJar = ref.watch(cataquiApiCookieJarProvider).requireValue;
   final unauthenticatedDio = ref.watch(unauthenticatedCataquiApiV1DioProvider);
 
   return CataquiApiV1DioFactory.create(
     appConfig: appConfig,
     languageTag: locale.languageTag,
+    cookieJar: cookieJar,
     authInterceptor: AuthInterceptor(
       unauthenticatedDio: unauthenticatedDio,
       readSession: () => ref.read(appAuthStateProvider),

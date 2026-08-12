@@ -1,4 +1,5 @@
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
+import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
@@ -14,7 +15,10 @@ abstract final class AppBootstrap {
     await Future.wait([_warmUpGoogleMaps(), Future<String>.value(JobLocationMapStyle.googleMapsJson)]);
 
     // Block until essential providers are loaded (fail-fatal on error).
-    await providerContainer.read(appStorageStateProvider.future);
+    await Future.wait([
+      providerContainer.read(appStorageStateProvider.future),
+      providerContainer.read(cataquiApiCookieJarProvider.future),
+    ]);
 
     // Fire-and-forget: start the feed network fetch early so it's already
     // in-flight (or completed) when the feed screen mounts.
