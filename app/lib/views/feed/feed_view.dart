@@ -7,8 +7,10 @@ import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/three_d.g.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_modal.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
@@ -86,6 +88,8 @@ class _FeedViewState extends ConsumerState<FeedView> {
     final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      floatingActionButton: _buildJobCreationButton(i18n),
       body: Stack(
         children: [
           Positioned.fill(
@@ -164,6 +168,23 @@ class _FeedViewState extends ConsumerState<FeedView> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildJobCreationButton(Translations i18n) {
+    return MateoFloatingActionButton(
+      key: const ValueKey('feed_job_creation_button'),
+      size: 62,
+      backgroundColor: context.mateo.colorScheme.inverse.background,
+      foregroundColor: context.mateo.colorScheme.inverse.onBackground,
+      semanticLabel: i18n.feed.jobCreationButtonSemanticLabel,
+      onPressed: () => unawaited(JobCreationFlowModal.show(context)),
+      iconBuilder: (state) => MateoIcon.plusSignal(
+        key: const ValueKey('feed_job_creation_plus_icon'),
+        width: state.iconSize,
+        height: state.iconSize,
+        color: state.foregroundColor,
       ),
     );
   }

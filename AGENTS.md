@@ -161,7 +161,12 @@ widget or model that produces or consumes the data.
   convention consistent and avoids the `static` keyword as a ceremonial
   ceremony that adds no value.
 
-### Constants Local to Widgets
+### Inline Single-Use Values and Logic
+
+- Do not extract a function, getter, constant, number, string, or other expression when it has only one use and no
+  independent domain responsibility. Inline it at its usage site so readers do not need to jump between declarations.
+- Extract it when it is reused, represents an independently meaningful domain rule, is required by an API or lifecycle,
+  or makes otherwise unclear logic materially easier to understand.
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
 - **Name your math:** When combining numbers in an expression where each operand's meaning is not immediately obvious (e.g. `width - 30 - 12 - 14 - 26`), extract each operand into a named constant so the expression reads as intent. Simple standalone values like `padding: 24` do not need extraction — the position tells you what the number means.

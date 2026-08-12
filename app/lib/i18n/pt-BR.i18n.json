@@ -9,6 +9,7 @@
     "paginationError": "Não conseguimos buscar mais oportunidades.",
     "retry": "Tentar novamente",
     "end": "Você viu todas as oportunidades por enquanto.",
+    "jobCreationButtonSemanticLabel": "Criar trabalho",
     "offline": {
       "title": "Sem Internet",
       "description": "Parece que a internet não tá funcionando. Dá uma olhada e tenta de novo",
@@ -44,6 +45,16 @@
       "cityLabel": "São Paulo",
       "message": "Por enquanto, estamos disponíveis só na cidade de São Paulo. Logo estaremos em mais cidades!",
       "closeButtonTitle": "Beleza"
+    }
+  },
+  "jobCreationFlow": {
+    "continueButtonSemanticLabel": "Continuar",
+    "steps": {
+      "description": {
+        "title": "Do que você precisa?",
+        "placeholder": "Preciso de...\n\nConte o que a pessoa vai fazer, os dias e horários, se precisa de experiência e qualquer outro detalhe importante.\n\n",
+        "tooShortError": "Muito curto. Explica melhor"
+      }
     }
   },
   "feedJob": {

@@ -4,8 +4,10 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
+import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_modal.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
@@ -86,6 +88,62 @@ void main() {
         );
         await tester.pump();
         expect(find.text(i18n.feed.searchPlaceholder), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the job creation button renders, it should provide a 48 pixel touch target', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+        final tapTargetFinder = find.descendant(
+          of: find.byKey(const ValueKey('feed_job_creation_button')),
+          matching: find.byKey(const Key('mateo_floating_action_button_tap_target')),
+        );
+
+        expect(tester.getSize(tapTargetFinder).height, greaterThanOrEqualTo(48));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the job creation button renders, it should describe the create-job action', (tester) async {
+        final semantics = tester.ensureSemantics();
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+
+        try {
+          expect(find.bySemanticsLabel(i18n.feed.jobCreationButtonSemanticLabel), findsOneWidget);
+        } finally {
+          semantics.dispose();
+        }
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when tapping the job creation button, it should open the job creation flow', (tester) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(JobCreationFlowModal), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when the job creation keyboard opens, it should keep the underlying feed viewport unchanged', (
+        tester,
+      ) async {
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
+        );
+        final feedScaffold = tester.widget<Scaffold>(
+          find.descendant(of: find.byType(FeedView), matching: find.byType(Scaffold)),
+        );
+
+        expect(feedScaffold.resizeToAvoidBottomInset, isFalse);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });

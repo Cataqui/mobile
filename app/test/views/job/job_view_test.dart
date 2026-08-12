@@ -189,13 +189,13 @@ void main() {
         disableAnimations: false,
       );
 
-      await tester.tap(find.byType(MateoFloatingActionButton));
+      await tester.tap(find.byType(MateoFloatingActionButton).last);
       await tester.pump();
 
       final fadeTransition = tester.widget<FadeTransition>(
         find
             .ancestor(
-              of: find.byType(MateoFloatingActionButton, skipOffstage: false),
+              of: find.byType(MateoFloatingActionButton, skipOffstage: false).last,
               matching: find.byType(FadeTransition),
             )
             .first,
@@ -378,7 +378,7 @@ void main() {
       final fadeTransition = tester.widget<FadeTransition>(
         find
             .ancestor(
-              of: find.byType(MateoFloatingActionButton, skipOffstage: false),
+              of: find.byType(MateoFloatingActionButton, skipOffstage: false).last,
               matching: find.byType(FadeTransition),
             )
             .first,
