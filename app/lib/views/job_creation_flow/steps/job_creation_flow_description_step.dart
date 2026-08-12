@@ -1,21 +1,48 @@
 part of '../job_creation_flow_modal.dart';
 
 class _JobCreationFlowDescriptionStep extends _JobCreationFlowStep {
-  const _JobCreationFlowDescriptionStep({super.key});
+  const _JobCreationFlowDescriptionStep({required super.continueInProgressListenable, super.key});
 
   @override
   ConsumerState<_JobCreationFlowDescriptionStep> createState() => _JobCreationFlowDescriptionStepState();
 
   @override
-  bool shouldShowContinue(JobCreationFlowData flowData) => flowData.descriptionText?.trim().isNotEmpty ?? false;
+  bool shouldShowContinueButton(JobCreationFlowData flowData) => flowData.descriptionText?.trim().isNotEmpty ?? false;
 
   @override
-  bool canContinue(JobCreationFlowData flowData) => (flowData.descriptionText?.trim().length ?? 0) >= 10;
-
-  @override
-  void showCannotContinueFeedback(BuildContext context, WidgetRef ref) {
+  Future<({bool proceed})> tryContinue(BuildContext context, WidgetRef ref) async {
     final i18n = ref.read(translationProvider);
-    MateoToast.show(context, message: i18n.jobCreationFlow.steps.description.tooShortError, type: MateoToastType.error);
+    final descriptionLength = ref.read(jobCreationFlowStateProvider).descriptionText?.trim().length ?? 0;
+
+    if (descriptionLength < 10) {
+      MateoToast.show(
+        context,
+        message: i18n.jobCreationFlow.steps.description.tooShortError,
+        type: MateoToastType.error,
+      );
+
+      return (proceed: false);
+    }
+
+    if (descriptionLength > 10000) {
+      MateoToast.show(
+        context,
+        message: i18n.jobCreationFlow.steps.description.tooLongError(characterCount: descriptionLength),
+        type: MateoToastType.error,
+      );
+      return (proceed: false);
+    }
+
+    try {
+      await ref.read(jobCreationFlowStateProvider.notifier).createDraft();
+      return (proceed: true);
+    } on Object {
+      if (context.mounted) {
+        MateoToast.show(context, message: i18n.jobCreationFlow.createDraftError, type: MateoToastType.error);
+      }
+
+      return (proceed: false);
+    }
   }
 }
 
@@ -53,20 +80,24 @@ class _JobCreationFlowDescriptionStepState extends ConsumerState<_JobCreationFlo
           child: SingleChildScrollView(
             key: const ValueKey('job_creation_flow_prompt_scroll_view'),
             padding: EdgeInsets.only(top: JobCreationFlowModal.topEdgeFadeHeight - 35, bottom: bottomEdgeFadeHeight),
-            child: MateoTextInput(
-              controller: _descriptionController,
-              placeholder: i18n.jobCreationFlow.steps.description.placeholder,
-              variant: MateoTextInputVariant.quiet,
-              multiline: true,
-              autofocus: true,
-              textStyle: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
-                color: context.mateo.colorScheme.text.primary,
+            child: ValueListenableBuilder<bool>(
+              valueListenable: widget.continueInProgressListenable,
+              builder: (context, continueInProgress, _) => MateoTextInput(
+                controller: _descriptionController,
+                placeholder: i18n.jobCreationFlow.steps.description.placeholder,
+                variant: MateoTextInputVariant.quiet,
+                multiline: true,
+                autofocus: true,
+                textStyle: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                  color: context.mateo.colorScheme.text.primary,
+                ),
+                keyboardType: TextInputType.multiline,
+                scrollPadding: EdgeInsets.only(bottom: bottomEdgeFadeHeight),
+                editable: !continueInProgress,
+                onChanged: _setDescription,
               ),
-              keyboardType: TextInputType.multiline,
-              scrollPadding: EdgeInsets.only(bottom: bottomEdgeFadeHeight),
-              onChanged: _setDescription,
             ),
           ),
         ),

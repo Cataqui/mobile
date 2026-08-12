@@ -1,21 +1,36 @@
+import 'dart:async';
+
+import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_data.dart';
 import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_modal.dart';
 import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
+import '../../mocks.dart';
 import 'job_creation_flow_modal_test_helpers.dart';
 
 void main() {
   late Translations i18n;
+  late MockJobRepository jobRepository;
 
   setUpAll(() {
     i18n = AppLocale.ptBr.buildSync();
+  });
+
+  setUp(() {
+    jobRepository = MockJobRepository();
+    when(
+      () => jobRepository.createDraft(description: any(named: 'description')),
+    ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
   });
 
   testWidgets('when the creation action is tapped, it should open the job creation bottom sheet', (tester) async {
@@ -147,26 +162,245 @@ void main() {
     },
   );
 
-  testWidgets('when a short description is continued, it should keep the description step active', (tester) async {
-    await JobCreationFlowModalTestHelpers.pumpSheet(tester);
-    await tester.enterText(find.byType(TextField), 'Preciso de ajuda');
+  testWidgets('when a 10-character description is continued, it should keep the description step active', (
+    tester,
+  ) async {
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), List<String>.filled(10, 'a').join());
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('job_creation_flow_description_step')), findsOneWidget);
   });
 
   testWidgets('when a valid description is continued, it should not show the short-description error', (tester) async {
-    await JobCreationFlowModalTestHelpers.pumpSheet(tester);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), List<String>.filled(10, 'a').join());
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text(i18n.jobCreationFlow.steps.description.tooShortError), findsNothing);
+  });
+
+  testWidgets('when a 10000-character description is continued, it should create the draft', (tester) async {
+    final description = List<String>.filled(10000, 'a').join();
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), description);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pumpAndSettle();
+
+    verify(() => jobRepository.createDraft(description: description)).called(1);
+  });
+
+  testWidgets('when a 10001-character description is continued, it should show the translated length error', (
+    tester,
+  ) async {
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), List<String>.filled(10001, 'a').join());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text(i18n.jobCreationFlow.steps.description.tooLongError(characterCount: 10001)), findsOneWidget);
+  });
+
+  testWidgets('when a 10001-character description is continued, it should not create a draft', (tester) async {
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), List<String>.filled(10001, 'a').join());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    verifyNever(() => jobRepository.createDraft(description: any(named: 'description')));
+  });
+
+  testWidgets('when draft creation remains pending, it should show the Mateo loader', (tester) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byKey(const Key('mateo_floating_action_button_loading_indicator')), findsOneWidget);
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('when draft creation remains pending, it should disable description editing', (tester) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+    final textInput = tester.widget<MateoTextInput>(find.byType(MateoTextInput));
+
+    expect(textInput.editable, isFalse);
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('when draft creation remains pending and delete is pressed, it should preserve the description', (
+    tester,
+  ) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+    await tester.pump();
+    final textField = tester.widget<TextField>(find.byType(TextField));
+
+    expect(textField.controller?.text, _JobCreationFlowModalTestData.validDescription);
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('when draft creation finishes, it should restore description editing', (tester) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pumpAndSettle();
+    final textInput = tester.widget<MateoTextInput>(find.byType(MateoTextInput));
+
+    expect(textInput.editable, isTrue);
+  });
+
+  testWidgets('when draft creation remains pending, it should keep the keyboard visible', (tester) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(tester.testTextInput.isVisible, isTrue);
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('when draft creation remains pending and continue is tapped again, it should submit only once', (
+    tester,
+  ) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump();
+
+    verify(() => jobRepository.createDraft(description: _JobCreationFlowModalTestData.validDescription)).called(1);
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('when draft creation remains pending and Android back is pressed, it should keep the modal open', (
+    tester,
+  ) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.binding.handlePopRoute();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(JobCreationFlowModal), findsOneWidget);
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('when draft creation remains pending and the close button is tapped, it should close the modal', (
+    tester,
+  ) async {
+    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
+    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.byKey(const Key('mateo_bottom_sheet_close_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(JobCreationFlowModal), findsNothing);
+    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
+    await tester.pump();
+  });
+
+  testWidgets('when draft creation succeeds, it should restore the continue icon', (tester) async {
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('job_creation_flow_continue_icon')), findsOneWidget);
+  });
+
+  testWidgets('when draft creation fails, it should show the translated request error', (tester) async {
+    when(
+      () => jobRepository.createDraft(description: any(named: 'description')),
+    ).thenThrow(Exception('request failed'));
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text(i18n.jobCreationFlow.createDraftError), findsOneWidget);
+  });
+
+  testWidgets('when draft creation fails, it should preserve the entered description', (tester) async {
+    when(
+      () => jobRepository.createDraft(description: any(named: 'description')),
+    ).thenThrow(Exception('request failed'));
+    await JobCreationFlowModalTestHelpers.pumpSheet(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _JobCreationFlowModalTestData.validDescription);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+    await tester.pumpAndSettle();
+    final textField = tester.widget<TextField>(find.byType(TextField));
+
+    expect(textField.controller?.text, _JobCreationFlowModalTestData.validDescription);
   });
 
   testWidgets('when all meaningful description text is removed, it should hide the continue action', (tester) async {
@@ -317,4 +551,8 @@ void main() {
 
     expect(find.byType(JobCreationFlowModal), findsNothing);
   });
+}
+
+abstract final class _JobCreationFlowModalTestData {
+  static const validDescription = 'Preciso de uma pessoa para descarregar caixas.';
 }

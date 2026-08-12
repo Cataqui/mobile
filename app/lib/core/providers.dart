@@ -132,7 +132,10 @@ GlobalKey<NavigatorState> rootNavigatorKey(Ref ref) {
 
 @Riverpod(keepAlive: true)
 JobRepository jobRepository(Ref ref) {
-  return JobRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
+  return JobRepository(
+    authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider),
+    unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider),
+  );
 }
 
 @riverpod

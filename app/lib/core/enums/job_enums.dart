@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 enum JobStatus {
+  @JsonValue('DRAFT')
+  draft,
   @JsonValue('ACTIVE')
   active,
   @JsonValue('CLOSED')

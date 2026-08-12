@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_data.dart';
 import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_state.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -31,6 +32,7 @@ class JobCreationFlowModal extends ConsumerStatefulWidget {
 class _JobCreationFlowModalState extends ConsumerState<JobCreationFlowModal> {
   late final SequenceController _sequenceController;
   late final ControlledVisibilityController _continueVisibilityController;
+  late final ValueNotifier<bool> _continueInProgressNotifier;
   late final List<_JobCreationFlowStep> _steps;
 
   _JobCreationFlowStep get _activeStep => _steps[_sequenceController.index];
@@ -46,7 +48,18 @@ class _JobCreationFlowModalState extends ConsumerState<JobCreationFlowModal> {
 
   void _handleStepChanged() {
     setState(() {});
-    _handleContinueVisibility(_activeStep.shouldShowContinue(ref.read(jobCreationFlowStateProvider)));
+    _handleContinueVisibility(_activeStep.shouldShowContinueButton(ref.read(jobCreationFlowStateProvider)));
+  }
+
+  Future<void> _continueFlow() async {
+    if (_continueInProgressNotifier.value) return;
+
+    _continueInProgressNotifier.value = true;
+    try {
+      await _activeStep.continueFlow(context: context, ref: ref, sequenceController: _sequenceController);
+    } finally {
+      if (mounted) _continueInProgressNotifier.value = false;
+    }
   }
 
   @override
@@ -54,9 +67,15 @@ class _JobCreationFlowModalState extends ConsumerState<JobCreationFlowModal> {
     super.initState();
     _sequenceController = SequenceController()..addListener(_handleStepChanged);
     _continueVisibilityController = ControlledVisibilityController();
-    _steps = const [_JobCreationFlowDescriptionStep(key: ValueKey('job_creation_flow_description_step'))];
+    _continueInProgressNotifier = ValueNotifier(false);
+    _steps = [
+      _JobCreationFlowDescriptionStep(
+        key: const ValueKey('job_creation_flow_description_step'),
+        continueInProgressListenable: _continueInProgressNotifier,
+      ),
+    ];
 
-    _handleContinueVisibility(_activeStep.shouldShowContinue(ref.read(jobCreationFlowStateProvider)));
+    _handleContinueVisibility(_activeStep.shouldShowContinueButton(ref.read(jobCreationFlowStateProvider)));
   }
 
   @override
@@ -64,6 +83,7 @@ class _JobCreationFlowModalState extends ConsumerState<JobCreationFlowModal> {
     _sequenceController
       ..removeListener(_handleStepChanged)
       ..dispose();
+    _continueInProgressNotifier.dispose();
 
     super.dispose();
   }
@@ -73,7 +93,7 @@ class _JobCreationFlowModalState extends ConsumerState<JobCreationFlowModal> {
     final i18n = ref.watch(translationProvider);
 
     ref.listen<JobCreationFlowData>(jobCreationFlowStateProvider, (_, flowData) {
-      _handleContinueVisibility(_activeStep.shouldShowContinue(flowData));
+      _handleContinueVisibility(_activeStep.shouldShowContinueButton(flowData));
     });
 
     return Stack(
@@ -98,9 +118,7 @@ class _JobCreationFlowModalState extends ConsumerState<JobCreationFlowModal> {
             unmount: true,
             child: MateoFloatingActionButton(
               key: const ValueKey('job_creation_flow_continue_button'),
-              onPressed: () {
-                _activeStep.continueFlow(context: context, ref: ref, sequenceController: _sequenceController);
-              },
+              onPressed: _continueFlow,
               semanticLabel: i18n.jobCreationFlow.continueButtonSemanticLabel,
               backgroundColor: context.mateo.palette.primary[9],
               foregroundColor: context.mateo.palette.primary[1],

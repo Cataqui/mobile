@@ -1,26 +1,22 @@
 part of '../job_creation_flow_modal.dart';
 
 abstract class _JobCreationFlowStep extends ConsumerStatefulWidget {
-  const _JobCreationFlowStep({super.key});
+  const _JobCreationFlowStep({required this.continueInProgressListenable, super.key});
 
-  bool shouldShowContinue(JobCreationFlowData flowData);
+  final ValueListenable<bool> continueInProgressListenable;
 
-  bool canContinue(JobCreationFlowData flowData);
+  bool shouldShowContinueButton(JobCreationFlowData flowData);
 
-  void showCannotContinueFeedback(BuildContext context, WidgetRef ref);
+  Future<({bool proceed})> tryContinue(BuildContext context, WidgetRef ref);
 
-  void continueFlow({
+  Future<void> continueFlow({
     required BuildContext context,
     required WidgetRef ref,
     required SequenceController sequenceController,
-  }) {
-    final flowData = ref.read(jobCreationFlowStateProvider);
+  }) async {
+    final result = await tryContinue(context, ref);
 
-    if (!canContinue(flowData)) {
-      showCannotContinueFeedback(context, ref);
-      return;
-    }
-
+    if (!result.proceed || !context.mounted) return;
     sequenceController.next();
   }
 }

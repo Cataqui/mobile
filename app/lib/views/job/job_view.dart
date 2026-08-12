@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -189,7 +191,9 @@ class _JobViewState extends ConsumerState<JobView> {
                   child: _buildWhenRouteSettled(
                     child: MateoFloatingActionButton(
                       semanticLabel: i18n.navigation.back,
-                      onPressed: () => Navigator.of(context).maybePop(),
+                      onPressed: () {
+                        unawaited(Navigator.of(context).maybePop());
+                      },
                       iconBuilder: (state) => MateoIcon.arrowLeft(color: state.foregroundColor),
                       backgroundColor: context.mateo.colorScheme.background,
                       foregroundColor: context.mateo.colorScheme.text.primary,

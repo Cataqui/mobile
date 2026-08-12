@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_data.dart';
 import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_modal.dart';
@@ -19,6 +20,7 @@ abstract final class JobCreationFlowModalTestHelpers {
     double keyboardInset = 0,
     bool disableAnimations = true,
     JobCreationFlowData? initialFlowData,
+    JobRepository? jobRepository,
   }) async {
     tester.view
       ..devicePixelRatio = 1
@@ -29,7 +31,12 @@ abstract final class JobCreationFlowModalTestHelpers {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      buildApp(keyboardInset: keyboardInset, disableAnimations: disableAnimations, initialFlowData: initialFlowData),
+      buildApp(
+        keyboardInset: keyboardInset,
+        disableAnimations: disableAnimations,
+        initialFlowData: initialFlowData,
+        jobRepository: jobRepository,
+      ),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(openButtonKey));
@@ -40,6 +47,7 @@ abstract final class JobCreationFlowModalTestHelpers {
     double keyboardInset = 0,
     bool disableAnimations = true,
     JobCreationFlowData? initialFlowData,
+    JobRepository? jobRepository,
   }) {
     return TestApp.screen(
       mediaQueryData: MediaQueryData(
@@ -53,6 +61,7 @@ abstract final class JobCreationFlowModalTestHelpers {
       ),
       providerOverrides: [
         translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
+        if (jobRepository != null) jobRepositoryProvider.overrideWithValue(jobRepository),
         if (initialFlowData != null) jobCreationFlowStateProvider.overrideWithValue(initialFlowData),
       ],
       child: Builder(
