@@ -15,6 +15,7 @@ class TestApp extends StatelessWidget {
     this.navigatorKey,
     this.providerOverrides = const [],
   }) : routerConfig = null,
+       fontFamily = null,
        _wrapInScaffold = true;
 
   const TestApp.screen({
@@ -24,6 +25,7 @@ class TestApp extends StatelessWidget {
     this.navigatorKey,
     this.providerOverrides = const [],
   }) : routerConfig = null,
+       fontFamily = null,
        _wrapInScaffold = false;
 
   const TestApp.router({
@@ -31,6 +33,7 @@ class TestApp extends StatelessWidget {
     super.key,
     this.mediaQueryData,
     this.providerOverrides = const [],
+    this.fontFamily,
   }) : child = null,
        navigatorKey = null,
        _wrapInScaffold = false;
@@ -50,6 +53,7 @@ class TestApp extends StatelessWidget {
   });
 
   final Widget? child;
+  final String? fontFamily;
   final MediaQueryData? mediaQueryData;
   final GlobalKey<NavigatorState>? navigatorKey;
   final List<Override> providerOverrides;
@@ -67,7 +71,18 @@ class TestApp extends StatelessWidget {
           color: _color,
           routerConfig: routerConfig,
           builder: (context, child) {
-            return _withMediaQuery(child ?? const SizedBox.shrink());
+            final content = _withMediaQuery(child ?? const SizedBox.shrink());
+            final fontFamily = this.fontFamily;
+            if (fontFamily == null) return content;
+
+            final theme = Theme.of(context);
+            return Theme(
+              data: theme.copyWith(
+                textTheme: theme.textTheme.apply(fontFamily: fontFamily),
+                primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: fontFamily),
+              ),
+              child: content,
+            );
           },
         ),
       );

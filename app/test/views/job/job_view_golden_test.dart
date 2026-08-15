@@ -11,7 +11,7 @@ import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show AsyncCallback;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -127,6 +127,24 @@ void main() {
       pumpBeforeTest: JobViewGoldenTestHelpers.prepareRoutedFeed,
       whilePerforming: JobViewGoldenTestHelpers.dragMidClose,
     );
+
+    goldenTest(
+      'when the job view is halfway open, it should show the surface and header moving out of the feed card',
+      fileName: 'job_view_morph_midpoint',
+      builder: () => JobViewGoldenTestHelpers.routedScenario(fontFamily: 'Ahem'),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
+      pumpBeforeTest: JobViewGoldenTestHelpers.prepareRoutedFeed,
+      whilePerforming: JobViewGoldenTestHelpers.openRouteToMorphMidpoint,
+    );
+
+    goldenTest(
+      'when the job opening transition settles, it should reveal the complete job view',
+      fileName: 'job_view_morph_settled',
+      builder: JobViewGoldenTestHelpers.routedScenario,
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
+      pumpBeforeTest: JobViewGoldenTestHelpers.prepareRoutedFeed,
+      whilePerforming: JobViewGoldenTestHelpers.openRouteAndSettle,
+    );
   });
 }
 
@@ -134,7 +152,6 @@ class JobViewGoldenTestHelpers {
   JobViewGoldenTestHelpers._();
 
   static final DateTime fixedNow = DateTime(2026, 6, 30, 11);
-
   static Future<void> pumpWidget(WidgetTester tester, Widget widget) {
     return withClock(fixedClock(), () => tester.pumpWidget(widget));
   }
@@ -197,7 +214,7 @@ class JobViewGoldenTestHelpers {
     );
   }
 
-  static Widget routedScenario() {
+  static Widget routedScenario({String? fontFamily}) {
     final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
     final goldenFeedJob = feedJob();
     final jobRepository = MockJobRepository();
@@ -218,6 +235,7 @@ class JobViewGoldenTestHelpers {
         goRouter: goRouter,
         feedState: () => FakeFeedState(buildResult: () => FeedData(jobs: [goldenFeedJob], hasMore: false)),
         jobRepository: jobRepository,
+        fontFamily: fontFamily,
       ),
     );
   }
@@ -229,6 +247,7 @@ class JobViewGoldenTestHelpers {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 900));
       await tester.pump();
+      await tester.pumpAndSettle();
     });
   }
 
@@ -246,6 +265,29 @@ class JobViewGoldenTestHelpers {
       await tester.pump();
 
       return gesture.up;
+    });
+  }
+
+  static Future<AsyncCallback?> openRouteToMorphMidpoint(WidgetTester tester) async {
+    return withClock(fixedClock(), () async {
+      final feedJob = tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob;
+      unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedJobCard).first)));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(Duration(microseconds: JobRoute.pushDuration.inMicroseconds ~/ 2));
+
+      return () async {
+        await tester.pumpAndSettle();
+      };
+    });
+  }
+
+  static Future<AsyncCallback?> openRouteAndSettle(WidgetTester tester) async {
+    return withClock(fixedClock(), () async {
+      final feedJob = tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob;
+      unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedJobCard).first)));
+      await tester.pumpAndSettle();
+      return null;
     });
   }
 }

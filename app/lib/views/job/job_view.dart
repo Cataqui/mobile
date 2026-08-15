@@ -7,7 +7,7 @@ import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
-import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
+import 'package:cataqui_app/widgets/job_surface/job_surface.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,6 +43,7 @@ class _JobViewState extends ConsumerState<JobView> {
     final jobState = ref.watch(jobStateProvider(widget.jobId));
     final jobData = jobState.asData?.value;
     final feedJob = widget.feedJob;
+    final headerMorphTag = 'job-${widget.jobId}-header';
 
     return MateoSwipeToPopSurface(
       borderRadius: BorderRadiusGeometry.circular(34),
@@ -52,10 +53,12 @@ class _JobViewState extends ConsumerState<JobView> {
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            MateoHeroBackground(
-              tag: FeedJobCard.backgroundHeroKey(widget.jobId),
+            JobSurface(
+              jobId: widget.jobId,
               decoration: BoxDecoration(color: colorScheme.background),
-              edgeFade: MateoHeroEdgeFade.vertical,
+              edgeFadeStyle: MateoEdgeFadeStyle(color: colorScheme.background),
+              fadeTop: true,
+              fadeBottom: true,
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
@@ -75,56 +78,72 @@ class _JobViewState extends ConsumerState<JobView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (feedJob != null || jobData != null) ...[
-                              MateoHeroGroup(
-                                tag: FeedJobCard.headerHeroKey(widget.jobId),
+                              Morph(
+                                tag: headerMorphTag,
+                                curve: JobSurface.morphCurve,
+                                switchThreshold: 0.97,
                                 onEnd: HapticFeedback.lightImpact,
-                                heroes: [
-                                  MateoHeroText(
-                                    (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
-                                      onNow: () => i18n.feedJob.timeAgo.now,
-                                      onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
-                                      onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
-                                      onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
-                                      onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                                      fallback: TimeAgoFallback.finer,
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: colorScheme.text.secondary,
-                                    ),
-                                    padding: const EdgeInsets.only(bottom: 6),
-                                  ),
-                                  MateoHeroText(
-                                    feedJob?.title ?? jobData!.job.title,
-                                    maxLines: 4,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 34,
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.text.primary,
-                                    ),
-                                  ),
-                                  MateoHeroText(
-                                    (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
-                                    style: TextStyle(
-                                      fontSize: 30,
-                                      color: colorScheme.text.profit,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                  ),
-                                  if (jobData != null)
-                                    MateoHeroText(
-                                      jobData.job.description,
-                                      switchThreshold: 0.97,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: colorScheme.text.secondary,
-                                        fontWeight: FontWeight.w500,
+                                child: Column(
+                                  key: ValueKey(headerMorphTag),
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      key: const ValueKey('job_time'),
+                                      padding: const EdgeInsets.only(bottom: 6),
+                                      child: Text(
+                                        (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
+                                          onNow: () => i18n.feedJob.timeAgo.now,
+                                          onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                                          onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                                          onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                                          onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                                          fallback: TimeAgoFallback.finer,
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: colorScheme.text.secondary,
+                                        ),
                                       ),
                                     ),
-                                ],
+                                    Text(
+                                      feedJob?.title ?? jobData!.job.title,
+                                      key: const ValueKey('job_title'),
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.text.primary,
+                                      ),
+                                    ),
+                                    Padding(
+                                      key: const ValueKey('job_payment'),
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: Text(
+                                        (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
+                                        style: TextStyle(
+                                          fontSize: 30,
+                                          color: colorScheme.text.profit,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    if (jobData != null)
+                                      Motion(
+                                        effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
+                                        child: Text(
+                                          jobData.job.description,
+                                          key: const ValueKey('job_description'),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: colorScheme.text.secondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 20),
                               if (feedJob != null)
@@ -138,7 +157,8 @@ class _JobViewState extends ConsumerState<JobView> {
                                       ),
                                     );
                                   },
-                                  loading: () => _buildWhenRouteSettled(
+                                  loading: () => Motion(
+                                    effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
                                     child: MateoSkeleton(
                                       style: const MateoSkeletonStyle(effect: MateoSkeletonFadeEffect()),
                                       child: Text(

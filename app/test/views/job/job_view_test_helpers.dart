@@ -139,6 +139,7 @@ class JobViewTestHelpers {
     required FeedState Function() feedState,
     required JobRepository jobRepository,
     bool disableAnimations = false,
+    String? fontFamily,
   }) {
     final mediaQueryData = const MediaQueryData(
       size: Size(390, 844),
@@ -148,6 +149,7 @@ class JobViewTestHelpers {
     return TestApp.router(
       routerConfig: goRouter,
       mediaQueryData: mediaQueryData,
+      fontFamily: fontFamily,
       providerOverrides: [
         goRouterProvider.overrideWithValue(goRouter),
         feedStateProvider.overrideWith(feedState),

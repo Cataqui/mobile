@@ -10,7 +10,6 @@ import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
@@ -120,7 +119,7 @@ void main() {
       expect(tester.widget<JobView>(find.byType(JobView)).feedJob, feedJob);
     });
 
-    testWidgets('when pushing the job route from the feed, it should mount the JobView under a MateoHeroPage', (
+    testWidgets('when pushing the job route from the feed, it should mount the JobView under a transparent page', (
       tester,
     ) async {
       final feedJob = JobViewTestHelpers.feedJob();
@@ -131,23 +130,22 @@ void main() {
         jobRepository: jobRepository,
       );
       final settings = ModalRoute.of(tester.element(find.byType(JobView)))!.settings;
-      expect(settings, isA<MateoHeroPage>());
+      expect((settings as CustomTransitionPage<void>).opaque, isFalse);
     });
 
-    testWidgets(
-      'when pushing the job route from the feed, it should use a 400ms transition duration on the hero page',
-      (tester) async {
-        final feedJob = JobViewTestHelpers.feedJob();
-        await JobViewTestHelpers.pumpRoutedJobView(
-          tester: tester,
-          goRouter: JobRouteTestHelpers.goRouter(),
-          feedJob: feedJob,
-          jobRepository: jobRepository,
-        );
-        final page = ModalRoute.of(tester.element(find.byType(JobView)))!.settings as MateoHeroPage;
-        expect(page.transitionDuration, const Duration(milliseconds: 400));
-      },
-    );
+    testWidgets('when pushing the job route from the feed, it should use the configured shared transition durations', (
+      tester,
+    ) async {
+      final feedJob = JobViewTestHelpers.feedJob();
+      await JobViewTestHelpers.pumpRoutedJobView(
+        tester: tester,
+        goRouter: JobRouteTestHelpers.goRouter(),
+        feedJob: feedJob,
+        jobRepository: jobRepository,
+      );
+      final page = ModalRoute.of(tester.element(find.byType(JobView)))!.settings as CustomTransitionPage<void>;
+      expect((page.transitionDuration, page.reverseTransitionDuration), (JobRoute.pushDuration, JobRoute.popDuration));
+    });
   });
 
   group('when deep-linking to /job/:jobId without an extra', () {

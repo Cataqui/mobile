@@ -4,13 +4,13 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
-import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
 import 'job_view_test_helpers.dart';
@@ -204,7 +204,7 @@ void main() {
     });
 
     testWidgets(
-      'when motion is enabled and the Mateo back button is tapped, it should keep the full description as a shared element',
+      'when motion is enabled and the Mateo back button is tapped, it should keep the full description in the closing transition',
       (tester) async {
         const description = 'Descrição completa do trabalho com horários, local e detalhes importantes.';
 
@@ -221,7 +221,12 @@ void main() {
         await tester.pump();
 
         expect(
-          find.ancestor(of: find.text(description, skipOffstage: false), matching: find.byType(Hero)),
+          find.ancestor(
+            of: find.text(description, skipOffstage: false),
+            matching: find.byWidgetPredicate(
+              (widget) => widget is Morph && widget.tag == 'job-${JobViewTestHelpers.feedJob().jobId}-header',
+            ),
+          ),
           findsOneWidget,
         );
       },
@@ -247,7 +252,7 @@ void main() {
       expect(find.byType(MateoSwipeToPopSurface), findsOneWidget);
     });
 
-    testWidgets('when opened from the feed, it should render the title inside the grouped header hero', (tester) async {
+    testWidgets('when opened from the feed, it should render the title inside the moving header', (tester) async {
       final feedJob = JobViewTestHelpers.feedJob(title: 'Separador de Mercadorias');
 
       await JobViewTestHelpers.pumpRoutedJobView(
@@ -257,49 +262,37 @@ void main() {
         jobRepository: jobRepository,
       );
 
-      final headerHero = tester.widget<Hero>(
+      final headerMorph = tester.widget<Morph>(
         find
-            .ancestor(of: find.text('Separador de Mercadorias', skipOffstage: false), matching: find.byType(Hero))
+            .ancestor(
+              of: find.text('Separador de Mercadorias', skipOffstage: false),
+              matching: find.byWidgetPredicate((widget) => widget is Morph),
+            )
             .first,
       );
-      expect(headerHero.tag, equals(FeedJobCard.headerHeroKey(feedJob.jobId)));
+      expect(headerMorph.tag, equals('job-${feedJob.jobId}-header'));
     });
 
-    testWidgets('when opened from the feed, it should render the background hero with the matching tag', (
-      tester,
-    ) async {
-      final feedJob = JobViewTestHelpers.feedJob();
+    testWidgets(
+      'when dragging down from the top, it should preview the job route without scrubbing the route animation',
+      (tester) async {
+        final feedJob = JobViewTestHelpers.feedJob();
 
-      await JobViewTestHelpers.pumpRoutedJobView(
-        tester: tester,
-        goRouter: goRouter,
-        feedJob: feedJob,
-        jobRepository: jobRepository,
-      );
+        await JobViewTestHelpers.pumpRoutedJobView(
+          tester: tester,
+          goRouter: goRouter,
+          feedJob: feedJob,
+          jobRepository: jobRepository,
+        );
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+        await gesture.moveBy(const Offset(0, 220));
+        await tester.pump();
 
-      final backgroundHero = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground).first);
-      expect(backgroundHero.tag, equals(FeedJobCard.backgroundHeroKey(feedJob.jobId)));
-    });
-
-    testWidgets('when dragging down from the top, it should preview the job route without scrubbing the hero route', (
-      tester,
-    ) async {
-      final feedJob = JobViewTestHelpers.feedJob();
-
-      await JobViewTestHelpers.pumpRoutedJobView(
-        tester: tester,
-        goRouter: goRouter,
-        feedJob: feedJob,
-        jobRepository: jobRepository,
-      );
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
-      await gesture.moveBy(const Offset(0, 220));
-      await tester.pump();
-
-      final route = MateoHeroPageRoute.maybeOf(tester.element(find.byType(JobView)));
-      expect(route!.transitionValue, equals(1));
-      await gesture.up();
-    });
+        final route = ModalRoute.of(tester.element(find.byType(JobView)));
+        expect(route!.animation!.value, equals(1));
+        await gesture.up();
+      },
+    );
 
     testWidgets('when dragging down from the top past half the screen, it should pop back to the feed', (tester) async {
       final feedJob = JobViewTestHelpers.feedJob();
@@ -357,8 +350,8 @@ void main() {
         await tester.drag(find.byType(CustomScrollView), const Offset(0, 150));
         await tester.pump();
 
-        final route = MateoHeroPageRoute.maybeOf(tester.element(find.byType(JobView)));
-        expect(route!.transitionValue, equals(1));
+        final route = ModalRoute.of(tester.element(find.byType(JobView)));
+        expect(route!.animation!.value, equals(1));
       },
     );
 

@@ -9,42 +9,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../utils/test_app.dart';
 import '../views/job/job_view_test_helpers.dart';
 
-FeedJobDto _fixture({JobPaymentDto? payment, String? title, String? descriptionSummary}) {
-  return FeedJobDto(
-    jobId: 'job_123',
-    title: title ?? 'Garçom para Fim de Semana',
-    createdAt: DateTime(2025, 6, 15),
-    payment:
-        payment ??
-        const JobPaymentDto(
-          type: JobPaymentType.fixed,
-          minAmount: 120,
-          maxAmount: 200,
-          amountPeriod: JobPaymentAmountPeriod.daily,
-          currency: 'BRL',
-          note: '',
-        ),
-    location: const FeedJobLocationDto(
-      neighborhood: 'Pinheiros',
-      latitude: -23.556391,
-      longitude: -46.844076,
-      areaRadius: 2000,
-    ),
-    descriptionSummary: descriptionSummary ?? 'Experiente em atendimento ao cliente.',
-  );
-}
+class _FeedJobCardTestHelpers {
+  _FeedJobCardTestHelpers._();
 
-Widget _wrap(Widget child) {
-  return ProviderScope(child: TestApp(child: child));
-}
+  static FeedJobDto fixture({JobPaymentDto? payment, String? title, String? descriptionSummary}) {
+    return FeedJobDto(
+      jobId: 'job_123',
+      title: title ?? 'Garçom para Fim de Semana',
+      createdAt: DateTime(2025, 6, 15),
+      payment:
+          payment ??
+          const JobPaymentDto(
+            type: JobPaymentType.fixed,
+            minAmount: 120,
+            maxAmount: 200,
+            amountPeriod: JobPaymentAmountPeriod.daily,
+            currency: 'BRL',
+            note: '',
+          ),
+      location: const FeedJobLocationDto(
+        neighborhood: 'Pinheiros',
+        latitude: -23.556391,
+        longitude: -46.844076,
+        areaRadius: 2000,
+      ),
+      descriptionSummary: descriptionSummary ?? 'Experiente em atendimento ao cliente.',
+    );
+  }
 
-/// Runs [body] with a fixed clock for deterministic timestamp rendering.
-Future<void> _withFixedClock(Clock fixedClock, Future<void> Function() body) async {
-  await withClock(fixedClock, body);
+  static Widget wrap(Widget child) {
+    return ProviderScope(child: TestApp(child: child));
+  }
 }
 
 void main() {
@@ -57,27 +57,36 @@ void main() {
   group('FeedJobCard', () {
     group('rendering', () {
       testWidgets('when created with a job, it should display the title', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         expect(find.text('Garçom para Fim de Semana'), findsOneWidget);
       });
 
       testWidgets('when created with a job, it should display the payment', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
-        expect(find.textContaining(r'R$'), findsOneWidget);
-        expect(find.textContaining('120'), findsOneWidget);
-        expect(find.textContaining(i18n.jobPayment.paymentPeriodDaily), findsOneWidget);
+        expect(
+          (
+            find.textContaining(r'R$').evaluate().length,
+            find.textContaining('120').evaluate().length,
+            find.textContaining(i18n.jobPayment.paymentPeriodDaily).evaluate().length,
+          ),
+          (1, 1, 1),
+        );
       });
 
       testWidgets('when created with a job, it should display the description', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         expect(find.text('Experiente em atendimento ao cliente.'), findsOneWidget);
       });
 
       testWidgets('when created, the card should have 38px border radius', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final decoratedBox = tester.widget<DecoratedBox>(find.byType(DecoratedBox).first);
 
@@ -85,7 +94,8 @@ void main() {
       });
 
       testWidgets('when created, the title should use semi-bold weight', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -93,7 +103,8 @@ void main() {
       });
 
       testWidgets('when created, the title should use 22px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -101,7 +112,8 @@ void main() {
       });
 
       testWidgets('when created, the payment should use 25px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
@@ -110,7 +122,8 @@ void main() {
       });
 
       testWidgets('when created, the payment should use the accessible pay text color', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
@@ -119,7 +132,8 @@ void main() {
       });
 
       testWidgets('when created, the description should use 15px font size', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -127,7 +141,8 @@ void main() {
       });
 
       testWidgets('when created, the description should use secondary text color', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
         final context = tester.element(find.byType(FeedJobCard));
@@ -136,7 +151,8 @@ void main() {
       });
 
       testWidgets('when created, the title should be limited to 2 lines', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -144,7 +160,8 @@ void main() {
       });
 
       testWidgets('when created, the title should use ellipsis overflow', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Garçom para Fim de Semana'));
 
@@ -152,7 +169,8 @@ void main() {
       });
 
       testWidgets('when created, the description should be limited to 3 lines', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -160,7 +178,8 @@ void main() {
       });
 
       testWidgets('when created, the description should use ellipsis overflow', (tester) async {
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture())));
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        await tester.pumpAndSettle();
 
         final text = tester.widget<Text>(find.text('Experiente em atendimento ao cliente.'));
 
@@ -173,8 +192,13 @@ void main() {
         final createdAt = DateTime(2025, 6, 15, 0);
         final fixedNow = createdAt.add(const Duration(hours: 20));
 
-        await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt))));
+        await withClock(Clock(() => fixedNow), () async {
+          await tester.pumpWidget(
+            _FeedJobCardTestHelpers.wrap(
+              FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture().copyWith(createdAt: createdAt)),
+            ),
+          );
+          await tester.pumpAndSettle();
 
           expect(find.text(i18n.feedJob.timeAgo.hours(count: 20)), findsOneWidget);
         });
@@ -184,50 +208,125 @@ void main() {
         final createdAt = DateTime(2025, 6, 15);
         final fixedNow = createdAt.add(const Duration(days: 1));
 
-        await _withFixedClock(Clock(() => fixedNow), () async {
-          await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(createdAt: createdAt))));
+        await withClock(Clock(() => fixedNow), () async {
+          await tester.pumpWidget(
+            _FeedJobCardTestHelpers.wrap(
+              FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture().copyWith(createdAt: createdAt)),
+            ),
+          );
+          await tester.pumpAndSettle();
 
           expect(find.text(i18n.feedJob.timeAgo.days(count: 1)), findsOneWidget);
         });
       });
     });
 
-    group('hero keys', () {
-      test('when generating the background hero key, it should return the expected tag format', () {
-        expect(FeedJobCard.backgroundHeroKey('job_123'), 'job-job_123-surface');
-      });
-
-      test('when generating the header hero key, it should return the expected tag format', () {
-        expect(FeedJobCard.headerHeroKey('job_123'), 'job-job_123-header');
-      });
-
-      test('when generating hero keys for the same job, the background and header keys should differ', () {
-        expect(FeedJobCard.backgroundHeroKey('job_123'), isNot(FeedJobCard.headerHeroKey('job_123')));
-      });
-    });
-
     group('cross-widget consistency', () {
-      testWidgets('when FeedJobCard and JobView reference the same job, it should use matching hero tags', (
+      testWidgets('when opening a feed job, it should let the built-in container transition animate the surface', (
+        tester,
+      ) async {
+        final feedJob = _FeedJobCardTestHelpers.fixture();
+
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: feedJob)));
+        await tester.pumpAndSettle();
+        final surfaceMorph = tester.widget<Morph>(
+          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-${feedJob.jobId}-surface'),
+        );
+
+        expect(
+          surfaceMorph,
+          isA<Morph>()
+              .having((morph) => morph.child, 'child', isA<Container>())
+              .having((morph) => morph.flightDelegate, 'flightDelegate', isNull),
+        );
+      });
+
+      testWidgets('when the same job appears in the feed and detail view, it should connect both shared transitions', (
         tester,
       ) async {
         const jobId = 'job_123';
 
-        await tester.pumpWidget(_wrap(FeedJobCard(feedJob: _fixture().copyWith(jobId: jobId))));
-        final cardBackgroundTag = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground)).tag;
-        final cardHeaderTag = tester.widget<MateoHeroGroup>(find.byType(MateoHeroGroup)).tag;
+        await tester.pumpWidget(
+          _FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture().copyWith(jobId: jobId))),
+        );
+
+        await tester.pumpAndSettle();
+        final cardSurface = tester.widget<Morph>(
+          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-surface'),
+        );
+        final cardHeader = tester.widget<Morph>(
+          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-header'),
+        );
 
         await tester.pumpWidget(const SizedBox());
+        await tester.pumpAndSettle();
 
         await JobViewTestHelpers.pumpJobView(
           tester: tester,
           feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
           jobState: JobViewTestHelpers.loadingState(),
         );
-        final viewBackgroundTag = tester.widget<MateoHeroBackground>(find.byType(MateoHeroBackground)).tag;
-        final viewHeaderTag = tester.widget<MateoHeroGroup>(find.byType(MateoHeroGroup)).tag;
+        final viewSurface = tester.widget<Morph>(
+          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-surface'),
+        );
+        final viewHeader = tester.widget<Morph>(
+          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-header'),
+        );
 
-        expect(viewBackgroundTag, equals(cardBackgroundTag));
-        expect(viewHeaderTag, equals(cardHeaderTag));
+        expect((viewSurface.tag, viewHeader.tag), equals((cardSurface.tag, cardHeader.tag)));
+      });
+
+      testWidgets('when the feed card and detail view rebuild, it should keep stable shared-transition identities', (
+        tester,
+      ) async {
+        const jobId = 'job_123';
+        const surfaceTag = 'job-$jobId-surface';
+        const headerTag = 'job-$jobId-header';
+        const fadeTag = 'job-$jobId-edge-fade';
+
+        await tester.pumpWidget(
+          _FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture().copyWith(jobId: jobId))),
+        );
+
+        await tester.pumpAndSettle();
+        final cardKeys = (
+          tester
+              .widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.tag == surfaceTag))
+              .child
+              .key,
+          tester
+              .widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.tag == headerTag))
+              .child
+              .key,
+          tester.widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.tag == fadeTag)).child.key,
+        );
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpAndSettle();
+        await JobViewTestHelpers.pumpJobView(
+          tester: tester,
+          feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
+          jobState: JobViewTestHelpers.loadingState(),
+        );
+        final viewKeys = (
+          tester
+              .widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.tag == surfaceTag))
+              .child
+              .key,
+          tester
+              .widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.tag == headerTag))
+              .child
+              .key,
+          tester.widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.tag == fadeTag)).child.key,
+        );
+
+        expect(
+          (cardKeys, viewKeys),
+          equals((
+            (const ValueKey(surfaceTag), const ValueKey(headerTag), const ValueKey(fadeTag)),
+            (const ValueKey(surfaceTag), const ValueKey(headerTag), const ValueKey(fadeTag)),
+          )),
+        );
       });
     });
   });
