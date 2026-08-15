@@ -1,5 +1,5 @@
-import 'package:cataqui_app/widgets/job_surface/job_surface.dart';
-import 'package:cataqui_app/widgets/job_surface/job_surface_edge_fade.dart';
+import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
+import 'package:cataqui_app/views/job/widgets/job_surface/job_surface_edge_fade.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';

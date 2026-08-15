@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
-import 'package:cataqui_app/widgets/job_surface/job_surface.dart';
+import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

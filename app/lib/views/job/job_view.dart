@@ -7,7 +7,7 @@ import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
-import 'package:cataqui_app/widgets/job_surface/job_surface.dart';
+import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
