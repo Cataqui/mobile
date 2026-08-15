@@ -1,6 +1,6 @@
-import 'package:cataqui_app/widgets/job_surface/job_surface_edge_fade.dart';
-import 'package:cataqui_app/widgets/job_surface/job_surface_edge_fade_morph_flight_delegate_types.dart';
-import 'package:cataqui_app/widgets/job_surface/job_surface_edge_fade_morph_painter.dart';
+import 'package:cataqui_app/views/job/widgets/job_surface/job_surface_edge_fade.dart';
+import 'package:cataqui_app/views/job/widgets/job_surface/job_surface_edge_fade_morph_flight_delegate_types.dart';
+import 'package:cataqui_app/views/job/widgets/job_surface/job_surface_edge_fade_morph_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
