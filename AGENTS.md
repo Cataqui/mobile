@@ -174,9 +174,15 @@ widget or model that produces or consumes the data.
 
 ### Shared Constants Across Files
 
-- **Never** duplicate the same logical value as independent variables in separate files. When a value (size, duration, threshold, etc.) is shared across files, define it once as a **static const** on the class that owns the domain (e.g. `FeedView.indicatorSize`), and reference it everywhere the value is needed.
-- Never use top-level constants (`const double myConstant = ...`) for shared values — they pollute the library namespace and bypass the owning class. Always put the constant as a `static const` member on the relevant class.
-- When you encounter a value that already exists in two or more places, extract it into a single shared `static const` and create a test that verifies all consumers reference the same shared constant. This prevents silent desync when the value is updated in only one location.
+- **Never** duplicate the same logical value as independent variables in production files. When a value (size,
+  duration, threshold, etc.) is shared by production consumers, define it once as a **static const** on the class that
+  owns the domain (e.g. `FeedView.indicatorSize`), and reference it everywhere the value is needed.
+- Never use top-level constants (`const double myConstant = ...`) for shared production values — they pollute the
+  library namespace and bypass the owning class. Always put the constant as a `static const` member on the relevant
+  class.
+- Regression tests must not read the production constant for the behavior-defining value they protect, such as a
+  duration, size, threshold, or route. Declare the expected value inline in the test so an accidental production change
+  causes the test to fail.
 
 ### Component Architecture (UI Layer)
 

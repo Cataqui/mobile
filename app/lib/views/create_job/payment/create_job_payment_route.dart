@@ -8,6 +8,8 @@ part 'create_job_payment_route.g.dart';
 class CreateJobPaymentRoute extends GoRouteData with $CreateJobPaymentRoute {
   const CreateJobPaymentRoute({required this.jobId});
 
+  static const _transitionDuration = Duration(milliseconds: 400);
+
   final String jobId;
 
   @override
@@ -19,8 +21,8 @@ class CreateJobPaymentRoute extends GoRouteData with $CreateJobPaymentRoute {
       opaque: false,
       barrierColor: Colors.transparent,
       barrierDismissible: false,
-      transitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 400),
-      reverseTransitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 400),
+      transitionDuration: disableAnimations ? Duration.zero : _transitionDuration,
+      reverseTransitionDuration: disableAnimations ? Duration.zero : _transitionDuration,
       child: MediaQuery(
         data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
         child: CreateJobPaymentView(key: const ValueKey('create_job_payment_view'), jobId: jobId),

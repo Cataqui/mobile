@@ -9,8 +9,8 @@ import 'package:go_router/go_router.dart';
 import '../../utils/test_app.dart';
 
 void main() {
-  test('when building the job creation location, it should use the job creation path', () {
-    expect(const CreateJobDescriptionRoute().location, '/create-job');
+  test('when building the job description location, it should use the description path', () {
+    expect(const CreateJobDescriptionRoute().location, '/create-job/description');
   });
 
   test('when building the payment location, it should nest payment under job creation', () {

@@ -20,6 +20,7 @@ class CreateJobDescriptionView extends ConsumerStatefulWidget {
   static const surfaceContentPadding = 20.0;
   static const titleHeight = 21.0;
   static const promptTopPadding = 20.0;
+  static const navigationButtonSize = 44.0;
 
   @override
   ConsumerState<CreateJobDescriptionView> createState() => _CreateJobDescriptionViewState();
@@ -281,7 +282,11 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                               ),
                             ),
                             Positioned(
-                              top: CreateJobDescriptionView.surfaceContentPadding + 8,
+                              top:
+                                  CreateJobDescriptionView.surfaceContentPadding +
+                                  (CreateJobDescriptionView.navigationButtonSize -
+                                          CreateJobDescriptionView.titleHeight) /
+                                      2,
                               left: CreateJobDescriptionView.surfaceContentPadding,
                               right: CreateJobDescriptionView.surfaceContentPadding,
                               height: CreateJobDescriptionView.titleHeight,
@@ -322,8 +327,8 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                       curve: Curves.easeOutCubic,
                       child: MateoFloatingActionButton(
                         key: const ValueKey('create_job_close_button'),
-                        size: 44,
-                        tapTargetSize: 44,
+                        size: CreateJobDescriptionView.navigationButtonSize,
+                        tapTargetSize: CreateJobDescriptionView.navigationButtonSize,
                         iconSize: 16,
                         semanticLabel: MaterialLocalizations.of(context).closeButtonLabel,
                         iconBuilder: (state) => MateoIcon.cross(

@@ -23,6 +23,7 @@ void main() {
     _JobRepositoryTestHelpers.stubJobRequest(dio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobContactRequest(dio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubCreateDraftRequest(dio: authenticatedDio);
+    _JobRepositoryTestHelpers.stubUpdateDraftRequest(dio: authenticatedDio);
   });
 
   group('JobRepository', () {
@@ -61,6 +62,89 @@ void main() {
             updatedAt: DateTime.parse('2026-08-12T12:00:00.000Z'),
           ),
         );
+      });
+    });
+
+    group('updateDraft', () {
+      test('when updating every draft field, it should patch the serialized values to the draft endpoint', () async {
+        await repository.updateDraft(
+          jobId: _JobRepositoryTestData.jobId,
+          description: _JobRepositoryTestData.updatedDraftDescription,
+          contact: _JobRepositoryTestData.contactInput,
+          location: _JobRepositoryTestData.locationInput,
+          type: JobType.contractor,
+          payment: _JobRepositoryTestData.paymentInput,
+        );
+
+        verify(
+          () => authenticatedDio.patch<Map<String, Object?>>(
+            '/jobs/drafts/${_JobRepositoryTestData.jobId}',
+            data: <String, Object?>{
+              'description': _JobRepositoryTestData.updatedDraftDescription,
+              'contact': <String, Object?>{'contactMethod': 'WHATSAPP', 'identifier': '+5511999999999'},
+              'location': <String, Object?>{
+                'street': 'Rua das Flores, 100',
+                'neighborhood': 'Centro',
+                'city': 'São Paulo',
+                'state': 'SP',
+                'country': 'BR',
+                'latitude': -23.55052,
+                'longitude': -46.633308,
+              },
+              'type': 'CONTRACTOR',
+              'payment': <String, Object?>{
+                'type': 'RANGE',
+                'minAmount': 120,
+                'maxAmount': 200,
+                'amountPeriod': 'SINGLE',
+                'currency': 'BRL',
+              },
+            },
+          ),
+        ).called(1);
+      });
+
+      test('when updating no draft fields, it should patch an empty object so every field remains unchanged', () async {
+        await repository.updateDraft(jobId: _JobRepositoryTestData.jobId);
+
+        verify(
+          () => authenticatedDio.patch<Map<String, Object?>>(
+            '/jobs/drafts/${_JobRepositoryTestData.jobId}',
+            data: <String, Object?>{},
+          ),
+        ).called(1);
+      });
+
+      test('when updating a draft, it should not use the unauthenticated client', () async {
+        await repository.updateDraft(
+          jobId: _JobRepositoryTestData.jobId,
+          description: _JobRepositoryTestData.updatedDraftDescription,
+        );
+
+        verifyNever(
+          () => unauthenticatedDio.patch<Map<String, Object?>>(any(), data: any<Map<String, Object?>>(named: 'data')),
+        );
+      });
+
+      test('when receiving an updated draft with incomplete fields, it should map the nullable response', () async {
+        final envelope = await repository.updateDraft(jobId: _JobRepositoryTestData.jobId);
+
+        expect(
+          envelope.data,
+          JobDraftDto(
+            jobId: _JobRepositoryTestData.jobId,
+            description: _JobRepositoryTestData.draftDescription,
+            status: JobStatus.draft,
+            createdAt: DateTime.parse('2026-08-12T12:00:00.000Z'),
+            updatedAt: DateTime.parse('2026-08-12T12:00:00.000Z'),
+          ),
+        );
+      });
+
+      test('when receiving an updated draft, it should map the request id', () async {
+        final envelope = await repository.updateDraft(jobId: _JobRepositoryTestData.jobId);
+
+        expect(envelope.requestId, 'draft-update-req-001');
       });
     });
 
@@ -156,10 +240,32 @@ abstract final class _JobRepositoryTestData {
   static const jobId = 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502';
   static const contactId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   static const draftDescription = 'Preciso de uma pessoa para descarregar caixas.';
+  static const updatedDraftDescription = 'Preciso de ajuda para descarregar um caminhão amanhã.';
 
   static final contact = JobContactDto.fixture().copyWith(
     contactMethod: JobContactMethod.whatsapp,
     identifier: '+5511999999999',
+  );
+
+  static const contactInput = (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999');
+
+  static const locationInput = (
+    street: 'Rua das Flores, 100',
+    neighborhood: 'Centro',
+    city: 'São Paulo',
+    state: 'SP',
+    country: 'BR',
+    latitude: -23.55052,
+    longitude: -46.633308,
+  );
+
+  static const paymentInput = (
+    type: JobPaymentType.range,
+    minAmount: 120,
+    maxAmount: 200,
+    note: null as String?,
+    amountPeriod: JobPaymentAmountPeriod.single,
+    currency: 'BRL',
   );
 
   static final jobEnvelopeJson = <String, Object?>{
@@ -194,6 +300,12 @@ abstract final class _JobRepositoryTestData {
     'timestamp': '2026-08-12T12:00:01.000Z',
     'endpoint': '/v1/jobs/drafts',
   };
+
+  static final updatedDraftEnvelopeJson = <String, Object?>{
+    ...draftEnvelopeJson,
+    'requestId': 'draft-update-req-001',
+    'endpoint': '/v1/jobs/drafts/$jobId',
+  };
 }
 
 abstract final class _JobRepositoryTestHelpers {
@@ -215,6 +327,20 @@ abstract final class _JobRepositoryTestHelpers {
       (_) async => Response<Map<String, Object?>>(
         data: _JobRepositoryTestData.draftEnvelopeJson,
         requestOptions: RequestOptions(path: '/jobs/drafts'),
+      ),
+    );
+  }
+
+  static void stubUpdateDraftRequest({required MockDio dio}) {
+    when(
+      () => dio.patch<Map<String, Object?>>(
+        '/jobs/drafts/${_JobRepositoryTestData.jobId}',
+        data: any<Map<String, Object?>>(named: 'data'),
+      ),
+    ).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
+        data: _JobRepositoryTestData.updatedDraftEnvelopeJson,
+        requestOptions: RequestOptions(path: '/jobs/drafts/${_JobRepositoryTestData.jobId}'),
       ),
     );
   }

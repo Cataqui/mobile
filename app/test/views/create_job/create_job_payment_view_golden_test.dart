@@ -2,7 +2,6 @@ import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
-import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -32,7 +31,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
         await tester.pump();
-        await tester.pump(CreateJobPaymentRoute.duration * 0.5);
+        await tester.pump(const Duration(milliseconds: 200));
 
         return () async {
           await tester.pumpAndSettle();
@@ -268,7 +267,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
         await tester.pump();
-        await tester.pump(CreateJobPaymentRoute.duration * 0.5);
+        await tester.pump(const Duration(milliseconds: 200));
 
         return () async {
           await tester.pumpAndSettle();
