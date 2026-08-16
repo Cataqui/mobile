@@ -8,9 +8,9 @@ import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
-import 'package:cataqui_app/views/job_creation_flow/job_creation_flow_modal.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
@@ -146,13 +146,6 @@ class _FeedViewState extends ConsumerState<FeedView> {
                         ),
                       ),
                     ),
-                    // Align(
-                    //   alignment: AlignmentGeometry.bottomCenter,
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 5),
-                    //     child: const MateoSearchBarButton(placeholder: 'Buscar oportunidades'),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
@@ -179,7 +172,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
       backgroundColor: context.mateo.colorScheme.inverse.background,
       foregroundColor: context.mateo.colorScheme.inverse.onBackground,
       semanticLabel: i18n.feed.jobCreationButtonSemanticLabel,
-      onPressed: () => unawaited(JobCreationFlowModal.show(context)),
+      onPressed: () => unawaited(const CreateJobDescriptionRoute().push(context)),
       iconBuilder: (state) => MateoIcon.plusSignal(
         key: const ValueKey('feed_job_creation_plus_icon'),
         width: state.iconSize,

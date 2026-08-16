@@ -47,16 +47,19 @@
       "closeButtonTitle": "Beleza"
     }
   },
-  "jobCreationFlow": {
+  "createJob": {
     "continueButtonSemanticLabel": "Continuar",
     "createDraftError": "Não deu. Tenta de novo",
-    "steps": {
-      "description": {
-        "title": "Do que você precisa?",
-        "placeholder": "Preciso de...\n\nConte o que a pessoa vai fazer, os dias e horários, se precisa de experiência e qualquer outro detalhe importante.\n\n",
-        "tooShortError": "Muito curto. Explica melhor",
-        "tooLongError": "Só pode ter até 10.000 letras, seu texto tem {characterCount: int}"
-      }
+    "description": {
+      "title": "Do que você precisa?",
+      "placeholder": "Preciso de...\n\nConte o que a pessoa vai fazer, os dias e horários, se precisa de experiência e qualquer outro detalhe importante.\n\n",
+      "tooShortError": "Muito curto. Explica melhor",
+      "tooLongError": "Só pode ter até 10.000 letras, seu texto tem {characterCount: int}"
+    },
+    "payment": {
+      "title": "E quanto você quer pagar?",
+      "amount": "R$ {value}",
+      "backButtonSemanticLabel": "Voltar"
     }
   },
   "feedJob": {

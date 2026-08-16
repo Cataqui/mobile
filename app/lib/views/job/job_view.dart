@@ -81,7 +81,7 @@ class _JobViewState extends ConsumerState<JobView> {
                               Morph(
                                 tag: headerMorphTag,
                                 curve: JobSurface.morphCurve,
-                                switchThreshold: 0.97,
+                                switchThreshold: 0.3,
                                 onEnd: HapticFeedback.lightImpact,
                                 child: Column(
                                   key: ValueKey(headerMorphTag),

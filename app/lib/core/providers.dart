@@ -8,6 +8,8 @@ import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.da
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
+import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
@@ -112,6 +114,7 @@ GoRouter goRouter(Ref ref) {
 
   return GoRouter(
     navigatorKey: ref.watch(rootNavigatorKeyProvider),
+    observers: [ref.watch(routeObserverProvider)],
     initialLocation: appStorage.hasCompletedOnboarding ? const FeedRoute().location : const OnboardingRoute().location,
     redirect: (context, state) {
       if (state.matchedLocation != const OnboardingRoute().location) return null;
@@ -121,8 +124,20 @@ GoRouter goRouter(Ref ref) {
 
       return const FeedRoute().location;
     },
-    routes: [$onboardingRoute, $posterOnboardingRoute, $feedRoute, $jobRoute],
+    routes: [
+      $onboardingRoute,
+      $posterOnboardingRoute,
+      $feedRoute,
+      $createJobDescriptionRoute,
+      $createJobPaymentRoute,
+      $jobRoute,
+    ],
   );
+}
+
+@Riverpod(keepAlive: true)
+RouteObserver<ModalRoute<void>> routeObserver(Ref ref) {
+  return RouteObserver<ModalRoute<void>>();
 }
 
 @Riverpod(keepAlive: true)

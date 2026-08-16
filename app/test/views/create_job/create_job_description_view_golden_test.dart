@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
-import 'job_creation_flow_modal_test_helpers.dart';
+import 'create_job_view_test_helpers.dart';
 
 void main() {
   late MockJobRepository jobRepository;
@@ -20,41 +20,58 @@ void main() {
     ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
   });
 
-  group('JobCreationFlowModal Golden Tests', () {
+  group('CreateJobDescriptionView Golden Tests', () {
     goldenTest(
-      'when the job creation sheet opens with no description, it should keep the continue action hidden',
-      fileName: 'job_creation_flow_modal',
+      'when the description surface opens with no description, it should keep the continue action hidden',
+      fileName: 'create_job_view',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
-        await tester.tap(find.byKey(JobCreationFlowModalTestHelpers.openButtonKey));
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
         await tester.pumpAndSettle();
 
         return null;
       },
-      builder: () => JobCreationFlowModalTestHelpers.buildApp(jobRepository: jobRepository),
+      builder: () => CreateJobViewTestHelpers.buildApp(jobRepository: jobRepository),
     );
 
     goldenTest(
       'when meaningful description text is entered, it should show the continue action',
-      fileName: 'job_creation_flow_modal_typed',
+      fileName: 'create_job_view_typed',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
-        await tester.tap(find.byKey(JobCreationFlowModalTestHelpers.openButtonKey));
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), 'Preciso de ajuda');
         await tester.pumpAndSettle();
 
         return null;
       },
-      builder: () => JobCreationFlowModalTestHelpers.buildApp(jobRepository: jobRepository),
+      builder: () => CreateJobViewTestHelpers.buildApp(jobRepository: jobRepository),
+    );
+
+    goldenTest(
+      'when a long description scrolls beneath the heading, it should hide the heading behind the top fade',
+      fileName: 'create_job_view_scrolled',
+      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+      whilePerforming: (tester) async {
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(EditableText), List<String>.filled(30, 'Preciso de ajuda hoje').join('\n'));
+        await tester.pumpAndSettle();
+        await tester.drag(find.byKey(const ValueKey('create_job_prompt_scroll_view')), const Offset(0, -100));
+        await tester.pumpAndSettle();
+
+        return null;
+      },
+      builder: () => CreateJobViewTestHelpers.buildApp(jobRepository: jobRepository),
     );
 
     goldenTest(
       'when meaningful description text starts with motion enabled, it should pop the continue action into view',
-      fileName: 'job_creation_flow_modal_continue_mid_pop',
+      fileName: 'create_job_view_continue_mid_pop',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
-        await tester.tap(find.byKey(JobCreationFlowModalTestHelpers.openButtonKey));
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), 'Preciso de ajuda');
         await tester.pump();
@@ -62,30 +79,30 @@ void main() {
 
         return null;
       },
-      builder: () => JobCreationFlowModalTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
+      builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
     );
 
     goldenTest(
-      'when continuing with a short description, it should show the error toast above the sheet',
-      fileName: 'job_creation_flow_modal_description_too_short_toast',
+      'when continuing with a short description, it should show the error toast above the description surface',
+      fileName: 'create_job_view_description_too_short_toast',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
-        await tester.tap(find.byKey(JobCreationFlowModalTestHelpers.openButtonKey));
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), '123456789');
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
 
         return null;
       },
-      builder: () => JobCreationFlowModalTestHelpers.buildApp(jobRepository: jobRepository),
+      builder: () => CreateJobViewTestHelpers.buildApp(jobRepository: jobRepository),
     );
 
     goldenTest(
       'when draft creation is pending, it should show the loading continue action',
-      fileName: 'job_creation_flow_modal_loading',
+      fileName: 'create_job_view_loading',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
         final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
@@ -95,55 +112,55 @@ void main() {
         when(
           () => jobRepository.createDraft(description: any(named: 'description')),
         ).thenAnswer((_) => response.future);
-        await tester.tap(find.byKey(JobCreationFlowModalTestHelpers.openButtonKey));
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
         await tester.pump(const Duration(milliseconds: 100));
 
         return null;
       },
-      builder: () => JobCreationFlowModalTestHelpers.buildApp(jobRepository: jobRepository),
+      builder: () => CreateJobViewTestHelpers.buildApp(jobRepository: jobRepository),
     );
 
     goldenTest(
       'when continuing with an oversized description, it should show the length error toast',
-      fileName: 'job_creation_flow_modal_description_too_long_toast',
+      fileName: 'create_job_view_description_too_long_toast',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
-        await tester.tap(find.byKey(JobCreationFlowModalTestHelpers.openButtonKey));
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), '${List<String>.filled(2000, 'aaaa ').join()}a');
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
 
         return null;
       },
-      builder: () => JobCreationFlowModalTestHelpers.buildApp(jobRepository: jobRepository),
+      builder: () => CreateJobViewTestHelpers.buildApp(jobRepository: jobRepository),
     );
 
     goldenTest(
       'when draft creation fails, it should show the request error toast and restore the continue action',
-      fileName: 'job_creation_flow_modal_create_draft_error',
+      fileName: 'create_job_view_create_draft_error',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
         when(
           () => jobRepository.createDraft(description: any(named: 'description')),
         ).thenThrow(Exception('request failed'));
-        await tester.tap(find.byKey(JobCreationFlowModalTestHelpers.openButtonKey));
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('job_creation_flow_continue_button')));
+        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
 
         return null;
       },
-      builder: () => JobCreationFlowModalTestHelpers.buildApp(jobRepository: jobRepository),
+      builder: () => CreateJobViewTestHelpers.buildApp(jobRepository: jobRepository),
     );
   });
 }
