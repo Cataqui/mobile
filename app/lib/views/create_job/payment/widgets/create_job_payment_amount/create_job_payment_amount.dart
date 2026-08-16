@@ -100,10 +100,14 @@ class _CreateJobPaymentAmountState extends ConsumerState<_CreateJobPaymentAmount
 
   @override
   Widget build(BuildContext context) {
-    final paymentTranslations = ref.watch(translationProvider).createJob.payment;
+    final i18n = ref.watch(translationProvider);
+
+    final currencySymbol = ref.watch(
+      createJobStateProvider.select((createJobData) => createJobData.currencySymbol(i18n)),
+    );
     return _CreateJobPaymentAmountTransition(
-      amount: paymentTranslations.amount(value: _amountText),
-      previousAmount: paymentTranslations.amount(value: _previousAmountText),
+      amount: i18n.createJob.payment.amount(currencySymbol: currencySymbol, value: _amountText),
+      previousAmount: i18n.createJob.payment.amount(currencySymbol: currencySymbol, value: _previousAmountText),
       newTrailingDigit: _newTrailingDigit,
       deletedTrailingDigit: _deletedTrailingDigit,
       animationRevision: _amountAnimationRevision,

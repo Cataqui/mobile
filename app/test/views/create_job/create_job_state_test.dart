@@ -115,6 +115,20 @@ void main() {
 
       expect(container.read(createJobStateProvider).paymentAmount, '1250');
     });
+
+    test('when job creation starts in Portuguese, it should use BRL as the currency hint', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+
+      expect(container.read(createJobStateProvider).currencyHint, 'BRL');
+    });
+
+    test('when changing the currency hint, it should preserve the selected currency code', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+
+      container.read(createJobStateProvider.notifier).setCurrencyHint('USD');
+
+      expect(container.read(createJobStateProvider).currencyHint, 'USD');
+    });
   });
 }
 

@@ -77,7 +77,7 @@ void main() {
       },
       builder: () => CreateJobViewTestHelpers.buildApp(
         disableAnimations: false,
-        initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
     );
@@ -105,7 +105,7 @@ void main() {
       },
       builder: () => CreateJobViewTestHelpers.buildApp(
         disableAnimations: false,
-        initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
     );
@@ -133,7 +133,7 @@ void main() {
       },
       builder: () => CreateJobViewTestHelpers.buildApp(
         disableAnimations: false,
-        initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
     );
@@ -159,7 +159,7 @@ void main() {
       },
       builder: () => CreateJobViewTestHelpers.buildApp(
         disableAnimations: false,
-        initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
     );
@@ -189,7 +189,7 @@ void main() {
       },
       builder: () => CreateJobViewTestHelpers.buildApp(
         disableAnimations: false,
-        initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
     );
@@ -219,7 +219,7 @@ void main() {
       },
       builder: () => CreateJobViewTestHelpers.buildApp(
         disableAnimations: false,
-        initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
     );
@@ -249,7 +249,7 @@ void main() {
       },
       builder: () => CreateJobViewTestHelpers.buildApp(
         disableAnimations: false,
-        initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
     );

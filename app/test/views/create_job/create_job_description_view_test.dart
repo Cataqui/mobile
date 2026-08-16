@@ -252,7 +252,7 @@ void main() {
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
-      initialCreateJobData: const CreateJobData(descriptionText: 'Descrição já preenchida'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', descriptionText: 'Descrição já preenchida'),
     );
     final textField = tester.widget<TextField>(find.byType(TextField));
 
@@ -565,6 +565,23 @@ void main() {
     expect(visibleAmount, r'R$ 0');
   });
 
+  testWidgets('when payment opens with a US dollar hint, it should show the localized US dollar symbol', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyHint: 'USD', paymentAmount: '1200'),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final amount = tester.widget<Semantics>(find.byKey(const ValueKey('create_job_payment_amount')));
+
+    expect(amount.properties.label, r'$ 1,200');
+  });
+
   testWidgets('when draft creation finishes, it should open payment for the created job', (tester) async {
     const jobId = 'created-draft-job-id';
     when(
@@ -646,7 +663,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -681,7 +698,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -706,7 +723,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -751,7 +768,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -789,7 +806,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -826,7 +843,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -854,7 +871,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -884,7 +901,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -914,7 +931,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -948,7 +965,7 @@ void main() {
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -968,7 +985,7 @@ void main() {
   testWidgets('when a payment digit settles, it should keep padding before the right edge fade', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -995,7 +1012,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -1033,7 +1050,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -1071,7 +1088,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -1101,7 +1118,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       disableAnimations: false,
-      initialCreateJobData: const CreateJobData(paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);

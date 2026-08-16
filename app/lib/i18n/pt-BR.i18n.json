@@ -1,4 +1,5 @@
 {
+  "mainCurrencyCode": "BRL",
   "app": {
     "name": "Cataquí",
     "tagline": "Oportunidades em tempo real"
@@ -58,7 +59,7 @@
     },
     "payment": {
       "title": "E quanto você quer pagar?",
-      "amount": "R$ {value}",
+      "amount": "{currencySymbol: String} {value: String}",
       "backButtonSemanticLabel": "Voltar"
     }
   },
