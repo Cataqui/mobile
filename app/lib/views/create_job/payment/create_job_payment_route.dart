@@ -8,7 +8,7 @@ part 'create_job_payment_route.g.dart';
 class CreateJobPaymentRoute extends GoRouteData with $CreateJobPaymentRoute {
   const CreateJobPaymentRoute({required this.jobId});
 
-  static const _transitionDuration = Duration(milliseconds: 400);
+  static const _transitionDuration = Duration(milliseconds: 360);
 
   final String jobId;
 

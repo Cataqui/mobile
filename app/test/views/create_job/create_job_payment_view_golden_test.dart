@@ -21,7 +21,7 @@ void main() {
 
   group('CreateJobPaymentView Golden Tests', () {
     goldenTest(
-      'when the payment view is halfway open, it should show the title and continue action moving into place',
+      'when the payment view is halfway open, it should show the payment controls appearing with the surface',
       fileName: 'create_job_payment_morph_midpoint',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
@@ -41,7 +41,7 @@ void main() {
     );
 
     goldenTest(
-      'when the payment view opening transition settles, it should show the amount and keypad',
+      'when the payment view opening transition settles, it should show the amount, keypad, and continue action',
       fileName: 'create_job_payment_morph_settled',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
@@ -252,28 +252,6 @@ void main() {
         initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
         jobRepository: jobRepository,
       ),
-    );
-
-    goldenTest(
-      'when returning from payment, it should keep the continue action full-sized halfway through the transition',
-      fileName: 'create_job_payment_return_morph_midpoint',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
-
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
     );
   });
 }

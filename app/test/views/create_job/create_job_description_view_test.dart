@@ -1296,31 +1296,6 @@ void main() {
     },
   );
 
-  testWidgets(
-    'when keyboard insets appear during return, it should keep the moving continue action at its remembered position',
-    (tester) async {
-      await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 60));
-      final flightButton = CreateJobViewTestHelpers.continueFlightButton(tester);
-      final beforeInsetCenter = tester.getCenter(flightButton.first).dy;
-
-      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
-      addTearDown(tester.view.resetViewInsets);
-      await tester.pump();
-      await tester.pump();
-      final afterInsetCenter = tester.getCenter(flightButton.first).dy;
-      await tester.pumpAndSettle();
-
-      expect(afterInsetCenter, beforeInsetCenter);
-    },
-  );
-
   testWidgets('when Android back is pressed from payment, it should return to the saved description', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
@@ -1346,32 +1321,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('create_job_continue_button')), findsOneWidget);
-  });
-
-  testWidgets('when returning from payment, it should keep the continue action size smooth throughout the transition', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
-    await tester.pump();
-    await tester.pump();
-    final sampledSizes = <Size>[];
-    for (
-      var elapsed = Duration.zero;
-      elapsed <= const Duration(milliseconds: 300);
-      elapsed += const Duration(milliseconds: 30)
-    ) {
-      final flightButton = CreateJobViewTestHelpers.continueFlightButton(tester);
-      if (flightButton.evaluate().isNotEmpty) sampledSizes.add(tester.getSize(flightButton.first));
-      await tester.pump(const Duration(milliseconds: 30));
-    }
-
-    expect(sampledSizes.map((size) => size.shortestSide), everyElement(53));
   });
 
   testWidgets('when draft creation remains pending, it should keep the keyboard visible', (tester) async {

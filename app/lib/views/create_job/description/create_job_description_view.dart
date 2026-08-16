@@ -16,10 +16,10 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 class CreateJobDescriptionView extends ConsumerStatefulWidget {
   const CreateJobDescriptionView({super.key});
 
-  static const topEdgeFadeHeight = 120.0;
+  static const topEdgeFadeHeight = 100.0;
   static const surfaceContentPadding = 20.0;
   static const titleHeight = 21.0;
-  static const promptTopPadding = 20.0;
+  static const promptTopPadding = 25.0;
   static const navigationButtonSize = 44.0;
 
   @override
@@ -282,6 +282,39 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                               ),
                             ),
                             Positioned(
+                              right: CreateJobDescriptionView.surfaceContentPadding,
+                              bottom: 28,
+                              child: MorphDescendant(
+                                flightBehavior: MorphDescendantFlightBehavior.snapshot,
+                                child: ControlledVisibility(
+                                  key: const ValueKey('create_job_continue_visibility'),
+                                  controller: _continueButtonVisibilityController,
+                                  showDuration: const Duration(milliseconds: 240),
+                                  hideDuration: const Duration(milliseconds: 160),
+                                  showTransition: _buildContinueShowTransition,
+                                  hideTransition: _buildContinueHideTransition,
+                                  unmount: true,
+                                  child: MateoFloatingActionButton(
+                                    key: const ValueKey('create_job_continue_button'),
+                                    onPressed: () => _createDraftAndContinue(context),
+                                    semanticLabel: i18n.createJob.continueButtonSemanticLabel,
+                                    backgroundColor: context.mateo.palette.primary[9],
+                                    foregroundColor: context.mateo.palette.primary[1],
+                                    borderSide: BorderSide.none,
+                                    size: 53,
+                                    iconSize: 22,
+                                    iconBuilder: (state) => MateoIcon.arrowRight(
+                                      key: const ValueKey('create_job_continue_icon'),
+                                      width: state.iconSize,
+                                      height: state.iconSize,
+                                      color: state.foregroundColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            Positioned(
                               top:
                                   CreateJobDescriptionView.surfaceContentPadding +
                                   (CreateJobDescriptionView.navigationButtonSize -
@@ -337,39 +370,6 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                           color: state.foregroundColor,
                         ),
                         onPressed: context.pop,
-                      ),
-                    ),
-                  ),
-
-                  Positioned(
-                    right: CreateJobDescriptionView.surfaceContentPadding,
-                    bottom: 28,
-                    child: ControlledVisibility(
-                      key: const ValueKey('create_job_continue_visibility'),
-                      controller: _continueButtonVisibilityController,
-                      showDuration: const Duration(milliseconds: 240),
-                      hideDuration: const Duration(milliseconds: 160),
-                      showTransition: _buildContinueShowTransition,
-                      hideTransition: _buildContinueHideTransition,
-                      unmount: true,
-                      child: Morph(
-                        tag: CreateJobMorphTag.continueButton,
-                        child: MateoFloatingActionButton(
-                          key: const ValueKey('create_job_continue_button'),
-                          onPressed: () => _createDraftAndContinue(context),
-                          semanticLabel: i18n.createJob.continueButtonSemanticLabel,
-                          backgroundColor: context.mateo.palette.primary[9],
-                          foregroundColor: context.mateo.palette.primary[1],
-                          borderSide: BorderSide.none,
-                          size: 53,
-                          iconSize: 22,
-                          iconBuilder: (state) => MateoIcon.arrowRight(
-                            key: const ValueKey('create_job_continue_icon'),
-                            width: state.iconSize,
-                            height: state.iconSize,
-                            color: state.foregroundColor,
-                          ),
-                        ),
                       ),
                     ),
                   ),

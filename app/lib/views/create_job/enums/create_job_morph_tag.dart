@@ -1,1 +1,1 @@
-enum CreateJobMorphTag { surface, navigationButton, continueButton }
+enum CreateJobMorphTag { surface, navigationButton }

@@ -99,38 +99,14 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 64),
-                        _CreateJobPaymentAmount(
-                          amountController: _amountTextController,
-                          shakeMotionController: _shakeAmountMotionController,
-                        ),
-                        const Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Morph(
-                              tag: CreateJobMorphTag.continueButton,
-                              child: MateoFloatingActionButton(
-                                key: const ValueKey('create_job_payment_continue_button'),
-                                onPressed: () {},
-                                semanticLabel: i18n.createJob.continueButtonSemanticLabel,
-                                backgroundColor: context.mateo.palette.primary[9],
-                                foregroundColor: context.mateo.palette.primary[1],
-                                borderSide: BorderSide.none,
-                                size: 53,
-                                iconSize: 22,
-                                iconBuilder: (state) => MateoIcon.arrowRight(
-                                  key: const ValueKey('create_job_continue_icon'),
-                                  width: state.iconSize,
-                                  height: state.iconSize,
-                                  color: state.foregroundColor,
-                                ),
-                              ),
+                        Expanded(
+                          child: Center(
+                            child: _CreateJobPaymentAmount(
+                              amountController: _amountTextController,
+                              shakeMotionController: _shakeAmountMotionController,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
                         MorphDescendant(
                           flightBehavior: MorphDescendantFlightBehavior.snapshot,
                           child: MateoNumericKeypad(
@@ -138,6 +114,27 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                             controllers: [_amountTextController],
                             variant: MateoNumericKeypadVariant.monetary,
                             onChangeRejected: _shakeAmountMotionController.play,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: MateoButton(
+                            key: const ValueKey('create_job_payment_continue_button'),
+                            label: i18n.createJob.continueButtonSemanticLabel,
+                            variant: MateoButtonVariant.primary,
+                            fit: MateoButtonFit.expand,
+                            colorScheme: MateoButtonColorScheme(
+                              background: context.mateo.palette.green[10],
+                              backgroundPressed: context.mateo.palette.green[10],
+                              backgroundDisabled: context.mateo.palette.green[10],
+                              foreground: context.mateo.palette.green[2],
+                              foregroundDisabled: context.mateo.palette.green[2],
+                            ),
+                            trailingIconBuilder: (state) => MateoIcon.arrowRight(
+                              key: const ValueKey('create_job_continue_icon'),
+                              color: state.foregroundColor,
+                            ),
+                            onPressed: () {},
                           ),
                         ),
                       ],

@@ -18,15 +18,6 @@ import 'create_job_test_state.dart';
 abstract final class CreateJobViewTestHelpers {
   static const openButtonKey = ValueKey('open_create_job');
 
-  static Finder continueFlightButton(WidgetTester tester) {
-    final boundary = find
-        .byWidgetPredicate((widget) => widget.runtimeType.toString() == '_MorphFlightBoundary')
-        .evaluate()
-        .singleWhere((element) => (element.renderObject! as RenderBox).size == const Size.square(53));
-
-    return find.byElementPredicate((element) => identical(element, boundary));
-  }
-
   static Future<void> pumpDescription(
     WidgetTester tester, {
     double keyboardInset = 0,
