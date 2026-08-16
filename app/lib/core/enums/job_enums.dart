@@ -1,57 +1,64 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+@JsonEnum(valueField: 'jsonValue')
 enum JobStatus {
-  @JsonValue('DRAFT')
-  draft,
-  @JsonValue('ACTIVE')
-  active,
-  @JsonValue('CLOSED')
-  closed,
-  unknown,
+  draft('DRAFT'),
+  active('ACTIVE'),
+  closed('CLOSED'),
+  unknown('unknown');
+
+  const JobStatus(this.jsonValue);
+
+  final String jsonValue;
 }
 
+@JsonEnum(valueField: 'jsonValue')
 enum JobType {
-  @JsonValue('INDIVIDUAL')
-  individual,
-  @JsonValue('EMPLOYMENT')
-  employment,
-  @JsonValue('CONTRACTOR')
-  contractor,
-  unknown,
+  individual('INDIVIDUAL'),
+  employment('EMPLOYMENT'),
+  contractor('CONTRACTOR'),
+  unknown('unknown');
+
+  const JobType(this.jsonValue);
+
+  final String jsonValue;
 }
 
+@JsonEnum(valueField: 'jsonValue')
 enum JobContactMethod {
-  @JsonValue('WHATSAPP')
-  whatsapp,
-  @JsonValue('PHONE_CALL')
-  phoneCall,
-  unknown,
+  whatsapp('WHATSAPP'),
+  phoneCall('PHONE_CALL'),
+  unknown('unknown');
+
+  const JobContactMethod(this.jsonValue);
+
+  final String jsonValue;
 }
 
+@JsonEnum(valueField: 'jsonValue')
 enum JobPaymentAmountPeriod {
-  @JsonValue('SINGLE')
-  single,
-  @JsonValue('DAILY')
-  daily,
-  @JsonValue('WEEKLY')
-  weekly,
-  @JsonValue('MONTHLY')
-  monthly,
-  @JsonValue('YEARLY')
-  yearly,
-  @JsonValue('HOURLY')
-  hourly,
-  unknown,
+  single('SINGLE'),
+  daily('DAILY'),
+  weekly('WEEKLY'),
+  monthly('MONTHLY'),
+  yearly('YEARLY'),
+  hourly('HOURLY'),
+  unknown('unknown');
+
+  const JobPaymentAmountPeriod(this.jsonValue);
+
+  final String jsonValue;
 }
 
+@JsonEnum(valueField: 'jsonValue')
 enum JobPaymentType {
-  @JsonValue('FIXED')
-  fixed,
-  @JsonValue('RANGE')
-  range,
-  @JsonValue('FLEXIBLE')
-  flexible,
-  @JsonValue('OTHER')
-  other,
-  unknown,
+  fixed('FIXED'),
+  range('RANGE'),
+  flexible('FLEXIBLE'),
+  other('OTHER'),
+  unknown('unknown');
+
+  const JobPaymentType(this.jsonValue);
+
+  final String jsonValue;
 }
