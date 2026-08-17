@@ -48,6 +48,15 @@ class JobRepository {
     })?
     payment,
   }) async {
+    var paymentMinimumAmount = payment?.minAmount;
+    var paymentMaximumAmount = payment?.maxAmount;
+
+    if (paymentMinimumAmount != null && paymentMaximumAmount != null && paymentMaximumAmount < paymentMinimumAmount) {
+      final originalPaymentMinimumAmount = paymentMinimumAmount;
+      paymentMinimumAmount = paymentMaximumAmount;
+      paymentMaximumAmount = originalPaymentMinimumAmount;
+    }
+
     final response = await authenticatedDio.patch<Map<String, Object?>>(
       '/jobs/drafts/$jobId',
       data: <String, Object?>{
@@ -71,8 +80,8 @@ class JobRepository {
         if (payment != null)
           'payment': <String, Object?>{
             'type': payment.type.jsonValue,
-            if (payment.minAmount != null) 'minAmount': payment.minAmount,
-            if (payment.maxAmount != null) 'maxAmount': payment.maxAmount,
+            if (paymentMinimumAmount != null) 'minAmount': paymentMinimumAmount,
+            if (paymentMaximumAmount != null) 'maxAmount': paymentMaximumAmount,
             if (payment.note != null) 'note': payment.note,
             'amountPeriod': payment.amountPeriod.jsonValue,
             'currency': payment.currency,

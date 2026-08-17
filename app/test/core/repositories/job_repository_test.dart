@@ -115,6 +115,38 @@ void main() {
         ).called(1);
       });
 
+      test(
+        'when saving a payment range with its maximum below its minimum, it should invert the persisted amounts',
+        () async {
+          await repository.updateDraft(
+            jobId: _JobRepositoryTestData.jobId,
+            payment: (
+              type: JobPaymentType.range,
+              minAmount: 200,
+              maxAmount: 120,
+              note: null,
+              amountPeriod: JobPaymentAmountPeriod.single,
+              currency: 'BRL',
+            ),
+          );
+
+          verify(
+            () => authenticatedDio.patch<Map<String, Object?>>(
+              '/jobs/drafts/${_JobRepositoryTestData.jobId}',
+              data: <String, Object?>{
+                'payment': <String, Object?>{
+                  'type': 'RANGE',
+                  'minAmount': 120,
+                  'maxAmount': 200,
+                  'amountPeriod': 'SINGLE',
+                  'currency': 'BRL',
+                },
+              },
+            ),
+          ).called(1);
+        },
+      );
+
       test('when updating a draft, it should not use the unauthenticated client', () async {
         await repository.updateDraft(
           jobId: _JobRepositoryTestData.jobId,
