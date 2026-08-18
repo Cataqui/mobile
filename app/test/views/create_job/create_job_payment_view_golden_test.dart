@@ -1,6 +1,7 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,239 +20,292 @@ void main() {
     ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
   });
 
-  group('CreateJobPaymentView Golden Tests', () {
-    goldenTest(
-      'when the payment view is halfway open, it should show the payment controls appearing with the surface',
-      fileName: 'create_job_payment_morph_midpoint',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
+  final goldenConfig = AlchemistConfig.current();
+  final exactMotionGoldenConfig = goldenConfig.copyWith(
+    ciGoldensConfig: goldenConfig.ciGoldensConfig.copyWith(obscureText: false, diffThreshold: 0),
+  );
+  AlchemistConfig.runWithConfig(
+    config: goldenConfig.copyWith(ciGoldensConfig: goldenConfig.ciGoldensConfig.copyWith(obscureText: false)),
+    run: () {
+      group('CreateJobPaymentView Golden Tests', () {
+        goldenTest(
+          'when the payment view is halfway open, it should show the payment controls appearing with the surface',
+          fileName: 'create_job_payment_morph_midpoint',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 200));
 
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
-    );
+            return () async {
+              await tester.pumpAndSettle();
+            };
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
+        );
 
-    goldenTest(
-      'when the payment view opening transition settles, it should show the amount, keypad, and continue action',
-      fileName: 'create_job_payment_morph_settled',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        return null;
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
-    );
+        goldenTest(
+          'when the payment view opening transition settles, it should show the amount, keypad, and continue action',
+          fileName: 'create_job_payment_morph_settled',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
+        );
+        goldenTest(
+          'when the payment type selector opens, it should show every localized payment option',
+          fileName: 'create_job_payment_type_selector_open',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const Key('mateo_select_source')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
+        );
 
-    goldenTest(
-      'when a payment digit moves a grouping separator, it should show the number regrouping around it',
-      fileName: 'create_job_payment_new_digit_mid_slide',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 70));
+        goldenTest(
+          'when range payment opens, it should show the minimum selected above the dimmed maximum',
+          fileName: 'create_job_payment_range_minimum_selected',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentMinimumAmount: '350',
+              paymentMaximumAmount: '700',
+              paymentType: JobPaymentType.range,
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
 
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-        jobRepository: jobRepository,
-      ),
-    );
+        goldenTest(
+          'when the maximum range amount is tapped, it should brighten the maximum and dim the minimum',
+          fileName: 'create_job_payment_range_maximum_selected',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            await tester.tap(
+              find.byKey(
+                const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
+              ),
+            );
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentMinimumAmount: '350',
+              paymentMaximumAmount: '700',
+              paymentType: JobPaymentType.range,
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
 
-    goldenTest(
-      'when deleting a payment digit moves a grouping separator, it should show the number regrouping back',
-      fileName: 'create_job_payment_separator_moves_left_mid_slide',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 70));
+        goldenTest(
+          'when the minimum range amount grows, it should show both amount fields moving smoothly left',
+          fileName: 'create_job_payment_range_amount_mid_resize',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 70));
 
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-        jobRepository: jobRepository,
-      ),
-    );
+            return () async {
+              await tester.pumpAndSettle();
+            };
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentMinimumAmount: '999',
+              paymentType: JobPaymentType.range,
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
 
-    goldenTest(
-      'when a grouping separator appears, it should show the surrounding digits opening a gap',
-      fileName: 'create_job_payment_new_separator_mid_open',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 70));
+        goldenTest(
+          'when a full-width range amount grows, it should show the amount smoothly scaling down',
+          fileName: 'create_job_payment_range_amount_mid_scale',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 70));
 
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-        jobRepository: jobRepository,
-      ),
-    );
+            return () async {
+              await tester.pumpAndSettle();
+            };
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentMinimumAmount: '99999999999999',
+              paymentType: JobPaymentType.range,
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
+        goldenTest(
+          'when a range digit is deleted, it should leave from its previous position while the fields move right',
+          fileName: 'create_job_payment_range_deleted_digit_mid_slide',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 70));
 
-    goldenTest(
-      'when a payment digit removes a grouping separator, it should show both exiting and closing motions',
-      fileName: 'create_job_payment_deleted_digit_mid_slide',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 70));
+            return () async {
+              await tester.pumpAndSettle();
+            };
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentMinimumAmount: '58',
+              paymentMaximumAmount: '',
+              paymentType: JobPaymentType.range,
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
 
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-        jobRepository: jobRepository,
-      ),
-    );
+        AlchemistConfig.runWithConfig(
+          config: exactMotionGoldenConfig,
+          run: () {
+            goldenTest(
+              'when 50 milliseconds pass after a range width shrinks, it should show the departing digit inside the right fade',
+              fileName: 'create_job_payment_range_deletion_inside_fade',
+              constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+              whilePerforming: (tester) async {
+                await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+                await tester.pumpAndSettle();
+                await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+                await tester.pumpAndSettle();
+                await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+                await tester.pumpAndSettle();
+                await tester.tap(
+                  find.byKey(
+                    const ValueKey<Object>((
+                      'create_job_range_amount_field',
+                      ValueKey('create_job_range_maximum_amount'),
+                    )),
+                  ),
+                );
+                await tester.pumpAndSettle();
+                await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
+                await tester.pump();
+                await tester.pump(const Duration(milliseconds: 50));
 
-    goldenTest(
-      'when another grouping separator appears, it should move every existing separator while the new one fades in',
-      fileName: 'create_job_payment_multiple_separators_mid_open',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        for (var index = 0; index < 2; index += 1) {
-          await tester.tap(find.byKey(const Key('mateo_numeric_keypad_zero')));
-          await tester.pumpAndSettle();
-        }
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_zero')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 70));
+                return () async {
+                  await tester.pumpAndSettle();
+                };
+              },
+              builder: () => CreateJobViewTestHelpers.buildApp(
+                disableAnimations: false,
+                initialCreateJobData: const CreateJobData(
+                  currencyCode: 'BRL',
+                  paymentMinimumAmount: '65',
+                  paymentMaximumAmount: '555',
+                  paymentType: JobPaymentType.range,
+                ),
+                jobRepository: jobRepository,
+              ),
+            );
+          },
+        );
 
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-        jobRepository: jobRepository,
-      ),
-    );
+        goldenTest(
+          'when blank space in the maximum range row is pressed, it should scale the full row while selecting it',
+          fileName: 'create_job_payment_range_field_pressed',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            final maximumRow = find.byKey(
+              const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
+            );
+            final gesture = await tester.startGesture(tester.getTopRight(maximumRow) - const Offset(16, -36));
+            await tester.pump(const Duration(milliseconds: 75));
 
-    goldenTest(
-      'when one of multiple grouping separators disappears, it should fade out while every remaining separator moves',
-      fileName: 'create_job_payment_multiple_separators_mid_close',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        for (var index = 0; index < 3; index += 1) {
-          await tester.tap(find.byKey(const Key('mateo_numeric_keypad_zero')));
-          await tester.pumpAndSettle();
-        }
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 70));
-
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-        jobRepository: jobRepository,
-      ),
-    );
-
-    goldenTest(
-      'when backspace cannot delete another payment digit, it should shake the amount horizontally',
-      fileName: 'create_job_payment_rejected_delete_shake',
-      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-      whilePerforming: (tester) async {
-        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        for (var index = 0; index < 4; index += 1) {
-          await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-          await tester.pumpAndSettle();
-        }
-        await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 35));
-
-        return () async {
-          await tester.pumpAndSettle();
-        };
-      },
-      builder: () => CreateJobViewTestHelpers.buildApp(
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-        jobRepository: jobRepository,
-      ),
-    );
-  });
+            return () async {
+              await gesture.up();
+              await tester.pumpAndSettle();
+            };
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentMinimumAmount: '350',
+              paymentMaximumAmount: '700',
+              paymentType: JobPaymentType.range,
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
+      });
+    },
+  );
 }

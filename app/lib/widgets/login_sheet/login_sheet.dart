@@ -1,6 +1,6 @@
 import 'package:cataqui_app/core/app_auth/login_state.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/gen/three_d.g.dart';
+import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,7 +53,7 @@ class LoginSheet extends ConsumerWidget {
             children: [
               const SizedBox(height: 6),
               ExcludeSemantics(
-                child: $ThreeD.keys(key: imageKey, height: 48, fit: BoxFit.contain),
+                child: $Illustrations.keys(key: imageKey, height: 48, fit: BoxFit.contain),
               ),
               const SizedBox(height: 24),
               FractionallySizedBox(

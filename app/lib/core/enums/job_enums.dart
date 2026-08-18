@@ -55,8 +55,7 @@ enum JobPaymentType {
   fixed('FIXED'),
   range('RANGE'),
   flexible('FLEXIBLE'),
-  other('OTHER'),
-  unknown('unknown');
+  other('OTHER');
 
   const JobPaymentType(this.jsonValue);
 

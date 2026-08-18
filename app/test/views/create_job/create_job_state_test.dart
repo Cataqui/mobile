@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
@@ -108,26 +109,48 @@ void main() {
       await expectLater(result, throwsA(same(failure)));
     });
 
-    test('when changing the payment amount, it should preserve the entered text', () {
+    test('when changing the minimum payment amount, it should preserve the entered text', () {
       final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
 
-      container.read(createJobStateProvider.notifier).setPaymentAmount('1250');
+      container.read(createJobStateProvider.notifier).setPaymentMinimumAmount('1250');
 
-      expect(container.read(createJobStateProvider).paymentAmount, '1250');
+      expect(container.read(createJobStateProvider).paymentMinimumAmount, '1250');
     });
 
-    test('when job creation starts in Portuguese, it should use BRL as the currency hint', () {
+    test('when changing the maximum payment amount, it should preserve the entered text', () {
       final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
 
-      expect(container.read(createJobStateProvider).currencyHint, 'BRL');
+      container.read(createJobStateProvider.notifier).setPaymentMaximumAmount('2500');
+
+      expect(container.read(createJobStateProvider).paymentMaximumAmount, '2500');
     });
 
-    test('when changing the currency hint, it should preserve the selected currency code', () {
+    test('when job creation starts, it should use fixed payment', () {
       final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
 
-      container.read(createJobStateProvider.notifier).setCurrencyHint('USD');
+      expect(container.read(createJobStateProvider).paymentType, JobPaymentType.fixed);
+    });
 
-      expect(container.read(createJobStateProvider).currencyHint, 'USD');
+    test('when changing the payment type, it should preserve the selected type', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+
+      container.read(createJobStateProvider.notifier).setPaymentType(JobPaymentType.range);
+
+      expect(container.read(createJobStateProvider).paymentType, JobPaymentType.range);
+    });
+
+    test('when job creation starts in Portuguese, it should use BRL as the currency code', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+
+      expect(container.read(createJobStateProvider).currencyCode, 'BRL');
+    });
+
+    test('when changing the currency code, it should preserve the selected currency code', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+
+      container.read(createJobStateProvider.notifier).setCurrencyCode('USD');
+
+      expect(container.read(createJobStateProvider).currencyCode, 'USD');
     });
   });
 }

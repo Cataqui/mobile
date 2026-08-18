@@ -9,7 +9,7 @@ part 'job_payment_dto.g.dart';
 @freezed
 sealed class JobPaymentDto with _$JobPaymentDto {
   const factory JobPaymentDto({
-    @JsonKey(unknownEnumValue: JobPaymentType.unknown) required JobPaymentType type,
+    @JsonKey(unknownEnumValue: JobPaymentType.other) required JobPaymentType type,
     @JsonKey(unknownEnumValue: JobPaymentAmountPeriod.unknown) required JobPaymentAmountPeriod amountPeriod,
     required String currency,
     num? minAmount,
@@ -36,7 +36,6 @@ sealed class JobPaymentDto with _$JobPaymentDto {
       JobPaymentType.range => _formatRange(t),
       JobPaymentType.flexible => t.jobPayment.paymentFlexible,
       JobPaymentType.other => t.jobPayment.paymentOther,
-      JobPaymentType.unknown => t.jobPayment.paymentUnknown,
     };
   }
 

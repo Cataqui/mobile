@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/gen/three_d.g.dart';
+import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
@@ -260,7 +260,7 @@ class _JobViewState extends ConsumerState<JobView> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          $ThreeD.spilledCoffee(height: 140),
+          $Illustrations.spilledCoffee(height: 140),
           const SizedBox(height: 20),
           Text(
             i18n.job.error.title,

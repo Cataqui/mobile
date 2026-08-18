@@ -3,8 +3,8 @@ import 'dart:math' as math;
 
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/gen/lotties.g.dart';
-import 'package:cataqui_app/gen/three_d.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
@@ -266,7 +266,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                         top: width * 0.05,
                         child: _buildFloatingAsset(
                           key: const ValueKey('onboarding_cooker_hat'),
-                          child: ExcludeSemantics(child: $ThreeD.cookerHat(width: width * 0.14)),
+                          child: ExcludeSemantics(child: $Illustrations.cookerHat(width: width * 0.14)),
                         ),
                       ),
                       Positioned(
@@ -274,7 +274,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                         top: width * 0.50,
                         child: _buildFloatingAsset(
                           key: const ValueKey('onboarding_hammer'),
-                          child: ExcludeSemantics(child: $ThreeD.hammer(width: width * 0.16)),
+                          child: ExcludeSemantics(child: $Illustrations.hammer(width: width * 0.16)),
                         ),
                       ),
                       Positioned(
@@ -282,7 +282,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                         bottom: width * 0.12,
                         child: _buildFloatingAsset(
                           key: const ValueKey('onboarding_ladder'),
-                          child: ExcludeSemantics(child: $ThreeD.ladder(width: width * 0.16)),
+                          child: ExcludeSemantics(child: $Illustrations.ladder(width: width * 0.16)),
                         ),
                       ),
                       Positioned.fill(

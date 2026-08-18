@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
@@ -14,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
 import 'create_job_view_test_helpers.dart';
@@ -252,7 +252,7 @@ void main() {
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', descriptionText: 'Descrição já preenchida'),
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', descriptionText: 'Descrição já preenchida'),
     );
     final textField = tester.widget<TextField>(find.byType(TextField));
 
@@ -555,31 +555,560 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
     await tester.pumpAndSettle();
-    final visibleAmount = tester
-        .widgetList<Text>(
-          find.descendant(of: find.byKey(const ValueKey('create_job_payment_amount')), matching: find.byType(Text)),
-        )
-        .map((text) => text.data)
-        .join();
+    final semantics = tester.ensureSemantics();
 
-    expect(visibleAmount, r'R$ 0');
+    expect(find.bySemanticsLabel(r'R$ 0'), findsOneWidget);
+    semantics.dispose();
   });
 
-  testWidgets('when payment opens with a US dollar hint, it should show the localized US dollar symbol', (
-    tester,
-  ) async {
+  testWidgets('when payment opens, it should show fixed payment as the selected option', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final selector = tester.widget<Semantics>(find.byKey(const Key('mateo_select_source_semantics')));
+
+    expect(selector.properties.label, i18n.createJob.payment.typeSelector.fixed.title);
+  });
+
+  testWidgets('when payment opens with a saved range type, it should restore the range option', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
-      initialCreateJobData: const CreateJobData(currencyHint: 'USD', paymentAmount: '1200'),
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
       jobRepository: jobRepository,
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
-    final amount = tester.widget<Semantics>(find.byKey(const ValueKey('create_job_payment_amount')));
+    final selector = tester.widget<Semantics>(find.byKey(const Key('mateo_select_source_semantics')));
 
-    expect(amount.properties.label, r'$ 1,200');
+    expect(selector.properties.label, i18n.createJob.payment.typeSelector.range.title);
+  });
+
+  testWidgets(
+    'when range payment opens from the keyboard-shortened description surface, it should fit throughout the surface transition',
+    (tester) async {
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        keyboardInset: 300,
+        disableAnimations: false,
+        initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
+        jobRepository: jobRepository,
+      );
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      final transitionExceptions = <Object>[];
+      for (var elapsedMilliseconds = 0; elapsedMilliseconds < 300; elapsedMilliseconds += 20) {
+        await tester.pump(const Duration(milliseconds: 20));
+        final Object? exception = tester.takeException();
+        if (exception != null) transitionExceptions.add(exception);
+      }
+      await tester.pumpAndSettle();
+
+      expect(transitionExceptions, isEmpty);
+    },
+  );
+
+  testWidgets('when opening the payment type selector, it should show every localized option in order', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    const paymentTypes = [JobPaymentType.fixed, JobPaymentType.range, JobPaymentType.flexible, JobPaymentType.other];
+    final options = [
+      for (final paymentType in paymentTypes)
+        tester.widget<Semantics>(find.byKey(ValueKey<Object>(('mateo_select_option_semantics', paymentType)))),
+    ];
+    final optionTops = [
+      for (final paymentType in paymentTypes)
+        tester.getTopLeft(find.byKey(ValueKey<Object>(('mateo_select_option_semantics', paymentType)))).dy,
+    ];
+
+    expect(
+      <Object>[
+        for (final option in options) ...[option.properties.label!, option.properties.hint!],
+        for (var index = 1; index < optionTops.length; index += 1) optionTops[index - 1] < optionTops[index],
+      ],
+      <Object>[
+        i18n.createJob.payment.typeSelector.fixed.title,
+        i18n.createJob.payment.typeSelector.fixed.description,
+        i18n.createJob.payment.typeSelector.range.title,
+        i18n.createJob.payment.typeSelector.range.description,
+        i18n.createJob.payment.typeSelector.flexible.title,
+        i18n.createJob.payment.typeSelector.flexible.description,
+        i18n.createJob.payment.typeSelector.other.title,
+        i18n.createJob.payment.typeSelector.other.description,
+        true,
+        true,
+        true,
+      ],
+    );
+  });
+
+  testWidgets('when selecting range payment, it should save the type and show both localized amount fields', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentMinimumAmount: '350'),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.range))));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+    final semantics = tester.ensureSemantics();
+    final minimum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_minimum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.minimumLabel),
+      ),
+    );
+    final maximum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_maximum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.maximumLabel),
+      ),
+    );
+
+    expect(
+      (container.read(createJobStateProvider).paymentType, minimum.label, minimum.value, maximum.label, maximum.value),
+      (JobPaymentType.range, 'de', r'R$ 350', 'até', r'R$ 0'),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('when range payment opens, it should select the minimum amount first', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final semantics = tester.ensureSemantics();
+    final minimum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_minimum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.minimumLabel),
+      ),
+    );
+    final maximum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_maximum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.maximumLabel),
+      ),
+    );
+
+    expect(
+      (minimum.flagsCollection.isSelected.toBoolOrNull(), maximum.flagsCollection.isSelected.toBoolOrNull()),
+      (true, false),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('when range payment opens, it should center the amount fields within the payment content', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '350',
+        paymentMaximumAmount: '700',
+        paymentType: JobPaymentType.range,
+      ),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final paymentContentRect = tester.getRect(find.byKey(const ValueKey('create_job_range_payment_content')));
+    final minimumLabelLeft = tester
+        .getTopLeft(
+          find.descendant(
+            of: find.byKey(
+              const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_minimum_amount'))),
+            ),
+            matching: find.byType(Text),
+          ),
+        )
+        .dx;
+    final maximumLabelLeft = tester
+        .getTopLeft(
+          find.descendant(
+            of: find.byKey(
+              const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
+            ),
+            matching: find.byType(Text),
+          ),
+        )
+        .dx;
+
+    expect(
+      (minimumLabelLeft > paymentContentRect.left + 40, (minimumLabelLeft - maximumLabelLeft).abs() < 0.01),
+      (true, true),
+    );
+  });
+
+  testWidgets('when the maximum range amount is tapped, keypad input should update only the maximum draft amount', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '350',
+        paymentType: JobPaymentType.range,
+      ),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+        const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_five')));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+    final semantics = tester.ensureSemantics();
+    final minimum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_minimum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.minimumLabel),
+      ),
+    );
+    final maximum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_maximum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.maximumLabel),
+      ),
+    );
+
+    expect(
+      (
+        container.read(createJobStateProvider).paymentMinimumAmount,
+        container.read(createJobStateProvider).paymentMaximumAmount,
+        minimum.flagsCollection.isSelected.toBoolOrNull(),
+        maximum.flagsCollection.isSelected.toBoolOrNull(),
+      ),
+      ('350', '5', false, true),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('when blank space in the maximum range row is tapped, keypad input should update the maximum amount', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '3',
+        paymentType: JobPaymentType.range,
+      ),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final maximumAmountRow = find.byKey(
+      const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
+    );
+    final maximumAmountCenter = tester.getCenter(maximumAmountRow);
+
+    await tester.tapAt(
+      Offset(tester.view.physicalSize.width / tester.view.devicePixelRatio - 30, maximumAmountCenter.dy),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_five')));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+
+    expect(
+      (
+        container.read(createJobStateProvider).paymentMinimumAmount,
+        container.read(createJobStateProvider).paymentMaximumAmount,
+      ),
+      ('3', '5'),
+    );
+  });
+
+  testWidgets('when the minimum range amount is tapped again, keypad input should return to the minimum amount', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '350',
+        paymentMaximumAmount: '700',
+        paymentType: JobPaymentType.range,
+      ),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+        const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+        const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_minimum_amount'))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_five')));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+
+    expect(
+      (
+        container.read(createJobStateProvider).paymentMinimumAmount,
+        container.read(createJobStateProvider).paymentMaximumAmount,
+      ),
+      ('3,505', '700'),
+    );
+  });
+
+  testWidgets(
+    'when a digit widens a range amount, it should keep the amount paint boundary stable while moving horizontally',
+    (tester) async {
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        disableAnimations: false,
+        initialCreateJobData: const CreateJobData(
+          currencyCode: 'BRL',
+          paymentMinimumAmount: '999',
+          paymentType: JobPaymentType.range,
+        ),
+        jobRepository: jobRepository,
+      );
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pumpAndSettle();
+      final minimumAmount = find.byKey(const ValueKey('create_job_range_minimum_amount'));
+      final widthBeforeInput = tester.getSize(minimumAmount).width;
+
+      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
+      await tester.pump();
+      final widthWhenMotionBegins = tester.getSize(minimumAmount).width;
+      await tester.pumpAndSettle();
+      final settledWidth = tester.getSize(minimumAmount).width;
+
+      expect(
+        ((widthWhenMotionBegins - widthBeforeInput).abs() < 0.01, (settledWidth - widthBeforeInput).abs() < 0.01),
+        (true, true),
+      );
+    },
+  );
+
+  testWidgets('when deleting a range digit, it should keep a stable paint boundary while the digit leaves', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      disableAnimations: false,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '555',
+        paymentType: JobPaymentType.range,
+      ),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final minimumAmount = find.byKey(const ValueKey('create_job_range_minimum_amount'));
+    final widthBeforeDeletion = tester.getSize(minimumAmount).width;
+
+    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
+    await tester.pump();
+    final widthWhenMotionBegins = tester.getSize(minimumAmount).width;
+    await tester.pump(const Duration(milliseconds: 70));
+    final widthWhileDigitLeaves = tester.getSize(minimumAmount).width;
+    await tester.pumpAndSettle();
+    final settledWidth = tester.getSize(minimumAmount).width;
+
+    expect(
+      (
+        (widthWhenMotionBegins - widthBeforeDeletion).abs() < 0.01,
+        (widthWhileDigitLeaves - widthBeforeDeletion).abs() < 0.01,
+        (settledWidth - widthBeforeDeletion).abs() < 0.01,
+      ),
+      (true, true, true),
+    );
+  });
+
+  testWidgets(
+    'when fixed payment changes to range then the minimum receives another digit, it should keep both fields vertically stable',
+    (tester) async {
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        disableAnimations: false,
+        initialCreateJobData: const CreateJobData(
+          currencyCode: 'BRL',
+          paymentMinimumAmount: '23',
+          paymentType: JobPaymentType.fixed,
+        ),
+        jobRepository: jobRepository,
+      );
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('mateo_select_source')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.range))));
+      await tester.pumpAndSettle();
+      final minimumAmount = find.byKey(const ValueKey('create_job_range_minimum_amount'));
+      final maximumAmount = find.byKey(const ValueKey('create_job_range_maximum_amount'));
+      final before = (tester.getTopLeft(minimumAmount).dy, tester.getTopLeft(maximumAmount).dy);
+
+      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_five')));
+      await tester.pump();
+      final start = (tester.getTopLeft(minimumAmount).dy, tester.getTopLeft(maximumAmount).dy);
+      await tester.pump(const Duration(milliseconds: 70));
+      final middle = (tester.getTopLeft(minimumAmount).dy, tester.getTopLeft(maximumAmount).dy);
+      await tester.pumpAndSettle();
+      final settled = (tester.getTopLeft(minimumAmount).dy, tester.getTopLeft(maximumAmount).dy);
+
+      expect(
+        (
+          (start.$1 - before.$1).abs() < 0.01,
+          (start.$2 - before.$2).abs() < 0.01,
+          (middle.$1 - before.$1).abs() < 0.01,
+          (middle.$2 - before.$2).abs() < 0.01,
+          (settled.$1 - before.$1).abs() < 0.01,
+          (settled.$2 - before.$2).abs() < 0.01,
+        ),
+        (true, true, true, true, true, true),
+      );
+    },
+  );
+
+  testWidgets('when returning to range after another payment type, it should restore both entered amounts', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '350',
+        paymentMaximumAmount: '700',
+        paymentType: JobPaymentType.range,
+      ),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.fixed))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.range))));
+    await tester.pumpAndSettle();
+    final semantics = tester.ensureSemantics();
+    final minimum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_minimum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.minimumLabel),
+      ),
+    );
+    final maximum = tester.getSemantics(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_range_maximum_amount')),
+        matching: find.bySemanticsLabel(i18n.createJob.payment.range.maximumLabel),
+      ),
+    );
+
+    expect((minimum.value, maximum.value), (r'R$ 350', r'R$ 700'));
+    semantics.dispose();
+  });
+
+  for (final paymentType in [JobPaymentType.flexible, JobPaymentType.other]) {
+    testWidgets(
+      'when selecting ${paymentType.name} payment, it should save the type and leave its unfinished content empty',
+      (tester) async {
+        await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
+        await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('mateo_select_source')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(ValueKey<Object>(('mateo_select_option_semantics', paymentType))));
+        await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+
+        expect(
+          (
+            container.read(createJobStateProvider).paymentType,
+            find.byKey(const ValueKey('create_job_fixed_payment_content')).evaluate().length,
+            find.byKey(ValueKey<Object>(('create_job_empty_payment_content', paymentType))).evaluate().length,
+          ),
+          (paymentType, 0, 1),
+        );
+      },
+    );
+  }
+
+  testWidgets('when selecting fixed payment, it should save the type and show the fixed payment controls', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.fixed))));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+
+    expect(
+      (
+        container.read(createJobStateProvider).paymentType,
+        find.byKey(const ValueKey('create_job_fixed_payment_content')).evaluate().length,
+      ),
+      (JobPaymentType.fixed, 1),
+    );
   });
 
   testWidgets('when draft creation finishes, it should open payment for the created job', (tester) async {
@@ -609,546 +1138,38 @@ void main() {
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
 
-    expect(container.read(createJobStateProvider).paymentAmount, isNot('0'));
+    expect(container.read(createJobStateProvider).paymentMinimumAmount, isNot('0'));
   });
 
-  testWidgets(
-    'when entering the first non-zero payment digit, it should replace the displayed default zero immediately',
-    (tester) async {
-      await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_five')));
-      await tester.pumpAndSettle();
-      final amount = tester.widget<Semantics>(find.byKey(const ValueKey('create_job_payment_amount')));
-
-      expect(amount.properties.label, r'R$ 5');
-    },
-  );
-
-  testWidgets(
-    'when entering the first non-zero payment digit, it should move the default zero right before moving the entered digit in',
-    (tester) async {
-      await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_five')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 70));
-      final replacement = find.byKey(const ValueKey('create_job_payment_replaced_digit_animation'));
-      final motions = find
-          .descendant(of: replacement, matching: find.byType(Motion))
-          .evaluate()
-          .map((element) => element.widget as Motion)
-          .map((motion) => motion.effect! as MoveMotionEffect)
-          .toList();
-      await tester.pumpAndSettle();
-
-      expect(motions.map((motion) => (motion.begin, motion.end, motion.delay)).toList(), [
-        (Offset.zero, const Offset(56, 0), Duration.zero),
-        (const Offset(56, 0), Offset.zero, const Duration(milliseconds: 140)),
-      ]);
-    },
-  );
-
-  testWidgets('when a payment digit is entered, it should slide only the new digit inward from the right', (
+  testWidgets('when a default zero is rapidly replaced then restored, it should retain only the restored zero', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
+    await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+    final semantics = tester.ensureSemantics();
+
+    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_five')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final animation = find.byKey(const ValueKey('create_job_payment_new_digit_animation'));
-    final newDigit = find.descendant(of: animation, matching: find.text('1'));
-    final digitMotion = tester.widget<Motion>(find.descendant(of: animation, matching: find.byType(Motion)));
-    final stationaryAmount = find.descendant(
-      of: find.byKey(const ValueKey('create_job_payment_amount')),
-      matching: find.byWidgetPredicate((widget) => widget is Text && (widget.data?.startsWith(r'R$') ?? false)),
-    );
-
-    expect(
-      (
-        find.descendant(of: animation, matching: find.byType(Motion)).evaluate().length,
-        (digitMotion.effect! as MoveMotionEffect).begin,
-        find.descendant(of: animation, matching: find.byType(MateoEdgeFade)).evaluate().length,
-        tester.getTopLeft(newDigit).dx > tester.getTopRight(stationaryAmount).dx,
-      ),
-      (1, const Offset(56, 0), 1, true),
-    );
-  });
-
-  testWidgets('when a payment digit is entered, it should animate the existing amount toward its new center', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final centeringMotion = find.byKey(const ValueKey(('create_job_payment_amount_centering', 1)));
-    final stationaryAmount = find.descendant(
-      of: centeringMotion,
-      matching: find.byWidgetPredicate((widget) => widget is Text && (widget.data?.startsWith(r'R$') ?? false)),
-    );
-    final midpointLeft = tester.getTopLeft(stationaryAmount).dx;
-    await tester.pumpAndSettle();
-
-    expect(midpointLeft, greaterThan(tester.getTopLeft(stationaryAmount).dx));
-  });
-
-  testWidgets('when a grouping separator appears, it should open a gap between the surrounding digits', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final separator = find.byKey(const ValueKey('create_job_payment_new_separator_animation'));
-    final separatorVisibility = tester.widget<TweenAnimationBuilder<double>>(
-      find.descendant(
-        of: separator,
-        matching: find.byWidgetPredicate((widget) => widget is TweenAnimationBuilder<double>),
-      ),
-    );
-    final rightGroupMotion = tester.widget<Motion>(
-      find.descendant(
-        of: find.byKey(const ValueKey('create_job_payment_separator_right_group_animation')),
-        matching: find.byType(Motion),
-      ),
-    );
-
-    expect(
-      (
-        separator.evaluate().length,
-        separatorVisibility.tween.begin,
-        separatorVisibility.tween.end,
-        separatorVisibility.curve,
-        rightGroupMotion.effect is MoveMotionEffect,
-        (rightGroupMotion.effect! as MoveMotionEffect).begin.dx < 0,
-      ),
-      (1, 0, 1, Curves.easeOutCubic, true, true),
-    );
-  });
-
-  testWidgets('when a grouping separator disappears, it should close the gap between the surrounding digits', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final separator = find.byKey(const ValueKey('create_job_payment_removed_separator_animation'));
-    final separatorVisibility = tester.widget<TweenAnimationBuilder<double>>(separator);
-    final rightGroupMotion = tester.widget<Motion>(
-      find.descendant(
-        of: find.byKey(const ValueKey('create_job_payment_removed_separator_right_group_animation')),
-        matching: find.byType(Motion),
-      ),
-    );
-
-    expect(
-      (
-        separator.evaluate().length,
-        separatorVisibility.tween.begin,
-        separatorVisibility.tween.end,
-        separatorVisibility.curve,
-        rightGroupMotion.effect is MoveMotionEffect,
-        (rightGroupMotion.effect! as MoveMotionEffect).begin.dx > 0,
-      ),
-      (1, 1, 0, Curves.easeInCubic, true, true),
-    );
-  });
-
-  testWidgets('when a grouping separator moves right, it should close its old gap and open its new gap', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final crossedGroupMotion = tester.widget<Motion>(
-      find.descendant(
-        of: find.byKey(const ValueKey('create_job_payment_moved_separator_crossed_group_animation')),
-        matching: find.byType(Motion),
-      ),
-    );
-    final rightGroupMotion = tester.widget<Motion>(
-      find.descendant(
-        of: find.byKey(const ValueKey('create_job_payment_moved_separator_right_group_animation')),
-        matching: find.byType(Motion),
-      ),
-    );
-
-    expect(
-      (
-        find.byKey(const ValueKey('create_job_payment_moved_separator_new_position')).evaluate().length,
-        (crossedGroupMotion.effect! as MoveMotionEffect).begin.dx > 0,
-        (rightGroupMotion.effect! as MoveMotionEffect).begin.dx < 0,
-      ),
-      (1, true, true),
-    );
-  });
-
-  testWidgets('when a grouping separator moves left, it should open its new gap and close its old gap', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final crossedGroupMotion = tester.widget<Motion>(
-      find.descendant(
-        of: find.byKey(const ValueKey('create_job_payment_moved_separator_crossed_group_animation')),
-        matching: find.byType(Motion),
-      ),
-    );
-
-    expect((crossedGroupMotion.effect! as MoveMotionEffect).begin.dx, lessThan(0));
-  });
-
-  testWidgets('when another grouping separator appears, it should animate every affected separator smoothly', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    for (var index = 0; index < 2; index += 1) {
-      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_zero')));
-      await tester.pumpAndSettle();
-    }
     await tester.tap(find.byKey(const Key('mateo_numeric_keypad_zero')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-
-    expect(
-      (
-        find.byKey(const ValueKey('create_job_payment_multi_separator_new_animation')).evaluate().length,
-        find.byKey(const ValueKey('create_job_payment_multi_separator_existing_animation')).evaluate().length,
-      ),
-      (1, 1),
-    );
-  });
-
-  testWidgets('when one of multiple grouping separators disappears, it should animate every affected separator', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    for (var index = 0; index < 3; index += 1) {
-      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_zero')));
-      await tester.pumpAndSettle();
+
+    try {
+      expect(
+        (container.read(createJobStateProvider).paymentMinimumAmount, find.bySemanticsLabel(r'R$ 0').evaluate().length),
+        ('0', 1),
+      );
+    } finally {
+      semantics.dispose();
     }
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-
-    expect(
-      (
-        find.byKey(const ValueKey('create_job_payment_multi_separator_removed_animation')).evaluate().length,
-        find.byKey(const ValueKey('create_job_payment_multi_separator_existing_animation')).evaluate().length,
-      ),
-      (1, 1),
-    );
   });
 
-  testWidgets('when a decimal separator is added beside a grouping separator, it should animate each one in place', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    final decimalSeparator = tester
-        .widget<Text>(find.byKey(const Key('mateo_numeric_keypad_decimalSeparator_label')))
-        .data;
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_decimalSeparator')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final newSeparator = tester.widget<Text>(
-      find.descendant(
-        of: find.byKey(const ValueKey('create_job_payment_multi_separator_new_animation')),
-        matching: find.byType(Text),
-      ),
-    );
-    final existingSeparator = tester.widget<Text>(
-      find.descendant(
-        of: find.byKey(const ValueKey('create_job_payment_multi_separator_existing_animation')),
-        matching: find.byType(Text),
-      ),
-    );
-
-    expect((newSeparator.data, existingSeparator.data == decimalSeparator), (decimalSeparator, false));
-  });
-
-  testWidgets('when reduced motion is enabled, it should place a newly entered payment digit immediately', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-    await tester.pump();
-    final animation = find.byKey(const ValueKey('create_job_payment_new_digit_animation'));
-    final newDigit = find.descendant(of: animation, matching: find.text('1'));
-    final initialLeft = tester.getTopLeft(newDigit).dx;
-    await tester.pump(const Duration(milliseconds: 70));
-
-    expect(tester.getTopLeft(newDigit).dx, closeTo(initialLeft, 0.1));
-  });
-
-  testWidgets('when a payment digit settles, it should keep padding before the right edge fade', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-    await tester.pumpAndSettle();
-    final animation = find.byKey(const ValueKey('create_job_payment_new_digit_animation'));
-    final newDigit = find.descendant(of: animation, matching: find.text('1'));
-    final edgeFade = find.descendant(
-      of: animation,
-      matching: find.byWidgetPredicate(
-        (widget) => widget is MateoEdgeFade && widget.position == MateoEdgeFadePosition.right,
-      ),
-    );
-
-    expect(tester.getTopLeft(edgeFade).dx, greaterThanOrEqualTo(tester.getTopRight(newDigit).dx));
-  });
-
-  testWidgets('when a payment digit is deleted, it should slide only the removed digit outward to the right', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 70));
-    final animation = find.byKey(const ValueKey('create_job_payment_deleted_digit_animation'));
-    final deletedDigit = find.descendant(of: animation, matching: find.text('0'));
-    final digitMotion = tester.widget<Motion>(find.descendant(of: animation, matching: find.byType(Motion)));
-    final stationaryAmount = find.descendant(
-      of: find.byKey(const ValueKey('create_job_payment_amount')),
-      matching: find.byWidgetPredicate((widget) => widget is Text && (widget.data?.startsWith(r'R$') ?? false)),
-    );
-    final exitEffect = digitMotion.effects![1] as MoveMotionEffect;
-
-    expect(
-      (
-        find.descendant(of: animation, matching: find.byType(Motion)).evaluate().length,
-        digitMotion.effects?.length,
-        digitMotion.effects?.every((effect) => effect is MoveMotionEffect),
-        exitEffect.end,
-        find.descendant(of: animation, matching: find.byType(MateoEdgeFade)).evaluate().length,
-        tester.getTopLeft(deletedDigit).dx > tester.getTopRight(stationaryAmount).dx,
-      ),
-      (1, 2, true, const Offset(56, 0), 1, true),
-    );
-  });
-
-  testWidgets('when a payment digit starts deleting, it should remain at its previous horizontal position', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    final restingAmount = find.descendant(
-      of: find.byKey(const ValueKey('create_job_payment_amount')),
-      matching: find.byWidgetPredicate((widget) => widget is Text && (widget.data?.startsWith(r'R$') ?? false)),
-    );
-    final restingText = tester.widget<Text>(restingAmount).data!;
-    final restingParagraph = tester.renderObject<RenderParagraph>(restingAmount);
-    final restingDigitBox = restingParagraph
-        .getBoxesForSelection(TextSelection(baseOffset: restingText.length - 1, extentOffset: restingText.length))
-        .single;
-    final restingDigitLeft = restingParagraph.localToGlobal(Offset(restingDigitBox.left, 0)).dx;
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-    await tester.pump();
-    final deletedDigit = find.descendant(
-      of: find.byKey(const ValueKey('create_job_payment_deleted_digit_animation')),
-      matching: find.text('0'),
-    );
-    final deletedDigitParagraph = tester.renderObject<RenderParagraph>(deletedDigit);
-    final deletedDigitBox = deletedDigitParagraph
-        .getBoxesForSelection(const TextSelection(baseOffset: 0, extentOffset: 1))
-        .single;
-    final deletedDigitLeft = deletedDigitParagraph.localToGlobal(Offset(deletedDigitBox.left, 0)).dx;
-
-    expect(deletedDigitLeft, closeTo(restingDigitLeft, 0.1));
-  });
-
-  testWidgets('when backspace cannot delete another payment digit, it should shake the amount horizontally', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    for (var index = 0; index < 4; index += 1) {
-      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-      await tester.pumpAndSettle();
-    }
-    final stationaryAmount = find.descendant(
-      of: find.byKey(const ValueKey('create_job_payment_amount')),
-      matching: find.byWidgetPredicate((widget) => widget is Text && (widget.data?.startsWith(r'R$') ?? false)),
-    );
-    final restingLeft = tester.getTopLeft(stationaryAmount).dx;
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 35));
-    final shake = find.byKey(const ValueKey('create_job_payment_rejected_change'));
-
-    expect(shake.evaluate().length == 1 && (tester.getTopLeft(stationaryAmount).dx - restingLeft).abs() > 0.5, isTrue);
-  });
-
-  testWidgets('when a payment change is rejected after entering a digit, it should not replay that digit animation', (
-    tester,
-  ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
-      tester,
-      disableAnimations: false,
-      initialCreateJobData: const CreateJobData(currencyHint: 'BRL', paymentAmount: '1200'),
-      jobRepository: jobRepository,
-    );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_decimalSeparator')));
-    await tester.pumpAndSettle();
-    for (var index = 0; index < 2; index += 1) {
-      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
-      await tester.pumpAndSettle();
-    }
-    final digitAnimation = find.byKey(const ValueKey('create_job_payment_new_digit_animation'));
-    final animatedDigit = find.descendant(of: digitAnimation, matching: find.text('1'));
-    final stationaryAmount = find.descendant(
-      of: find.byKey(const ValueKey('create_job_payment_amount')),
-      matching: find.byWidgetPredicate((widget) => widget is Text && (widget.data?.startsWith(r'R$') ?? false)),
-    );
-    final restingVerticalOffset = tester.getTopLeft(animatedDigit).dy - tester.getTopLeft(stationaryAmount).dy;
-    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_two')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 35));
-
-    expect(
-      tester.getTopLeft(animatedDigit).dy - tester.getTopLeft(stationaryAmount).dy,
-      closeTo(restingVerticalOffset, 0.1),
-    );
-  });
-
-  testWidgets('when the separator is entered without an amount, it should show one zero followed by the separator', (
+  testWidgets('when the amount is cleared then a decimal separator is entered, it should restore the leading zero', (
     tester,
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
@@ -1156,21 +1177,26 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
-    for (var index = 0; index < 4; index += 1) {
-      await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
-      await tester.pumpAndSettle();
-    }
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+    final semantics = tester.ensureSemantics();
+
+    await tester.tap(find.byKey(const Key('mateo_numeric_keypad_backspace')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('mateo_numeric_keypad_decimalSeparator')));
     await tester.pumpAndSettle();
-    final separator = tester.widget<Text>(find.byKey(const Key('mateo_numeric_keypad_decimalSeparator_label'))).data;
-    final visibleAmount = tester
-        .widgetList<Text>(
-          find.descendant(of: find.byKey(const ValueKey('create_job_payment_amount')), matching: find.byType(Text)),
-        )
-        .map((text) => text.data)
-        .join();
+    final separator = tester.widget<Text>(find.byKey(const Key('mateo_numeric_keypad_decimalSeparator_label'))).data!;
 
-    expect(visibleAmount, 'R\$ 0$separator');
+    try {
+      expect(
+        (
+          container.read(createJobStateProvider).paymentMinimumAmount,
+          find.bySemanticsLabel('R\$ 0$separator').evaluate().length,
+        ),
+        ('0$separator', 1),
+      );
+    } finally {
+      semantics.dispose();
+    }
   });
 
   testWidgets('when draft creation finishes, it should expand the payment surface to the full screen', (tester) async {

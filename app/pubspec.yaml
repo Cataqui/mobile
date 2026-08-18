@@ -58,7 +58,8 @@ dev_dependencies:
 dotdart:
   output: lib/gen/
   image:
-    - assets/three_d/
+    - assets/icons/
+    - assets/illustrations/
     - assets/memoji/
   lottie:
     - assets/lotties/
@@ -77,4 +78,5 @@ flutter:
     - assets/logos/
     - assets/memoji/
     - assets/splash/
-    - assets/three_d/
+    - assets/icons/
+    - assets/illustrations/

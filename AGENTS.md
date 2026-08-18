@@ -170,7 +170,23 @@ widget or model that produces or consumes the data.
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
 - **Name your math:** When combining numbers in an expression where each operand's meaning is not immediately obvious (e.g. `width - 30 - 12 - 14 - 26`), extract each operand into a named constant so the expression reads as intent. Simple standalone values like `padding: 24` do not need extraction — the position tells you what the number means.
-- **Linked layout constants:** When a calculation depends on a layout value defined elsewhere (padding, icon size, gap, etc.), store the shared value as a constant and reference it in both locations. This guarantees the two sites can never drift apart and makes the dependency explicit to readers.
+- **Linked values must share one source of truth:** When two or more production expressions must stay synchronized, define the value once as a constant or variable owned by their shared domain and reference it everywhere. This includes layout and typography values used both for measurement and rendering (font size, padding, icon size, gaps, animation dimensions, etc.). Never duplicate synchronized literals independently; a later edit must be able to update every dependent expression by changing one declaration.
+
+### Parameter-Resilient Fixes
+
+- Fix the underlying relationship, not only the currently observed values. A fix involving configurable properties such
+  as durations, sizes, spacing, scale, or thresholds must derive its behavior from the values passed by its owner. It
+  must continue to work when those values change instead of relying on duplicated literals, timing assumptions, or
+  geometry tuned for one configuration.
+- Regression tests should vary the relevant property when practical so they prove the implementation adapts rather than
+  only protecting the original value that exposed the issue.
+
+### Shared Animation Cores
+
+- When two behaviors share an animation, extract the common motion into one core implementation. Both callers must use
+  that same path, progress calculation, curve, and duration source, passing only the inputs that genuinely differ, such
+  as start geometry, target geometry, direction, delay, or content. Do not maintain parallel animation implementations
+  that must be manually synchronized.
 
 ### Shared Constants Across Files
 

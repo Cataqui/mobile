@@ -4,7 +4,7 @@ import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/gen/three_d.g.dart';
+import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
@@ -158,7 +158,7 @@ class JobViewGoldenTestHelpers {
 
   static Future<void> settle(WidgetTester tester) async {
     await withClock(fixedClock(), () async {
-      await tester.runAsync(() => $ThreeD.precache(tester.element(find.byType(JobView))));
+      await tester.runAsync(() => $Illustrations.precache(tester.element(find.byType(JobView))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump(const Duration(milliseconds: 50));

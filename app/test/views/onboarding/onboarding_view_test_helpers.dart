@@ -13,9 +13,9 @@ abstract final class OnboardingViewTestHelpers {
 
     await tester.runAsync(() async {
       await Future.wait([
-        precacheImage(const AssetImage('assets/three_d/cooker_hat.webp'), context),
-        precacheImage(const AssetImage('assets/three_d/hammer.webp'), context),
-        precacheImage(const AssetImage('assets/three_d/ladder.webp'), context),
+        precacheImage(const AssetImage('assets/illustrations/cooker_hat.webp'), context),
+        precacheImage(const AssetImage('assets/illustrations/hammer.webp'), context),
+        precacheImage(const AssetImage('assets/illustrations/ladder.webp'), context),
       ]);
     });
     await tester.pump();

@@ -6,7 +6,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/gen/three_d.g.dart';
+import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -48,7 +48,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            ExcludeSemantics(child: $ThreeD.comingSoonPlatePortuguese(fit: BoxFit.contain, height: 130)),
+            ExcludeSemantics(child: $Illustrations.comingSoonPlatePortuguese(fit: BoxFit.contain, height: 130)),
             const SizedBox(height: 18),
             Text(
               'Só em São Paulo',

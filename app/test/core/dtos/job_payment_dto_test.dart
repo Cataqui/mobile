@@ -25,7 +25,7 @@ void main() {
         expect(payment.minAmount, 120);
       });
 
-      test('when parsing an unknown payment type, it should use unknown', () {
+      test('when parsing an unknown payment type, it should use other', () {
         final payment = JobPaymentDto.fromJson(const <String, Object?>{
           'type': 'BONUS',
           'minAmount': 120,
@@ -35,7 +35,7 @@ void main() {
           'note': '',
         });
 
-        expect(payment.type, JobPaymentType.unknown);
+        expect(payment.type, JobPaymentType.other);
       });
 
       test('when minAmount is missing from JSON, it should default to null', () {
@@ -170,19 +170,6 @@ void main() {
         final result = payment.formatPayment(i18n);
 
         expect(result, equals(i18n.jobPayment.paymentOther));
-      });
-
-      test('when payment type is unknown, it should return "Desconhecido"', () {
-        const payment = JobPaymentDto(
-          type: JobPaymentType.unknown,
-          amountPeriod: JobPaymentAmountPeriod.daily,
-          currency: 'BRL',
-          note: '',
-        );
-
-        final result = payment.formatPayment(i18n);
-
-        expect(result, equals(i18n.jobPayment.paymentUnknown));
       });
 
       test('when amount is an integer, it should have no decimal places', () {

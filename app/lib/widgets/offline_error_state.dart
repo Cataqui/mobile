@@ -1,4 +1,4 @@
-import 'package:cataqui_app/gen/three_d.g.dart';
+import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:flutter/material.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
@@ -18,7 +18,7 @@ class OfflineErrorState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          $ThreeD.wifiExclamation(height: 140),
+          $Illustrations.wifiExclamation(height: 140),
           const SizedBox(height: 20),
           Text(
             title,

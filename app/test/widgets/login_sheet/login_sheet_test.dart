@@ -70,7 +70,7 @@ void main() {
         (
           title: i18n.loginSheet.title,
           subtitle: i18n.loginSheet.subtitle,
-          keysAssetName: 'assets/three_d/keys.webp',
+          keysAssetName: 'assets/illustrations/keys.webp',
           loginButtonCount: 1,
         ),
       );

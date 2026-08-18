@@ -58,9 +58,31 @@
       "tooLongError": "Só pode ter até 10.000 letras, seu texto tem {characterCount: int}"
     },
     "payment": {
-      "title": "E quanto você quer pagar?",
+      "title": "Quanto você vai pagar?",
       "amount": "{currencySymbol: String} {value: String}",
-      "backButtonSemanticLabel": "Voltar"
+      "backButtonSemanticLabel": "Voltar",
+      "range": {
+        "minimumLabel": "de",
+        "maximumLabel": "até"
+      },
+      "typeSelector": {
+        "fixed": {
+          "title": "Um valor só",
+          "description": "Você paga o mesmo pra qualquer um que fechar"
+        },
+        "range": {
+          "title": "Entre dois valores",
+          "description": "Depende de algo que varia entre um valor mínimo e um valor máximo"
+        },
+        "flexible": {
+          "title": "A combinar",
+          "description": "Acertar direto com a pessoa é melhor"
+        },
+        "other": {
+          "title": "Outro pagamento",
+          "description": "O pagamento não vai ser dinheiro"
+        }
+      }
     }
   },
   "feedJob": {
@@ -87,8 +109,7 @@
     "paymentPeriodWeekly": "/semana",
     "paymentPeriodMonthly": "/mês",
     "paymentPeriodYearly": "/ano",
-    "paymentOther": "Outro pagamento",
-    "paymentUnknown": "Desconhecido"
+    "paymentOther": "Outro pagamento"
   },
   "navigation": {
     "back": "Voltar"

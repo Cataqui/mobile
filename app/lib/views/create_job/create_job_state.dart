@@ -1,4 +1,5 @@
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -8,7 +9,7 @@ part 'create_job_state.g.dart';
 @riverpod
 class CreateJobState extends _$CreateJobState {
   @override
-  CreateJobData build() => CreateJobData(currencyHint: ref.read(translationProvider).mainCurrencyCode);
+  CreateJobData build() => CreateJobData(currencyCode: ref.read(translationProvider).mainCurrencyCode);
 
   Future<JobDraftDto> createDraft() async {
     final descriptionText = state.descriptionText;
@@ -38,15 +39,27 @@ class CreateJobState extends _$CreateJobState {
     state = state.copyWith(descriptionText: normalizedDescriptionText);
   }
 
-  void setCurrencyHint(String currencyHint) {
-    if (state.currencyHint == currencyHint) return;
+  void setCurrencyCode(String currencyCode) {
+    if (state.currencyCode == currencyCode) return;
 
-    state = state.copyWith(currencyHint: currencyHint);
+    state = state.copyWith(currencyCode: currencyCode);
   }
 
-  void setPaymentAmount(String paymentAmount) {
-    if (state.paymentAmount == paymentAmount) return;
+  void setPaymentMinimumAmount(String paymentMinimumAmount) {
+    if (state.paymentMinimumAmount == paymentMinimumAmount) return;
 
-    state = state.copyWith(paymentAmount: paymentAmount);
+    state = state.copyWith(paymentMinimumAmount: paymentMinimumAmount);
+  }
+
+  void setPaymentMaximumAmount(String paymentMaximumAmount) {
+    if (state.paymentMaximumAmount == paymentMaximumAmount) return;
+
+    state = state.copyWith(paymentMaximumAmount: paymentMaximumAmount);
+  }
+
+  void setPaymentType(JobPaymentType paymentType) {
+    if (state.paymentType == paymentType) return;
+
+    state = state.copyWith(paymentType: paymentType);
   }
 }

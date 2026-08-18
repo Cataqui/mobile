@@ -1,21 +1,21 @@
 import 'dart:math' as math;
 
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/gen/icons.g.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/enums/create_job_morph_tag.dart';
+import 'package:cataqui_app/views/create_job/payment/widgets/create_job_payment_amount_text/create_job_payment_amount_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
-part 'widgets/create_job_payment_amount/create_job_payment_amount.dart';
-part 'widgets/create_job_payment_amount/create_job_payment_amount_multiple_separator_transition.dart';
-part 'widgets/create_job_payment_amount/create_job_payment_amount_separator_transition.dart';
-part 'widgets/create_job_payment_amount/create_job_payment_amount_separator_visibility_transition.dart';
-part 'widgets/create_job_payment_amount/create_job_payment_amount_text_metrics.dart';
-part 'widgets/create_job_payment_amount/create_job_payment_amount_transition.dart';
-part 'widgets/create_job_payment_amount/create_job_payment_amount_transition_spec.dart';
+part '_fixed_payment_section.dart';
+part '_flexible_payment_section.dart';
+part '_other_payment_section.dart';
+part '_range_payment_section.dart';
 
 class CreateJobPaymentView extends ConsumerStatefulWidget {
   const CreateJobPaymentView({required this.jobId, super.key});
@@ -27,35 +27,15 @@ class CreateJobPaymentView extends ConsumerStatefulWidget {
 }
 
 class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
-  late final MateoTextInputController _amountTextController;
-  late final MotionController _shakeAmountMotionController;
-
-  void _setAmountText() {
-    ref.read(createJobStateProvider.notifier).setPaymentAmount(_amountTextController.text);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _amountTextController = MateoTextInputController(text: ref.read(createJobStateProvider).paymentAmount)
-      ..addListener(_setAmountText);
-
-    _shakeAmountMotionController = MotionController();
-  }
-
-  @override
-  void dispose() {
-    _amountTextController
-      ..removeListener(_setAmountText)
-      ..dispose();
-
-    super.dispose();
+  void _setPaymentType(JobPaymentType paymentType) {
+    ref.read(createJobStateProvider.notifier).setPaymentType(paymentType);
   }
 
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
     ref.watch(createJobStateProvider.select((state) => state.jobId));
+    final paymentType = ref.watch(createJobStateProvider.select((state) => state.paymentType));
     final mediaQueryData = MediaQuery.of(context);
 
     return Scaffold(
@@ -76,68 +56,95 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                 switchTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
                 child: Container(
                   key: const ValueKey('create_job_payment_surface'),
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: context.mateo.colorScheme.background,
                     borderRadius: BorderRadius.circular(36),
                   ),
-                  child: SafeArea(
-                    child: Column(
-                      key: const ValueKey('create_job_payment_view_content'),
-                      children: [
-                        SizedBox(
-                          height: 53,
-                          child: Center(
-                            child: Text(
-                              i18n.createJob.payment.title,
-                              key: const ValueKey('create_job_payment_title'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: context.mateo.colorScheme.text.primary,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
+                  child: MorphDescendant(
+                    flightBehavior: MorphDescendantFlightBehavior.snapshot,
+                    child: SafeArea(
+                      child: Column(
+                        key: const ValueKey('create_job_payment_view_content'),
+                        children: [
+                          SizedBox(
+                            height: 53,
+                            child: Center(
+                              child: Text(
+                                i18n.createJob.payment.title,
+                                key: const ValueKey('create_job_payment_title'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: context.mateo.colorScheme.text.primary,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: Center(
-                            child: _CreateJobPaymentAmount(
-                              amountController: _amountTextController,
-                              shakeMotionController: _shakeAmountMotionController,
+                          MateoSelect(
+                            key: const ValueKey('create_job_payment_type_selector'),
+                            items: [
+                              MateoSelectOption(
+                                value: JobPaymentType.fixed,
+                                title: i18n.createJob.payment.typeSelector.fixed.title,
+                                description: i18n.createJob.payment.typeSelector.fixed.description,
+                                iconBuilder: (state) => $Icons.padlock(height: state.iconSize + 5),
+                                onPressed: () => _setPaymentType(JobPaymentType.fixed),
+                              ),
+                              MateoSelectOption(
+                                value: JobPaymentType.range,
+                                title: i18n.createJob.payment.typeSelector.range.title,
+                                description: i18n.createJob.payment.typeSelector.range.description,
+                                iconBuilder: (state) => $Icons.bidirecionalHorizontalArrow(height: state.iconSize + 5),
+
+                                onPressed: () => _setPaymentType(JobPaymentType.range),
+                              ),
+                              MateoSelectOption(
+                                value: JobPaymentType.flexible,
+                                title: i18n.createJob.payment.typeSelector.flexible.title,
+                                description: i18n.createJob.payment.typeSelector.flexible.description,
+                                iconBuilder: (state) {
+                                  return $Icons.handshake(height: state.iconSize + 10);
+                                },
+
+                                onPressed: () => _setPaymentType(JobPaymentType.flexible),
+                              ),
+                              MateoSelectOption(
+                                value: JobPaymentType.other,
+                                title: i18n.createJob.payment.typeSelector.other.title,
+                                description: i18n.createJob.payment.typeSelector.other.description,
+                                iconBuilder: (state) => $Icons.pencil(height: state.iconSize + 3),
+
+                                onPressed: () => _setPaymentType(JobPaymentType.other),
+                              ),
+                            ],
+                            initialValue: paymentType,
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: switch (paymentType) {
+                                JobPaymentType.fixed => const _FixedPaymentSection(),
+                                JobPaymentType.range => const _RangePaymentSection(),
+                                JobPaymentType.flexible => const _FlexiblePaymentSection(),
+                                JobPaymentType.other => const _OtherPaymentSection(),
+                              },
                             ),
                           ),
-                        ),
-                        MorphDescendant(
-                          flightBehavior: MorphDescendantFlightBehavior.snapshot,
-                          child: MateoNumericKeypad(
-                            key: const ValueKey('create_job_payment_keypad'),
-                            controllers: [_amountTextController],
-                            variant: MateoNumericKeypadVariant.monetary,
-                            onChangeRejected: _shakeAmountMotionController.play,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: MateoButton(
-                            key: const ValueKey('create_job_payment_continue_button'),
-                            label: i18n.createJob.continueButtonSemanticLabel,
-                            variant: MateoButtonVariant.primary,
-                            fit: MateoButtonFit.expand,
-                            colorScheme: MateoButtonColorScheme(
-                              background: context.mateo.palette.green[10],
-                              backgroundPressed: context.mateo.palette.green[10],
-                              backgroundDisabled: context.mateo.palette.green[10],
-                              foreground: context.mateo.palette.green[2],
-                              foregroundDisabled: context.mateo.palette.green[2],
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
+                            child: MateoButton(
+                              key: const ValueKey('create_job_payment_continue_button'),
+                              label: i18n.createJob.continueButtonSemanticLabel,
+                              variant: MateoButtonVariant.primary,
+                              fit: MateoButtonFit.expand,
+
+                              onPressed: () {},
                             ),
-                            trailingIconBuilder: (state) => MateoIcon.arrowRight(
-                              key: const ValueKey('create_job_continue_icon'),
-                              color: state.foregroundColor,
-                            ),
-                            onPressed: () {},
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
