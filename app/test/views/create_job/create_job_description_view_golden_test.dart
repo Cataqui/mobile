@@ -50,7 +50,7 @@ void main() {
     );
 
     goldenTest(
-      'when a long description scrolls beneath the heading, it should hide the heading behind the top fade',
+      'when a long description scrolls beneath the heading, it should keep the heading visible',
       fileName: 'create_job_view_scrolled',
       constraints: const BoxConstraints.tightFor(width: 390, height: 844),
       whilePerforming: (tester) async {
@@ -80,6 +80,35 @@ void main() {
         return null;
       },
       builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
+    );
+
+    goldenTest(
+      'when returning from payment before keyboard insets arrive, it should paint the continue action above the keyboard',
+      fileName: 'create_job_view_payment_return_before_keyboard_insets',
+      constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+      whilePerforming: (tester) async {
+        tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+        addTearDown(tester.view.resetViewInsets);
+        await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(EditableText), 'Preciso de ajuda');
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+        await tester.pumpAndSettle();
+        tester.view.viewInsets = FakeViewPadding.zero;
+        await tester.pump();
+
+        await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 180));
+
+        return null;
+      },
+      builder: () => CreateJobViewTestHelpers.buildApp(
+        disableAnimations: false,
+        useViewMediaQuery: true,
+        jobRepository: jobRepository,
+      ),
     );
 
     goldenTest(

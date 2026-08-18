@@ -9,7 +9,7 @@ part 'create_job_description_route.g.dart';
 class CreateJobDescriptionRoute extends GoRouteData with $CreateJobDescriptionRoute {
   const CreateJobDescriptionRoute();
 
-  static const pushDuration = Duration(milliseconds: 340);
+  static const pushDuration = Duration(milliseconds: 360);
   static const popDuration = Duration(milliseconds: 320);
 
   @override

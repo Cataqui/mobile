@@ -54,13 +54,14 @@ void main() {
     expect(find.byKey(const ValueKey('create_job_scaffold')), findsOneWidget);
   });
 
-  testWidgets('when the keyboard is visible, it should keep the description surface above the keyboard', (
+  testWidgets('when the keyboard is visible, it should keep the description surface at ninety-two percent height', (
     tester,
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, keyboardInset: 300);
-    final surfaceBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_description_surface'))).dy;
+    final surface = find.byKey(const ValueKey('create_job_description_surface'));
+    final surfaceRect = tester.getRect(surface);
 
-    expect(surfaceBottom, lessThanOrEqualTo(532));
+    expect(surfaceRect, rectMoreOrLessEquals(const Rect.fromLTRB(3, 67.52, 387, 844), epsilon: 0.001));
   });
 
   testWidgets('when the keyboard is visible, it should keep the continue action above the keyboard', (tester) async {
@@ -69,10 +70,10 @@ void main() {
     await tester.pumpAndSettle();
     final continueBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_continue_button'))).dy;
 
-    expect(continueBottom, lessThanOrEqualTo(544));
+    expect(continueBottom, 516);
   });
 
-  testWidgets('when the keyboard first opens then closes, it should move the continue action only upward', (
+  testWidgets('when the keyboard opens and closes, it should keep the continue action within the safe area', (
     tester,
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(
@@ -104,13 +105,8 @@ void main() {
     final whileKeyboardReopens = tester.getBottomRight(continueButton).dy;
 
     expect(
-      (
-        whileKeyboardOpens < beforeKeyboardOpens,
-        afterKeyboardOpens < whileKeyboardOpens,
-        afterKeyboardCloses,
-        whileKeyboardReopens,
-      ),
-      (true, true, afterKeyboardOpens, afterKeyboardOpens),
+      (whileKeyboardOpens, afterKeyboardOpens, afterKeyboardCloses, whileKeyboardReopens),
+      (666, 516, beforeKeyboardOpens, 666),
     );
   });
 
@@ -178,11 +174,13 @@ void main() {
     expect(route.transitionDuration, Duration.zero);
   });
 
-  testWidgets('when the description view opens, it should inset the writing surface on both sides', (tester) async {
+  testWidgets('when the description view opens, it should leave three pixels beside the writing surface', (
+    tester,
+  ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
     final surface = find.byKey(const ValueKey('create_job_description_surface'));
 
-    expect((tester.getTopLeft(surface).dx, tester.getTopRight(surface).dx), (12, 378));
+    expect((tester.getTopLeft(surface).dx, tester.getTopRight(surface).dx), (3, 387));
   });
 
   testWidgets('when the top fade reaches the surface edge, it should remain inside the rounded surface', (
@@ -353,6 +351,35 @@ void main() {
     expect(keyboardVisibleAsPopStarts, isTrue);
   });
 
+  testWidgets(
+    'when returning from payment before keyboard insets arrive, it should keep the continue action above the keyboard',
+    (tester) async {
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        disableAnimations: false,
+        useViewMediaQuery: true,
+        jobRepository: jobRepository,
+      );
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = FakeViewPadding.zero;
+      await tester.pump();
+
+      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+      await tester.pump();
+      final continueBottomBeforeKeyboardInsetsArrive = tester
+          .getBottomRight(find.byKey(const ValueKey('create_job_continue_button')))
+          .dy;
+      await tester.pumpAndSettle();
+
+      expect(continueBottomBeforeKeyboardInsetsArrive, 516);
+    },
+  );
+
   testWidgets('when returning to a long description, it should keep one live description scroll position', (
     tester,
   ) async {
@@ -381,6 +408,38 @@ void main() {
 
     expect(attachedPositionCounts, everyElement(1));
   });
+
+  testWidgets(
+    'when continuing after the focused description scrolls, it should preserve that position for the return snapshot',
+    (tester) async {
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        keyboardInset: 300,
+        disableAnimations: false,
+        jobRepository: jobRepository,
+      );
+      await tester.enterText(
+        find.byType(TextField),
+        List<String>.filled(30, _CreateJobDescriptionViewTestData.validDescription).join('\n'),
+      );
+      await tester.pumpAndSettle();
+      final scrollController = tester
+          .widget<SingleChildScrollView>(find.byKey(const ValueKey('create_job_prompt_scroll_view')))
+          .controller!;
+      final capturedOffset = (scrollController..jumpTo(10)).offset;
+      final focusNode = tester.widget<TextField>(find.byType(TextField)).focusNode!;
+      void simulatePlatformUnfocusScroll() {
+        if (!focusNode.hasFocus) scrollController.jumpTo(0);
+      }
+
+      focusNode.addListener(simulatePlatformUnfocusScroll);
+      addTearDown(() => focusNode.removeListener(simulatePlatformUnfocusScroll));
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pumpAndSettle();
+
+      expect(scrollController.offset, capturedOffset);
+    },
+  );
 
   testWidgets('when focus reveals a hidden caret, it should place the caret near the visible prompt center', (
     tester,
@@ -1421,15 +1480,17 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('when draft creation succeeds, it should restore the continue icon', (tester) async {
+  testWidgets('when returning after draft creation succeeds, it should restore the continue icon', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+    await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('create_job_continue_icon')).hitTestable(), findsOneWidget);
+    expect(find.byKey(const ValueKey('create_job_continue_icon')), findsOneWidget);
   });
 
   testWidgets('when draft creation fails, it should show the translated request error', (tester) async {
@@ -1514,6 +1575,18 @@ void main() {
     expect(titleCenter, closeButtonCenter);
   });
 
+  testWidgets('when the description surface opens, it should center the title horizontally', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester);
+
+    expect(tester.getCenter(find.byKey(const ValueKey('create_job_title'))).dx, 195);
+  });
+
+  testWidgets('when the description surface opens, it should place the close button on the left', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester);
+
+    expect(tester.getCenter(find.byKey(const Key('create_job_close_button'))).dx, 45);
+  });
+
   testWidgets('when the description surface opens, it should soften the top content boundary', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
     final topEdgeFade = tester.widget<MateoEdgeFade>(find.byKey(const ValueKey('create_job_top_edge_fade')));
@@ -1549,29 +1622,38 @@ void main() {
     );
   });
 
-  testWidgets('when a long description scrolls beneath the heading, it should fade the heading out', (tester) async {
+  testWidgets('when a long description scrolls beneath the heading, it should keep the heading visible', (
+    tester,
+  ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
     await tester.enterText(find.byType(TextField), List<String>.filled(30, 'Preciso de ajuda hoje').join('\n'));
     await tester.pumpAndSettle();
     await tester.drag(find.byKey(const ValueKey('create_job_prompt_scroll_view')), const Offset(0, -100));
     await tester.pumpAndSettle();
-    final titleOpacity = tester.widget<Opacity>(find.byKey(const ValueKey('create_job_title_scroll_opacity')));
 
-    expect(titleOpacity.opacity, lessThan(1));
+    expect(find.byKey(const ValueKey('create_job_title_scroll_opacity')), findsNothing);
   });
 
-  testWidgets('when a scrolled description is cleared, it should restore the heading', (tester) async {
+  testWidgets('when a scrolled description is cleared, it should return the editor to the start', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
     await tester.enterText(find.byType(TextField), List<String>.filled(30, 'Preciso de ajuda hoje').join('\n'));
     await tester.pumpAndSettle();
-    await tester.drag(find.byKey(const ValueKey('create_job_prompt_scroll_view')), const Offset(0, -100));
+    final scrollController =
+        tester.widget<SingleChildScrollView>(find.byKey(const ValueKey('create_job_prompt_scroll_view'))).controller!
+          ..jumpTo(100);
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '');
     await tester.pumpAndSettle();
-    final titleOpacity = tester.widget<Opacity>(find.byKey(const ValueKey('create_job_title_scroll_opacity')));
 
-    expect(titleOpacity.opacity, 1);
+    expect(scrollController.offset, 0);
+  });
+
+  testWidgets('when the description surface opens, it should place the editor lower below the header', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester);
+    final promptContent = tester.widget<Padding>(find.byKey(const ValueKey('create_job_description_view_content')));
+
+    expect(promptContent.padding.resolve(TextDirection.ltr).top, 91);
   });
 
   testWidgets('when the description surface opens, it should pad the content above the bottom fade', (tester) async {

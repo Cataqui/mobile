@@ -16,10 +16,11 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 class CreateJobDescriptionView extends ConsumerStatefulWidget {
   const CreateJobDescriptionView({super.key});
 
-  static const topEdgeFadeHeight = 100.0;
+  static const topEdgeFadeHeight = 140.0;
+  static const surfaceHorizontalMargin = 3.0;
   static const surfaceContentPadding = 20.0;
   static const titleHeight = 21.0;
-  static const promptTopPadding = 25.0;
+  static const promptTopPadding = 50.0;
   static const navigationButtonSize = 44.0;
 
   @override
@@ -28,12 +29,14 @@ class CreateJobDescriptionView extends ConsumerStatefulWidget {
 
 class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionView> with RouteAware {
   final ScrollController _descriptionScrollController = ScrollController();
-  final ValueNotifier<double> _titleOpacityNotifier = ValueNotifier(1);
   late final MateoTextInputController _descriptionTextController;
   late final ControlledVisibilityController _continueButtonVisibilityController;
-  late final ValueNotifier<double> _keyboardInsetNotifier;
   late final RouteObserver<ModalRoute<void>> _routeObserver;
   ModalRoute<void>? _subscribedRoute;
+  double _keyboardInsetBefore = 0;
+  bool _shouldPreserveKeyboardInset = false;
+  bool _hasReturned = false;
+  bool _hasRestoredKeyboardInset = false;
 
   void _handleContinueVisibility(CreateJobData createJobData) {
     if (createJobData.descriptionText?.trim().isNotEmpty ?? false) {
@@ -51,18 +54,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || (ref.read(createJobStateProvider).descriptionText?.isNotEmpty ?? false)) return;
       if (_descriptionScrollController.hasClients) _descriptionScrollController.jumpTo(0);
-
-      _titleOpacityNotifier.value = 1;
     });
-  }
-
-  void _handleDescriptionScroll() {
-    if (!_descriptionScrollController.hasClients) return;
-
-    const titleFadeExtent = CreateJobDescriptionView.titleHeight + CreateJobDescriptionView.promptTopPadding;
-    final titleFadeProgress = (_descriptionScrollController.offset / titleFadeExtent).clamp(0.0, 1.0);
-
-    _titleOpacityNotifier.value = 1 - titleFadeProgress;
   }
 
   Future<void> _createDraftAndContinue(BuildContext context) async {
@@ -88,10 +80,34 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
 
     try {
       final draft = await ref.read(createJobStateProvider.notifier).createDraft();
-      if (!mounted) return;
+      if (!context.mounted) return;
+      final descriptionScrollOffset = _descriptionScrollController.hasClients
+          ? _descriptionScrollController.offset
+          : null;
+      final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
+      if (keyboardInset > 0) {
+        setState(() {
+          _keyboardInsetBefore = keyboardInset;
+          _shouldPreserveKeyboardInset = true;
+          _hasReturned = false;
+          _hasRestoredKeyboardInset = false;
+        });
+      }
       _descriptionTextController.unfocus();
       await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
       if (!context.mounted) return;
+      if (descriptionScrollOffset != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_descriptionScrollController.hasClients) return;
+          _descriptionScrollController.jumpTo(
+            descriptionScrollOffset.clamp(
+              _descriptionScrollController.position.minScrollExtent,
+              _descriptionScrollController.position.maxScrollExtent,
+            ),
+          );
+        });
+      }
 
       unawaited(CreateJobPaymentRoute(jobId: draft.jobId).push<void>(context));
     } on Object {
@@ -116,9 +132,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
     final descriptionText = ref.read(createJobStateProvider).descriptionText;
 
     _descriptionTextController = MateoTextInputController(text: descriptionText);
-    _descriptionScrollController.addListener(_handleDescriptionScroll);
     _continueButtonVisibilityController = ControlledVisibilityController();
-    _keyboardInsetNotifier = ValueNotifier(0);
     _routeObserver = ref.read(routeObserverProvider);
     _handleContinueVisibility(ref.read(createJobStateProvider));
   }
@@ -127,27 +141,36 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
   void didChangeDependencies() {
     super.didChangeDependencies();
     _subscribeToRoute();
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
-    if (keyboardInset <= _keyboardInsetNotifier.value) return;
 
-    _keyboardInsetNotifier.value = keyboardInset;
+    if (!_shouldPreserveKeyboardInset || !_hasReturned) return;
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) {
+      _hasRestoredKeyboardInset = true;
+      return;
+    }
+    if (!_hasRestoredKeyboardInset) return;
+
+    _shouldPreserveKeyboardInset = false;
+    _hasReturned = false;
+    _hasRestoredKeyboardInset = false;
   }
 
   @override
   void dispose() {
     _routeObserver.unsubscribe(this);
-    _descriptionScrollController
-      ..removeListener(_handleDescriptionScroll)
-      ..dispose();
+    _descriptionScrollController.dispose();
     _descriptionTextController.dispose();
-    _keyboardInsetNotifier.dispose();
-    _titleOpacityNotifier.dispose();
 
     super.dispose();
   }
 
   @override
   void didPopNext() {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    setState(() {
+      _hasReturned = true;
+      _hasRestoredKeyboardInset = keyboardInset > 0;
+    });
     _descriptionTextController.focus();
   }
 
@@ -158,6 +181,11 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
     final edgeFadeStyle = MateoEdgeFadeStyle(color: context.mateo.colorScheme.bottomSheet.background);
     final bottomEdgeFadeStyle = edgeFadeStyle.resolve(context, position: MateoEdgeFadePosition.bottom);
     final bottomEdgeFadeHeight = bottomEdgeFadeStyle.mainAxisExtent!;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final effectiveKeyboardInset = _shouldPreserveKeyboardInset
+        ? math.max(_keyboardInsetBefore, keyboardInset)
+        : keyboardInset;
+    final bottomSafeInset = math.max(MediaQuery.viewPaddingOf(context).bottom, effectiveKeyboardInset);
 
     ref.listen<CreateJobData>(createJobStateProvider, (_, createJobData) {
       _handleContinueVisibility(createJobData);
@@ -168,19 +196,13 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
       backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: false,
       body: Builder(
-        builder: (context) => ValueListenableBuilder<double>(
+        builder: (context) => Padding(
           key: const ValueKey('create_job_description_view'),
-          valueListenable: _keyboardInsetNotifier,
-          builder: (context, keyboardInset, child) {
-            return Padding(
-              padding: EdgeInsets.only(left: 12, right: 12, bottom: keyboardInset + 12),
-              child: child,
-            );
-          },
+          padding: const EdgeInsets.symmetric(horizontal: CreateJobDescriptionView.surfaceHorizontalMargin),
           child: Align(
             alignment: AlignmentGeometry.bottomCenter,
             child: FractionallySizedBox(
-              heightFactor: 0.85,
+              heightFactor: 0.92,
               widthFactor: 1,
               child: Stack(
                 fit: StackFit.expand,
@@ -198,7 +220,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
                           color: context.mateo.colorScheme.bottomSheet.background,
-                          borderRadius: BorderRadius.circular(36),
+                          borderRadius: BorderRadius.circular(40),
                         ),
                         child: Stack(
                           key: const ValueKey('create_job_prompt_fades'),
@@ -283,7 +305,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                             ),
                             Positioned(
                               right: CreateJobDescriptionView.surfaceContentPadding,
-                              bottom: 28,
+                              bottom: bottomSafeInset + 28,
                               child: MorphDescendant(
                                 flightBehavior: MorphDescendantFlightBehavior.snapshot,
                                 child: ControlledVisibility(
@@ -323,25 +345,15 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                               left: CreateJobDescriptionView.surfaceContentPadding,
                               right: CreateJobDescriptionView.surfaceContentPadding,
                               height: CreateJobDescriptionView.titleHeight,
-                              child: ValueListenableBuilder<double>(
-                                valueListenable: _titleOpacityNotifier,
-                                builder: (context, titleOpacity, child) {
-                                  return Opacity(
-                                    key: const ValueKey('create_job_title_scroll_opacity'),
-                                    opacity: titleOpacity,
-                                    child: child,
-                                  );
-                                },
-                                child: Align(
-                                  alignment: AlignmentGeometry.centerLeft,
-                                  child: Text(
-                                    i18n.createJob.description.title,
-                                    key: const ValueKey('create_job_title'),
-                                    style: TextStyle(
-                                      color: context.mateo.colorScheme.text.primary,
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                              child: Align(
+                                alignment: AlignmentGeometry.center,
+                                child: Text(
+                                  i18n.createJob.description.title,
+                                  key: const ValueKey('create_job_title'),
+                                  style: TextStyle(
+                                    color: context.mateo.colorScheme.text.primary,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -353,7 +365,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
                   ),
                   Positioned(
                     top: CreateJobDescriptionView.surfaceContentPadding,
-                    right: CreateJobDescriptionView.surfaceContentPadding,
+                    left: CreateJobDescriptionView.surfaceContentPadding,
                     child: Morph(
                       tag: CreateJobMorphTag.navigationButton,
                       duration: const Duration(milliseconds: 200),

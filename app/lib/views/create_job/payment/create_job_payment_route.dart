@@ -1,14 +1,13 @@
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 part 'create_job_payment_route.g.dart';
 
 @TypedGoRoute<CreateJobPaymentRoute>(path: '/create-job/:jobId/payment')
 class CreateJobPaymentRoute extends GoRouteData with $CreateJobPaymentRoute {
   const CreateJobPaymentRoute({required this.jobId});
-
-  static const _transitionDuration = Duration(milliseconds: 360);
 
   final String jobId;
 
@@ -18,11 +17,11 @@ class CreateJobPaymentRoute extends GoRouteData with $CreateJobPaymentRoute {
 
     return CustomTransitionPage<void>(
       key: state.pageKey,
-      opaque: false,
-      barrierColor: Colors.transparent,
+      opaque: true,
+      barrierColor: context.mateo.colorScheme.background,
       barrierDismissible: false,
-      transitionDuration: disableAnimations ? Duration.zero : _transitionDuration,
-      reverseTransitionDuration: disableAnimations ? Duration.zero : _transitionDuration,
+      transitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
+      reverseTransitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
       child: MediaQuery(
         data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
         child: CreateJobPaymentView(key: const ValueKey('create_job_payment_view'), jobId: jobId),

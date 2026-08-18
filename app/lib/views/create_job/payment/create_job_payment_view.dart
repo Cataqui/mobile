@@ -54,12 +54,13 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                 tag: CreateJobMorphTag.surface,
                 curve: Curves.fastOutSlowIn,
                 switchTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
+                switchThreshold: 0.2,
                 child: Container(
                   key: const ValueKey('create_job_payment_surface'),
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: context.mateo.colorScheme.background,
-                    borderRadius: BorderRadius.circular(36),
+                    borderRadius: BorderRadius.circular(40),
                   ),
                   child: MorphDescendant(
                     flightBehavior: MorphDescendantFlightBehavior.snapshot,
