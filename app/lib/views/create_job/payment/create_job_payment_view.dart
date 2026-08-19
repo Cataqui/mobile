@@ -6,6 +6,7 @@ import 'package:cataqui_app/gen/icons.g.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/enums/create_job_morph_tag.dart';
 import 'package:cataqui_app/views/create_job/payment/widgets/create_job_payment_amount_text/create_job_payment_amount_text.dart';
+import 'package:cataqui_app/views/create_job/payment/widgets/flexible_payment_values_wheel/flexible_payment_values_wheel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

@@ -3,7 +3,9 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
+import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -82,6 +84,112 @@ void main() {
             return null;
           },
           builder: () => CreateJobViewTestHelpers.buildApp(disableAnimations: false, jobRepository: jobRepository),
+        );
+
+        goldenTest(
+          'when flexible payment is selected with reduced motion, it should show three resting BRL amounts',
+          fileName: 'create_job_payment_flexible_carousel_resting',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.flexible),
+            jobRepository: jobRepository,
+          ),
+        );
+
+        AlchemistConfig.runWithConfig(
+          config: exactMotionGoldenConfig,
+          run: () {
+            goldenTest(
+              'when flexible BRL amounts are halfway through a step, it should fade the outgoing value at the top edge',
+              fileName: 'create_job_payment_flexible_carousel_mid_step',
+              constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+              whilePerforming: (tester) async {
+                await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+                await tester.pumpAndSettle();
+                await CreateJobViewTestHelpers.precachePaymentImages(tester);
+                await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+                await tester.pumpAndSettle();
+                await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+                await tester.pumpAndSettle();
+                final container = ProviderScope.containerOf(
+                  tester.element(find.byKey(const ValueKey('create_job_payment_view_content'))),
+                );
+                container.read(createJobStateProvider.notifier).setCurrencyCode('BRL');
+                await tester.pump();
+                await tester.pump(const Duration(milliseconds: 1000));
+                return null;
+              },
+              builder: () => CreateJobViewTestHelpers.buildApp(
+                disableAnimations: false,
+                initialCreateJobData: const CreateJobData(currencyCode: 'ARS', paymentType: JobPaymentType.flexible),
+                jobRepository: jobRepository,
+              ),
+            );
+
+            goldenTest(
+              'when a flexible BRL value enters from the bottom edge, it should begin fully concealed by the fade',
+              fileName: 'create_job_payment_flexible_carousel_bottom_edge_entry',
+              constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+              whilePerforming: (tester) async {
+                await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+                await tester.pumpAndSettle();
+                await CreateJobViewTestHelpers.precachePaymentImages(tester);
+                await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+                await tester.pumpAndSettle();
+                await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+                await tester.pumpAndSettle();
+                final container = ProviderScope.containerOf(
+                  tester.element(find.byKey(const ValueKey('create_job_payment_view_content'))),
+                );
+                container.read(createJobStateProvider.notifier).setCurrencyCode('BRL');
+                await tester.pump();
+                await tester.pump(const Duration(milliseconds: 1));
+                return null;
+              },
+              builder: () => CreateJobViewTestHelpers.buildApp(
+                disableAnimations: false,
+                initialCreateJobData: const CreateJobData(currencyCode: 'ARS', paymentType: JobPaymentType.flexible),
+                jobRepository: jobRepository,
+              ),
+            );
+
+            goldenTest(
+              'when a flexible BRL value exits through the top edge, it should finish fully concealed by the fade',
+              fileName: 'create_job_payment_flexible_carousel_top_edge_exit',
+              constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+              whilePerforming: (tester) async {
+                await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+                await tester.pumpAndSettle();
+                await CreateJobViewTestHelpers.precachePaymentImages(tester);
+                await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+                await tester.pumpAndSettle();
+                await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+                await tester.pumpAndSettle();
+                final container = ProviderScope.containerOf(
+                  tester.element(find.byKey(const ValueKey('create_job_payment_view_content'))),
+                );
+                container.read(createJobStateProvider.notifier).setCurrencyCode('BRL');
+                await tester.pump();
+                await tester.pump(const Duration(milliseconds: 1999));
+                return null;
+              },
+              builder: () => CreateJobViewTestHelpers.buildApp(
+                disableAnimations: false,
+                initialCreateJobData: const CreateJobData(currencyCode: 'ARS', paymentType: JobPaymentType.flexible),
+                jobRepository: jobRepository,
+              ),
+            );
+          },
         );
 
         goldenTest(

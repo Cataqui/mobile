@@ -1117,32 +1117,56 @@ void main() {
     semantics.dispose();
   });
 
-  for (final paymentType in [JobPaymentType.flexible, JobPaymentType.other]) {
-    testWidgets(
-      'when selecting ${paymentType.name} payment, it should save the type and leave its unfinished content empty',
-      (tester) async {
-        await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-        await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_select_source')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(ValueKey<Object>(('mateo_select_option_semantics', paymentType))));
-        await tester.pumpAndSettle();
-        final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+  testWidgets('when selecting flexible payment, it should show the localized flexible payment content', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.flexible))));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
 
-        expect(
-          (
-            container.read(createJobStateProvider).paymentType,
-            find.byKey(const ValueKey('create_job_fixed_payment_content')).evaluate().length,
-            find.byKey(ValueKey<Object>(('create_job_empty_payment_content', paymentType))).evaluate().length,
-          ),
-          (paymentType, 0, 1),
-        );
-      },
+    expect(
+      (
+        container.read(createJobStateProvider).paymentType,
+        find.byKey(const ValueKey('create_job_fixed_payment_content')).evaluate().length,
+        find.byKey(const ValueKey('flexible_payment_values_wheel')).evaluate().length,
+        find.text(i18n.createJob.payment.flexibleSection.title).evaluate().length,
+        find.text(i18n.createJob.payment.flexibleSection.description).evaluate().length,
+      ),
+      (JobPaymentType.flexible, 0, 1, 1, 1),
     );
-  }
+  });
+
+  testWidgets('when selecting other payment, it should save the type and leave its unfinished content empty', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.other))));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+
+    expect(
+      (
+        container.read(createJobStateProvider).paymentType,
+        find.byKey(const ValueKey('create_job_fixed_payment_content')).evaluate().length,
+        find
+            .byKey(const ValueKey<Object>(('create_job_empty_payment_content', JobPaymentType.other)))
+            .evaluate()
+            .length,
+      ),
+      (JobPaymentType.other, 0, 1),
+    );
+  });
 
   testWidgets('when selecting fixed payment, it should save the type and show the fixed payment controls', (
     tester,

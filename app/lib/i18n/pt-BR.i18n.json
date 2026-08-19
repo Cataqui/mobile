@@ -65,6 +65,14 @@
         "minimumLabel": "de",
         "maximumLabel": "até"
       },
+      "flexibleCarousel": {
+        "amount": "{currencySymbol: String} {value: decimalPattern}?",
+        "semanticLabel": "Exemplos de valores que podem ser combinados"
+      },
+      "flexibleSection": {
+        "title": "Valor a combinar",
+        "description": "Vocês combinam o pagamento final direto na conversa"
+      },
       "typeSelector": {
         "fixed": {
           "title": "Um valor só",
