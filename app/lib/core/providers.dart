@@ -1,6 +1,7 @@
 import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
+import 'package:cataqui_app/core/app_toast.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/network/cataqui_api_v1_dio_factory.dart';
@@ -28,6 +29,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'providers.g.dart';
+
+@Riverpod(keepAlive: true)
+AppToast appToast(Ref ref) {
+  return const AppToast();
+}
 
 @Riverpod(keepAlive: true)
 Translations translation(Ref ref) {

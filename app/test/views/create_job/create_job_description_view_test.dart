@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_view.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -1558,6 +1560,31 @@ void main() {
 
     expect(find.text(i18n.createJob.createDraftError), findsOneWidget);
   });
+
+  testWidgets(
+    'when closing login while creating a draft, it should keep the description without showing a request error',
+    (tester) async {
+      when(
+        () => jobRepository.createDraft(description: any(named: 'description')),
+      ).thenThrow(AuthenticationDismissedDioException(requestOptions: RequestOptions(path: '/jobs/drafts')));
+      await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      final textField = tester.widget<TextField>(find.byType(TextField));
+
+      expect(
+        (
+          errorToastCount: find.text(i18n.createJob.createDraftError).evaluate().length,
+          description: textField.controller?.text,
+        ),
+        (errorToastCount: 0, description: _CreateJobDescriptionViewTestData.validDescription),
+      );
+    },
+  );
 
   testWidgets('when draft creation fails, it should preserve the entered description', (tester) async {
     when(

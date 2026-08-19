@@ -64,16 +64,20 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
     final descriptionLength = ref.read(createJobStateProvider).descriptionText?.trim().length ?? 0;
 
     if (descriptionLength < 10) {
-      MateoToast.show(context, message: i18n.createJob.description.tooShortError, type: MateoToastType.error);
+      ref
+          .read(appToastProvider)
+          .maybeShowError(context, error: null, message: i18n.createJob.description.tooShortError);
       return;
     }
 
     if (descriptionLength > 10000) {
-      MateoToast.show(
-        context,
-        message: i18n.createJob.description.tooLongError(characterCount: descriptionLength),
-        type: MateoToastType.error,
-      );
+      ref
+          .read(appToastProvider)
+          .maybeShowError(
+            context,
+            error: null,
+            message: i18n.createJob.description.tooLongError(characterCount: descriptionLength),
+          );
 
       return;
     }
@@ -97,6 +101,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
       _descriptionTextController.unfocus();
       await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
       if (!context.mounted) return;
+
       if (descriptionScrollOffset != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || !_descriptionScrollController.hasClients) return;
@@ -110,9 +115,9 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
       }
 
       unawaited(CreateJobPaymentRoute(jobId: draft.jobId).push<void>(context));
-    } on Object {
+    } on Object catch (error) {
       if (context.mounted) {
-        MateoToast.show(context, message: i18n.createJob.createDraftError, type: MateoToastType.error);
+        ref.read(appToastProvider).maybeShowError(context, error: error, message: i18n.createJob.createDraftError);
       }
     }
   }

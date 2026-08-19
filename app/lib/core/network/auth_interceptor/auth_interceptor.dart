@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
-import 'package:cataqui_app/core/network/auth_interceptor/authentication_required_dio_exception.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
 
@@ -58,7 +58,7 @@ class AuthInterceptor extends Interceptor {
           : await refreshSession();
 
       if (session == null) {
-        handler.reject(AuthenticationRequiredDioException(requestOptions: options));
+        handler.reject(AuthenticationDismissedDioException(requestOptions: options));
 
         return;
       }
@@ -88,7 +88,7 @@ class AuthInterceptor extends Interceptor {
       final session = hasNewValidSession ? currentSession : await refreshSession();
 
       if (session == null) {
-        handler.next(error);
+        handler.next(AuthenticationDismissedDioException(requestOptions: error.requestOptions));
         return;
       }
 

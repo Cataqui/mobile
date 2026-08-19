@@ -48,19 +48,20 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
       if (!loginState.isExchangingIntent) return;
 
       _isCheckingToastVisible = true;
-      MateoToast.show(
-        context,
-        message: ref.read(translationProvider).whatsappLoginButton.checking,
-        type: MateoToastType.info,
-        iconBuilder: (state) => Center(
-          child: MateoCircularLoadingIndicator(
-            color: context.mateo.palette.blue[9],
-            trackColor: context.mateo.palette.blue[6],
-          ),
-        ),
-        duration: const Duration(days: 365),
-        dismissible: false,
-      );
+      ref
+          .read(appToastProvider)
+          .showInfo(
+            context,
+            message: ref.read(translationProvider).whatsappLoginButton.checking,
+            iconBuilder: (state) => Center(
+              child: MateoCircularLoadingIndicator(
+                color: context.mateo.palette.blue[9],
+                trackColor: context.mateo.palette.blue[6],
+              ),
+            ),
+            duration: const Duration(days: 365),
+            dismissible: false,
+          );
     });
   }
 
@@ -73,11 +74,9 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
         _appReturnCompleter = null;
         _isCheckingToastVisible = false;
 
-        MateoToast.show(
-          context,
-          message: ref.read(translationProvider).whatsappLoginButton.success,
-          type: MateoToastType.success,
-        );
+        ref
+            .read(appToastProvider)
+            .showSuccess(context, message: ref.read(translationProvider).whatsappLoginButton.success);
 
         widget.onSuccess(session);
       },
@@ -86,12 +85,15 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
         _appReturnCompleter = null;
         _isCheckingToastVisible = false;
         final i18n = ref.read(translationProvider);
-        MateoToast.show(
-          context,
-          message: error is RateLimitedDioException
-              ? i18n.whatsappLoginButton.rateLimited
-              : i18n.whatsappLoginButton.error,
-        );
+        ref
+            .read(appToastProvider)
+            .maybeShowError(
+              context,
+              error: error,
+              message: error is RateLimitedDioException
+                  ? i18n.whatsappLoginButton.rateLimited
+                  : i18n.whatsappLoginButton.error,
+            );
       },
       loading: () {},
     );

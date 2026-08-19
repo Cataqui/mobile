@@ -1,3 +1,4 @@
+import 'package:cataqui_app/core/app_toast.dart';
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limited_dio_exception.dart';
@@ -24,15 +25,21 @@ class JobContactButton extends ConsumerWidget {
     ref.read(jobContactStateProvider(jobId: jobId, contactId: contactId).notifier).contact();
   }
 
-  void _showErrorToast(BuildContext context, Translations i18n, Object error) {
+  void _showErrorToast({
+    required BuildContext context,
+    required AppToast appToast,
+    required Translations i18n,
+    required Object error,
+  }) {
     if (error is RateLimitedDioException) {
-      MateoToast.show(context, message: i18n.job.contactButton.error.rateLimitedMessage);
+      appToast.maybeShowError(context, error: error, message: i18n.job.contactButton.error.rateLimitedMessage);
       return;
     }
 
     if (error.isOfflineConnectionDioException) {
-      MateoToast.show(
+      appToast.maybeShowError(
         context,
+        error: error,
         message: i18n.job.contactButton.error.offlineMessage,
         iconBuilder: (state) {
           return MateoIcon.wifiExclamation(width: state.iconSize, height: state.iconSize, color: state.iconColor);
@@ -41,7 +48,7 @@ class JobContactButton extends ConsumerWidget {
       return;
     }
 
-    MateoToast.show(context, message: i18n.job.contactButton.error.genericMessage);
+    appToast.maybeShowError(context, error: error, message: i18n.job.contactButton.error.genericMessage);
   }
 
   @override
@@ -71,7 +78,7 @@ class JobContactButton extends ConsumerWidget {
             final i18n = ref.read(translationProvider);
             if (!context.mounted) return;
 
-            _showErrorToast(context, i18n, error);
+            _showErrorToast(context: context, appToast: ref.read(appToastProvider), i18n: i18n, error: error);
           },
         );
       });

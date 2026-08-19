@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
-import 'package:cataqui_app/core/network/auth_interceptor/authentication_required_dio_exception.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -109,7 +109,7 @@ void main() {
     });
 
     test('when login is dismissed before a protected request, it should reject without sending the request', () async {
-      Object? thrownError;
+      DioException? thrownError;
       var requestCount = 0;
       when(() => authenticatedAdapter.fetch(any(), any(), any())).thenAnswer((_) async {
         requestCount += 1;
@@ -118,13 +118,13 @@ void main() {
 
       try {
         await authenticatedDio.get<void>('/protected');
-      } on Object catch (error) {
+      } on DioException catch (error) {
         thrownError = error;
       }
 
       expect(
-        (errorType: thrownError.runtimeType, requestCount: requestCount),
-        (errorType: AuthenticationRequiredDioException, requestCount: 0),
+        (errorType: thrownError.runtimeType, dioType: thrownError?.type, requestCount: requestCount),
+        (errorType: AuthenticationDismissedDioException, dioType: DioExceptionType.cancel, requestCount: 0),
       );
     });
 
@@ -202,7 +202,7 @@ void main() {
       );
     });
 
-    test('when login is dismissed after a 401, it should preserve the original unauthorized response', () async {
+    test('when login is dismissed after a 401, it should cancel without replaying the request', () async {
       final currentTime = DateTime.utc(2026, 8, 11, 15);
       session = AuthSessionDto.fixture().copyWith(accessTokenExpiresAt: currentTime.add(const Duration(minutes: 10)));
       refreshSession = () async {
@@ -213,6 +213,11 @@ void main() {
       when(
         () => authenticatedAdapter.fetch(any(), any(), any()),
       ).thenAnswer((_) async => ResponseBody.fromString('{}', 401, headers: _AuthInterceptorTestData.jsonHeaders));
+      var retryRequestCount = 0;
+      when(() => unauthenticatedAdapter.fetch(any(), any(), any())).thenAnswer((_) async {
+        retryRequestCount += 1;
+        return ResponseBody.fromString('{}', 200, headers: _AuthInterceptorTestData.jsonHeaders);
+      });
       DioException? thrownError;
 
       try {
@@ -222,8 +227,18 @@ void main() {
       }
 
       expect(
-        (statusCode: thrownError?.response?.statusCode, foregroundRefreshCount: foregroundRefreshCount),
-        (statusCode: 401, foregroundRefreshCount: 1),
+        (
+          errorType: thrownError.runtimeType,
+          dioType: thrownError?.type,
+          foregroundRefreshCount: foregroundRefreshCount,
+          retryRequestCount: retryRequestCount,
+        ),
+        (
+          errorType: AuthenticationDismissedDioException,
+          dioType: DioExceptionType.cancel,
+          foregroundRefreshCount: 1,
+          retryRequestCount: 0,
+        ),
       );
     });
 
