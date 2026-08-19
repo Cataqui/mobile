@@ -4,7 +4,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.waiter({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_waiter_job_preview'),
-      avatar: Assets.memoji.alex.image(width: 34, height: 34),
+      avatar: $Memoji.alex(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.waiter.interest,
       rotationDegrees: 2.5,
       panelWidth: panelWidth,
@@ -21,7 +21,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.movingHelper({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_moving_helper_job_preview'),
-      avatar: Assets.memoji.chris.image(width: 34, height: 34),
+      avatar: $Memoji.chris(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.movingHelper.interest,
       rotationDegrees: -1.73,
       panelWidth: panelWidth,
@@ -38,7 +38,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.dogWalker({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_dog_walker_job_preview'),
-      avatar: Assets.memoji.ariana.image(width: 34, height: 34),
+      avatar: $Memoji.ariana(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.dogWalker.interest,
       rotationDegrees: 2.75,
       panelWidth: panelWidth,
@@ -55,7 +55,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.furnitureAssembler({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_furniture_assembler_job_preview'),
-      avatar: Assets.memoji.justin.image(width: 34, height: 34),
+      avatar: $Memoji.justin(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.furnitureAssembler.interest,
       rotationDegrees: -1,
       panelWidth: panelWidth,
@@ -72,7 +72,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.storeAttendant({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_store_attendant_job_preview'),
-      avatar: Assets.memoji.ana.image(width: 34, height: 34),
+      avatar: $Memoji.ana(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.storeAttendant.interest,
       rotationDegrees: 1.75,
       panelWidth: panelWidth,
@@ -89,7 +89,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.kitchenHelper({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_kitchen_helper_job_preview'),
-      avatar: Assets.memoji.ed.image(width: 34, height: 34),
+      avatar: $Memoji.ed(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.kitchenHelper.interest,
       rotationDegrees: -2.5,
       panelWidth: panelWidth,
@@ -106,7 +106,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.eventPhotographer({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_event_photographer_job_preview'),
-      avatar: Assets.memoji.sabrina.image(width: 34, height: 34),
+      avatar: $Memoji.sabrina(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.eventPhotographer.interest,
       rotationDegrees: 0.75,
       panelWidth: panelWidth,
@@ -123,7 +123,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.postConstructionCleaner({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_post_construction_cleaner_job_preview'),
-      avatar: Assets.memoji.ryan.image(width: 34, height: 34),
+      avatar: $Memoji.ryan(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.postConstructionCleaner.interest,
       rotationDegrees: 1.5,
       panelWidth: panelWidth,
@@ -140,7 +140,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
   factory PosterOnboardingJobCard.constructionHelper({required Translations i18n, required double panelWidth}) {
     return PosterOnboardingJobCard._(
       key: const ValueKey('poster_onboarding_construction_helper_job_preview'),
-      avatar: Assets.memoji.stephen.image(width: 34, height: 34),
+      avatar: $Memoji.stephen(width: avatarSize, height: avatarSize),
       interestLabel: i18n.posterOnboarding.jobs.constructionHelper.interest,
       rotationDegrees: -3.25,
       panelWidth: panelWidth,
@@ -173,6 +173,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
        );
 
   static const panelHeight = 316.0;
+  static const avatarSize = 34.0;
   static const rotationOverflowPadding = 14.0;
   static const maximumRotationDegrees = 5.0;
   static const _mapCornerRadius = 34.0;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +15,7 @@ class CreateJobPaymentRoute extends GoRouteData with $CreateJobPaymentRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
+    unawaited(CreateJobPaymentView.precacheImages(context));
     final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     return CustomTransitionPage<void>(

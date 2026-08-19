@@ -140,7 +140,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          $Illustrations.workItemsMess(height: 150, width: 150),
+          $Illustrations.workItemsMess(
+            height: FeedView._loadingMoreErrorIllustrationSize,
+            width: FeedView._loadingMoreErrorIllustrationSize,
+          ),
           const SizedBox(height: 40),
           Text(
             i18n.feed.loadingMore.error.title,
@@ -184,7 +187,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          $Illustrations.emptyCitySaoPaulo(height: 150, colorBlendMode: BlendMode.hue),
+          $Illustrations.emptyCitySaoPaulo(height: FeedView._emptyIllustrationHeight, colorBlendMode: BlendMode.hue),
           const SizedBox(height: 20),
           Text(
             i18n.feed.empty.title,
@@ -277,7 +280,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          $Illustrations.locationPinRestingCracked(height: 140),
+          $Illustrations.locationPinRestingCracked(height: FeedView._errorIllustrationHeight),
           const SizedBox(height: 20),
           Text(
             i18n.feed.error.title,

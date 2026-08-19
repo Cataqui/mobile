@@ -35,7 +35,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -56,7 +56,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -72,7 +72,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -91,7 +91,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -117,7 +117,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -149,7 +149,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -180,7 +180,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -210,7 +210,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -245,7 +245,7 @@ void main() {
               whilePerforming: (tester) async {
                 await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
                 await tester.pumpAndSettle();
-                await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+                await CreateJobViewTestHelpers.precachePaymentImages(tester);
                 await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
                 await tester.pumpAndSettle();
                 await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -288,7 +288,7 @@ void main() {
           whilePerforming: (tester) async {
             await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
             await tester.pumpAndSettle();
-            await CreateJobViewTestHelpers.precachePaymentIcons(tester);
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
             await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
             await tester.pumpAndSettle();
             await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));

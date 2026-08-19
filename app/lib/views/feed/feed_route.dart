@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -12,6 +14,8 @@ class FeedRoute extends GoRouteData with $FeedRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
+    unawaited(FeedView.precacheImages(context));
+
     return MateoPage(
       transition: MateoPageTransition.push(
         duration: const Duration(milliseconds: 550),

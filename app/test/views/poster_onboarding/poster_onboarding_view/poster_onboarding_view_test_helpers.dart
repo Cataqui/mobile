@@ -1,5 +1,4 @@
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/gen/assets.gen.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_view/poster_onboarding_view.dart';
 import 'package:flutter/material.dart';
@@ -136,7 +135,7 @@ abstract final class PosterOnboardingViewTestHelpers {
 
   static Future<void> _precacheMemoji({required WidgetTester tester, required BuildContext context}) async {
     await tester.runAsync(() async {
-      await Future.wait(Assets.memoji.values.map((asset) => precacheImage(asset.provider(), context)));
+      await PosterOnboardingView.precacheImages(context);
     });
   }
 

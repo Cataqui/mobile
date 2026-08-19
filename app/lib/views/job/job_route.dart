@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +20,7 @@ class JobRoute extends GoRouteData with $JobRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     final feedJob = $extra;
+    unawaited(JobView.precacheImages(context));
 
     if (feedJob == null) {
       return NoTransitionPage<void>(

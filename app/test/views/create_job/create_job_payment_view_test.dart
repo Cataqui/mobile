@@ -20,7 +20,7 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: SizedBox(key: ValueKey('payment_icon_precache_context'))));
       final context = tester.element(find.byKey(const ValueKey('payment_icon_precache_context')));
 
-      await tester.runAsync(() => CreateJobPaymentView.precacheIcons(context));
+      await tester.runAsync(() => CreateJobPaymentView.precacheImages(context));
       await tester.pump();
 
       final configuration = createLocalImageConfiguration(context);

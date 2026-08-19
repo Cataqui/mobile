@@ -1495,16 +1495,11 @@ void main() {
   });
 
   testWidgets(
-    'when draft creation succeeds while payment icons are decoding, it should keep the payment view closed until they are ready',
+    'when draft creation succeeds while payment images decode, it should open payment without restarting loading',
     (tester) async {
       final assetBundle = PaymentIconsTestAssetBundle();
       addTearDown(assetBundle.release);
-      await CreateJobViewTestHelpers.pumpDescription(
-        tester,
-        assetBundle: assetBundle,
-        shouldPrecachePaymentIcons: false,
-        jobRepository: jobRepository,
-      );
+      await CreateJobViewTestHelpers.pumpDescription(tester, assetBundle: assetBundle, jobRepository: jobRepository);
       await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
       await tester.pumpAndSettle();
 
@@ -1512,7 +1507,13 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.byType(CreateJobPaymentView), findsNothing);
+      expect(
+        (
+          paymentViewCount: find.byType(CreateJobPaymentView).evaluate().length,
+          didRequestIcon: assetBundle.didRequestPaymentIcon,
+        ),
+        (paymentViewCount: 1, didRequestIcon: true),
+      );
 
       assetBundle.release();
       await tester.pumpAndSettle();

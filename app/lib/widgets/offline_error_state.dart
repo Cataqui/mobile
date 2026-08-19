@@ -5,6 +5,12 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 class OfflineErrorState extends StatelessWidget {
   const OfflineErrorState({required this.title, this.description, this.retry, super.key});
 
+  static Future<void> precacheImages(BuildContext context) {
+    return $IllustrationsCache.precacheWifiExclamation(context, height: _illustrationHeight);
+  }
+
+  static const _illustrationHeight = 140.0;
+
   final String title;
   final String? description;
   final ({String label, VoidCallback onRetry})? retry;
@@ -18,7 +24,7 @@ class OfflineErrorState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          $Illustrations.wifiExclamation(height: 140),
+          $Illustrations.wifiExclamation(height: _illustrationHeight),
           const SizedBox(height: 20),
           Text(
             title,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_view/poster_onboarding_view.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ class PosterOnboardingRoute extends GoRouteData with $PosterOnboardingRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
+    unawaited(PosterOnboardingView.precacheImages(context));
     return MateoPage(
       key: state.pageKey,
       child: const PosterOnboardingView(),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/app_auth/login_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
@@ -13,7 +15,14 @@ class LoginSheet extends ConsumerWidget {
   static const subtitleKey = ValueKey('login_sheet_subtitle');
   static const titleKey = ValueKey('login_sheet_title');
 
+  static Future<void> precacheImages(BuildContext context) {
+    return $IllustrationsCache.precacheKeys(context, height: _illustrationHeight);
+  }
+
+  static const _illustrationHeight = 48.0;
+
   static Future<bool> show({required BuildContext context}) async {
+    unawaited(precacheImages(context));
     final providerContainer = ProviderScope.containerOf(context, listen: false);
 
     final didLogin = await MateoBottomSheet.show<bool>(
@@ -53,7 +62,7 @@ class LoginSheet extends ConsumerWidget {
             children: [
               const SizedBox(height: 6),
               ExcludeSemantics(
-                child: $Illustrations.keys(key: imageKey, height: 48, fit: BoxFit.contain),
+                child: $Illustrations.keys(key: imageKey, height: _illustrationHeight, fit: BoxFit.contain),
               ),
               const SizedBox(height: 24),
               FractionallySizedBox(

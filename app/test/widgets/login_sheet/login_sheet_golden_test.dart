@@ -21,8 +21,7 @@ void main() {
       unawaited(LoginSheet.show(context: tester.element(find.byType(FeedView))));
       await tester.pumpAndSettle();
       final keysImageFinder = find.descendant(of: find.byType(LoginSheet), matching: find.byType(Image));
-      final keysImage = tester.widget<Image>(keysImageFinder);
-      await tester.runAsync(() => precacheImage(keysImage.image, tester.element(keysImageFinder)));
+      await tester.runAsync(() => LoginSheet.precacheImages(tester.element(keysImageFinder)));
       await tester.pumpAndSettle();
 
       return null;

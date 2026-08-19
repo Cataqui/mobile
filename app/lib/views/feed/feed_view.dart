@@ -26,6 +26,25 @@ part 'feed_view_body.dart';
 class FeedView extends ConsumerStatefulWidget {
   const FeedView({super.key});
 
+  static Future<void> precacheImages(BuildContext context) async {
+    await Future.wait([
+      $IllustrationsCache.precacheComingSoonPlatePortuguese(context, height: _comingSoonIllustrationHeight),
+      $IllustrationsCache.precacheWorkItemsMess(
+        context,
+        width: _loadingMoreErrorIllustrationSize,
+        height: _loadingMoreErrorIllustrationSize,
+      ),
+      $IllustrationsCache.precacheEmptyCitySaoPaulo(context, height: _emptyIllustrationHeight),
+      $IllustrationsCache.precacheLocationPinRestingCracked(context, height: _errorIllustrationHeight),
+      OfflineErrorState.precacheImages(context),
+    ]);
+  }
+
+  static const _comingSoonIllustrationHeight = 130.0;
+  static const _loadingMoreErrorIllustrationSize = 150.0;
+  static const _emptyIllustrationHeight = 150.0;
+  static const _errorIllustrationHeight = 140.0;
+
   @override
   ConsumerState<FeedView> createState() => _FeedViewState();
 }
@@ -48,7 +67,12 @@ class _FeedViewState extends ConsumerState<FeedView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            ExcludeSemantics(child: $Illustrations.comingSoonPlatePortuguese(fit: BoxFit.contain, height: 130)),
+            ExcludeSemantics(
+              child: $Illustrations.comingSoonPlatePortuguese(
+                fit: BoxFit.contain,
+                height: FeedView._comingSoonIllustrationHeight,
+              ),
+            ),
             const SizedBox(height: 18),
             Text(
               'Só em São Paulo',

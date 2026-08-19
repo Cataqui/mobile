@@ -6,7 +6,6 @@ import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/enums/create_job_morph_tag.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
-import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,8 +78,6 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
       return;
     }
 
-    final paymentIconsPrecache = CreateJobPaymentView.precacheIcons(context);
-
     try {
       final draft = await ref.read(createJobStateProvider.notifier).createDraft();
       if (!context.mounted) return;
@@ -112,8 +109,6 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
         });
       }
 
-      await paymentIconsPrecache;
-      if (!context.mounted) return;
       unawaited(CreateJobPaymentRoute(jobId: draft.jobId).push<void>(context));
     } on Object {
       if (context.mounted) {

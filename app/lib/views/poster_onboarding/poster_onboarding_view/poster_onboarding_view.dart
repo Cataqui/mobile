@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/gen/assets.gen.dart';
+import 'package:cataqui_app/gen/memoji.g.dart';
 import 'package:cataqui_app/gen/svg.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
@@ -18,8 +18,57 @@ part 'poster_onboarding_job_scene.dart';
 class PosterOnboardingView extends ConsumerWidget {
   const PosterOnboardingView({super.key});
 
-  static const maximumContentWidth = 420.0;
+  static Future<void> precacheImages(BuildContext context) async {
+    await Future.wait([
+      $MemojiCache.precacheAlex(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheChris(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheAriana(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheJustin(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheAna(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheEd(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheSabrina(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheRyan(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+      $MemojiCache.precacheStephen(
+        context,
+        width: PosterOnboardingJobCard.avatarSize,
+        height: PosterOnboardingJobCard.avatarSize,
+      ),
+    ]);
+  }
 
+  static const maximumContentWidth = 420.0;
   static const _compactAvailableHeight = 536.0;
   static const _regularAvailableHeight = 812.0;
 

@@ -19,10 +19,11 @@ import 'create_job_test_state.dart';
 abstract final class CreateJobViewTestHelpers {
   static const openButtonKey = ValueKey('open_create_job');
 
-  static Future<void> precachePaymentIcons(WidgetTester tester) async {
+  static Future<void> precachePaymentImages(WidgetTester tester) async {
     await tester.runAsync(
-      () =>
-          CreateJobPaymentView.precacheIcons(tester.element(find.byKey(const ValueKey('create_job_description_view')))),
+      () => CreateJobPaymentView.precacheImages(
+        tester.element(find.byKey(const ValueKey('create_job_description_view'))),
+      ),
     );
     await tester.pump();
   }
@@ -32,7 +33,6 @@ abstract final class CreateJobViewTestHelpers {
     AssetBundle? assetBundle,
     double keyboardInset = 0,
     bool disableAnimations = true,
-    bool shouldPrecachePaymentIcons = true,
     bool useViewMediaQuery = false,
     CreateJobData? initialCreateJobData,
     JobRepository? jobRepository,
@@ -58,9 +58,6 @@ abstract final class CreateJobViewTestHelpers {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(openButtonKey));
     await tester.pumpAndSettle();
-    if (!shouldPrecachePaymentIcons) return;
-
-    await precachePaymentIcons(tester);
   }
 
   static Widget buildApp({

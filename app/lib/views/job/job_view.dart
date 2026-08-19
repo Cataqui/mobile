@@ -18,6 +18,15 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 class JobView extends ConsumerStatefulWidget {
   const JobView({required this.jobId, this.feedJob, super.key});
 
+  static Future<void> precacheImages(BuildContext context) async {
+    await Future.wait([
+      $IllustrationsCache.precacheSpilledCoffee(context, height: _errorIllustrationHeight),
+      OfflineErrorState.precacheImages(context),
+    ]);
+  }
+
+  static const _errorIllustrationHeight = 140.0;
+
   final String jobId;
   final FeedJobDto? feedJob;
 
@@ -260,7 +269,7 @@ class _JobViewState extends ConsumerState<JobView> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          $Illustrations.spilledCoffee(height: 140),
+          $Illustrations.spilledCoffee(height: JobView._errorIllustrationHeight),
           const SizedBox(height: 20),
           Text(
             i18n.job.error.title,

@@ -20,7 +20,7 @@ part '_range_payment_section.dart';
 class CreateJobPaymentView extends ConsumerStatefulWidget {
   const CreateJobPaymentView({required this.jobId, super.key});
 
-  static Future<void> precacheIcons(BuildContext context) async {
+  static Future<void> precacheImages(BuildContext context) async {
     await Future.wait([
       $IconsCache.precachePadlock(context, height: _padlockIconHeight),
       $IconsCache.precacheBidirecionalHorizontalArrow(context, height: _rangeIconHeight),
