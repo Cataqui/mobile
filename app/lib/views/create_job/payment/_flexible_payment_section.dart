@@ -20,7 +20,7 @@ class _FlexiblePaymentSection extends ConsumerWidget {
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
           ),
           FractionallySizedBox(
-            widthFactor: .6,
+            widthFactor: .7,
             child: Text(
               i18n.createJob.payment.flexibleSection.description,
               textAlign: TextAlign.center,

@@ -83,8 +83,8 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                       child: Column(
                         key: const ValueKey('create_job_payment_view_content'),
                         children: [
-                          SizedBox(
-                            height: 53,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24, bottom: 16),
                             child: Center(
                               child: Text(
                                 i18n.createJob.payment.title,
@@ -159,7 +159,7 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                                       mediaQueryData.viewInsets.bottom - mediaQueryData.viewPadding.bottom + 12,
                                       0,
                                     )
-                                  : 0,
+                                  : 12,
                             ),
                             child: MateoButton(
                               key: const ValueKey('create_job_payment_continue_button'),
@@ -182,7 +182,7 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
               child: Align(
                 alignment: AlignmentGeometry.topLeft,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20),
+                  padding: const EdgeInsets.only(left: 20, top: 12),
                   child: SizedBox(
                     height: 53,
                     child: Align(
