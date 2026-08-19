@@ -42,8 +42,37 @@ class CreateJobPaymentView extends ConsumerStatefulWidget {
 }
 
 class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
+  late final MateoTextInputController _paymentNoteController;
+
+  void _focusPaymentNote() {
+    if (!mounted || ref.read(createJobStateProvider).paymentType != JobPaymentType.other) return;
+    if (_paymentNoteController.hasFocus) return;
+
+    _paymentNoteController.focus();
+  }
+
+  void _focusPaymentNoteAfterBuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _focusPaymentNote());
+  }
+
   void _setPaymentType(JobPaymentType paymentType) {
     ref.read(createJobStateProvider.notifier).setPaymentType(paymentType);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final createJobData = ref.read(createJobStateProvider);
+    _paymentNoteController = MateoTextInputController(text: createJobData.paymentNote);
+    if (createJobData.paymentType != JobPaymentType.other) return;
+
+    _focusPaymentNoteAfterBuild();
+  }
+
+  @override
+  void dispose() {
+    _paymentNoteController.dispose();
+    super.dispose();
   }
 
   @override
@@ -132,11 +161,11 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                                 title: i18n.createJob.payment.typeSelector.other.title,
                                 description: i18n.createJob.payment.typeSelector.other.description,
                                 iconBuilder: (_) => $Icons.pencil(height: CreateJobPaymentView._pencilIconHeight),
-
                                 onPressed: () => _setPaymentType(JobPaymentType.other),
                               ),
                             ],
                             initialValue: paymentType,
+                            onCloseCompleted: _focusPaymentNoteAfterBuild,
                           ),
                           Expanded(
                             child: Padding(
@@ -145,7 +174,9 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                                 JobPaymentType.fixed => const _FixedPaymentSection(),
                                 JobPaymentType.range => const _RangePaymentSection(),
                                 JobPaymentType.flexible => const _FlexiblePaymentSection(),
-                                JobPaymentType.other => const _OtherPaymentSection(),
+                                JobPaymentType.other => _OtherPaymentSection(
+                                  noteTextController: _paymentNoteController,
+                                ),
                               },
                             ),
                           ),
@@ -157,7 +188,7 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                               bottom: paymentType == JobPaymentType.other
                                   ? math.max(
                                       mediaQueryData.viewInsets.bottom - mediaQueryData.viewPadding.bottom + 12,
-                                      0,
+                                      12,
                                     )
                                   : 12,
                             ),

@@ -1203,7 +1203,10 @@ void main() {
         textInput.variant,
         textInput.multiline,
         textInput.autofocus,
+        textInput.unfocusOnTapOutside,
         textInput.maxLength,
+        textInput.controller?.hasFocus,
+        tester.testTextInput.isVisible,
       ),
       (
         JobPaymentType.other,
@@ -1212,9 +1215,37 @@ void main() {
         i18n.createJob.payment.otherSection.placeholder,
         MateoTextInputVariant.quiet,
         true,
-        true,
+        false,
+        false,
         500,
+        true,
+        true,
       ),
+    );
+  });
+
+  testWidgets('when selecting another payment again, it should refocus its multiline field', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    tester.testTextInput.log.clear();
+
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.other))));
+    await tester.pumpAndSettle();
+    final textInput = tester.widget<MateoTextInput>(find.byType(MateoTextInput));
+    final textInputMethods = tester.testTextInput.log.map((methodCall) => methodCall.method);
+
+    expect(
+      (textInput.controller?.hasFocus, tester.testTextInput.isVisible, textInputMethods.contains('TextInput.show')),
+      (true, true, true),
     );
   });
 

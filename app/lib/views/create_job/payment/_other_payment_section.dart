@@ -1,33 +1,12 @@
 part of 'create_job_payment_view.dart';
 
-class _OtherPaymentSection extends ConsumerStatefulWidget {
-  const _OtherPaymentSection();
+class _OtherPaymentSection extends ConsumerWidget {
+  const _OtherPaymentSection({required this.noteTextController});
+
+  final MateoTextInputController noteTextController;
 
   @override
-  ConsumerState<_OtherPaymentSection> createState() => _OtherPaymentSectionState();
-}
-
-class _OtherPaymentSectionState extends ConsumerState<_OtherPaymentSection> {
-  late final MateoTextInputController _paymentNoteController;
-
-  void _setPaymentNote(String paymentNote) {
-    ref.read(createJobStateProvider.notifier).setPaymentNote(paymentNote);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _paymentNoteController = MateoTextInputController(text: ref.read(createJobStateProvider).paymentNote);
-  }
-
-  @override
-  void dispose() {
-    _paymentNoteController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final i18n = ref.watch(translationProvider);
 
     return Align(
@@ -36,17 +15,17 @@ class _OtherPaymentSectionState extends ConsumerState<_OtherPaymentSection> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20).copyWith(top: 20),
         child: MateoTextInput(
-          controller: _paymentNoteController,
+          controller: noteTextController,
           placeholder: i18n.createJob.payment.otherSection.placeholder,
           variant: MateoTextInputVariant.quiet,
-          autofocus: true,
+          autofocus: false,
           unfocusOnTapOutside: false,
           keyboardType: TextInputType.multiline,
           textInputAction: TextInputAction.newline,
           textStyle: const TextStyle(fontSize: 20),
           maxLength: 500,
           multiline: true,
-          onChanged: _setPaymentNote,
+          onChanged: (paymentNote) => ref.read(createJobStateProvider.notifier).setPaymentNote(paymentNote),
         ),
       ),
     );
