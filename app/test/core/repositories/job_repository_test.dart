@@ -22,23 +22,17 @@ void main() {
     repository = JobRepository(authenticatedDio: authenticatedDio, unauthenticatedDio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobRequest(dio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobContactRequest(dio: unauthenticatedDio);
-    _JobRepositoryTestHelpers.stubCreateDraftRequest(dio: authenticatedDio);
     _JobRepositoryTestHelpers.stubUpdateDraftRequest(dio: authenticatedDio);
   });
 
   group('JobRepository', () {
     group('createDraft', () {
-      test('when creating a draft, it should post the preserved description to the drafts endpoint', () async {
-        const description = '  Preciso de uma pessoa para descarregar caixas.  ';
+      test('when creating a local draft, it should not call the authenticated API', () async {
+        await repository.createDraft(description: _JobRepositoryTestData.draftDescription);
 
-        await repository.createDraft(description: description);
-
-        verify(
-          () => authenticatedDio.post<Map<String, Object?>>(
-            '/jobs/drafts',
-            data: <String, String>{'description': description},
-          ),
-        ).called(1);
+        verifyNever(
+          () => authenticatedDio.post<Map<String, Object?>>(any(), data: any<Map<String, String>>(named: 'data')),
+        );
       });
 
       test('when creating a draft, it should not use the unauthenticated client', () async {
@@ -49,19 +43,10 @@ void main() {
         );
       });
 
-      test('when receiving a draft with incomplete fields, it should map the nullable response', () async {
+      test('when creating a local draft, it should return the draft status', () async {
         final envelope = await repository.createDraft(description: _JobRepositoryTestData.draftDescription);
 
-        expect(
-          envelope.data,
-          JobDraftDto(
-            jobId: _JobRepositoryTestData.jobId,
-            description: _JobRepositoryTestData.draftDescription,
-            status: JobStatus.draft,
-            createdAt: DateTime.parse('2026-08-12T12:00:00.000Z'),
-            updatedAt: DateTime.parse('2026-08-12T12:00:00.000Z'),
-          ),
-        );
+        expect(envelope.data.status, JobStatus.draft);
       });
     });
 
@@ -350,17 +335,6 @@ abstract final class _JobRepositoryTestHelpers {
     );
     addTearDown(container.dispose);
     return container;
-  }
-
-  static void stubCreateDraftRequest({required MockDio dio}) {
-    when(
-      () => dio.post<Map<String, Object?>>('/jobs/drafts', data: any<Map<String, String>>(named: 'data')),
-    ).thenAnswer(
-      (_) async => Response<Map<String, Object?>>(
-        data: _JobRepositoryTestData.draftEnvelopeJson,
-        requestOptions: RequestOptions(path: '/jobs/drafts'),
-      ),
-    );
   }
 
   static void stubUpdateDraftRequest({required MockDio dio}) {
