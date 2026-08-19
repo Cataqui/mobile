@@ -111,7 +111,12 @@ class FeedViewTestHelpers {
   }
 
   static Future<void> precacheFeedStateImages(BuildContext context) async {
-    await $Illustrations.precache(context);
+    await Future.wait([
+      $IllustrationsCache.precacheComingSoonPlatePortuguese(context, height: 130),
+      $IllustrationsCache.precacheWorkItemsMess(context, width: 150, height: 150),
+      $IllustrationsCache.precacheEmptyCitySaoPaulo(context, height: 150),
+      $IllustrationsCache.precacheLocationPinRestingCracked(context, height: 140),
+    ]);
   }
 
   static Future<void> prepareGoldenCapture({required WidgetTester tester, required Finder contextFinder}) async {

@@ -319,7 +319,7 @@ packages:
       path: "../../ventairy/flutter/dotdart"
       relative: true
     source: path
-    version: "0.7.0"
+    version: "0.8.0"
   equatable:
     dependency: transitive
     description:

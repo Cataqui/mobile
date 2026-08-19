@@ -158,7 +158,9 @@ class JobViewGoldenTestHelpers {
 
   static Future<void> settle(WidgetTester tester) async {
     await withClock(fixedClock(), () async {
-      await tester.runAsync(() => $Illustrations.precache(tester.element(find.byType(JobView))));
+      await tester.runAsync<void>(
+        () => $IllustrationsCache.precacheSpilledCoffee(tester.element(find.byType(JobView)), height: 140),
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump(const Duration(milliseconds: 50));

@@ -20,6 +20,20 @@ part '_range_payment_section.dart';
 class CreateJobPaymentView extends ConsumerStatefulWidget {
   const CreateJobPaymentView({required this.jobId, super.key});
 
+  static Future<void> precacheIcons(BuildContext context) async {
+    await Future.wait([
+      $IconsCache.precachePadlock(context, height: _padlockIconHeight),
+      $IconsCache.precacheBidirecionalHorizontalArrow(context, height: _rangeIconHeight),
+      $IconsCache.precacheHandshake(context, height: _handshakeIconHeight),
+      $IconsCache.precachePencil(context, height: _pencilIconHeight),
+    ]);
+  }
+
+  static const _padlockIconHeight = 27.0;
+  static const _rangeIconHeight = 27.0;
+  static const _handshakeIconHeight = 32.0;
+  static const _pencilIconHeight = 25.0;
+
   final String jobId;
 
   @override
@@ -90,14 +104,15 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                                 value: JobPaymentType.fixed,
                                 title: i18n.createJob.payment.typeSelector.fixed.title,
                                 description: i18n.createJob.payment.typeSelector.fixed.description,
-                                iconBuilder: (state) => $Icons.padlock(height: state.iconSize + 5),
+                                iconBuilder: (_) => $Icons.padlock(height: CreateJobPaymentView._padlockIconHeight),
                                 onPressed: () => _setPaymentType(JobPaymentType.fixed),
                               ),
                               MateoSelectOption(
                                 value: JobPaymentType.range,
                                 title: i18n.createJob.payment.typeSelector.range.title,
                                 description: i18n.createJob.payment.typeSelector.range.description,
-                                iconBuilder: (state) => $Icons.bidirecionalHorizontalArrow(height: state.iconSize + 5),
+                                iconBuilder: (_) =>
+                                    $Icons.bidirecionalHorizontalArrow(height: CreateJobPaymentView._rangeIconHeight),
 
                                 onPressed: () => _setPaymentType(JobPaymentType.range),
                               ),
@@ -105,8 +120,8 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                                 value: JobPaymentType.flexible,
                                 title: i18n.createJob.payment.typeSelector.flexible.title,
                                 description: i18n.createJob.payment.typeSelector.flexible.description,
-                                iconBuilder: (state) {
-                                  return $Icons.handshake(height: state.iconSize + 10);
+                                iconBuilder: (_) {
+                                  return $Icons.handshake(height: CreateJobPaymentView._handshakeIconHeight);
                                 },
 
                                 onPressed: () => _setPaymentType(JobPaymentType.flexible),
@@ -115,7 +130,7 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                                 value: JobPaymentType.other,
                                 title: i18n.createJob.payment.typeSelector.other.title,
                                 description: i18n.createJob.payment.typeSelector.other.description,
-                                iconBuilder: (state) => $Icons.pencil(height: state.iconSize + 3),
+                                iconBuilder: (_) => $Icons.pencil(height: CreateJobPaymentView._pencilIconHeight),
 
                                 onPressed: () => _setPaymentType(JobPaymentType.other),
                               ),

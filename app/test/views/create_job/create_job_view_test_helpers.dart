@@ -7,6 +7,7 @@ import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
+import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -18,10 +19,20 @@ import 'create_job_test_state.dart';
 abstract final class CreateJobViewTestHelpers {
   static const openButtonKey = ValueKey('open_create_job');
 
+  static Future<void> precachePaymentIcons(WidgetTester tester) async {
+    await tester.runAsync(
+      () =>
+          CreateJobPaymentView.precacheIcons(tester.element(find.byKey(const ValueKey('create_job_description_view')))),
+    );
+    await tester.pump();
+  }
+
   static Future<void> pumpDescription(
     WidgetTester tester, {
+    AssetBundle? assetBundle,
     double keyboardInset = 0,
     bool disableAnimations = true,
+    bool shouldPrecachePaymentIcons = true,
     bool useViewMediaQuery = false,
     CreateJobData? initialCreateJobData,
     JobRepository? jobRepository,
@@ -36,6 +47,7 @@ abstract final class CreateJobViewTestHelpers {
 
     await tester.pumpWidget(
       buildApp(
+        assetBundle: assetBundle,
         keyboardInset: keyboardInset,
         disableAnimations: disableAnimations,
         useViewMediaQuery: useViewMediaQuery,
@@ -46,9 +58,13 @@ abstract final class CreateJobViewTestHelpers {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(openButtonKey));
     await tester.pumpAndSettle();
+    if (!shouldPrecachePaymentIcons) return;
+
+    await precachePaymentIcons(tester);
   }
 
   static Widget buildApp({
+    AssetBundle? assetBundle,
     double keyboardInset = 0,
     bool disableAnimations = true,
     bool useViewMediaQuery = false,
@@ -57,7 +73,7 @@ abstract final class CreateJobViewTestHelpers {
   }) {
     final routeObserver = RouteObserver<ModalRoute<void>>();
 
-    return TestApp.router(
+    final app = TestApp.router(
       mediaQueryData: useViewMediaQuery
           ? null
           : MediaQueryData(
@@ -96,5 +112,9 @@ abstract final class CreateJobViewTestHelpers {
         ],
       ),
     );
+
+    if (assetBundle == null) return app;
+
+    return DefaultAssetBundle(bundle: assetBundle, child: app);
   }
 }

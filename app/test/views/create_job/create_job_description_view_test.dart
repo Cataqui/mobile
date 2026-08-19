@@ -18,6 +18,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
 import 'create_job_view_test_helpers.dart';
+import 'payment/payment_icons_test_asset_bundle.dart';
 
 void main() {
   late Translations i18n;
@@ -1492,6 +1493,31 @@ void main() {
 
     expect(find.byKey(const ValueKey('create_job_continue_icon')), findsOneWidget);
   });
+
+  testWidgets(
+    'when draft creation succeeds while payment icons are decoding, it should keep the payment view closed until they are ready',
+    (tester) async {
+      final assetBundle = PaymentIconsTestAssetBundle();
+      addTearDown(assetBundle.release);
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        assetBundle: assetBundle,
+        shouldPrecachePaymentIcons: false,
+        jobRepository: jobRepository,
+      );
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(CreateJobPaymentView), findsNothing);
+
+      assetBundle.release();
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('when draft creation fails, it should show the translated request error', (tester) async {
     when(

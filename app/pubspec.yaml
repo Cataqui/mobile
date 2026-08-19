@@ -41,7 +41,7 @@ dependencies:
 dev_dependencies:
   alchemist: ^0.14.0
   build_runner: ^2.15.0
-  dotdart: ^0.6.1
+  dotdart: ^0.8.0
   flutter_gen_runner: ^5.14.1
   flutter_test:
     sdk: flutter
