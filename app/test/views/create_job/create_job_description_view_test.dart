@@ -144,6 +144,25 @@ void main() {
     },
   );
 
+  testWidgets(
+    'when another payment opens while the keyboard is visible, it should keep the continue action above the keyboard',
+    (tester) async {
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        keyboardInset: 300,
+        initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+        jobRepository: jobRepository,
+      );
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pumpAndSettle();
+      final continueBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_payment_continue_button')));
+
+      expect(continueBottom.dy, 532);
+    },
+  );
+
   testWidgets('when the job creation route opens, it should leave the previous route visible around the surface', (
     tester,
   ) async {
@@ -312,6 +331,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(immediatelyAfterSuccess, (false, 1));
+  });
+
+  testWidgets('when another payment follows the description, it should transfer typing without hiding the keyboard', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    tester.testTextInput.log.clear();
+
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final textInputMethods = tester.testTextInput.log.map((methodCall) => methodCall.method);
+
+    expect((textInputMethods.contains('TextInput.hide'), tester.testTextInput.isVisible), (false, true));
   });
 
   testWidgets(
@@ -1143,9 +1181,7 @@ void main() {
     );
   });
 
-  testWidgets('when selecting other payment, it should save the type and leave its unfinished content empty', (
-    tester,
-  ) async {
+  testWidgets('when selecting another payment, it should show the localized multiline payment field', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
@@ -1156,18 +1192,73 @@ void main() {
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.other))));
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+    final textInput = tester.widget<MateoTextInput>(find.byType(MateoTextInput));
 
     expect(
       (
         container.read(createJobStateProvider).paymentType,
         find.byKey(const ValueKey('create_job_fixed_payment_content')).evaluate().length,
-        find
-            .byKey(const ValueKey<Object>(('create_job_empty_payment_content', JobPaymentType.other)))
-            .evaluate()
-            .length,
+        find.byKey(const ValueKey('create_job_other_payment_content')).evaluate().length,
+        textInput.placeholder,
+        textInput.variant,
+        textInput.multiline,
+        textInput.autofocus,
+        textInput.maxLength,
       ),
-      (JobPaymentType.other, 0, 1),
+      (
+        JobPaymentType.other,
+        0,
+        1,
+        i18n.createJob.payment.otherSection.placeholder,
+        MateoTextInputVariant.quiet,
+        true,
+        true,
+        500,
+      ),
     );
+  });
+
+  testWidgets('when typing another payment, it should preserve the explanation in the job data', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Duas cestas básicas');
+    await tester.pump();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
+
+    expect(container.read(createJobStateProvider).paymentNote, 'Duas cestas básicas');
+  });
+
+  testWidgets('when leaving and returning to another payment, it should restore the saved explanation', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentType: JobPaymentType.other,
+        paymentNote: 'Duas cestas básicas',
+      ),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.fixed))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('mateo_select_source')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.other))));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<EditableText>(find.byType(EditableText)).controller.text, 'Duas cestas básicas');
   });
 
   testWidgets('when selecting fixed payment, it should save the type and show the fixed payment controls', (

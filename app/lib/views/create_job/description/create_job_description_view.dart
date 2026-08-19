@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
@@ -85,6 +86,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
     try {
       final draft = await ref.read(createJobStateProvider.notifier).createDraft();
       if (!context.mounted) return;
+      final paymentType = ref.read(createJobStateProvider).paymentType;
       final descriptionScrollOffset = _descriptionScrollController.hasClients
           ? _descriptionScrollController.offset
           : null;
@@ -98,9 +100,12 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
           _hasRestoredKeyboardInset = false;
         });
       }
-      _descriptionTextController.unfocus();
-      await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
-      if (!context.mounted) return;
+
+      if (paymentType != JobPaymentType.other) {
+        _descriptionTextController.unfocus();
+        await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+        if (!context.mounted) return;
+      }
 
       if (descriptionScrollOffset != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {

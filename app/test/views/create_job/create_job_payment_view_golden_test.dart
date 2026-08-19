@@ -423,6 +423,74 @@ void main() {
             jobRepository: jobRepository,
           ),
         );
+
+        goldenTest(
+          'when another payment opens without an explanation, it should show the localized writing prompt',
+          fileName: 'create_job_other_payment_empty',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+            jobRepository: jobRepository,
+          ),
+        );
+
+        goldenTest(
+          'when another payment opens with a saved explanation, it should show the text and character count',
+          fileName: 'create_job_other_payment_filled',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentType: JobPaymentType.other,
+              paymentNote: 'Duas cestas básicas',
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
+
+        goldenTest(
+          'when another payment opens with the keyboard, it should keep the continue action above the typing area',
+          fileName: 'create_job_other_payment_keyboard_open',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            keyboardInset: 300,
+            disableAnimations: false,
+            initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+            jobRepository: jobRepository,
+          ),
+        );
       });
     },
   );

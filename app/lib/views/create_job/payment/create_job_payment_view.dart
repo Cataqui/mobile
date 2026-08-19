@@ -150,7 +150,17 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
+                            padding: EdgeInsets.only(
+                              left: 20,
+                              right: 20,
+                              top: 20,
+                              bottom: paymentType == JobPaymentType.other
+                                  ? math.max(
+                                      mediaQueryData.viewInsets.bottom - mediaQueryData.viewPadding.bottom + 12,
+                                      0,
+                                    )
+                                  : 0,
+                            ),
                             child: MateoButton(
                               key: const ValueKey('create_job_payment_continue_button'),
                               label: i18n.createJob.continueButtonSemanticLabel,

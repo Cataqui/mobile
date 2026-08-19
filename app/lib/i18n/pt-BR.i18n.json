@@ -73,6 +73,9 @@
         "title": "Valor a combinar",
         "description": "Vocês combinam o pagamento final direto na conversa"
       },
+      "otherSection": {
+        "placeholder": "Conte como vai ser o pagamento\n\nEx: Cesta básica"
+      },
       "typeSelector": {
         "fixed": {
           "title": "Um valor só",

@@ -57,6 +57,12 @@ class CreateJobState extends _$CreateJobState {
     state = state.copyWith(paymentMaximumAmount: paymentMaximumAmount);
   }
 
+  void setPaymentNote(String paymentNote) {
+    if (state.paymentNote == paymentNote) return;
+
+    state = state.copyWith(paymentNote: paymentNote);
+  }
+
   void setPaymentType(JobPaymentType paymentType) {
     if (state.paymentType == paymentType) return;
 

@@ -27,6 +27,7 @@ class _FlexiblePaymentSection extends ConsumerWidget {
               style: TextStyle(fontSize: 16, color: context.mateo.colorScheme.text.secondary),
             ),
           ),
+          const SizedBox(height: 40),
         ],
       ),
     );

@@ -13,6 +13,7 @@ abstract class CreateJobData with _$CreateJobData {
     String? jobId,
     @Default('0') String paymentMinimumAmount,
     @Default('0') String paymentMaximumAmount,
+    @Default('') String paymentNote,
     @Default(JobPaymentType.fixed) JobPaymentType paymentType,
     @Default(false) bool isCreatingDraft,
   }) = _CreateJobData;
