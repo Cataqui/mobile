@@ -42,7 +42,7 @@ class CreateJobPaymentView extends ConsumerStatefulWidget {
 }
 
 class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
-  late final MateoTextInputController _paymentNoteController;
+  late final MateoTextController _paymentNoteController;
 
   void _focusPaymentNote() {
     if (!mounted || ref.read(createJobStateProvider).paymentType != JobPaymentType.other) return;
@@ -63,7 +63,7 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
   void initState() {
     super.initState();
     final createJobData = ref.read(createJobStateProvider);
-    _paymentNoteController = MateoTextInputController(text: createJobData.paymentNote);
+    _paymentNoteController = MateoTextController(text: createJobData.paymentNote);
     if (createJobData.paymentType != JobPaymentType.other) return;
 
     _focusPaymentNoteAfterBuild();
@@ -81,6 +81,13 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
     ref.watch(createJobStateProvider.select((state) => state.jobId));
     final paymentType = ref.watch(createJobStateProvider.select((state) => state.paymentType));
     final mediaQueryData = MediaQuery.of(context);
+    final continueButton = MateoButton(
+      key: const ValueKey('create_job_payment_continue_button'),
+      label: i18n.createJob.continueButtonSemanticLabel,
+      variant: MateoButtonVariant.primary,
+      fit: MateoButtonFit.expand,
+      onPressed: () {},
+    );
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -143,7 +150,6 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                                 description: i18n.createJob.payment.typeSelector.range.description,
                                 iconBuilder: (_) =>
                                     $Icons.bidirecionalHorizontalArrow(height: CreateJobPaymentView._rangeIconHeight),
-
                                 onPressed: () => _setPaymentType(JobPaymentType.range),
                               ),
                               MateoSelectOption(
@@ -167,40 +173,48 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
                             initialValue: paymentType,
                             onCloseCompleted: _focusPaymentNoteAfterBuild,
                           ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: switch (paymentType) {
-                                JobPaymentType.fixed => const _FixedPaymentSection(),
-                                JobPaymentType.range => const _RangePaymentSection(),
-                                JobPaymentType.flexible => const _FlexiblePaymentSection(),
-                                JobPaymentType.other => _OtherPaymentSection(
-                                  noteTextController: _paymentNoteController,
-                                ),
-                              },
+                          if (paymentType == JobPaymentType.other)
+                            Expanded(
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  _OtherPaymentSection(noteTextController: _paymentNoteController),
+                                  Positioned(
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 20,
+                                        right: 20,
+                                        bottom: math.max(
+                                          mediaQueryData.viewInsets.bottom - mediaQueryData.viewPadding.bottom + 12,
+                                          12,
+                                        ),
+                                      ),
+                                      child: continueButton,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else ...[
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: switch (paymentType) {
+                                  JobPaymentType.fixed => const _FixedPaymentSection(),
+                                  JobPaymentType.range => const _RangePaymentSection(),
+                                  JobPaymentType.flexible => const _FlexiblePaymentSection(),
+                                  JobPaymentType.other => throw StateError('Other payment is rendered separately.'),
+                                },
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: 20,
-                              right: 20,
-                              top: 20,
-                              bottom: paymentType == JobPaymentType.other
-                                  ? math.max(
-                                      mediaQueryData.viewInsets.bottom - mediaQueryData.viewPadding.bottom + 12,
-                                      12,
-                                    )
-                                  : 12,
+                            Padding(
+                              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 12),
+                              child: continueButton,
                             ),
-                            child: MateoButton(
-                              key: const ValueKey('create_job_payment_continue_button'),
-                              label: i18n.createJob.continueButtonSemanticLabel,
-                              variant: MateoButtonVariant.primary,
-                              fit: MateoButtonFit.expand,
-
-                              onPressed: () {},
-                            ),
-                          ),
+                          ],
                         ],
                       ),
                     ),

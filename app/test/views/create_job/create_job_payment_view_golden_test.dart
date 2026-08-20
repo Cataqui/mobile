@@ -219,6 +219,33 @@ void main() {
         );
 
         goldenTest(
+          'when range payment opens on a short screen, it should scale both amounts above the keypad',
+          fileName: 'create_job_payment_range_short_screen',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 640),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            screenSize: const Size(390, 640),
+            initialCreateJobData: const CreateJobData(
+              currencyCode: 'BRL',
+              paymentMinimumAmount: '350',
+              paymentMaximumAmount: '700',
+              paymentType: JobPaymentType.range,
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
+
+        goldenTest(
           'when the maximum range amount is tapped, it should brighten the maximum and dim the minimum',
           fileName: 'create_job_payment_range_maximum_selected',
           constraints: const BoxConstraints.tightFor(width: 390, height: 844),
@@ -465,6 +492,31 @@ void main() {
               currencyCode: 'BRL',
               paymentType: JobPaymentType.other,
               paymentNote: 'Duas cestas básicas',
+            ),
+            jobRepository: jobRepository,
+          ),
+        );
+
+        goldenTest(
+          'when another payment reaches its final lines, it should soften the boundary above continue',
+          fileName: 'create_job_other_payment_long_note_boundary',
+          constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+          whilePerforming: (tester) async {
+            await tester.tap(find.byKey(CreateJobViewTestHelpers.openButtonKey));
+            await tester.pumpAndSettle();
+            await CreateJobViewTestHelpers.precachePaymentImages(tester);
+            await tester.enterText(find.byType(EditableText), 'Preciso de uma pessoa para descarregar caixas.');
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+            await tester.pumpAndSettle();
+            return null;
+          },
+          builder: () => CreateJobViewTestHelpers.buildApp(
+            disableAnimations: false,
+            initialCreateJobData: CreateJobData(
+              currencyCode: 'BRL',
+              paymentType: JobPaymentType.other,
+              paymentNote: List<String>.filled(18, 'Pagamento combinado').join('\n'),
             ),
             jobRepository: jobRepository,
           ),

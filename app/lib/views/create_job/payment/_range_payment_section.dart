@@ -11,11 +11,11 @@ class _RangePaymentSectionState extends ConsumerState<_RangePaymentSection> with
   static const _minimumAmountKey = ValueKey('create_job_range_minimum_amount');
   static const _maximumAmountKey = ValueKey('create_job_range_maximum_amount');
 
-  late final MateoTextInputController _minimumAmountTextController;
-  late final MateoTextInputController _maximumAmountTextController;
+  late final MateoTextController _minimumAmountTextController;
+  late final MateoTextController _maximumAmountTextController;
   late final MotionController _minimumShakeMotionController;
   late final MotionController _maximumShakeMotionController;
-  late MateoTextInputController _selectedAmountTextController;
+  late MateoTextController _selectedAmountTextController;
   late final AnimationController _amountSectionWidthMotionController;
   late final ValueNotifier<double> _animatedAmountSectionWidth;
   double _amountSectionWidth = 0;
@@ -31,7 +31,7 @@ class _RangePaymentSectionState extends ConsumerState<_RangePaymentSection> with
         : _maximumShakeMotionController;
   }
 
-  void _selectAmount(MateoTextInputController amountTextController) {
+  void _selectAmount(MateoTextController amountTextController) {
     if (identical(_selectedAmountTextController, amountTextController)) return;
     setState(() => _selectedAmountTextController = amountTextController);
   }
@@ -108,10 +108,10 @@ class _RangePaymentSectionState extends ConsumerState<_RangePaymentSection> with
     super.initState();
     final createJobData = ref.read(createJobStateProvider);
 
-    _minimumAmountTextController = MateoTextInputController(text: createJobData.paymentMinimumAmount)
+    _minimumAmountTextController = MateoTextController(text: createJobData.paymentMinimumAmount)
       ..addListener(_setMinimumAmountText);
 
-    _maximumAmountTextController = MateoTextInputController(text: createJobData.paymentMaximumAmount)
+    _maximumAmountTextController = MateoTextController(text: createJobData.paymentMaximumAmount)
       ..addListener(_setMaximumAmountText);
 
     _minimumShakeMotionController = MotionController();
@@ -205,8 +205,15 @@ class _RangePaymentSectionState extends ConsumerState<_RangePaymentSection> with
       key: const ValueKey('create_job_range_payment_content'),
       children: [
         Expanded(
-          child: Center(
-            child: SizedBox(width: double.infinity, child: amountFields),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(width: constraints.maxWidth, child: amountFields),
+                ),
+              );
+            },
           ),
         ),
         MateoNumericKeypad(
@@ -221,7 +228,7 @@ class _RangePaymentSectionState extends ConsumerState<_RangePaymentSection> with
 
   Widget _buildAmountField({
     required String label,
-    required MateoTextInputController amountTextController,
+    required MateoTextController amountTextController,
     required MotionController rejectedChangeController,
     required Key key,
     required bool selected,

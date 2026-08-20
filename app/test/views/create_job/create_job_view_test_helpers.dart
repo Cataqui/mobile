@@ -31,6 +31,7 @@ abstract final class CreateJobViewTestHelpers {
   static Future<void> pumpDescription(
     WidgetTester tester, {
     AssetBundle? assetBundle,
+    Size screenSize = const Size(390, 844),
     double keyboardInset = 0,
     bool disableAnimations = true,
     bool useViewMediaQuery = false,
@@ -39,7 +40,7 @@ abstract final class CreateJobViewTestHelpers {
   }) async {
     tester.view
       ..devicePixelRatio = 1
-      ..physicalSize = const Size(390, 844)
+      ..physicalSize = screenSize
       ..padding = FakeViewPadding(top: 47, bottom: keyboardInset > 0 ? 0 : 34)
       ..viewPadding = const FakeViewPadding(top: 47, bottom: 34)
       ..viewInsets = FakeViewPadding(bottom: keyboardInset);
@@ -48,6 +49,7 @@ abstract final class CreateJobViewTestHelpers {
     await tester.pumpWidget(
       buildApp(
         assetBundle: assetBundle,
+        screenSize: screenSize,
         keyboardInset: keyboardInset,
         disableAnimations: disableAnimations,
         useViewMediaQuery: useViewMediaQuery,
@@ -62,6 +64,7 @@ abstract final class CreateJobViewTestHelpers {
 
   static Widget buildApp({
     AssetBundle? assetBundle,
+    Size screenSize = const Size(390, 844),
     double keyboardInset = 0,
     bool disableAnimations = true,
     bool useViewMediaQuery = false,
@@ -74,7 +77,7 @@ abstract final class CreateJobViewTestHelpers {
       mediaQueryData: useViewMediaQuery
           ? null
           : MediaQueryData(
-              size: const Size(390, 844),
+              size: screenSize,
               devicePixelRatio: 1,
               padding: EdgeInsets.only(top: 47, bottom: keyboardInset > 0 ? 0 : 34),
               viewPadding: const EdgeInsets.only(top: 47, bottom: 34),

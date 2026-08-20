@@ -73,7 +73,7 @@ void main() {
     await tester.pumpAndSettle();
     final continueBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_continue_button'))).dy;
 
-    expect(continueBottom, 516);
+    expect(continueBottom, 524);
   });
 
   testWidgets('when the keyboard opens and closes, it should keep the continue action within the safe area', (
@@ -109,7 +109,7 @@ void main() {
 
     expect(
       (whileKeyboardOpens, afterKeyboardOpens, afterKeyboardCloses, whileKeyboardReopens),
-      (666, 516, beforeKeyboardOpens, 666),
+      (674, 524, beforeKeyboardOpens, 674),
     );
   });
 
@@ -122,6 +122,7 @@ void main() {
         disableAnimations: false,
         jobRepository: jobRepository,
       );
+      await CreateJobViewTestHelpers.precachePaymentImages(tester);
       await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
       await tester.pumpAndSettle();
 
@@ -153,6 +154,7 @@ void main() {
         initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
         jobRepository: jobRepository,
       );
+      await CreateJobViewTestHelpers.precachePaymentImages(tester);
       await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -212,6 +214,13 @@ void main() {
     final surface = tester.widget<Container>(find.byKey(const ValueKey('create_job_description_surface')));
 
     expect(surface.clipBehavior, Clip.antiAlias);
+  });
+
+  testWidgets('when the description view opens, it should keep its bottom surface corners square', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester);
+    final surface = tester.widget<Container>(find.byKey(const ValueKey('create_job_description_surface')));
+
+    expect((surface.decoration! as BoxDecoration).borderRadius, const BorderRadius.vertical(top: Radius.circular(40)));
   });
 
   testWidgets('when the description surface opens, it should describe the continue action', (tester) async {
@@ -341,6 +350,7 @@ void main() {
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
       jobRepository: jobRepository,
     );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     tester.testTextInput.log.clear();
@@ -417,7 +427,7 @@ void main() {
           .dy;
       await tester.pumpAndSettle();
 
-      expect(continueBottomBeforeKeyboardInsetsArrive, 516);
+      expect(continueBottomBeforeKeyboardInsetsArrive, 524);
     },
   );
 
@@ -428,11 +438,10 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), longDescription);
     await tester.pumpAndSettle();
-    final scrollView = tester.widget<SingleChildScrollView>(
-      find.byKey(const ValueKey('create_job_prompt_scroll_view')),
-    );
-    scrollView.controller!.jumpTo(600);
+    final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')));
+    textArea.scrollController!.jumpTo(600);
     await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
 
@@ -441,14 +450,66 @@ void main() {
     for (final keyboardInset in [0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0]) {
       tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
       await tester.pump(const Duration(milliseconds: 60));
-      attachedPositionCounts.add(scrollView.controller!.positions.length);
+      attachedPositionCounts.add(textArea.scrollController!.positions.length);
     }
     addTearDown(tester.view.resetViewInsets);
     await tester.pumpAndSettle();
-    attachedPositionCounts.add(scrollView.controller!.positions.length);
+    attachedPositionCounts.add(textArea.scrollController!.positions.length);
 
     expect(attachedPositionCounts, everyElement(1));
   });
+
+  testWidgets(
+    'when a long description is scrolled to the top before payment, it should reveal the caret after returning',
+    (tester) async {
+      final longDescription = List<String>.filled(100, _CreateJobDescriptionViewTestData.validDescription).join('\n');
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        disableAnimations: false,
+        useViewMediaQuery: true,
+        jobRepository: jobRepository,
+      );
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), longDescription);
+      await tester.pumpAndSettle();
+      await CreateJobViewTestHelpers.precachePaymentImages(tester);
+      final textAreaFinder = find.byKey(const ValueKey('create_job_prompt_text_area'));
+      final scrollController = tester.widget<MateoTextArea>(textAreaFinder).scrollController!..jumpTo(0);
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = FakeViewPadding.zero;
+      await tester.pump();
+
+      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+      for (final keyboardInset in [0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0]) {
+        tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.pumpAndSettle();
+      final renderEditable = tester.renderObject<RenderEditable>(
+        find.descendant(
+          of: textAreaFinder,
+          matching: find.byElementPredicate((element) => element.renderObject is RenderEditable),
+        ),
+      );
+      final caretRect = renderEditable.getLocalRectForCaret(renderEditable.selection!.extent);
+      final caretTop = renderEditable.localToGlobal(caretRect.topLeft).dy;
+      final caretBottom = renderEditable.localToGlobal(caretRect.bottomLeft).dy;
+      final textAreaFades = find.descendant(of: textAreaFinder, matching: find.byType(MateoEdgeFade));
+
+      expect(
+        (
+          caretTop >= tester.getBottomLeft(textAreaFades.first).dy,
+          caretBottom <= tester.getTopLeft(textAreaFades.last).dy,
+          scrollController.offset > 0,
+        ),
+        (true, true, true),
+      );
+    },
+  );
 
   testWidgets(
     'when continuing after the focused description scrolls, it should preserve that position for the return snapshot',
@@ -465,8 +526,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       final scrollController = tester
-          .widget<SingleChildScrollView>(find.byKey(const ValueKey('create_job_prompt_scroll_view')))
-          .controller!;
+          .widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')))
+          .scrollController!;
       final capturedOffset = (scrollController..jumpTo(10)).offset;
       final focusNode = tester.widget<TextField>(find.byType(TextField)).focusNode!;
       void simulatePlatformUnfocusScroll() {
@@ -475,46 +536,13 @@ void main() {
 
       focusNode.addListener(simulatePlatformUnfocusScroll);
       addTearDown(() => focusNode.removeListener(simulatePlatformUnfocusScroll));
+      await CreateJobViewTestHelpers.precachePaymentImages(tester);
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
       await tester.pumpAndSettle();
 
       expect(scrollController.offset, capturedOffset);
     },
   );
-
-  testWidgets('when focus reveals a hidden caret, it should place the caret near the visible prompt center', (
-    tester,
-  ) async {
-    final longDescription = List<String>.filled(100, _CreateJobDescriptionViewTestData.validDescription).join('\n');
-    await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), longDescription);
-    await tester.pumpAndSettle();
-    final promptScrollView = tester.widget<SingleChildScrollView>(
-      find.byKey(const ValueKey('create_job_prompt_scroll_view')),
-    );
-    promptScrollView.controller!.jumpTo(600);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
-    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
-    addTearDown(tester.view.resetViewInsets);
-    await tester.pumpAndSettle();
-    final renderEditableFinder = find.descendant(
-      of: find.byType(EditableText),
-      matching: find.byElementPredicate((element) => element.renderObject is RenderEditable),
-    );
-    final renderEditable = tester.renderObject<RenderEditable>(renderEditableFinder);
-    final caretRect = renderEditable.getLocalRectForCaret(renderEditable.selection!.extent);
-    final caretCenter = renderEditable.localToGlobal(caretRect.center).dy;
-    final visiblePromptCenter =
-        (tester.getBottomLeft(find.byKey(const ValueKey('create_job_top_edge_fade'))).dy +
-            tester.getTopLeft(find.byKey(const ValueKey('create_job_bottom_edge_fade'))).dy) /
-        2;
-
-    expect((caretCenter - visiblePromptCenter).abs(), lessThanOrEqualTo(renderEditable.preferredLineHeight));
-  });
 
   testWidgets('when payment advances to another page, it should not focus the hidden description', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
@@ -617,9 +645,9 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pump(const Duration(milliseconds: 100));
-    final textInput = tester.widget<MateoTextInput>(find.byType(MateoTextInput));
+    final textArea = tester.widget<MateoTextArea>(find.byType(MateoTextArea));
 
-    expect(textInput.editable, isFalse);
+    expect(textArea.editable, isFalse);
     response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
     await tester.pumpAndSettle();
   });
@@ -680,6 +708,7 @@ void main() {
     );
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
     final selector = tester.widget<Semantics>(find.byKey(const Key('mateo_select_source_semantics')));
@@ -711,6 +740,23 @@ void main() {
       expect(transitionExceptions, isEmpty);
     },
   );
+
+  testWidgets('when range payment opens on a short screen, it should keep both amounts within their available space', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      screenSize: const Size(390, 640),
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
+      jobRepository: jobRepository,
+    );
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('when opening the payment type selector, it should show every localized option in order', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
@@ -820,6 +866,52 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('when a short fixed amount fits, it should keep its design height', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '22',
+        paymentType: JobPaymentType.fixed,
+      ),
+      jobRepository: jobRepository,
+    );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final amount = find.byKey(const ValueKey('create_job_payment_amount'));
+    final visualHeight = tester.getBottomLeft(amount).dy - tester.getTopLeft(amount).dy;
+    final paymentContentWidth = tester.getSize(find.byKey(const ValueKey('create_job_fixed_payment_content'))).width;
+
+    expect((visualHeight, tester.getSize(amount).width), (46, paymentContentWidth));
+  });
+
+  testWidgets('when vertical space becomes shorter than the fixed amount, it should scale before overflowing', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      screenSize: const Size(390, 570),
+      initialCreateJobData: const CreateJobData(
+        currencyCode: 'BRL',
+        paymentMinimumAmount: '22',
+        paymentType: JobPaymentType.fixed,
+      ),
+      jobRepository: jobRepository,
+    );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final amount = find.byKey(const ValueKey('create_job_payment_amount'));
+    final visualHeight = tester.getBottomLeft(amount).dy - tester.getTopLeft(amount).dy;
+
+    expect(visualHeight, lessThan(46));
+  });
+
   testWidgets('when range payment opens, it should center the amount fields within the payment content', (
     tester,
   ) async {
@@ -833,6 +925,7 @@ void main() {
       ),
       jobRepository: jobRepository,
     );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -1192,20 +1285,20 @@ void main() {
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.other))));
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
-    final textInput = tester.widget<MateoTextInput>(find.byType(MateoTextInput));
+    final textArea = tester.widget<MateoTextArea>(find.byType(MateoTextArea));
 
     expect(
       (
         container.read(createJobStateProvider).paymentType,
         find.byKey(const ValueKey('create_job_fixed_payment_content')).evaluate().length,
         find.byKey(const ValueKey('create_job_other_payment_content')).evaluate().length,
-        textInput.placeholder,
-        textInput.variant,
-        textInput.multiline,
-        textInput.autofocus,
-        textInput.unfocusOnTapOutside,
-        textInput.maxLength,
-        textInput.controller?.hasFocus,
+        textArea.placeholder,
+        textArea.keyboardType,
+        textArea.textInputAction,
+        textArea.autofocus,
+        textArea.unfocusOnTapOutside,
+        textArea.maxLength,
+        textArea.controller?.hasFocus,
         tester.testTextInput.isVisible,
       ),
       (
@@ -1213,8 +1306,8 @@ void main() {
         0,
         1,
         i18n.createJob.payment.otherSection.placeholder,
-        MateoTextInputVariant.quiet,
-        true,
+        TextInputType.multiline,
+        TextInputAction.newline,
         false,
         false,
         500,
@@ -1230,6 +1323,7 @@ void main() {
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
       jobRepository: jobRepository,
     );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
@@ -1240,12 +1334,106 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.other))));
     await tester.pumpAndSettle();
-    final textInput = tester.widget<MateoTextInput>(find.byType(MateoTextInput));
+    final textArea = tester.widget<MateoTextArea>(find.byType(MateoTextArea));
     final textInputMethods = tester.testTextInput.log.map((methodCall) => methodCall.method);
 
     expect(
-      (textInput.controller?.hasFocus, tester.testTextInput.isVisible, textInputMethods.contains('TextInput.show')),
+      (textArea.controller?.hasFocus, tester.testTextInput.isVisible, textInputMethods.contains('TextInput.show')),
       (true, true, true),
+    );
+  });
+
+  testWidgets('when another payment is shown, it should protect half of the continue action height', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+      jobRepository: jobRepository,
+    );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_other_payment_content')));
+
+    expect(textArea.protectedBottomInset, 30);
+  });
+
+  testWidgets('when the keyboard raises another payment, it should add its inset to the protected region', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      keyboardInset: 300,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+      jobRepository: jobRepository,
+    );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_other_payment_content')));
+
+    expect(textArea.protectedBottomInset, 296);
+  });
+
+  testWidgets('when another payment contains a long note, it should center the final caret between both fades', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+      jobRepository: jobRepository,
+    );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), List<String>.filled(24, 'Pagamento combinado').join('\n'));
+    await tester.pumpAndSettle();
+    final renderEditable = tester.renderObject<RenderEditable>(
+      find.descendant(
+        of: find.byKey(const ValueKey('create_job_other_payment_content')),
+        matching: find.byElementPredicate((element) => element.renderObject is RenderEditable),
+      ),
+    );
+    final caretRect = renderEditable.getLocalRectForCaret(renderEditable.selection!.extent);
+    final caretBottom = renderEditable.localToGlobal(caretRect.bottomLeft).dy;
+    final caretTop = renderEditable.localToGlobal(caretRect.topLeft).dy;
+    final textAreaFades = find.descendant(
+      of: find.byKey(const ValueKey('create_job_other_payment_content')),
+      matching: find.byType(MateoEdgeFade),
+    );
+    final topFadeBottom = tester.getBottomLeft(textAreaFades.first).dy;
+    final bottomFadeTop = tester.getTopLeft(textAreaFades.last).dy;
+
+    expect((caretTop + caretBottom) / 2, closeTo((topFadeBottom + bottomFadeTop) / 2, 1));
+  });
+
+  testWidgets('when another payment is shown, it should include mandatory fades and a flowing counter', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(
+      tester,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
+      jobRepository: jobRepository,
+    );
+    await CreateJobViewTestHelpers.precachePaymentImages(tester);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+    final textArea = find.byKey(const ValueKey('create_job_other_payment_content'));
+
+    expect(
+      (
+        find.descendant(of: textArea, matching: find.byType(MateoEdgeFade)).evaluate().length,
+        find
+            .descendant(of: textArea, matching: find.byKey(const ValueKey('mateo_text_area_counter')))
+            .evaluate()
+            .length,
+      ),
+      (2, 1),
     );
   });
 
@@ -1431,10 +1619,10 @@ void main() {
         .descendant(of: overlay, matching: find.byWidgetPredicate((widget) => widget.runtimeType == type))
         .evaluate()
         .length;
-    final departingCounts = (movingCount(MateoTextInput), movingCount(MateoNumericKeypad));
+    final departingCounts = (movingCount(MateoTextArea), movingCount(MateoNumericKeypad));
 
     await tester.pump(const Duration(milliseconds: 90));
-    final arrivingCounts = (movingCount(MateoTextInput), movingCount(MateoNumericKeypad));
+    final arrivingCounts = (movingCount(MateoTextArea), movingCount(MateoNumericKeypad));
 
     expect((departingCounts, arrivingCounts), ((0, 0), (0, 0)));
   });
@@ -1787,17 +1975,29 @@ void main() {
     expect(tester.getCenter(find.byKey(const Key('create_job_close_button'))).dx, 45);
   });
 
-  testWidgets('when the description surface opens, it should soften the top content boundary', (tester) async {
+  testWidgets('when the description surface opens, it should end the resting top fade before the first line', (
+    tester,
+  ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
-    final topEdgeFade = tester.widget<MateoEdgeFade>(find.byKey(const ValueKey('create_job_top_edge_fade')));
+    final topEdgeFadeFinder = find.descendant(
+      of: find.byKey(const ValueKey('mateo_text_area_top_edge_fade_opacity')),
+      matching: find.byType(MateoEdgeFade),
+    );
+    final topEdgeFade = tester.widget<MateoEdgeFade>(topEdgeFadeFinder);
 
-    expect(topEdgeFade.style.mainAxisExtent, CreateJobDescriptionView.topEdgeFadeHeight);
+    expect(
+      (
+        topEdgeFade.style.mainAxisExtent! < 180,
+        tester.getBottomLeft(topEdgeFadeFinder).dy < tester.getTopLeft(find.byType(TextField)).dy,
+      ),
+      (true, true),
+    );
   });
 
   testWidgets('when the description surface opens, it should start the top fade at the surface edge', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
     final surfaceTop = tester.getTopLeft(find.byKey(const ValueKey('create_job_description_surface'))).dy;
-    final topEdgeFadeTop = tester.getTopLeft(find.byKey(const ValueKey('create_job_top_edge_fade'))).dy;
+    final topEdgeFadeTop = tester.getTopLeft(find.byKey(const ValueKey('mateo_text_area_top_edge_fade_opacity'))).dy;
 
     expect(topEdgeFadeTop, surfaceTop);
   });
@@ -1814,10 +2014,10 @@ void main() {
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
     final surface = find.byKey(const ValueKey('create_job_description_surface'));
-    final promptScrollView = find.byKey(const ValueKey('create_job_prompt_scroll_view'));
+    final promptTextArea = find.byKey(const ValueKey('create_job_prompt_text_area'));
 
     expect(
-      (tester.getTopLeft(promptScrollView).dy, tester.getBottomLeft(promptScrollView).dy),
+      (tester.getTopLeft(promptTextArea).dy, tester.getBottomLeft(promptTextArea).dy),
       (tester.getTopLeft(surface).dy, tester.getBottomLeft(surface).dy),
     );
   });
@@ -1828,7 +2028,7 @@ void main() {
     await CreateJobViewTestHelpers.pumpDescription(tester);
     await tester.enterText(find.byType(TextField), List<String>.filled(30, 'Preciso de ajuda hoje').join('\n'));
     await tester.pumpAndSettle();
-    await tester.drag(find.byKey(const ValueKey('create_job_prompt_scroll_view')), const Offset(0, -100));
+    await tester.drag(find.byKey(const ValueKey('create_job_prompt_text_area')), const Offset(0, -100));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('create_job_title_scroll_opacity')), findsNothing);
@@ -1839,7 +2039,7 @@ void main() {
     await tester.enterText(find.byType(TextField), List<String>.filled(30, 'Preciso de ajuda hoje').join('\n'));
     await tester.pumpAndSettle();
     final scrollController =
-        tester.widget<SingleChildScrollView>(find.byKey(const ValueKey('create_job_prompt_scroll_view'))).controller!
+        tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area'))).scrollController!
           ..jumpTo(100);
     await tester.pumpAndSettle();
 
@@ -1851,24 +2051,80 @@ void main() {
 
   testWidgets('when the description surface opens, it should place the editor lower below the header', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
-    final promptContent = tester.widget<Padding>(find.byKey(const ValueKey('create_job_description_view_content')));
+    final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')));
 
-    expect(promptContent.padding.resolve(TextDirection.ltr).top, 91);
+    expect(textArea.contentPadding.resolve(TextDirection.ltr).top, 91);
   });
 
   testWidgets('when the description surface opens, it should pad the content above the bottom fade', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
-    final bottomEdgeFadeFinder = find.byKey(const ValueKey('create_job_bottom_edge_fade'));
+    final bottomEdgeFadeOpacity = find.byKey(const ValueKey('mateo_text_area_bottom_edge_fade_opacity'));
+    final bottomEdgeFadeFinder = find.descendant(of: bottomEdgeFadeOpacity, matching: find.byType(MateoEdgeFade));
     final bottomEdgeFade = tester.widget<MateoEdgeFade>(bottomEdgeFadeFinder);
     final bottomEdgeFadeHeight = bottomEdgeFade.style
         .resolve(tester.element(bottomEdgeFadeFinder), position: MateoEdgeFadePosition.bottom)
         .mainAxisExtent!;
-    final promptContent = tester.widget<Padding>(find.byKey(const ValueKey('create_job_description_view_content')));
+    final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')));
+
+    expect((textArea.contentPadding.resolve(TextDirection.ltr).bottom, bottomEdgeFadeHeight), (20.0, 120.0));
+  });
+
+  testWidgets('when the keyboard raises the continue action, it should leave end-of-description space above it', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, keyboardInset: 300);
+    await tester.enterText(find.byType(TextField), List<String>.filled(20, 'Preciso de ajuda hoje').join('\n'));
+    await tester.pumpAndSettle();
+    final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')));
+    final surfaceBottom = tester.getBottomLeft(find.byKey(const ValueKey('create_job_description_surface'))).dy;
+    final continueButtonTop = tester.getTopLeft(find.byKey(const ValueKey('create_job_continue_button'))).dy;
 
     expect(
-      promptContent.padding.resolve(TextDirection.ltr).bottom,
-      greaterThanOrEqualTo(bottomEdgeFadeHeight + CreateJobDescriptionView.surfaceContentPadding),
+      textArea.contentPadding.resolve(TextDirection.ltr).bottom + textArea.protectedBottomInset + 120,
+      greaterThanOrEqualTo(surfaceBottom - continueButtonTop + 20),
     );
+  });
+
+  testWidgets('when the keyboard raises the continue action, it should reveal the typing caret above it', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, keyboardInset: 300);
+    await tester.enterText(find.byType(TextField), 'Preciso de ajuda');
+    await tester.pumpAndSettle();
+    final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')));
+    final surfaceBottom = tester.getBottomLeft(find.byKey(const ValueKey('create_job_description_surface'))).dy;
+    final continueButtonTop = tester.getTopLeft(find.byKey(const ValueKey('create_job_continue_button'))).dy;
+
+    expect(textArea.protectedBottomInset + 120, greaterThanOrEqualTo(surfaceBottom - continueButtonTop));
+  });
+
+  testWidgets('when typing reaches the continue action, it should scroll the caret above the action', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, keyboardInset: 300);
+    await tester.enterText(find.byType(TextField), List<String>.filled(20, 'Preciso de ajuda hoje').join('\n'));
+    await tester.pumpAndSettle();
+    final renderEditableFinder = find.descendant(
+      of: find.byType(EditableText),
+      matching: find.byElementPredicate((element) => element.renderObject is RenderEditable),
+    );
+    final renderEditable = tester.renderObject<RenderEditable>(renderEditableFinder);
+    final caretRect = renderEditable.getLocalRectForCaret(renderEditable.selection!.extent);
+    final caretBottom = renderEditable.localToGlobal(caretRect.bottomLeft).dy;
+    final continueButtonTop = tester.getTopLeft(find.byKey(const ValueKey('create_job_continue_button'))).dy;
+
+    expect(caretBottom, lessThanOrEqualTo(continueButtonTop - 20));
+  });
+
+  testWidgets('when a new line reaches the continue action, it should move the prompt smoothly', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, keyboardInset: 300, disableAnimations: false);
+    await tester.enterText(find.byType(TextField), List<String>.filled(20, 'Preciso de ajuda hoje').join('\n'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.pump(const Duration(milliseconds: 60));
+    final scrollController = tester
+        .widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')))
+        .scrollController!;
+
+    expect(scrollController.offset, inExclusiveRange(0, scrollController.position.maxScrollExtent));
   });
 
   testWidgets('when typing the final prompt line, it should keep the caret above the bottom fade', (tester) async {
@@ -1882,7 +2138,9 @@ void main() {
     final renderEditable = tester.renderObject<RenderEditable>(renderEditableFinder);
     final caretRect = renderEditable.getLocalRectForCaret(renderEditable.selection!.extent);
     final caretBottom = renderEditable.localToGlobal(caretRect.bottomLeft).dy;
-    final bottomEdgeFadeTop = tester.getTopLeft(find.byKey(const ValueKey('create_job_bottom_edge_fade'))).dy;
+    final bottomEdgeFadeTop = tester
+        .getTopLeft(find.byKey(const ValueKey('mateo_text_area_bottom_edge_fade_opacity')))
+        .dy;
 
     expect(caretBottom, lessThanOrEqualTo(bottomEdgeFadeTop));
   });

@@ -58,7 +58,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), List<String>.filled(30, 'Preciso de ajuda hoje').join('\n'));
         await tester.pumpAndSettle();
-        await tester.drag(find.byKey(const ValueKey('create_job_prompt_scroll_view')), const Offset(0, -100));
+        await tester.drag(find.byKey(const ValueKey('create_job_prompt_text_area')), const Offset(0, -100));
         await tester.pumpAndSettle();
 
         return null;

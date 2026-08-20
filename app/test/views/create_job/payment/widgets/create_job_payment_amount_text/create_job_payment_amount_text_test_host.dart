@@ -63,13 +63,13 @@ class CreateJobPaymentAmountTextTestHost extends StatefulWidget {
 }
 
 class _CreateJobPaymentAmountTextTestHostState extends State<CreateJobPaymentAmountTextTestHost> {
-  late final MateoTextInputController _amountController;
+  late final MateoTextController _amountController;
   late final MotionController _shakeMotionController;
 
   @override
   void initState() {
     super.initState();
-    _amountController = MateoTextInputController(text: widget.initialAmount);
+    _amountController = MateoTextController(text: widget.initialAmount);
     _shakeMotionController = MotionController();
   }
 

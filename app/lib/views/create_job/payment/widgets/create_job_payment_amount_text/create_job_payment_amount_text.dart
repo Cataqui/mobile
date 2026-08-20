@@ -32,7 +32,7 @@ class CreateJobPaymentAmountText extends ConsumerStatefulWidget {
   });
 
   static const fontSize = 46.0;
-  static const contentPadding = EdgeInsets.symmetric(horizontal: 20);
+  static const contentPadding = EdgeInsets.symmetric(horizontal: 40);
   static const transitionDuration = Duration(milliseconds: 160);
 
   static const _shakeMotionEffect = ShakeMotionEffect(
@@ -41,7 +41,7 @@ class CreateJobPaymentAmountText extends ConsumerStatefulWidget {
     curve: Curves.easeOutBack,
   );
 
-  final MateoTextInputController amountController;
+  final MateoTextController amountController;
   final MotionController shakeMotionController;
   final Color textColor;
   final Alignment alignment;

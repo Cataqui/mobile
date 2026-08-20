@@ -8,7 +8,7 @@ class _FixedPaymentSection extends ConsumerStatefulWidget {
 }
 
 class _FixedPaymentSectionState extends ConsumerState<_FixedPaymentSection> {
-  late final MateoTextInputController _amountTextController;
+  late final MateoTextController _amountTextController;
   late final MotionController _shakeAmountMotionController;
 
   void _setAmountText() {
@@ -18,7 +18,7 @@ class _FixedPaymentSectionState extends ConsumerState<_FixedPaymentSection> {
   @override
   void initState() {
     super.initState();
-    _amountTextController = MateoTextInputController(text: ref.read(createJobStateProvider).paymentMinimumAmount)
+    _amountTextController = MateoTextController(text: ref.read(createJobStateProvider).paymentMinimumAmount)
       ..addListener(_setAmountText);
 
     _shakeAmountMotionController = MotionController();
@@ -49,8 +49,15 @@ class _FixedPaymentSectionState extends ConsumerState<_FixedPaymentSection> {
       key: const ValueKey('create_job_fixed_payment_content'),
       children: [
         Expanded(
-          child: Center(
-            child: Padding(padding: const EdgeInsets.only(left: 40, right: 40), child: amount),
+          child: LayoutBuilder(
+            builder: (_, constraints) {
+              return Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(width: constraints.maxWidth, child: amount),
+                ),
+              );
+            },
           ),
         ),
         MateoNumericKeypad(
