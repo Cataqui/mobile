@@ -42,28 +42,24 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
 
     final colorScheme = context.mateo.colorScheme;
 
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
-        child: MateoYSnapList<FeedJobDto>(
-          spacing: 10,
-          controller: widget.controller,
-          loadMoreThreshold: 0.7,
-          items: (
-            count: feedData.jobs.length,
-            provider: (i) => feedData.jobs[i],
-            keyBuilder: (job, index) => job.jobId,
-          ),
-          onNext: (feedJob, index) => _currentMapIndexNotifier.value = index + 1,
-          onPrevious: (feedJob, index) => _currentMapIndexNotifier.value = index - 1,
-          onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
-          loadMoreErrorBuilder: feedData.paginationError == null ? null : _buildLoadMoreError,
-          endBuilder: _buildEnd,
-          builder: (context, job, index) {
-            final location = job.location;
+    return MateoYSnapList<FeedJobDto>(
+      spacing: 10,
+      controller: widget.controller,
+      loadMoreThreshold: 0.7,
+      items: (count: feedData.jobs.length, provider: (i) => feedData.jobs[i], keyBuilder: (job, index) => job.jobId),
+      onNext: (feedJob, index) => _currentMapIndexNotifier.value = index + 1,
+      onPrevious: (feedJob, index) => _currentMapIndexNotifier.value = index - 1,
+      onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
+      loadMoreErrorBuilder: feedData.paginationError == null ? null : _buildLoadMoreError,
+      endBuilder: (context) => _buildEnd(context, topContentInset: MediaQuery.paddingOf(context).top + 65),
+      builder: (context, job, index) {
+        final location = job.location;
 
-            return ClipRRect(
+        return SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
+            child: ClipRRect(
               borderRadius: widget.cardBorderRadius,
               child: Stack(
                 fit: StackFit.expand,
@@ -99,14 +95,14 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                   ),
                 ],
               ),
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildScrollableState({required Widget child}) {
+  Widget _buildScrollableState({required Widget child, double topContentInset = 0}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -114,7 +110,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: MateoSearchBarButton.searchBarHeight),
+              padding: EdgeInsets.only(
+                top: MateoSearchBarButton.searchBarHeight + topContentInset,
+                bottom: MateoSearchBarButton.searchBarHeight,
+              ),
               child: Center(child: child),
             ),
           ),
@@ -126,16 +125,21 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildLoadMoreError(BuildContext context, VoidCallback retry) {
     final paginationError = ref.read(feedStateProvider).value?.paginationError;
     final i18n = ref.watch(translationProvider);
+    final topContentInset = MediaQuery.paddingOf(context).top + 65;
 
     if (paginationError.isOfflineConnectionDioException) {
-      return OfflineErrorState(
-        title: i18n.feed.loadingMore.offline.title,
-        description: i18n.feed.loadingMore.offline.description,
-        retry: (label: i18n.feed.loadingMore.offline.retryButtonTitle, onRetry: retry),
+      return _buildScrollableState(
+        topContentInset: topContentInset,
+        child: OfflineErrorState(
+          title: i18n.feed.loadingMore.offline.title,
+          description: i18n.feed.loadingMore.offline.description,
+          retry: (label: i18n.feed.loadingMore.offline.retryButtonTitle, onRetry: retry),
+        ),
       );
     }
 
     return _buildScrollableState(
+      topContentInset: topContentInset,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -179,10 +183,11 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     );
   }
 
-  Widget _buildEnd(BuildContext context) {
+  Widget _buildEnd(BuildContext context, {double topContentInset = 0}) {
     final i18n = ref.watch(translationProvider);
 
     return _buildScrollableState(
+      topContentInset: topContentInset,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,

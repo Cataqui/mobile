@@ -226,6 +226,7 @@ class _JobViewState extends ConsumerState<JobView> {
                       iconBuilder: (state) => MateoIcon.arrowLeft(color: state.foregroundColor),
                       backgroundColor: context.mateo.colorScheme.background,
                       foregroundColor: context.mateo.colorScheme.text.primary,
+                      size: 50,
                     ),
                   ),
                 ),

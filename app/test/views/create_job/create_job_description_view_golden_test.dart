@@ -93,6 +93,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), 'Preciso de ajuda');
         await tester.pumpAndSettle();
+        await CreateJobViewTestHelpers.precachePaymentImages(tester);
         await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
         await tester.pumpAndSettle();
         tester.view.viewInsets = FakeViewPadding.zero;

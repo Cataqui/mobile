@@ -1343,7 +1343,7 @@ void main() {
     );
   });
 
-  testWidgets('when another payment is shown, it should protect half of the continue action height', (tester) async {
+  testWidgets('when another payment is shown, it should protect the area above the continue action', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
@@ -1356,7 +1356,7 @@ void main() {
     await tester.pumpAndSettle();
     final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_other_payment_content')));
 
-    expect(textArea.protectedBottomInset, 30);
+    expect(textArea.protectedBottomInset, 20);
   });
 
   testWidgets('when the keyboard raises another payment, it should add its inset to the protected region', (
@@ -1375,7 +1375,7 @@ void main() {
     await tester.pumpAndSettle();
     final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_other_payment_content')));
 
-    expect(textArea.protectedBottomInset, 296);
+    expect(textArea.protectedBottomInset, 286);
   });
 
   testWidgets('when another payment contains a long note, it should center the final caret between both fades', (
@@ -1830,31 +1830,30 @@ void main() {
     expect(find.byKey(const ValueKey('create_job_continue_icon')), findsOneWidget);
   });
 
-  testWidgets(
-    'when draft creation succeeds while payment images decode, it should open payment without restarting loading',
-    (tester) async {
-      final assetBundle = PaymentIconsTestAssetBundle();
-      addTearDown(assetBundle.release);
-      await CreateJobViewTestHelpers.pumpDescription(tester, assetBundle: assetBundle, jobRepository: jobRepository);
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
+  testWidgets('when draft creation succeeds while payment images decode, it should wait before opening payment', (
+    tester,
+  ) async {
+    final assetBundle = PaymentIconsTestAssetBundle();
+    addTearDown(assetBundle.release);
+    await CreateJobViewTestHelpers.pumpDescription(tester, assetBundle: assetBundle, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
-      expect(
-        (
-          paymentViewCount: find.byType(CreateJobPaymentView).evaluate().length,
-          didRequestIcon: assetBundle.didRequestPaymentIcon,
-        ),
-        (paymentViewCount: 1, didRequestIcon: true),
-      );
+    expect(
+      (
+        paymentViewCount: find.byType(CreateJobPaymentView).evaluate().length,
+        didRequestIcon: assetBundle.didRequestPaymentIcon,
+      ),
+      (paymentViewCount: 0, didRequestIcon: true),
+    );
 
-      assetBundle.release();
-      await tester.pumpAndSettle();
-    },
-  );
+    assetBundle.release();
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('when draft creation fails, it should show the translated request error', (tester) async {
     when(
@@ -2066,7 +2065,7 @@ void main() {
         .mainAxisExtent!;
     final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')));
 
-    expect((textArea.contentPadding.resolve(TextDirection.ltr).bottom, bottomEdgeFadeHeight), (20.0, 120.0));
+    expect((textArea.contentPadding.resolve(TextDirection.ltr).bottom, bottomEdgeFadeHeight), (20.0, 20.0));
   });
 
   testWidgets('when the keyboard raises the continue action, it should leave end-of-description space above it', (

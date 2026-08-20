@@ -11,6 +11,7 @@ import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -357,7 +358,7 @@ void main() {
       testWidgets('when the empty state does not fit above the search area, it should become scrollable', (
         tester,
       ) async {
-        tester.view.physicalSize = const Size(390, 400);
+        tester.view.physicalSize = const Size(390, 300);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
@@ -373,7 +374,7 @@ void main() {
       });
 
       testWidgets('when scrolling a compact empty state to the end, it should clear the search area', (tester) async {
-        tester.view.physicalSize = const Size(390, 400);
+        tester.view.physicalSize = const Size(390, 300);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
@@ -525,7 +526,7 @@ void main() {
       });
 
       testWidgets(
-        'when loading more jobs fails after the last card, it should center the retry state in the feed view',
+        'when loading more jobs fails after the last card, it should center the retry state below the feed header',
         (tester) async {
           await FeedViewTestHelpers.pumpFeedView(
             tester: tester,
@@ -538,13 +539,122 @@ void main() {
             of: find.text(i18n.feed.loadingMore.error.title),
             matching: find.byType(Column),
           );
-          expect(
-            tester.getCenter(contentFinder).dy,
-            closeTo(tester.getCenter(find.byType(MateoYSnapList<FeedJobDto>)).dy, 0.01),
-          );
+          final feedFinder = find.byType(MateoYSnapList<FeedJobDto>);
+          final feedRect = tester.getRect(feedFinder);
+          final topContentInset = MediaQuery.paddingOf(tester.element(feedFinder)).top + 65;
+          expect(tester.getCenter(contentFinder).dy, closeTo(feedRect.center.dy + (topContentInset / 2), 0.01));
           await FeedViewTestHelpers.pumpAndCleanUp(tester);
         },
       );
+
+      testWidgets('when dragging down from a compact end state, it should return to the previous job', (tester) async {
+        tester.view.physicalSize = const Size(390, 400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationEnd),
+        );
+        final settledJobTop = tester.getTopLeft(find.byType(FeedJobCard)).dy;
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+
+        await tester.drag(find.byType(SingleChildScrollView), const Offset(0, 300));
+        await tester.pumpAndSettle();
+
+        expect(tester.getTopLeft(find.byType(FeedJobCard)).dy, closeTo(settledJobTop, 0.01));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when showing the terminal state, it should expand its scroll surface to the feed edges', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(390, 400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationEnd),
+        );
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+
+        final feedRect = tester.getRect(find.byType(MateoYSnapList<FeedJobDto>));
+        final terminalScrollRect = tester.getRect(find.byType(SingleChildScrollView));
+
+        expect(feedRect, const Rect.fromLTWH(0, 0, 390, 400));
+        expect(terminalScrollRect, feedRect);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when an iOS terminal state has no scroll extent, dragging toward nothing should not bounce', (
+        tester,
+      ) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationEnd),
+          scrollBehavior: const _AlwaysBouncingScrollBehavior(),
+        );
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+        final titleFinder = find.text(i18n.feed.empty.title);
+        final titleTop = tester.getTopLeft(titleFinder).dy;
+        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+        final gesture = await tester.startGesture(tester.getCenter(titleFinder));
+
+        expect(scrollableState.position.maxScrollExtent, scrollableState.position.minScrollExtent);
+        await gesture.moveBy(const Offset(0, -100));
+        await tester.pump();
+
+        expect(tester.getTopLeft(titleFinder).dy, titleTop);
+        await gesture.cancel();
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      testWidgets('when an iOS terminal state has no scroll extent, dragging down should return to the job', (
+        tester,
+      ) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationEnd),
+          scrollBehavior: const _AlwaysBouncingScrollBehavior(),
+        );
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+
+        expect(scrollableState.position.maxScrollExtent, scrollableState.position.minScrollExtent);
+        await tester.drag(find.text(i18n.feed.empty.title), const Offset(0, 300));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(FeedJobCard), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      testWidgets('when dragging down from a compact pagination error, it should return to the previous job', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(390, 400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationError),
+        );
+        final settledJobTop = tester.getTopLeft(find.byType(FeedJobCard)).dy;
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+
+        await tester.drag(find.byType(SingleChildScrollView), const Offset(0, 300));
+        await tester.pumpAndSettle();
+
+        expect(tester.getTopLeft(find.byType(FeedJobCard)).dy, closeTo(settledJobTop, 0.01));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
     });
 
     group('feed state keys', () {
@@ -774,4 +884,13 @@ void main() {
       );
     });
   });
+}
+
+class _AlwaysBouncingScrollBehavior extends ScrollBehavior {
+  const _AlwaysBouncingScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+  }
 }

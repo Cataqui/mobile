@@ -157,6 +157,7 @@ class FeedViewTestHelpers {
     GoRouter? goRouter,
     MockSharedPreferencesAsync? prefs,
     bool? hasSeenSwipeFeedHint,
+    ScrollBehavior? scrollBehavior,
   }) async {
     mockHapticFeedback(tester);
     mockPlatformViews(tester);
@@ -169,7 +170,9 @@ class FeedViewTestHelpers {
           prefs: prefs,
           hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
         ),
-        child: const FeedView(),
+        child: scrollBehavior == null
+            ? const FeedView()
+            : ScrollConfiguration(behavior: scrollBehavior, child: const FeedView()),
       ),
     );
     await tester.pump(); // Microtask resolves, data arrives, exit starts
