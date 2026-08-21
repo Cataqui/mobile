@@ -1,13 +1,19 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 part 'flexible_payment_values_wheel_amount_values.dart';
+part 'flexible_payment_values_wheel_painter_cache.dart';
+part 'flexible_payment_values_wheel_render_box.dart';
+part 'flexible_payment_values_wheel_renderer.dart';
 
 class FlexiblePaymentValuesWheel extends ConsumerStatefulWidget {
   const FlexiblePaymentValuesWheel({super.key});
@@ -17,6 +23,8 @@ class FlexiblePaymentValuesWheel extends ConsumerStatefulWidget {
   static const _fontSize = 46.0;
   static const _adjacentAmountScale = 0.6;
   static const _stepMotionStrength = 0.35;
+  static const _horizontalContentPadding = 40.0;
+  static const _slotExtent = _height / 4;
 
   @override
   ConsumerState<FlexiblePaymentValuesWheel> createState() => _FlexiblePaymentValuesWheelState();
@@ -88,22 +96,6 @@ class _FlexiblePaymentValuesWheelState extends ConsumerState<FlexiblePaymentValu
     _wheelController.repeat();
   }
 
-  double _resolveStepMotion(double stepProgress) {
-    return stepProgress -
-        FlexiblePaymentValuesWheel._stepMotionStrength * math.sin(stepProgress * math.pi * 2) / (math.pi * 2);
-  }
-
-  double _resolveCenteredAmountProgress(double distanceFromCenter) {
-    final normalizedDistance = math.min(distanceFromCenter, 1);
-
-    return (1 + math.cos(normalizedDistance * math.pi)) / 2;
-  }
-
-  double _resolveAmountScale(double centeredAmountProgress) {
-    return FlexiblePaymentValuesWheel._adjacentAmountScale +
-        centeredAmountProgress * (1 - FlexiblePaymentValuesWheel._adjacentAmountScale);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -144,128 +136,50 @@ class _FlexiblePaymentValuesWheelState extends ConsumerState<FlexiblePaymentValu
     final currency = ref.watch(
       createJobStateProvider.select((data) => (code: data.currencyCode, symbol: data.currencySymbol(i18n))),
     );
-    const slotExtent = FlexiblePaymentValuesWheel._height / 4;
+    final amountColors = _amountColors;
+    final defaultTextStyle = DefaultTextStyle.of(context);
+    var amountTextStyle = defaultTextStyle.style.merge(
+      TextStyle(
+        color: amountColors.centered,
+        fontSize: FlexiblePaymentValuesWheel._fontSize,
+        fontWeight: FontWeight.w600,
+        fontFeatures: const [ui.FontFeature.tabularFigures()],
+        height: 1,
+      ),
+    );
+    if (MediaQuery.boldTextOf(context)) {
+      amountTextStyle = amountTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
+    }
+    amountTextStyle = amountTextStyle.merge(
+      TextStyle(
+        height: MediaQuery.maybeLineHeightScaleFactorOverrideOf(context),
+        letterSpacing: MediaQuery.maybeLetterSpacingOverrideOf(context),
+        wordSpacing: MediaQuery.maybeWordSpacingOverrideOf(context),
+      ),
+    );
 
     return SizedBox(
       key: const ValueKey('flexible_payment_values_wheel'),
       height: FlexiblePaymentValuesWheel._height,
       width: double.infinity,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final physicalPixel = 1 / View.of(context).devicePixelRatio;
-          const adjacentAmountHalfHeight =
-              FlexiblePaymentValuesWheel._fontSize * FlexiblePaymentValuesWheel._adjacentAmountScale / 2;
-          final transparentEdgeExtent = adjacentAmountHalfHeight + physicalPixel;
-          final opaqueCenterStart = slotExtent - adjacentAmountHalfHeight - physicalPixel;
-          final edgeMaskColor = context.mateo.colorScheme.background;
-          final edgeMaskGradient = LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              edgeMaskColor.withValues(alpha: 0),
-              edgeMaskColor.withValues(alpha: 0),
-              edgeMaskColor,
-              edgeMaskColor,
-              edgeMaskColor.withValues(alpha: 0),
-              edgeMaskColor.withValues(alpha: 0),
-            ],
-            stops: [
-              0,
-              transparentEdgeExtent / FlexiblePaymentValuesWheel._height,
-              opaqueCenterStart / FlexiblePaymentValuesWheel._height,
-              1 - opaqueCenterStart / FlexiblePaymentValuesWheel._height,
-              1 - transparentEdgeExtent / FlexiblePaymentValuesWheel._height,
-              1,
-            ],
-          );
-          final amountWidgets = <Widget>[
-            for (final amountValue in amountValues)
-              SizedBox(
-                width: math.max(0, constraints.maxWidth - 40).toDouble(),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    i18n.createJob.payment.flexibleCarousel.amount(currencySymbol: currency.symbol, value: amountValue),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: FlexiblePaymentValuesWheel._fontSize,
-                      fontWeight: FontWeight.w600,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                      height: 1,
-                    ),
-                  ),
-                ),
-              ),
-          ];
-
-          return Semantics(
-            container: true,
-            label: i18n.createJob.payment.flexibleCarousel.semanticLabel,
-            child: ExcludeSemantics(
-              child: RepaintBoundary(
-                child: ClipRect(
-                  child: AnimatedBuilder(
-                    animation: _wheelController,
-                    builder: (context, child) {
-                      final amountSequenceProgress = _wheelController.value * amountValues.length;
-                      final centeredAmountIndex = amountSequenceProgress.floor() % amountValues.length;
-                      final stepProgress = amountSequenceProgress - amountSequenceProgress.floor();
-                      final stepMotion = _resolveStepMotion(stepProgress);
-                      final amountColors = _amountColors;
-
-                      return ShaderMask(
-                        key: const ValueKey('flexible_payment_values_wheel_edge_mask'),
-                        blendMode: BlendMode.dstIn,
-                        shaderCallback: edgeMaskGradient.createShader,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            for (var relativeIndex = -1; relativeIndex <= (stepMotion == 0 ? 1 : 2); relativeIndex += 1)
-                              Align(
-                                alignment: Alignment.center,
-                                child: Transform.translate(
-                                  offset: Offset(0, (relativeIndex - stepMotion) * slotExtent),
-                                  child: Builder(
-                                    builder: (context) {
-                                      final centeredAmountProgress = _resolveCenteredAmountProgress(
-                                        (relativeIndex - stepMotion).abs(),
-                                      );
-
-                                      return Transform.scale(
-                                        scale: _resolveAmountScale(centeredAmountProgress),
-                                        child: DefaultTextStyle.merge(
-                                          style: TextStyle(
-                                            color: Color.lerp(
-                                              amountColors.adjacent,
-                                              amountColors.centered,
-                                              centeredAmountProgress,
-                                            ),
-                                          ),
-                                          child: KeyedSubtree(
-                                            key: ValueKey<Object>((
-                                              'flexible_payment_values_wheel_amount',
-                                              relativeIndex,
-                                            )),
-                                            child:
-                                                amountWidgets[(centeredAmountIndex + relativeIndex) %
-                                                    amountValues.length],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+      child: _FlexiblePaymentValuesWheelRenderer(
+        key: const ValueKey('flexible_payment_values_wheel_renderer'),
+        animation: _wheelController,
+        amounts: [
+          for (final amountValue in amountValues)
+            i18n.createJob.payment.flexibleCarousel.amount(currencySymbol: currency.symbol, value: amountValue),
+        ],
+        semanticLabel: i18n.createJob.payment.flexibleCarousel.semanticLabel,
+        adjacentColor: amountColors.adjacent,
+        centeredColor: amountColors.centered,
+        backgroundColor: context.mateo.colorScheme.background,
+        devicePixelRatio: View.of(context).devicePixelRatio,
+        locale: Localizations.localeOf(context),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+        textStyle: amountTextStyle,
+        textHeightBehavior: defaultTextStyle.textHeightBehavior ?? DefaultTextHeightBehavior.maybeOf(context),
+        textWidthBasis: defaultTextStyle.textWidthBasis,
       ),
     );
   }

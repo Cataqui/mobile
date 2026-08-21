@@ -78,7 +78,7 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
                   padding: const EdgeInsets.only(right: 15),
                   child: MateoSwipeUpHint(
                     height: 120,
-                    accentColor: context.mateo.palette.primary[1],
+                    accentColor: context.mateo.palette.accent[1],
                     phoneColor: context.mateo.palette.neutral[11],
                   ),
                 ),

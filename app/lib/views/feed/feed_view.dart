@@ -111,80 +111,51 @@ class _FeedViewState extends ConsumerState<FeedView> {
     final i18n = ref.watch(translationProvider);
     final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      floatingActionButton: _buildJobCreationButton(i18n),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: RepaintBoundary(
-              child: _FeedViewBody(
-                controller: _feedController,
-                cardBorderRadius: _cardBorderRadius,
-                feedInCurve: _feedInCurve,
-                onAdjustAreaPressed: _showLocationAvailabilitySheet,
+    return MateoView(
+      backgroundColor: colorScheme.background,
+      extendBodyBehindFooter: true,
+      header: RepaintBoundary(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(start: 20, end: 20, bottom: 10),
+          child: Align(
+            alignment: AlignmentGeometry.topStart,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: MateoTextButton(
+                text: i18n.feed.locationAvailability.cityLabel,
+                leadingIconBuilder: (state) {
+                  return MateoIcon.mapPin(height: 14, width: 14, color: context.mateo.palette.accent[9]);
+                },
+                leadingIconSpacing: 10,
+                trailingIconSpacing: 10,
+                trailingIconBuilder: (state) {
+                  return MateoIcon.chevronDown(height: 14, width: 14, color: state.recommendedIconColor);
+                },
+                onPressed: _showLocationAvailabilitySheet,
               ),
             ),
           ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: MateoEdgeFade(
-              position: MateoEdgeFadePosition.top,
-              style: MateoEdgeFadeStyle(color: colorScheme.background),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: MateoEdgeFade(
-              position: MateoEdgeFadePosition.bottom,
-              style: MateoEdgeFadeStyle(color: colorScheme.background),
-            ),
-          ),
-          Positioned.fill(
-            child: RepaintBoundary(
-              child: SafeArea(
-                child: Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 40),
-                      child: Align(
-                        alignment: AlignmentGeometry.topStart,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 48),
-                          child: MateoTextButton(
-                            text: i18n.feed.locationAvailability.cityLabel,
-                            leadingIconBuilder: (state) {
-                              return MateoIcon.mapPin(height: 14, width: 14, color: context.mateo.palette.primary[9]);
-                            },
-                            leadingIconSpacing: 10,
-                            trailingIconSpacing: 10,
-                            trailingIconBuilder: (state) {
-                              return MateoIcon.chevronDown(height: 14, width: 14, color: state.recommendedIconColor);
-                            },
-                            onPressed: _showLocationAvailabilitySheet,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+        ),
+      ),
+      footer: Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Align(alignment: AlignmentGeometry.bottomRight, child: _buildJobCreationButton(i18n)),
+      ),
+      overlay: hasJobs
+          ? IgnorePointer(
+              child: _FeedSwipeUpHintOverlay(
+                feedController: _feedController,
+                isHintActiveNotifier: _isHintActiveNotifier,
               ),
-            ),
-          ),
-          if (hasJobs)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: _FeedSwipeUpHintOverlay(
-                  feedController: _feedController,
-                  isHintActiveNotifier: _isHintActiveNotifier,
-                ),
-              ),
-            ),
-        ],
+            )
+          : null,
+      body: RepaintBoundary(
+        child: _FeedViewBody(
+          controller: _feedController,
+          cardBorderRadius: _cardBorderRadius,
+          feedInCurve: _feedInCurve,
+          onAdjustAreaPressed: _showLocationAvailabilitySheet,
+        ),
       ),
     );
   }

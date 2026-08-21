@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart' show AsyncCallback;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
@@ -180,7 +181,7 @@ class JobViewGoldenTestHelpers {
   static Future<void> scrollToBottom(WidgetTester tester) async {
     await withClock(fixedClock(), () async {
       await tester.pump();
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -10000));
+      await tester.drag(find.byType(MateoScrollableView), const Offset(0, -10000));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
     });
@@ -259,7 +260,7 @@ class JobViewGoldenTestHelpers {
       await tester.pump(const Duration(milliseconds: 560));
       await tester.pumpAndSettle();
 
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
       await gesture.moveBy(const Offset(0, 140));
       await tester.pump();
 
@@ -276,7 +277,7 @@ class JobViewGoldenTestHelpers {
       await tester.pump(Duration(microseconds: JobRoute.pushDuration.inMicroseconds ~/ 2));
 
       return () async {
-        await tester.pumpAndSettle();
+        await tester.pump(Duration(microseconds: JobRoute.pushDuration.inMicroseconds ~/ 2));
       };
     });
   }

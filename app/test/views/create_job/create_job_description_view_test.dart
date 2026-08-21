@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_draft_dto.dart';
@@ -8,6 +9,7 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_view.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_view.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
 import 'create_job_view_test_helpers.dart';
@@ -51,7 +54,7 @@ void main() {
     expect(find.byKey(const ValueKey('create_job_description_view')), findsOneWidget);
   });
 
-  testWidgets('when the job creation route opens, it should use a normal scaffold', (tester) async {
+  testWidgets('when the job creation route opens, it should use MateoView', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
 
     expect(find.byKey(const ValueKey('create_job_scaffold')), findsOneWidget);
@@ -73,7 +76,21 @@ void main() {
     await tester.pumpAndSettle();
     final continueBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_continue_button'))).dy;
 
-    expect(continueBottom, 524);
+    expect(continueBottom, 532);
+  });
+
+  testWidgets('when description is valid, it should place the continue action in the view footer without Morph', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    final view = tester.widget<MateoView>(find.byKey(const ValueKey('create_job_scaffold')));
+    final continueButton = find.byKey(const ValueKey('create_job_continue_button'));
+
+    expect(view.footer, isNotNull);
+    expect(find.descendant(of: find.byWidget(view.footer!), matching: continueButton), findsOneWidget);
+    expect(find.ancestor(of: continueButton, matching: find.byType(MorphDescendant)), findsNothing);
   });
 
   testWidgets('when the keyboard opens and closes, it should keep the continue action within the safe area', (
@@ -109,12 +126,12 @@ void main() {
 
     expect(
       (whileKeyboardOpens, afterKeyboardOpens, afterKeyboardCloses, whileKeyboardReopens),
-      (674, 524, beforeKeyboardOpens, 674),
+      (648, 498, beforeKeyboardOpens, 648),
     );
   });
 
   testWidgets(
-    'when continuing while the keyboard is visible, it should mount payment at its keyboard-independent size',
+    'when continuing while the keyboard is visible, it should mount location at its keyboard-independent size',
     (tester) async {
       await CreateJobViewTestHelpers.pumpDescription(
         tester,
@@ -122,31 +139,30 @@ void main() {
         disableAnimations: false,
         jobRepository: jobRepository,
       );
-      await CreateJobViewTestHelpers.precachePaymentImages(tester);
       await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
       await tester.pump();
       await tester.pump();
-      final paymentView = find.byKey(const ValueKey('create_job_payment_view'));
-      final paymentSurface = find.descendant(
-        of: paymentView,
-        matching: find.byKey(const ValueKey('create_job_payment_surface')),
+      final locationView = find.byKey(const ValueKey('create_job_location_view'));
+      final locationSurface = find.descendant(
+        of: locationView,
+        matching: find.byKey(const ValueKey('create_job_location_surface')),
       );
-      final paymentState = (
-        paymentView.evaluate().length,
-        tester.getSize(paymentSurface),
-        MediaQuery.viewInsetsOf(tester.element(paymentSurface)).bottom,
+      final locationState = (
+        locationView.evaluate().length,
+        tester.getSize(locationSurface),
+        MediaQuery.viewInsetsOf(tester.element(locationSurface)).bottom,
       );
       await tester.pumpAndSettle();
 
-      expect(paymentState, (1, const Size(390, 844), 0.0));
+      expect(locationState, (1, const Size(390, 844), 300.0));
     },
   );
 
   testWidgets(
-    'when another payment opens while the keyboard is visible, it should keep the continue action above the keyboard',
+    'when location opens while the keyboard is visible, it should keep its current-location content above the keyboard',
     (tester) async {
       await CreateJobViewTestHelpers.pumpDescription(
         tester,
@@ -154,14 +170,13 @@ void main() {
         initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
         jobRepository: jobRepository,
       );
-      await CreateJobViewTestHelpers.precachePaymentImages(tester);
       await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
       await tester.pumpAndSettle();
-      final continueBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_payment_continue_button')));
+      final currentLocationBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_current_location')));
 
-      expect(continueBottom.dy, 532);
+      expect(currentLocationBottom.dy < 544, isTrue);
     },
   );
 
@@ -315,7 +330,7 @@ void main() {
     },
   );
 
-  testWidgets('when a 10-character description is continued, it should open the payment view', (tester) async {
+  testWidgets('when a 10-character description is continued, it should open the location view', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), List<String>.filled(10, 'a').join());
     await tester.pumpAndSettle();
@@ -323,10 +338,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('create_job_payment_view')), findsOneWidget);
+    expect(find.byKey(const ValueKey('create_job_location_view')), findsOneWidget);
   });
 
-  testWidgets('when draft creation succeeds, it should dismiss the keyboard before showing payment', (tester) async {
+  testWidgets('when draft creation succeeds, it should dismiss the keyboard before showing location', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
@@ -335,14 +350,14 @@ void main() {
     await tester.pump();
     final immediatelyAfterSuccess = (
       tester.testTextInput.isVisible,
-      find.byKey(const ValueKey('create_job_payment_view')).evaluate().length,
+      find.byKey(const ValueKey('create_job_location_view')).evaluate().length,
     );
     await tester.pumpAndSettle();
 
     expect(immediatelyAfterSuccess, (false, 1));
   });
 
-  testWidgets('when another payment follows the description, it should transfer typing without hiding the keyboard', (
+  testWidgets('when location follows the description, it should dismiss description typing and hide the keyboard', (
     tester,
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(
@@ -350,7 +365,6 @@ void main() {
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
       jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     tester.testTextInput.log.clear();
@@ -359,25 +373,25 @@ void main() {
     await tester.pumpAndSettle();
     final textInputMethods = tester.testTextInput.log.map((methodCall) => methodCall.method);
 
-    expect((textInputMethods.contains('TextInput.hide'), tester.testTextInput.isVisible), (false, true));
+    expect((textInputMethods.contains('TextInput.hide'), tester.testTextInput.isVisible), (true, false));
   });
 
   testWidgets(
-    'when continuing again after returning from payment, it should dismiss the restored keyboard before showing payment',
+    'when continuing again after returning from location, it should dismiss the restored keyboard before showing location',
     (tester) async {
       await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
       await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+      await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
       await tester.pump();
       final immediatelyAfterSecondSuccess = (
         tester.testTextInput.isVisible,
-        find.byKey(const ValueKey('create_job_payment_view')).evaluate().length,
+        find.byKey(const ValueKey('create_job_location_view')).evaluate().length,
       );
       await tester.pumpAndSettle();
 
@@ -385,7 +399,7 @@ void main() {
     },
   );
 
-  testWidgets('when returning from payment, it should reopen the description keyboard as the pop starts', (
+  testWidgets('when returning from location, it should reopen the description keyboard as the pop starts', (
     tester,
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
@@ -394,7 +408,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
     await tester.pump();
     final keyboardVisibleAsPopStarts = tester.testTextInput.isVisible;
     await tester.pumpAndSettle();
@@ -403,7 +417,7 @@ void main() {
   });
 
   testWidgets(
-    'when returning from payment before keyboard insets arrive, it should keep the continue action above the keyboard',
+    'when returning from location before keyboard insets arrive, it should keep one continue action mounted',
     (tester) async {
       await CreateJobViewTestHelpers.pumpDescription(
         tester,
@@ -420,14 +434,12 @@ void main() {
       tester.view.viewInsets = FakeViewPadding.zero;
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+      await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
       await tester.pump();
-      final continueBottomBeforeKeyboardInsetsArrive = tester
-          .getBottomRight(find.byKey(const ValueKey('create_job_continue_button')))
-          .dy;
+      final continueButton = find.byKey(const ValueKey('create_job_continue_button'));
       await tester.pumpAndSettle();
 
-      expect(continueBottomBeforeKeyboardInsetsArrive, 524);
+      expect(continueButton, findsOneWidget);
     },
   );
 
@@ -441,11 +453,10 @@ void main() {
     final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_prompt_text_area')));
     textArea.scrollController!.jumpTo(600);
     await tester.pumpAndSettle();
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
     final attachedPositionCounts = <int>[];
     for (final keyboardInset in [0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0]) {
       tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
@@ -460,7 +471,7 @@ void main() {
   });
 
   testWidgets(
-    'when a long description is scrolled to the top before payment, it should reveal the caret after returning',
+    'when a long description is scrolled to the top before location, it should reveal the caret after returning',
     (tester) async {
       final longDescription = List<String>.filled(100, _CreateJobDescriptionViewTestData.validDescription).join('\n');
       await CreateJobViewTestHelpers.pumpDescription(
@@ -474,7 +485,6 @@ void main() {
       await tester.pump();
       await tester.enterText(find.byType(TextField), longDescription);
       await tester.pumpAndSettle();
-      await CreateJobViewTestHelpers.precachePaymentImages(tester);
       final textAreaFinder = find.byKey(const ValueKey('create_job_prompt_text_area'));
       final scrollController = tester.widget<MateoTextArea>(textAreaFinder).scrollController!..jumpTo(0);
       await tester.pump();
@@ -483,7 +493,7 @@ void main() {
       tester.view.viewInsets = FakeViewPadding.zero;
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+      await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
       for (final keyboardInset in [0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0]) {
         tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
         await tester.pump(const Duration(milliseconds: 60));
@@ -536,7 +546,6 @@ void main() {
 
       focusNode.addListener(simulatePlatformUnfocusScroll);
       addTearDown(() => focusNode.removeListener(simulatePlatformUnfocusScroll));
-      await CreateJobViewTestHelpers.precachePaymentImages(tester);
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
       await tester.pumpAndSettle();
 
@@ -544,19 +553,19 @@ void main() {
     },
   );
 
-  testWidgets('when payment advances to another page, it should not focus the hidden description', (tester) async {
+  testWidgets('when location advances to another page, it should not focus the hidden description', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
-    final paymentContext = tester.element(find.byKey(const ValueKey('create_job_payment_view')));
+    final locationContext = tester.element(find.byKey(const ValueKey('create_job_location_view')));
 
     unawaited(
-      Navigator.of(paymentContext).pushReplacement<void, void>(
+      Navigator.of(locationContext).pushReplacement<void, void>(
         PageRouteBuilder<void>(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const SizedBox(key: ValueKey('create_job_page_after_payment')),
+              const SizedBox(key: ValueKey('create_job_page_after_location')),
         ),
       ),
     );
@@ -565,7 +574,7 @@ void main() {
 
     expect(
       (
-        find.byKey(const ValueKey('create_job_page_after_payment')).evaluate().length,
+        find.byKey(const ValueKey('create_job_page_after_location')).evaluate().length,
         descriptionTextField.focusNode?.hasFocus,
         tester.testTextInput.isVisible,
       ),
@@ -672,98 +681,57 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('when draft creation finishes, it should show the payment amount', (tester) async {
-    final response = Completer<ApiEnvelopeDto<JobDraftDto>>();
-    when(() => jobRepository.createDraft(description: any(named: 'description'))).thenAnswer((_) => response.future);
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pump(const Duration(milliseconds: 100));
-    response.complete(ApiEnvelopeDto.fixture(data: JobDraftDto.fixture()));
-    await tester.pumpAndSettle();
-    final semantics = tester.ensureSemantics();
-
-    expect(find.bySemanticsLabel(r'R$ 0'), findsOneWidget);
-    semantics.dispose();
-  });
-
   testWidgets('when payment opens, it should show fixed payment as the selected option', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.pumpPayment(tester);
     final selector = tester.widget<Semantics>(find.byKey(const Key('mateo_select_source_semantics')));
 
     expect(selector.properties.label, i18n.createJob.payment.typeSelector.fixed.title);
   });
 
   testWidgets('when payment opens with a saved range type, it should restore the range option', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final selector = tester.widget<Semantics>(find.byKey(const Key('mateo_select_source_semantics')));
 
     expect(selector.properties.label, i18n.createJob.payment.typeSelector.range.title);
   });
 
-  testWidgets(
-    'when range payment opens from the keyboard-shortened description surface, it should fit throughout the surface transition',
-    (tester) async {
-      await CreateJobViewTestHelpers.pumpDescription(
-        tester,
-        keyboardInset: 300,
-        disableAnimations: false,
-        initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
-        jobRepository: jobRepository,
-      );
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      final transitionExceptions = <Object>[];
-      for (var elapsedMilliseconds = 0; elapsedMilliseconds < 300; elapsedMilliseconds += 20) {
-        await tester.pump(const Duration(milliseconds: 20));
-        final Object? exception = tester.takeException();
-        if (exception != null) transitionExceptions.add(exception);
-      }
-      await tester.pumpAndSettle();
+  testWidgets('when range payment renders with a keyboard inset, it should fit throughout its initial frames', (
+    tester,
+  ) async {
+    await CreateJobViewTestHelpers.pumpPayment(
+      tester,
+      keyboardInset: 300,
+      disableAnimations: false,
+      initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
+    );
+    final transitionExceptions = <Object>[];
+    for (var elapsedMilliseconds = 0; elapsedMilliseconds < 300; elapsedMilliseconds += 20) {
+      await tester.pump(const Duration(milliseconds: 20));
+      final Object? exception = tester.takeException();
+      if (exception != null) transitionExceptions.add(exception);
+    }
+    await tester.pumpAndSettle();
 
-      expect(transitionExceptions, isEmpty);
-    },
-  );
+    expect(transitionExceptions, isEmpty);
+  });
 
   testWidgets('when range payment opens on a short screen, it should keep both amounts within their available space', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       screenSize: const Size(390, 640),
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
   });
 
   testWidgets('when opening the payment type selector, it should show every localized option in order', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.pumpPayment(tester);
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     const paymentTypes = [JobPaymentType.fixed, JobPaymentType.range, JobPaymentType.flexible, JobPaymentType.other];
@@ -800,15 +768,10 @@ void main() {
   testWidgets('when selecting range payment, it should save the type and show both localized amount fields', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentMinimumAmount: '350'),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.range))));
@@ -836,15 +799,10 @@ void main() {
   });
 
   testWidgets('when range payment opens, it should select the minimum amount first', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final semantics = tester.ensureSemantics();
     final minimum = tester.getSemantics(
       find.descendant(
@@ -867,20 +825,14 @@ void main() {
   });
 
   testWidgets('when a short fixed amount fits, it should keep its design height', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(
         currencyCode: 'BRL',
         paymentMinimumAmount: '22',
         paymentType: JobPaymentType.fixed,
       ),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final amount = find.byKey(const ValueKey('create_job_payment_amount'));
     final visualHeight = tester.getBottomLeft(amount).dy - tester.getTopLeft(amount).dy;
     final paymentContentWidth = tester.getSize(find.byKey(const ValueKey('create_job_fixed_payment_content'))).width;
@@ -891,7 +843,7 @@ void main() {
   testWidgets('when vertical space becomes shorter than the fixed amount, it should scale before overflowing', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       screenSize: const Size(390, 570),
       initialCreateJobData: const CreateJobData(
@@ -899,13 +851,7 @@ void main() {
         paymentMinimumAmount: '22',
         paymentType: JobPaymentType.fixed,
       ),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final amount = find.byKey(const ValueKey('create_job_payment_amount'));
     final visualHeight = tester.getBottomLeft(amount).dy - tester.getTopLeft(amount).dy;
 
@@ -915,7 +861,7 @@ void main() {
   testWidgets('when range payment opens, it should center the amount fields within the payment content', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(
         currencyCode: 'BRL',
@@ -923,13 +869,7 @@ void main() {
         paymentMaximumAmount: '700',
         paymentType: JobPaymentType.range,
       ),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final paymentContentRect = tester.getRect(find.byKey(const ValueKey('create_job_range_payment_content')));
     final minimumLabelLeft = tester
         .getTopLeft(
@@ -961,19 +901,14 @@ void main() {
   testWidgets('when the maximum range amount is tapped, keypad input should update only the maximum draft amount', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(
         currencyCode: 'BRL',
         paymentMinimumAmount: '350',
         paymentType: JobPaymentType.range,
       ),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(
         const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
@@ -1012,19 +947,14 @@ void main() {
   testWidgets('when blank space in the maximum range row is tapped, keypad input should update the maximum amount', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(
         currencyCode: 'BRL',
         paymentMinimumAmount: '3',
         paymentType: JobPaymentType.range,
       ),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final maximumAmountRow = find.byKey(
       const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
     );
@@ -1050,7 +980,7 @@ void main() {
   testWidgets('when the minimum range amount is tapped again, keypad input should return to the minimum amount', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(
         currencyCode: 'BRL',
@@ -1058,12 +988,7 @@ void main() {
         paymentMaximumAmount: '700',
         paymentType: JobPaymentType.range,
       ),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(
         const ValueKey<Object>(('create_job_range_amount_field', ValueKey('create_job_range_maximum_amount'))),
@@ -1092,7 +1017,7 @@ void main() {
   testWidgets(
     'when a digit widens a range amount, it should keep the amount paint boundary stable while moving horizontally',
     (tester) async {
-      await CreateJobViewTestHelpers.pumpDescription(
+      await CreateJobViewTestHelpers.pumpPayment(
         tester,
         disableAnimations: false,
         initialCreateJobData: const CreateJobData(
@@ -1100,12 +1025,7 @@ void main() {
           paymentMinimumAmount: '999',
           paymentType: JobPaymentType.range,
         ),
-        jobRepository: jobRepository,
       );
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      await tester.pumpAndSettle();
       final minimumAmount = find.byKey(const ValueKey('create_job_range_minimum_amount'));
       final widthBeforeInput = tester.getSize(minimumAmount).width;
 
@@ -1125,7 +1045,7 @@ void main() {
   testWidgets('when deleting a range digit, it should keep a stable paint boundary while the digit leaves', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       disableAnimations: false,
       initialCreateJobData: const CreateJobData(
@@ -1133,12 +1053,7 @@ void main() {
         paymentMinimumAmount: '555',
         paymentType: JobPaymentType.range,
       ),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final minimumAmount = find.byKey(const ValueKey('create_job_range_minimum_amount'));
     final widthBeforeDeletion = tester.getSize(minimumAmount).width;
 
@@ -1163,7 +1078,7 @@ void main() {
   testWidgets(
     'when fixed payment changes to range then the minimum receives another digit, it should keep both fields vertically stable',
     (tester) async {
-      await CreateJobViewTestHelpers.pumpDescription(
+      await CreateJobViewTestHelpers.pumpPayment(
         tester,
         disableAnimations: false,
         initialCreateJobData: const CreateJobData(
@@ -1171,12 +1086,7 @@ void main() {
           paymentMinimumAmount: '23',
           paymentType: JobPaymentType.fixed,
         ),
-        jobRepository: jobRepository,
       );
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('mateo_select_source')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.range))));
@@ -1210,7 +1120,7 @@ void main() {
   testWidgets('when returning to range after another payment type, it should restore both entered amounts', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(
         currencyCode: 'BRL',
@@ -1218,12 +1128,7 @@ void main() {
         paymentMaximumAmount: '700',
         paymentType: JobPaymentType.range,
       ),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.fixed))));
@@ -1251,11 +1156,7 @@ void main() {
   });
 
   testWidgets('when selecting flexible payment, it should show the localized flexible payment content', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.pumpPayment(tester);
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.flexible))));
@@ -1275,11 +1176,7 @@ void main() {
   });
 
   testWidgets('when selecting another payment, it should show the localized multiline payment field', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.pumpPayment(tester);
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.other))));
@@ -1318,16 +1215,10 @@ void main() {
   });
 
   testWidgets('when selecting another payment again, it should refocus its multiline field', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     tester.testTextInput.log.clear();
@@ -1344,16 +1235,10 @@ void main() {
   });
 
   testWidgets('when another payment is shown, it should protect the area above the continue action', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_other_payment_content')));
 
     expect(textArea.protectedBottomInset, 20);
@@ -1362,17 +1247,11 @@ void main() {
   testWidgets('when the keyboard raises another payment, it should add its inset to the protected region', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       keyboardInset: 300,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final textArea = tester.widget<MateoTextArea>(find.byKey(const ValueKey('create_job_other_payment_content')));
 
     expect(textArea.protectedBottomInset, 286);
@@ -1381,16 +1260,10 @@ void main() {
   testWidgets('when another payment contains a long note, it should center the final caret between both fades', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), List<String>.filled(24, 'Pagamento combinado').join('\n'));
     await tester.pumpAndSettle();
     final renderEditable = tester.renderObject<RenderEditable>(
@@ -1413,16 +1286,10 @@ void main() {
   });
 
   testWidgets('when another payment is shown, it should include mandatory fades and a flowing counter', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
-      jobRepository: jobRepository,
     );
-    await CreateJobViewTestHelpers.precachePaymentImages(tester);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     final textArea = find.byKey(const ValueKey('create_job_other_payment_content'));
 
     expect(
@@ -1438,15 +1305,10 @@ void main() {
   });
 
   testWidgets('when typing another payment, it should preserve the explanation in the job data', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Duas cestas básicas');
     await tester.pump();
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
@@ -1455,19 +1317,14 @@ void main() {
   });
 
   testWidgets('when leaving and returning to another payment, it should restore the saved explanation', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(
         currencyCode: 'BRL',
         paymentType: JobPaymentType.other,
         paymentNote: 'Duas cestas básicas',
       ),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.fixed))));
@@ -1483,15 +1340,10 @@ void main() {
   testWidgets('when selecting fixed payment, it should save the type and show the fixed payment controls', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(
+    await CreateJobViewTestHelpers.pumpPayment(
       tester,
       initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.range),
-      jobRepository: jobRepository,
     );
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('mateo_select_source')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<Object>(('mateo_select_option_semantics', JobPaymentType.fixed))));
@@ -1507,28 +1359,8 @@ void main() {
     );
   });
 
-  testWidgets('when draft creation finishes, it should open payment for the created job', (tester) async {
-    const jobId = 'created-draft-job-id';
-    when(
-      () => jobRepository.createDraft(description: any(named: 'description')),
-    ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: JobDraftDto.fixture().copyWith(jobId: jobId)));
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
-    final paymentView = tester.widget<CreateJobPaymentView>(find.byType(CreateJobPaymentView));
-
-    expect(paymentView.jobId, jobId);
-  });
-
   testWidgets('when a payment digit is entered, it should store the amount in create-job state', (tester) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.pumpPayment(tester);
 
     await tester.tap(find.byKey(const Key('mateo_numeric_keypad_one')));
     await tester.pumpAndSettle();
@@ -1540,11 +1372,7 @@ void main() {
   testWidgets('when a default zero is rapidly replaced then restored, it should retain only the restored zero', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.pumpPayment(tester, disableAnimations: false);
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
     final semantics = tester.ensureSemantics();
 
@@ -1568,11 +1396,7 @@ void main() {
   testWidgets('when the amount is cleared then a decimal separator is entered, it should restore the leading zero', (
     tester,
   ) async {
-    await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
-    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-    await tester.pumpAndSettle();
+    await CreateJobViewTestHelpers.pumpPayment(tester);
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobPaymentView)));
     final semantics = tester.ensureSemantics();
 
@@ -1595,18 +1419,18 @@ void main() {
     }
   });
 
-  testWidgets('when draft creation finishes, it should expand the payment surface to the full screen', (tester) async {
+  testWidgets('when draft creation finishes, it should expand the location surface to the full screen', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
-    final surface = find.byKey(const ValueKey('create_job_payment_surface'));
+    final surface = find.byKey(const ValueKey('create_job_location_surface'));
 
     expect(tester.getSize(surface), const Size(390, 844));
   });
 
-  testWidgets('when moving to payment, it should keep ordinary forms out of the moving surface', (tester) async {
+  testWidgets('when moving to location, it should keep ordinary forms out of the moving surface', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
@@ -1627,7 +1451,7 @@ void main() {
     expect((departingCounts, arrivingCounts), ((0, 0), (0, 0)));
   });
 
-  testWidgets('when moving to payment, it should fade the snapshot surface content out and in', (tester) async {
+  testWidgets('when moving to location, it should fade the snapshot surface content out and in', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
@@ -1653,7 +1477,7 @@ void main() {
     expect((departingOpacities.isNotEmpty, arrivingOpacities.isNotEmpty), (true, true));
   });
 
-  testWidgets('when moving to payment, it should keep both views mounted until the surface transition settles', (
+  testWidgets('when moving to location, it should keep both views mounted until the surface transition settles', (
     tester,
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
@@ -1664,21 +1488,21 @@ void main() {
     await tester.pump();
     final mountedDuringHandoff = (
       find.byKey(const ValueKey('create_job_description_view')).evaluate().length,
-      find.byKey(const ValueKey('create_job_payment_view')).evaluate().length,
+      find.byKey(const ValueKey('create_job_location_view')).evaluate().length,
     );
     await tester.pumpAndSettle();
 
     expect(mountedDuringHandoff, (1, 1));
   });
 
-  testWidgets('when the payment back action is tapped, it should return to the saved description', (tester) async {
+  testWidgets('when the location back action is tapped, it should return to the saved description', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
     await tester.pumpAndSettle();
     final textField = tester.widget<TextField>(find.byType(TextField));
 
@@ -1686,14 +1510,96 @@ void main() {
   });
 
   testWidgets(
-    'when returning while keyboard insets appear, it should keep the snapshot surface aimed at the description',
+    'when returning from location, it should keep the entered description painted through the route handoff',
+    (tester) async {
+      const boundaryKey = ValueKey('create_job_payment_return_boundary');
+      await CreateJobViewTestHelpers.pumpDescription(
+        tester,
+        repaintBoundaryKey: boundaryKey,
+        disableAnimations: false,
+        useViewMediaQuery: true,
+        jobRepository: jobRepository,
+      );
+      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+      await tester.pumpAndSettle();
+      final renderEditable = tester.renderObject<RenderEditable>(
+        find.descendant(
+          of: find.byType(TextField),
+          matching: find.byElementPredicate((element) => element.renderObject is RenderEditable),
+        ),
+      );
+      final textBoxes = renderEditable.getBoxesForSelection(
+        const TextSelection(baseOffset: 0, extentOffset: _CreateJobDescriptionViewTestData.validDescription.length),
+      );
+      final localTextRect = textBoxes.map((box) => box.toRect()).reduce((value, box) => value.expandToInclude(box));
+      final descriptionTextRect = Rect.fromPoints(
+        renderEditable.localToGlobal(localTextRect.topLeft),
+        renderEditable.localToGlobal(localTextRect.bottomRight),
+      );
+      await CreateJobViewTestHelpers.precachePaymentImages(tester);
+      await CreateJobViewTestHelpers.openPayment(tester);
+
+      Future<int> countDescriptionPixels() async {
+        final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(boundaryKey));
+        return (await tester.runAsync(() async {
+          final image = await boundary.toImage();
+          try {
+            final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+            var darkPixelCount = 0;
+            for (var y = descriptionTextRect.top.floor(); y < descriptionTextRect.bottom.ceil(); y += 1) {
+              for (var x = descriptionTextRect.left.floor(); x < descriptionTextRect.right.ceil(); x += 1) {
+                final offset = ((y * image.width) + x) * 4;
+                if (bytes!.getUint8(offset + 3) == 0) continue;
+                if (bytes.getUint8(offset) < 180 &&
+                    bytes.getUint8(offset + 1) < 180 &&
+                    bytes.getUint8(offset + 2) < 180) {
+                  darkPixelCount += 1;
+                }
+              }
+            }
+            return darkPixelCount;
+          } finally {
+            image.dispose();
+          }
+        }))!;
+      }
+
+      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+      await tester.pump();
+      final framePixels = <int>[];
+      for (final keyboardInset in [0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0]) {
+        tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
+        await tester.pump(const Duration(milliseconds: 40));
+        await tester.pump();
+        framePixels.add(await countDescriptionPixels());
+      }
+      for (var frame = 0; frame < 8; frame += 1) {
+        await tester.pump(const Duration(milliseconds: 16));
+        await tester.pump();
+        framePixels.add(await countDescriptionPixels());
+      }
+      final firstPaintedFrame = framePixels.indexWhere((pixelCount) => pixelCount > 0);
+
+      expect(
+        (
+          firstPaintedFrame >= 0 && framePixels.skip(firstPaintedFrame).every((pixelCount) => pixelCount > 0),
+          find.byWidgetPredicate((widget) => widget.runtimeType.toString() == '_MorphFlightBoundary').evaluate().length,
+          tester.widget<TextField>(find.byType(TextField)).controller?.text,
+        ),
+        (true, 0, _CreateJobDescriptionViewTestData.validDescription),
+      );
+    },
+  );
+
+  testWidgets(
+    'when returning while keyboard insets appear, it should keep the flight surface covering the description endpoint',
     (tester) async {
       await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
       await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+      await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 60));
       final descriptionSurface = find.byKey(const ValueKey('create_job_description_surface'));
@@ -1714,11 +1620,11 @@ void main() {
       final flightTop = surfaceBoundary.localToGlobal(Offset.zero).dy;
       await tester.pumpAndSettle();
 
-      expect(flightTop, greaterThan(endpointTop * 0.7));
+      expect(flightTop, lessThanOrEqualTo(endpointTop));
     },
   );
 
-  testWidgets('when Android back is pressed from payment, it should return to the saved description', (tester) async {
+  testWidgets('when Android back is pressed from location, it should return to the saved description', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
@@ -1731,7 +1637,7 @@ void main() {
     expect(textField.controller?.text, _CreateJobDescriptionViewTestData.validDescription);
   });
 
-  testWidgets('when payment returns after expanding, it should settle with one visible continue action', (
+  testWidgets('when location returns after expanding, it should settle with one visible continue action', (
     tester,
   ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
@@ -1739,10 +1645,30 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('create_job_continue_button')), findsOneWidget);
+  });
+
+  testWidgets('when location returns, it should keep the continue action above the surface Morph', (tester) async {
+    await CreateJobViewTestHelpers.pumpDescription(tester, disableAnimations: false, jobRepository: jobRepository);
+    await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(
+      find.ancestor(
+        of: find.byKey(const ValueKey('create_job_continue_button')),
+        matching: find.byType(MorphForeground),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('when draft creation remains pending, it should keep the keyboard visible', (tester) async {
@@ -1809,7 +1735,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pump(const Duration(milliseconds: 100));
 
-    await tester.tap(find.byKey(const Key('create_job_close_button')));
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
     await tester.pumpAndSettle();
 
     expect(find.byType(CreateJobDescriptionView), findsNothing);
@@ -1824,17 +1750,16 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('create_job_continue_icon')), findsOneWidget);
   });
 
-  testWidgets('when draft creation succeeds while payment images decode, it should wait before opening payment', (
+  testWidgets('when draft creation succeeds, it should open location without requesting payment images', (
     tester,
   ) async {
     final assetBundle = PaymentIconsTestAssetBundle();
-    addTearDown(assetBundle.release);
     await CreateJobViewTestHelpers.pumpDescription(tester, assetBundle: assetBundle, jobRepository: jobRepository);
     await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
     await tester.pumpAndSettle();
@@ -1845,14 +1770,11 @@ void main() {
 
     expect(
       (
-        paymentViewCount: find.byType(CreateJobPaymentView).evaluate().length,
+        locationViewCount: find.byType(CreateJobLocationView).evaluate().length,
         didRequestIcon: assetBundle.didRequestPaymentIcon,
       ),
-      (paymentViewCount: 0, didRequestIcon: true),
+      (locationViewCount: 1, didRequestIcon: false),
     );
-
-    assetBundle.release();
-    await tester.pumpAndSettle();
   });
 
   testWidgets('when draft creation fails, it should show the translated request error', (tester) async {
@@ -1956,22 +1878,24 @@ void main() {
 
   testWidgets('when the description surface opens, it should align the title with the close button', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
-    final titleCenter = tester.getCenter(find.byKey(const ValueKey('create_job_title'))).dy;
-    final closeButtonCenter = tester.getCenter(find.byKey(const Key('create_job_close_button'))).dy;
+    final titleCenter = tester.getCenter(find.text(i18n.createJob.description.title)).dy;
+    final closeButtonCenter = tester.getCenter(find.byKey(const ValueKey('create_job_location_back_button'))).dy;
 
     expect(titleCenter, closeButtonCenter);
   });
 
-  testWidgets('when the description surface opens, it should center the title horizontally', (tester) async {
+  testWidgets('when the description surface opens, it should center the title in the available header content', (
+    tester,
+  ) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
 
-    expect(tester.getCenter(find.byKey(const ValueKey('create_job_title'))).dx, 195);
+    expect(tester.getCenter(find.text(i18n.createJob.description.title)).dx, 225);
   });
 
   testWidgets('when the description surface opens, it should place the close button on the left', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
 
-    expect(tester.getCenter(find.byKey(const Key('create_job_close_button'))).dx, 45);
+    expect(tester.getCenter(find.byKey(const ValueKey('create_job_location_back_button'))).dx, 45);
   });
 
   testWidgets('when the description surface opens, it should end the resting top fade before the first line', (
@@ -2003,7 +1927,7 @@ void main() {
 
   testWidgets('when the description surface opens, it should keep the title background transparent', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
-    final title = tester.widget<Text>(find.byKey(const ValueKey('create_job_title')));
+    final title = tester.widget<Text>(find.text(i18n.createJob.description.title));
 
     expect(title.style?.backgroundColor, isNull);
   });
@@ -2164,7 +2088,7 @@ void main() {
 
   testWidgets('when the close button is tapped, it should close the job creation route', (tester) async {
     await CreateJobViewTestHelpers.pumpDescription(tester);
-    await tester.tap(find.byKey(const Key('create_job_close_button')));
+    await tester.tap(find.byKey(const ValueKey('create_job_location_back_button')));
     await tester.pumpAndSettle();
 
     expect(find.byType(CreateJobDescriptionView), findsNothing);

@@ -98,139 +98,134 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
+    final bottomSafePadding = MediaQuery.paddingOf(context).bottom;
 
-    return Scaffold(
+    return MateoView(
       backgroundColor: context.mateo.colorScheme.background,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          SafeArea(
-            bottom: false,
-            child: ClipRect(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final sceneHeight = _sceneHeight(constraints);
-                  final contentTopSpacing = _layoutValue(
-                    availableHeight: constraints.maxHeight,
-                    compactValue: 14,
-                    regularValue: 36,
-                  );
-                  final headlineTopPadding = _layoutValue(
-                    availableHeight: constraints.maxHeight,
-                    compactValue: 12,
-                    regularValue: 28,
-                  );
-                  final headlineBottomPadding = _layoutValue(
-                    availableHeight: constraints.maxHeight,
-                    compactValue: 10,
-                    regularValue: 24,
-                  );
-                  final headlineFontSize = _layoutValue(
-                    availableHeight: constraints.maxHeight,
-                    compactValue: 24,
-                    regularValue: 30,
-                  );
-                  final initialHeadlineOffset = _initialHeadlineOffset(
-                    viewportHeight: constraints.maxHeight,
-                    sceneHeight: sceneHeight,
-                    contentTopSpacing: contentTopSpacing,
-                    headlineTopPadding: headlineTopPadding,
-                    headlineBottomPadding: headlineBottomPadding,
-                    headlineFontSize: headlineFontSize,
-                  );
-
-                  return OverflowBox(
-                    alignment: Alignment.topCenter,
-                    minWidth: 0,
-                    maxWidth: constraints.maxWidth,
-                    minHeight: 0,
-                    maxHeight: double.infinity,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(height: contentTopSpacing),
-                          _buildScene(i18n: i18n, height: sceneHeight),
-                          _buildHeadline(
-                            i18n: i18n,
-                            initialOffset: initialHeadlineOffset,
-                            topPadding: headlineTopPadding,
-                            bottomPadding: headlineBottomPadding,
-                            fontSize: headlineFontSize,
-                          ),
-                        ],
+      edgeFade: null,
+      extendBodyBehindFooter: true,
+      footer: Padding(
+        padding: EdgeInsets.only(bottom: bottomSafePadding < 12 ? 12 : 0),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: ExcludeSemantics(
+              key: const ValueKey('onboarding_actions_semantics_gate'),
+              excluding: !_actionsAvailable,
+              child: Motion.list(
+                key: const ValueKey('onboarding_intro_button_panel'),
+                interactive: false,
+                effects: [
+                  const FadeInMotionEffect(
+                    delay: _buttonRevealDelay,
+                    duration: _entranceDuration,
+                    curve: Curves.easeOutCubic,
+                  ),
+                  MoveMotionEffect(
+                    begin: const Offset(0, 28),
+                    end: Offset.zero,
+                    delay: _buttonRevealDelay,
+                    duration: _entranceDuration,
+                    curve: Curves.easeOutCubic,
+                    onStart: () => _triggerHaptic(HapticFeedback.heavyImpact),
+                    onEnd: _enableInteractions,
+                  ),
+                ],
+                child: RepaintBoundary(
+                  child: MateoButtonPanel(
+                    buttons: [
+                      MateoButton(
+                        key: const ValueKey('onboarding_view_jobs_button'),
+                        label: i18n.onboarding.actions.viewJobs,
+                        variant: MateoButtonVariant.primary,
+                        fit: MateoButtonFit.expand,
+                        trailingIconBuilder: (state) {
+                          return MateoIcon.arrowDown(color: state.foregroundColor);
+                        },
+                        onPressed: _openFeed,
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SafeArea(
-              minimum: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: ExcludeSemantics(
-                    key: const ValueKey('onboarding_actions_semantics_gate'),
-                    excluding: !_actionsAvailable,
-                    child: Motion.list(
-                      key: const ValueKey('onboarding_intro_button_panel'),
-                      interactive: false,
-                      effects: [
-                        const FadeInMotionEffect(
-                          delay: _buttonRevealDelay,
-                          duration: _entranceDuration,
-                          curve: Curves.easeOutCubic,
-                        ),
-                        MoveMotionEffect(
-                          begin: const Offset(0, 28),
-                          end: Offset.zero,
-                          delay: _buttonRevealDelay,
-                          duration: _entranceDuration,
-                          curve: Curves.easeOutCubic,
-                          onStart: () => _triggerHaptic(HapticFeedback.heavyImpact),
-                          onEnd: _enableInteractions,
-                        ),
-                      ],
-                      child: RepaintBoundary(
-                        child: MateoButtonPanel(
-                          buttons: [
-                            MateoButton(
-                              key: const ValueKey('onboarding_view_jobs_button'),
-                              label: i18n.onboarding.actions.viewJobs,
-                              variant: MateoButtonVariant.primary,
-                              fit: MateoButtonFit.expand,
-                              trailingIconBuilder: (state) {
-                                return MateoIcon.arrowDown(color: state.foregroundColor);
-                              },
-                              onPressed: _openFeed,
-                            ),
-                            MateoButton(
-                              key: const ValueKey('onboarding_post_job_button'),
-                              label: i18n.onboarding.actions.postJob,
-                              variant: MateoButtonVariant.secondary,
-                              fit: MateoButtonFit.expand,
-                              colorScheme: context.mateo.colorScheme.buttons.tertiary,
-                              leadingIconBuilder: (state) {
-                                return MateoIcon.boxPen(color: state.foregroundColor);
-                              },
-                              onPressed: () => unawaited(const PosterOnboardingRoute().push<void>(context)),
-                            ),
-                          ],
-                        ),
+                      MateoButton(
+                        key: const ValueKey('onboarding_post_job_button'),
+                        label: i18n.onboarding.actions.postJob,
+                        variant: MateoButtonVariant.secondary,
+                        fit: MateoButtonFit.expand,
+                        colorScheme: context.mateo.colorScheme.buttons.tertiary,
+                        leadingIconBuilder: (state) {
+                          return MateoIcon.boxPen(color: state.foregroundColor);
+                        },
+                        onPressed: () => unawaited(const PosterOnboardingRoute().push<void>(context)),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-        ],
+        ),
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: ClipRect(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final sceneHeight = _sceneHeight(constraints);
+              final contentTopSpacing = _layoutValue(
+                availableHeight: constraints.maxHeight,
+                compactValue: 14,
+                regularValue: 36,
+              );
+              final headlineTopPadding = _layoutValue(
+                availableHeight: constraints.maxHeight,
+                compactValue: 12,
+                regularValue: 28,
+              );
+              final headlineBottomPadding = _layoutValue(
+                availableHeight: constraints.maxHeight,
+                compactValue: 10,
+                regularValue: 24,
+              );
+              final headlineFontSize = _layoutValue(
+                availableHeight: constraints.maxHeight,
+                compactValue: 24,
+                regularValue: 30,
+              );
+              final initialHeadlineOffset = _initialHeadlineOffset(
+                viewportHeight: constraints.maxHeight,
+                sceneHeight: sceneHeight,
+                contentTopSpacing: contentTopSpacing,
+                headlineTopPadding: headlineTopPadding,
+                headlineBottomPadding: headlineBottomPadding,
+                headlineFontSize: headlineFontSize,
+              );
+
+              return OverflowBox(
+                alignment: Alignment.topCenter,
+                minWidth: 0,
+                maxWidth: constraints.maxWidth,
+                minHeight: 0,
+                maxHeight: double.infinity,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: contentTopSpacing),
+                      _buildScene(i18n: i18n, height: sceneHeight),
+                      _buildHeadline(
+                        i18n: i18n,
+                        initialOffset: initialHeadlineOffset,
+                        topPadding: headlineTopPadding,
+                        bottomPadding: headlineBottomPadding,
+                        fontSize: headlineFontSize,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -294,6 +289,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                               child: $Lotties.jobCardsCarousel(
                                 key: const ValueKey('onboarding_job_cards_carousel'),
                                 clip: false,
+                                playback: LottiePlayback.loop,
                                 overrides: JobCardsCarouselOverrides(
                                   jobCard01TextPostedTimeText: i18n.onboarding.jobCards.postedTime,
                                   jobCard01TextJobTitleText: i18n.onboarding.jobCards.card1.title,

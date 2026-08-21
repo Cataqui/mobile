@@ -169,6 +169,7 @@ widget or model that produces or consumes the data.
   or makes otherwise unclear logic materially easier to understand.
 
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
+- **Use getters directly in `build`:** Do not assign a getter's result to a local variable inside `build` merely to reference that value. Read the getter directly at each usage site instead.
 - **Name your math:** When combining numbers in an expression where each operand's meaning is not immediately obvious (e.g. `width - 30 - 12 - 14 - 26`), extract each operand into a named constant so the expression reads as intent. Simple standalone values like `padding: 24` do not need extraction — the position tells you what the number means.
 - **Linked values must share one source of truth:** When two or more production expressions must stay synchronized, define the value once as a constant or variable owned by their shared domain and reference it everywhere. This includes layout and typography values used both for measurement and rendering (font size, padding, icon size, gaps, animation dimensions, etc.). Never duplicate synchronized literals independently; a later edit must be able to update every dependent expression by changing one declaration.
 
@@ -204,6 +205,12 @@ widget or model that produces or consumes the data.
 
 - **Keep Widgets Lean:** Break down bloated `build` methods into small, single-responsibility components.
 - **Scoped Re-renders:** Ensure Riverpod ref watch calls (`ref.watch`) are highly granular. Avoid watching entire complex state models when only a single property is required by the widget layout.
+
+### MediaQuery Aspect Dependencies
+
+- Do not use `MediaQuery.of(context)` or `MediaQuery.maybeOf(context)` merely to read individual fields. Use the aspect-specific accessor that matches the required value, such as `MediaQuery.sizeOf`, `paddingOf`, `viewPaddingOf`, `viewInsetsOf`, `textScalerOf`, or `platformBrightnessOf`. This prevents unrelated `MediaQueryData` changes from rebuilding the dependent widget.
+- Keep each MediaQuery dependency at the narrowest widget subtree that consumes it. In particular, read keyboard `viewInsets` inside the keyboard-responsive subtree instead of subscribing an entire screen when only a bottom control moves.
+- A full `MediaQuery.of(context)` lookup is allowed only when the complete inherited `MediaQueryData` object is intentionally required, such as when deriving a modified `MediaQuery` for descendants.
 
 ### Method Ordering Within Classes
 

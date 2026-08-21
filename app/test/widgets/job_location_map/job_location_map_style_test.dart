@@ -57,7 +57,7 @@ class _JobLocationMapStyleTestHelpers {
 
     for (var step = 1; step <= 12; step++) {
       colors.addAll([
-        palette.primary[step],
+        palette.accent[step],
         palette.neutral[step],
         palette.green[step],
         palette.amber[step],

@@ -124,29 +124,37 @@ goldenTest('when error, it should show the error state with retry',
 
 State coverage applies to all screens, every component that changes appearance based on state must have full golden coverage.
 
-## 8. Real Interactions in Golden Tests
+## 8. Real Interactions Scoped to the SUT
 
-Prefer driving real user interactions (`tester.tap`, `tester.drag`, `tester.enterText`, `tester.pumpAndSettle`) over stubbing intermediate states. This catches usability bugs — not just visual regressions:
+When a test owns a view's rendering or behavior, instantiate that view directly. Do not navigate through preceding views merely to reach the subject. Flow changes must not break tests whose subject is still valid, and unrelated setup obscures what the test actually proves.
+
+Once the system under test (SUT) is rendered, drive its behavior through real user interactions (`tester.tap`, `tester.drag`, `tester.enterText`, `tester.pumpAndSettle`) instead of calling its state methods or stubbing intermediate UI states. This catches usability and visual bugs in the SUT while keeping unrelated flows outside the test boundary.
+
+Navigation belongs only in focused route or flow tests whose explicit SUT is navigation or a transition between views. A view test must not navigate from another view into its SUT.
+
+Every test must construct and exercise the minimum scope necessary for its assertion or golden. Include only the providers, inherited widgets, state, dependencies, and user actions required by the behavior under test.
 
 ```dart
-// ✅ Prefer this — simulate real navigation flow
-goldenTest('when tapping a job card, it should navigate to the detail screen',
+// Correct — render the payment SUT directly, then interact with it as a user.
+goldenTest('when the payment type selector is tapped, it should show its options',
     (tester) async {
-  await tester.pumpWidget(createApp());
+  await tester.pumpWidget(testApp(child: const CreateJobPaymentView(jobId: 'job-id')));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Descarregar Caminhão'));
+  await tester.tap(find.byKey(const ValueKey('create_job_payment_type_selector')));
   await tester.pumpAndSettle();
-  await screenMatchesGolden(tester, 'job_detail_loaded');
+  await screenMatchesGolden(tester, 'create_job_payment_type_selector_open');
 });
 
-// ❌ Avoid this — bypasses navigation, misses transition bugs
-goldenTest('job detail loaded state', (tester) async {
-  await tester.pumpWidget(createApp(initialRoute: '/job/123'));
-  await screenMatchesGolden(tester, 'job_detail_loaded');
+// Incorrect — description entry and navigation are unrelated to this view state.
+goldenTest('when the payment type selector is tapped, it should show its options',
+    (tester) async {
+  await tester.pumpWidget(testApp(child: const CreateJobDescriptionView()));
+  await tester.enterText(find.byType(TextField), 'Description');
+  await tester.tap(find.byKey(const ValueKey('continue')));
+  await tester.pumpAndSettle();
+  await screenMatchesGolden(tester, 'create_job_payment_fixed');
 });
 ```
-
-Exceptions are permitted when the interaction requires an external dependency that cannot be simulated (e.g., camera, biometrics, push notification opt-in). Document the exception in the test description.
 
 ## 9. Never Assert on Hardcoded Translation Strings
 

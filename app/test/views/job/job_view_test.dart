@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:clock/clock.dart';
@@ -284,7 +285,7 @@ void main() {
           feedJob: feedJob,
           jobRepository: jobRepository,
         );
-        final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
         await gesture.moveBy(const Offset(0, 220));
         await tester.pump();
 
@@ -303,7 +304,7 @@ void main() {
         feedJob: feedJob,
         jobRepository: jobRepository,
       );
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, 260));
+      await tester.drag(find.byType(MateoScrollableView), const Offset(0, 260));
       await tester.pumpAndSettle();
 
       expect(find.byType(JobView), findsNothing);
@@ -318,7 +319,7 @@ void main() {
         feedJob: feedJob,
         jobRepository: jobRepository,
       );
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, 120));
+      await tester.drag(find.byType(MateoScrollableView), const Offset(0, 120));
       await tester.pump(const Duration(milliseconds: 430));
       await tester.pump();
 
@@ -345,9 +346,9 @@ void main() {
           feedJob: feedJob,
           jobRepository: jobRepository,
         );
-        await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+        await tester.drag(find.byType(MateoScrollableView), const Offset(0, -500));
         await tester.pump();
-        await tester.drag(find.byType(CustomScrollView), const Offset(0, 150));
+        await tester.drag(find.byType(MateoScrollableView), const Offset(0, 150));
         await tester.pump();
 
         final route = ModalRoute.of(tester.element(find.byType(JobView)));
@@ -364,7 +365,7 @@ void main() {
         feedJob: feedJob,
         jobRepository: jobRepository,
       );
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(CustomScrollView)));
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
       await gesture.moveBy(const Offset(0, 120));
       await tester.pump();
 
@@ -379,6 +380,56 @@ void main() {
       expect(fadeTransition.opacity.value, equals(1));
       await gesture.up();
     });
+
+    testWidgets(
+      'when the swipe-to-pop preview moves the surface, it should preserve fixed-slot geometry without scrolling',
+      (tester) async {
+        final feedJob = JobViewTestHelpers.feedJob();
+
+        await JobViewTestHelpers.pumpRoutedJobView(
+          tester: tester,
+          goRouter: goRouter,
+          feedJob: feedJob,
+          jobRepository: jobRepository,
+        );
+        final header = find.byType(MateoFloatingActionButton).last;
+        final body = find.byKey(const ValueKey('job_title')).last;
+        final footer = find.descendant(of: find.byType(JobContactButton), matching: find.byType(MateoButton)).last;
+        final scrollPosition = Scrollable.of(tester.element(body)).position;
+        Offset positionInView(Finder finder) {
+          final view = tester.renderObject<RenderBox>(find.byType(MateoScrollableView));
+          final child = tester.renderObject<RenderBox>(finder);
+          return view.globalToLocal(child.localToGlobal(Offset.zero));
+        }
+
+        final initial = (
+          headerToBody: positionInView(body) - positionInView(header),
+          bodyToFooter: positionInView(footer) - positionInView(body),
+          scrollOffset: scrollPosition.pixels,
+        );
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
+        await gesture.moveBy(const Offset(0, 120));
+        await tester.pump();
+
+        final current = (
+          headerToBody: positionInView(body) - positionInView(header),
+          bodyToFooter: positionInView(footer) - positionInView(body),
+          scrollOffset: scrollPosition.pixels,
+        );
+        expect(
+          current,
+          predicate<({Offset headerToBody, Offset bodyToFooter, double scrollOffset})>(
+            (geometry) =>
+                (geometry.headerToBody - initial.headerToBody).distance < 0.001 &&
+                (geometry.bodyToFooter - initial.bodyToFooter).distance < 0.001 &&
+                geometry.scrollOffset == initial.scrollOffset,
+            'preserves header, body, footer, and scroll geometry',
+          ),
+        );
+        await gesture.up();
+      },
+    );
   });
 
   group('when opened from a deep link without a feed job', () {
@@ -459,7 +510,10 @@ void main() {
           },
         ),
       );
-      await tester.tap(find.text(i18n.feed.error.retryButtonTitle));
+      final retryButton = find.text(i18n.feed.error.retryButtonTitle);
+      await tester.ensureVisible(retryButton);
+      await tester.pump();
+      await tester.tap(retryButton);
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(retryCount, equals(1));

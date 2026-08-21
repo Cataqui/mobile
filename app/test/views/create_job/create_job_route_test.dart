@@ -1,6 +1,8 @@
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_route.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_view.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +17,32 @@ void main() {
 
   test('when building the payment location, it should nest payment under job creation', () {
     expect(const CreateJobPaymentRoute(jobId: 'draft-job-id').location, '/create-job/draft-job-id/payment');
+  });
+
+  test('when building the job location location, it should nest location under job creation', () {
+    expect(const CreateJobLocationRoute(jobId: 'draft-job-id').location, '/create-job/draft-job-id/location');
+  });
+
+  testWidgets('when opening job location directly, it should show location for the requested job', (tester) async {
+    const jobId = 'draft-job-id';
+    final goRouter = GoRouter(
+      initialLocation: const CreateJobLocationRoute(jobId: jobId).location,
+      routes: [$createJobLocationRoute],
+    );
+    addTearDown(goRouter.dispose);
+
+    await tester.pumpWidget(
+      TestApp.router(
+        routerConfig: goRouter,
+        providerOverrides: [translationProvider.overrideWithValue(AppLocale.ptBr.buildSync())],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      (tester.widget<CreateJobLocationView>(find.byType(CreateJobLocationView)).jobId, goRouter.state.matchedLocation),
+      (jobId, const CreateJobLocationRoute(jobId: jobId).location),
+    );
   });
 
   testWidgets('when opening payment directly, it should show payment for the requested job', (tester) async {

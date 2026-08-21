@@ -25,10 +25,7 @@ class CreateJobPaymentRoute extends GoRouteData with $CreateJobPaymentRoute {
       barrierDismissible: false,
       transitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
       reverseTransitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
-      child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
-        child: CreateJobPaymentView(key: const ValueKey('create_job_payment_view'), jobId: jobId),
-      ),
+      child: CreateJobPaymentView(key: const ValueKey('create_job_payment_view'), jobId: jobId),
       transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
     );
   }

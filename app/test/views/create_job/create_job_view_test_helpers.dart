@@ -6,6 +6,7 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_route.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:flutter/material.dart';
@@ -28,9 +29,58 @@ abstract final class CreateJobViewTestHelpers {
     await tester.pump();
   }
 
+  static Future<void> openPayment(WidgetTester tester, {bool settle = true}) async {
+    unawaited(
+      const CreateJobPaymentRoute(
+        jobId: 'draft-job-id',
+      ).push<void>(tester.element(find.byKey(const ValueKey('create_job_description_view')))),
+    );
+    if (!settle) return;
+
+    await tester.pumpAndSettle();
+  }
+
+  static Future<void> pumpPayment(
+    WidgetTester tester, {
+    Size screenSize = const Size(390, 844),
+    double keyboardInset = 0,
+    bool disableAnimations = true,
+    CreateJobData initialCreateJobData = const CreateJobData(currencyCode: 'BRL'),
+  }) async {
+    tester.view
+      ..devicePixelRatio = 1
+      ..physicalSize = screenSize
+      ..padding = FakeViewPadding(top: 47, bottom: keyboardInset > 0 ? 0 : 34)
+      ..viewPadding = const FakeViewPadding(top: 47, bottom: 34)
+      ..viewInsets = FakeViewPadding(bottom: keyboardInset);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      TestApp.screen(
+        mediaQueryData: MediaQueryData(
+          size: screenSize,
+          devicePixelRatio: 1,
+          padding: EdgeInsets.only(top: 47, bottom: keyboardInset > 0 ? 0 : 34),
+          viewPadding: const EdgeInsets.only(top: 47, bottom: 34),
+          viewInsets: EdgeInsets.only(bottom: keyboardInset),
+          textScaler: TextScaler.noScaling,
+          disableAnimations: disableAnimations,
+        ),
+        providerOverrides: [
+          translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
+          createJobStateProvider.overrideWith(() => CreateJobTestState(initialData: initialCreateJobData)),
+        ],
+        child: const CreateJobPaymentView(jobId: 'draft-job-id'),
+      ),
+    );
+    await tester.runAsync(() => CreateJobPaymentView.precacheImages(tester.element(find.byType(CreateJobPaymentView))));
+    await tester.pumpAndSettle();
+  }
+
   static Future<void> pumpDescription(
     WidgetTester tester, {
     AssetBundle? assetBundle,
+    Key? repaintBoundaryKey,
     Size screenSize = const Size(390, 844),
     double keyboardInset = 0,
     bool disableAnimations = true,
@@ -49,6 +99,7 @@ abstract final class CreateJobViewTestHelpers {
     await tester.pumpWidget(
       buildApp(
         assetBundle: assetBundle,
+        repaintBoundaryKey: repaintBoundaryKey,
         screenSize: screenSize,
         keyboardInset: keyboardInset,
         disableAnimations: disableAnimations,
@@ -64,6 +115,7 @@ abstract final class CreateJobViewTestHelpers {
 
   static Widget buildApp({
     AssetBundle? assetBundle,
+    Key? repaintBoundaryKey,
     Size screenSize = const Size(390, 844),
     double keyboardInset = 0,
     bool disableAnimations = true,
@@ -108,13 +160,15 @@ abstract final class CreateJobViewTestHelpers {
             ),
           ),
           $createJobDescriptionRoute,
+          $createJobLocationRoute,
           $createJobPaymentRoute,
         ],
       ),
     );
 
-    if (assetBundle == null) return app;
+    final bundledApp = assetBundle == null ? app : DefaultAssetBundle(bundle: assetBundle, child: app);
+    if (repaintBoundaryKey == null) return bundledApp;
 
-    return DefaultAssetBundle(bundle: assetBundle, child: app);
+    return RepaintBoundary(key: repaintBoundaryKey, child: bundledApp);
   }
 }

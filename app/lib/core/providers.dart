@@ -10,6 +10,7 @@ import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_route.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
@@ -135,6 +136,7 @@ GoRouter goRouter(Ref ref) {
       $posterOnboardingRoute,
       $feedRoute,
       $createJobDescriptionRoute,
+      $createJobLocationRoute,
       $createJobPaymentRoute,
       $jobRoute,
     ],

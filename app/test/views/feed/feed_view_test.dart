@@ -152,11 +152,10 @@ void main() {
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
-        final feedScaffold = tester.widget<Scaffold>(
-          find.descendant(of: find.byType(FeedView), matching: find.byType(Scaffold)),
-        );
+        final view = find.descendant(of: find.byType(FeedView), matching: find.byType(MateoView));
+        final scaffold = tester.widget<Scaffold>(find.descendant(of: view, matching: find.byType(Scaffold)));
 
-        expect(feedScaffold.resizeToAvoidBottomInset, isFalse);
+        expect(scaffold.resizeToAvoidBottomInset, isFalse);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
@@ -314,7 +313,9 @@ void main() {
     });
 
     group('data — empty', () {
-      testWidgets('when the empty state fits the view, it should remain vertically centered', (tester) async {
+      testWidgets('when the empty state fits the body, it should remain vertically centered below the header', (
+        tester,
+      ) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
@@ -322,7 +323,10 @@ void main() {
 
         final contentFinder = find.ancestor(of: find.text(i18n.feed.empty.title), matching: find.byType(Column));
 
-        expect(tester.getCenter(contentFinder).dy, closeTo(tester.getCenter(find.byType(Scaffold)).dy, 0.01));
+        expect(
+          tester.getCenter(contentFinder).dy,
+          closeTo(tester.getCenter(find.byKey(const ValueKey('feed_data'))).dy, 0.01),
+        );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -387,7 +391,7 @@ void main() {
         scrollableState.position.jumpTo(scrollableState.position.maxScrollExtent);
         await tester.pumpAndSettle();
 
-        final viewportBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
+        final viewportBottom = tester.getBottomRight(find.byType(MateoView)).dy;
         final buttonBottom = tester.getBottomRight(find.byKey(const ValueKey('feed_empty_adjust_area_button'))).dy;
         expect(viewportBottom - buttonBottom, closeTo(MateoSearchBarButton.searchBarHeight, 0.01));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
@@ -460,6 +464,31 @@ void main() {
         );
         await tester.pump();
         expect(find.byWidgetPredicate((w) => w is MateoYSnapList), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when feedData has jobs, it should rest after the intrinsic header without clipping motion', (
+        tester,
+      ) async {
+        final prefs = MockSharedPreferencesAsync();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => true);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          prefs: prefs,
+        );
+
+        final listFinder = find.byType(MateoYSnapList<FeedJobDto>);
+        final cityButtonFinder = find.byType(MateoTextButton);
+        final restingTop = tester.getTopLeft(listFinder).dy;
+        expect(restingTop, tester.getBottomLeft(cityButtonFinder).dy + 10);
+
+        final gesture = await tester.startGesture(tester.getCenter(listFinder));
+        await gesture.moveBy(const Offset(0, -100));
+        await tester.pump();
+
+        expect(tester.getTopLeft(find.byType(FeedJobCard).first).dy, lessThan(restingTop));
+        await gesture.up();
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -541,8 +570,7 @@ void main() {
           );
           final feedFinder = find.byType(MateoYSnapList<FeedJobDto>);
           final feedRect = tester.getRect(feedFinder);
-          final topContentInset = MediaQuery.paddingOf(tester.element(feedFinder)).top + 65;
-          expect(tester.getCenter(contentFinder).dy, closeTo(feedRect.center.dy + (topContentInset / 2), 0.01));
+          expect(tester.getCenter(contentFinder).dy, closeTo(feedRect.center.dy, 0.01));
           await FeedViewTestHelpers.pumpAndCleanUp(tester);
         },
       );
@@ -566,9 +594,7 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when showing the terminal state, it should expand its scroll surface to the feed edges', (
-        tester,
-      ) async {
+      testWidgets('when showing the terminal state, it should fill the body below the feed header', (tester) async {
         tester.view.physicalSize = const Size(390, 400);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
@@ -582,7 +608,10 @@ void main() {
         final feedRect = tester.getRect(find.byType(MateoYSnapList<FeedJobDto>));
         final terminalScrollRect = tester.getRect(find.byType(SingleChildScrollView));
 
-        expect(feedRect, const Rect.fromLTWH(0, 0, 390, 400));
+        expect(feedRect.left, 0);
+        expect(feedRect.right, 390);
+        expect(feedRect.bottom, 400);
+        expect(feedRect.top, greaterThan(tester.getTopLeft(find.byType(MateoView)).dy));
         expect(terminalScrollRect, feedRect);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });

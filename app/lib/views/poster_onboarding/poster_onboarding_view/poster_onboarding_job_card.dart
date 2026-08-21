@@ -335,10 +335,7 @@ class PosterOnboardingJobCard extends StatelessWidget {
           const SizedBox(width: 10),
           DecoratedBox(
             key: ValueKey('${jobKey}_interest_bubble'),
-            decoration: BoxDecoration(
-              color: context.mateo.palette.primary[9],
-              borderRadius: BorderRadius.circular(999),
-            ),
+            decoration: BoxDecoration(color: context.mateo.palette.accent[9], borderRadius: BorderRadius.circular(999)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               child: Text(

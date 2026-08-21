@@ -11,6 +11,22 @@ The `app` package is **internal and single-purpose**. It orchestrates screens, w
 Do not add `@Preview` annotations inside the app. Widget previews belong in the
 Mateo package.
 
+## Mateo Palette Fallbacks
+
+Prefer Mateo color-scheme tokens. When no Mateo color-scheme token fits the
+use case and a direct Mateo palette color is required, resolve that color
+through a private getter with an exhaustive switch over the active theme mode.
+Return the palette color for each supported mode and throw `UnsupportedError`
+for every mode the UI does not yet support. Do not read a direct palette color
+inline at its usage site.
+
+```dart
+Color get _exampleColor => switch (Theme.of(context).brightness) {
+  Brightness.light => context.mateo.palette.neutral[5],
+  Brightness.dark => throw UnsupportedError('ExampleWidget does not support dark mode.'),
+};
+```
+
 ## Structure
 
 ```

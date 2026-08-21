@@ -68,7 +68,7 @@ void main() {
                 .widget<DecoratedBox>(find.byKey(const ValueKey('poster_onboarding_waiter_job_interest_bubble')))
                 .decoration
             as BoxDecoration;
-    final expectedColor = tester.element(find.byType(PosterOnboardingJobCard).first).mateo.palette.primary[9];
+    final expectedColor = tester.element(find.byType(PosterOnboardingJobCard).first).mateo.palette.accent[9];
 
     expect(decoration.color, expectedColor);
   });

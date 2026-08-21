@@ -38,7 +38,7 @@ class TestApp extends StatelessWidget {
        navigatorKey = null,
        _wrapInScaffold = false;
 
-  static const _color = (primary: Color(0xFFFF4A4B), onPrimary: Color(0xFFFFFFFF));
+  static const _color = (accent: Color(0xFFFF4A4B), onAccent: Color(0xFFFFFFFF));
   static final _secureStorageOverride = secureStorageProvider.overrideWith((ref) {
     final secureStorage = MockFlutterSecureStorage();
     when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);

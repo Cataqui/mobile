@@ -76,8 +76,9 @@ class PosterOnboardingView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final i18n = ref.watch(translationProvider);
 
-    return Scaffold(
+    return MateoView(
       backgroundColor: context.mateo.colorScheme.background,
+      edgeFade: null,
       body: SafeArea(
         minimum: const EdgeInsets.fromLTRB(0, 20, 0, 12),
         child: LayoutBuilder(

@@ -316,10 +316,10 @@ packages:
   dotdart:
     dependency: "direct overridden"
     description:
-      path: "../../ventairy/flutter/dotdart"
+      path: "../../ventairy/dotdart"
       relative: true
     source: path
-    version: "0.8.0"
+    version: "0.9.0"
   equatable:
     dependency: transitive
     description:
@@ -886,7 +886,7 @@ packages:
       path: "../../ventairy/flutter/oh_my_flutter"
       relative: true
     source: path
-    version: "0.7.1"
+    version: "0.10.0"
   package_config:
     dependency: transitive
     description:

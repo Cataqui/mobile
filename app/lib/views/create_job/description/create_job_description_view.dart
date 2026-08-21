@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
 import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/enums/create_job_morph_tag.dart';
-import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
-import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,7 +81,6 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
     try {
       final draft = await ref.read(createJobStateProvider.notifier).createDraft();
       if (!context.mounted) return;
-      final paymentType = ref.read(createJobStateProvider).paymentType;
       final descriptionScrollOffset = _descriptionScrollController.hasClients
           ? _descriptionScrollController.offset
           : null;
@@ -98,11 +95,9 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
         });
       }
 
-      if (paymentType != JobPaymentType.other) {
-        _descriptionTextController.unfocus();
-        await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
-        if (!context.mounted) return;
-      }
+      _descriptionTextController.unfocus();
+      await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+      if (!context.mounted) return;
 
       if (descriptionScrollOffset != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -116,10 +111,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
         });
       }
 
-      await CreateJobPaymentView.precacheImages(context);
-      if (!context.mounted) return;
-
-      unawaited(CreateJobPaymentRoute(jobId: draft.jobId).push<void>(context));
+      unawaited(CreateJobLocationRoute(jobId: draft.jobId).push<void>(context));
     } on Object catch (error) {
       if (context.mounted) {
         ref.read(appToastProvider).maybeShowError(context, error: error, message: i18n.createJob.createDraftError);
@@ -201,162 +193,121 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
       _handleContinueVisibility(createJobData);
     });
 
-    return Scaffold(
-      key: const ValueKey('create_job_scaffold'),
-      backgroundColor: Colors.transparent,
-      resizeToAvoidBottomInset: false,
-      body: Builder(
-        builder: (context) => Padding(
-          key: const ValueKey('create_job_description_view'),
-          padding: const EdgeInsets.symmetric(horizontal: CreateJobDescriptionView.surfaceHorizontalMargin),
-          child: Align(
-            alignment: AlignmentGeometry.bottomCenter,
-            child: FractionallySizedBox(
-              heightFactor: 0.92,
-              widthFactor: 1,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Positioned.fill(
-                    child: Morph(
-                      tag: CreateJobMorphTag.surface,
-                      curve: Curves.easeOutCubic,
-                      duration: const Duration(milliseconds: 200),
-                      switchTransition: (child, animation) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                      child: Container(
-                        key: const ValueKey('create_job_description_surface'),
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(
-                          color: context.mateo.colorScheme.bottomSheet.background,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
-                        ),
-                        child: Stack(
-                          key: const ValueKey('create_job_prompt_fades'),
-                          children: [
-                            Positioned.fill(
-                              child: MorphDescendant(
-                                flightBehavior: MorphDescendantFlightBehavior.snapshot,
-                                child: MateoTextArea(
-                                  key: const ValueKey('create_job_prompt_text_area'),
-                                  controller: _descriptionTextController,
-                                  scrollController: _descriptionScrollController,
-                                  placeholder: i18n.createJob.description.placeholder,
-                                  autofocus: true,
-                                  textStyle: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w500,
-                                    color: context.mateo.colorScheme.text.primary,
-                                  ),
-                                  contentPadding: const EdgeInsets.fromLTRB(
-                                    CreateJobDescriptionView.surfaceContentPadding,
-                                    CreateJobDescriptionView.surfaceContentPadding +
-                                        CreateJobDescriptionView.titleHeight +
-                                        CreateJobDescriptionView.promptTopPadding,
-                                    CreateJobDescriptionView.surfaceContentPadding,
-                                    CreateJobDescriptionView.surfaceContentPadding,
-                                  ),
-                                  protectedBottomInset: math.max(
-                                    0,
-                                    bottomSafeInset +
-                                        CreateJobDescriptionView.continueButtonBottomPadding +
-                                        CreateJobDescriptionView.continueButtonSize -
-                                        bottomEdgeFadeHeight,
-                                  ),
-                                  topEdgeFadeStyle: edgeFadeStyle.copyWith(
-                                    mainAxisExtent: CreateJobDescriptionView.topEdgeFadeHeight,
-                                  ),
-                                  bottomEdgeFadeStyle: bottomEdgeFadeStyle,
-                                  editable: !isCreatingDraft,
-                                  unfocusOnTapOutside: false,
-                                  onChanged: _handleDescriptionChanged,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: CreateJobDescriptionView.surfaceContentPadding,
-                              bottom: bottomSafeInset + CreateJobDescriptionView.continueButtonBottomPadding,
-                              child: MorphDescendant(
-                                flightBehavior: MorphDescendantFlightBehavior.snapshot,
-                                child: ControlledVisibility(
-                                  key: const ValueKey('create_job_continue_visibility'),
-                                  controller: _continueButtonVisibilityController,
-                                  showDuration: const Duration(milliseconds: 240),
-                                  hideDuration: const Duration(milliseconds: 160),
-                                  showTransition: _buildContinueShowTransition,
-                                  hideTransition: _buildContinueHideTransition,
-                                  unmount: true,
-                                  child: MateoFloatingActionButton(
-                                    key: const ValueKey('create_job_continue_button'),
-                                    onPressed: () => _createDraftAndContinue(context),
-                                    semanticLabel: i18n.createJob.continueButtonSemanticLabel,
-                                    backgroundColor: context.mateo.palette.primary[9],
-                                    foregroundColor: context.mateo.palette.primary[1],
-                                    borderSide: BorderSide.none,
-                                    size: CreateJobDescriptionView.continueButtonSize,
-                                    iconSize: 22,
-                                    iconBuilder: (state) => MateoIcon.arrowRight(
-                                      key: const ValueKey('create_job_continue_icon'),
-                                      width: state.iconSize,
-                                      height: state.iconSize,
-                                      color: state.foregroundColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            Positioned(
-                              top:
-                                  CreateJobDescriptionView.surfaceContentPadding +
-                                  (CreateJobDescriptionView.navigationButtonSize -
-                                          CreateJobDescriptionView.titleHeight) /
-                                      2,
-                              left: CreateJobDescriptionView.surfaceContentPadding,
-                              right: CreateJobDescriptionView.surfaceContentPadding,
-                              height: CreateJobDescriptionView.titleHeight,
-                              child: Align(
-                                alignment: AlignmentGeometry.center,
-                                child: Text(
-                                  i18n.createJob.description.title,
-                                  key: const ValueKey('create_job_title'),
-                                  style: TextStyle(
-                                    color: context.mateo.colorScheme.text.primary,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+    return Padding(
+      key: const ValueKey('create_job_description_view'),
+      padding: const EdgeInsets.symmetric(horizontal: CreateJobDescriptionView.surfaceHorizontalMargin),
+      child: Align(
+        alignment: AlignmentGeometry.bottomCenter,
+        child: FractionallySizedBox(
+          heightFactor: 0.92,
+          widthFactor: 1,
+          child: MateoView(
+            key: const ValueKey('create_job_scaffold'),
+            backgroundColor: Colors.transparent,
+            edgeFade: null,
+            extendBodyBehindHeader: true,
+            extendBodyBehindFooter: true,
+            header: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: MateoViewHeader(
+                title: i18n.createJob.description.title,
+                leading: MateoFloatingActionButton(
+                  key: const ValueKey('create_job_location_back_button'),
+                  onPressed: context.pop,
+                  semanticLabel: i18n.createJob.location.backButtonSemanticLabel,
+                  borderSide: BorderSide.none,
+                  size: 44,
+                  iconSize: 17,
+                  iconBuilder: (state) {
+                    return MateoIcon.cross(width: state.iconSize, height: state.iconSize, color: state.foregroundColor);
+                  },
+                ),
+              ),
+            ),
+            footer: Align(
+              alignment: AlignmentGeometry.bottomRight,
+              child: MorphForeground(
+                key: const ValueKey('create_job_continue_foreground'),
+                child: ControlledVisibility(
+                  key: const ValueKey('create_job_continue_visibility'),
+                  controller: _continueButtonVisibilityController,
+                  showDuration: const Duration(milliseconds: 240),
+                  hideDuration: const Duration(milliseconds: 160),
+                  showTransition: _buildContinueShowTransition,
+                  hideTransition: _buildContinueHideTransition,
+                  unmount: true,
+                  child: MateoFloatingActionButton(
+                    key: const ValueKey('create_job_continue_button'),
+                    onPressed: () => _createDraftAndContinue(context),
+                    semanticLabel: i18n.createJob.continueButtonSemanticLabel,
+                    backgroundColor: context.mateo.palette.accent[9],
+                    foregroundColor: context.mateo.palette.accent[1],
+                    borderSide: BorderSide.none,
+                    size: CreateJobDescriptionView.continueButtonSize,
+                    iconSize: 22,
+                    iconBuilder: (state) => MateoIcon.arrowRight(
+                      key: const ValueKey('create_job_continue_icon'),
+                      width: state.iconSize,
+                      height: state.iconSize,
+                      color: state.foregroundColor,
                     ),
                   ),
-                  Positioned(
-                    top: CreateJobDescriptionView.surfaceContentPadding,
-                    left: CreateJobDescriptionView.surfaceContentPadding,
-                    child: Morph(
-                      tag: CreateJobMorphTag.navigationButton,
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOutCubic,
-                      child: MateoFloatingActionButton(
-                        key: const ValueKey('create_job_close_button'),
-                        size: CreateJobDescriptionView.navigationButtonSize,
-                        tapTargetSize: CreateJobDescriptionView.navigationButtonSize,
-                        iconSize: 16,
-                        semanticLabel: MaterialLocalizations.of(context).closeButtonLabel,
-                        iconBuilder: (state) => MateoIcon.cross(
-                          width: state.iconSize,
-                          height: state.iconSize,
-                          color: state.foregroundColor,
-                        ),
-                        onPressed: context.pop,
-                      ),
-                    ),
+                ),
+              ),
+            ),
+            bodySurfaceBuilder: (context, content) {
+              return Morph(
+                tag: CreateJobMorphTag.surface,
+                curve: Curves.easeOutCubic,
+                duration: const Duration(milliseconds: 200),
+                switchTransition: (child, animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: Container(
+                  key: const ValueKey('create_job_description_surface'),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: context.mateo.colorScheme.bottomSheet.background,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
                   ),
-                ],
+                  child: content,
+                ),
+              );
+            },
+            body: MorphDescendant(
+              key: const ValueKey('create_job_prompt_fades'),
+              flightBehavior: MorphDescendantFlightBehavior.snapshot,
+              child: MateoTextArea(
+                key: const ValueKey('create_job_prompt_text_area'),
+                controller: _descriptionTextController,
+                scrollController: _descriptionScrollController,
+                placeholder: i18n.createJob.description.placeholder,
+                autofocus: true,
+                textStyle: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                  color: context.mateo.colorScheme.text.primary,
+                ),
+                contentPadding: const EdgeInsets.fromLTRB(
+                  CreateJobDescriptionView.surfaceContentPadding,
+                  CreateJobDescriptionView.surfaceContentPadding +
+                      CreateJobDescriptionView.titleHeight +
+                      CreateJobDescriptionView.promptTopPadding,
+                  CreateJobDescriptionView.surfaceContentPadding,
+                  CreateJobDescriptionView.surfaceContentPadding,
+                ),
+                protectedBottomInset: math.max(
+                  0,
+                  bottomSafeInset +
+                      CreateJobDescriptionView.continueButtonBottomPadding +
+                      CreateJobDescriptionView.continueButtonSize -
+                      bottomEdgeFadeHeight,
+                ),
+                topEdgeFadeStyle: edgeFadeStyle.copyWith(mainAxisExtent: CreateJobDescriptionView.topEdgeFadeHeight),
+                bottomEdgeFadeStyle: bottomEdgeFadeStyle,
+                editable: !isCreatingDraft,
+                unfocusOnTapOutside: false,
+                onChanged: _handleDescriptionChanged,
               ),
             ),
           ),

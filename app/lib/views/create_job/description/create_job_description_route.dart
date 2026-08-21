@@ -23,10 +23,7 @@ class CreateJobDescriptionRoute extends GoRouteData with $CreateJobDescriptionRo
       barrierDismissible: false,
       transitionDuration: disableAnimations ? Duration.zero : pushDuration,
       reverseTransitionDuration: disableAnimations ? Duration.zero : popDuration,
-      child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
-        child: const CreateJobDescriptionView(),
-      ),
+      child: const CreateJobDescriptionView(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final position = Tween<Offset>(
           begin: const Offset(0, 1),

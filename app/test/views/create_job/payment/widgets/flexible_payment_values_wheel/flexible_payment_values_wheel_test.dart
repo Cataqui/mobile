@@ -24,8 +24,8 @@ void main() {
     await _FlexiblePaymentValuesWheelTestHost.pump(tester: tester, currencyCode: 'BRL');
 
     expect(
-      find.text(i18n.createJob.payment.flexibleCarousel.amount(currencySymbol: r'R$', value: 350)),
-      findsOneWidget,
+      _FlexiblePaymentValuesWheelTestHost.centerAmount(tester),
+      i18n.createJob.payment.flexibleCarousel.amount(currencySymbol: r'R$', value: 350),
     );
   });
 
@@ -38,7 +38,7 @@ void main() {
     expect(
       (
         tester.getSize(find.byKey(_FlexiblePaymentValuesWheelTestHost.wheelKey)),
-        _FlexiblePaymentValuesWheelTestHost.amountFontSize(tester: tester, relativeIndex: 0),
+        _FlexiblePaymentValuesWheelTestHost.amountFontSize(tester),
         amountSpacing,
       ),
       (const Size(390, 200), 46, 50),
@@ -88,30 +88,35 @@ void main() {
 
   testWidgets('when BRL amounts begin moving, it should add the fourth value only for the transition', (tester) async {
     await _FlexiblePaymentValuesWheelTestHost.pump(tester: tester, currencyCode: 'BRL', disableAnimations: false);
-    final restingFourthValueCount = find
-        .byKey(const ValueKey<Object>(('flexible_payment_values_wheel_amount', 2)))
-        .evaluate()
-        .length;
+    final restingVisibleAmountCount = _FlexiblePaymentValuesWheelTestHost.visibleAmountCount(tester);
 
     await tester.pump(const Duration(milliseconds: 1750));
-    final movingFourthValueCount = find
-        .byKey(const ValueKey<Object>(('flexible_payment_values_wheel_amount', 2)))
-        .evaluate()
-        .length;
+    final movingVisibleAmountCount = _FlexiblePaymentValuesWheelTestHost.visibleAmountCount(tester);
 
-    expect((restingFourthValueCount, movingFourthValueCount), (0, 1));
+    expect((restingVisibleAmountCount, movingVisibleAmountCount), (3, 4));
   });
 
-  testWidgets('when BRL amounts are resting, it should keep one two-sided alpha mask without an overlay gradient', (
+  testWidgets('when BRL amounts are resting, it should avoid widget rebuild and ShaderMask compositing', (
     tester,
   ) async {
     await _FlexiblePaymentValuesWheelTestHost.pump(tester: tester, currencyCode: 'BRL');
-    final edgeMask = tester.widget<ShaderMask>(find.byKey(_FlexiblePaymentValuesWheelTestHost.edgeMaskKey));
+    final wheelFinder = find.byKey(_FlexiblePaymentValuesWheelTestHost.wheelKey);
 
     expect(
-      (edgeMask.blendMode, find.byType(ShaderMask).evaluate().length, find.byType(MateoEdgeFade).evaluate().length),
-      (BlendMode.dstIn, 1, 0),
+      (
+        find.descendant(of: wheelFinder, matching: find.byType(AnimatedBuilder)).evaluate().length,
+        find.descendant(of: wheelFinder, matching: find.byType(ShaderMask)).evaluate().length,
+      ),
+      (0, 0),
     );
+  });
+
+  testWidgets('when the text atlas is ready, it should release every direct fallback paragraph', (tester) async {
+    await _FlexiblePaymentValuesWheelTestHost.pump(tester: tester, currencyCode: 'BRL');
+    await _FlexiblePaymentValuesWheelTestHost.waitForAtlas(tester);
+    final renderer = _FlexiblePaymentValuesWheelTestHost.renderer(tester);
+
+    expect((renderer.debugIsAtlasReady, renderer.debugDirectPainterCount), (true, 0));
   });
 
   testWidgets('when BRL amounts are halfway through a transition, it should blend both central oranges equally', (
@@ -120,7 +125,9 @@ void main() {
     await _FlexiblePaymentValuesWheelTestHost.pump(tester: tester, currencyCode: 'BRL', disableAnimations: false);
     await tester.pump(const Duration(milliseconds: 1000));
     final context = tester.element(find.byKey(_FlexiblePaymentValuesWheelTestHost.wheelKey));
-    final halfwayColor = Color.lerp(context.mateo.palette.orange[3], context.mateo.palette.orange[5], 0.5);
+    final halfwayColor = Color(
+      Color.lerp(context.mateo.palette.orange[3], context.mateo.palette.orange[5], 0.5)!.toARGB32(),
+    );
 
     expect(
       (
@@ -128,6 +135,31 @@ void main() {
         _FlexiblePaymentValuesWheelTestHost.amountColor(tester: tester, relativeIndex: 1),
       ),
       (halfwayColor, halfwayColor),
+    );
+  });
+
+  testWidgets('when system text accessibility overrides are enabled, it should apply every typography override', (
+    tester,
+  ) async {
+    await _FlexiblePaymentValuesWheelTestHost.pump(
+      tester: tester,
+      currencyCode: 'BRL',
+      mediaQueryData: const MediaQueryData(
+        size: Size(390, 844),
+        devicePixelRatio: 1,
+        textScaler: TextScaler.noScaling,
+        disableAnimations: true,
+        boldText: true,
+        lineHeightScaleFactorOverride: 1.4,
+        letterSpacingOverride: 2,
+        wordSpacingOverride: 3,
+      ),
+    );
+    final textStyle = _FlexiblePaymentValuesWheelTestHost.renderer(tester).debugTextStyle;
+
+    expect(
+      (textStyle.fontWeight, textStyle.height, textStyle.letterSpacing, textStyle.wordSpacing),
+      (FontWeight.bold, 1.4, 2, 3),
     );
   });
 
@@ -294,8 +326,7 @@ void main() {
 
 abstract final class _FlexiblePaymentValuesWheelTestHost {
   static const wheelKey = ValueKey('flexible_payment_values_wheel');
-  static const centerAmountKey = ValueKey<Object>(('flexible_payment_values_wheel_amount', 0));
-  static const edgeMaskKey = ValueKey('flexible_payment_values_wheel_edge_mask');
+  static const rendererKey = ValueKey('flexible_payment_values_wheel_renderer');
 
   static PageRoute<void> wheelRoute() {
     return PageRouteBuilder<void>(
@@ -316,43 +347,43 @@ abstract final class _FlexiblePaymentValuesWheelTestHost {
     );
   }
 
-  static Finder amountTextFinder({required int relativeIndex}) {
-    return find.descendant(
-      of: find.byKey(ValueKey<Object>(('flexible_payment_values_wheel_amount', relativeIndex))),
-      matching: find.byType(Text),
-    );
+  static FlexiblePaymentValuesWheelRenderBox renderer(WidgetTester tester) {
+    return tester.renderObject<FlexiblePaymentValuesWheelRenderBox>(find.byKey(rendererKey));
   }
 
   static Offset amountCenter({required WidgetTester tester, required int relativeIndex}) {
-    return tester.getCenter(find.byKey(ValueKey<Object>(('flexible_payment_values_wheel_amount', relativeIndex))));
+    return renderer(tester).debugAmountAt(relativeIndex: relativeIndex).center;
   }
 
-  static Color? amountColor({required WidgetTester tester, required int relativeIndex}) {
-    final amountTextFinder = _FlexiblePaymentValuesWheelTestHost.amountTextFinder(relativeIndex: relativeIndex);
-    final amountText = tester.widget<Text>(amountTextFinder);
-
-    return DefaultTextStyle.of(tester.element(amountTextFinder)).style.merge(amountText.style).color;
+  static Color amountColor({required WidgetTester tester, required int relativeIndex}) {
+    return renderer(tester).debugAmountAt(relativeIndex: relativeIndex).color;
   }
 
   static double amountScale({required WidgetTester tester, required int relativeIndex}) {
-    final transforms = tester.widgetList<Transform>(
-      find.ancestor(
-        of: find.byKey(ValueKey<Object>(('flexible_payment_values_wheel_amount', relativeIndex))),
-        matching: find.byType(Transform),
-      ),
-    );
-
-    return transforms
-        .map((transform) => transform.transform.storage.first)
-        .reduce((smallest, scale) => scale < smallest ? scale : smallest);
+    return renderer(tester).debugAmountAt(relativeIndex: relativeIndex).scale;
   }
 
-  static double amountFontSize({required WidgetTester tester, required int relativeIndex}) {
-    return tester.widget<Text>(amountTextFinder(relativeIndex: relativeIndex)).style!.fontSize!;
+  static double amountFontSize(WidgetTester tester) {
+    return renderer(tester).debugFontSize;
   }
 
   static String centerAmount(WidgetTester tester) {
-    return tester.widget<Text>(find.descendant(of: find.byKey(centerAmountKey), matching: find.byType(Text))).data!;
+    return renderer(tester).debugAmountAt(relativeIndex: 0).amount;
+  }
+
+  static int visibleAmountCount(WidgetTester tester) {
+    return renderer(tester).debugVisibleAmountCount;
+  }
+
+  static Future<void> waitForAtlas(WidgetTester tester) async {
+    final wheelRenderer = renderer(tester);
+    await tester.runAsync(() async {
+      final timeout = Stopwatch()..start();
+      while (!wheelRenderer.debugIsAtlasReady && timeout.elapsed < const Duration(seconds: 2)) {
+        await Future<void>.delayed(const Duration(milliseconds: 1));
+      }
+    });
+    await tester.pump();
   }
 
   static void setCurrencyCode({required WidgetTester tester, required String currencyCode}) {
@@ -365,15 +396,18 @@ abstract final class _FlexiblePaymentValuesWheelTestHost {
     required WidgetTester tester,
     required String currencyCode,
     bool disableAnimations = true,
+    MediaQueryData? mediaQueryData,
   }) async {
     await tester.pumpWidget(
       TestApp.screen(
-        mediaQueryData: MediaQueryData(
-          size: const Size(390, 844),
-          devicePixelRatio: 1,
-          textScaler: TextScaler.noScaling,
-          disableAnimations: disableAnimations,
-        ),
+        mediaQueryData:
+            mediaQueryData ??
+            MediaQueryData(
+              size: const Size(390, 844),
+              devicePixelRatio: 1,
+              textScaler: TextScaler.noScaling,
+              disableAnimations: disableAnimations,
+            ),
         providerOverrides: [
           translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
           createJobStateProvider.overrideWith(

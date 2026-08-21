@@ -209,7 +209,7 @@ class _AppAnimatedSplashState extends State<AppAnimatedSplash> with SingleTicker
   }
 
   Widget _buildSplashOverlay(BuildContext context) {
-    final splashColor = context.mateo.palette.primary[9];
+    final splashColor = context.mateo.palette.accent[9];
 
     return Positioned.fill(
       child: AnnotatedRegion<SystemUiOverlayStyle>(

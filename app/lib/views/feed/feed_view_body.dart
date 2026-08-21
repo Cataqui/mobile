@@ -51,50 +51,47 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
       onPrevious: (feedJob, index) => _currentMapIndexNotifier.value = index - 1,
       onLoadMore: () => ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true),
       loadMoreErrorBuilder: feedData.paginationError == null ? null : _buildLoadMoreError,
-      endBuilder: (context) => _buildEnd(context, topContentInset: MediaQuery.paddingOf(context).top + 65),
+      endBuilder: _buildEnd,
       builder: (context, job, index) {
         final location = job.location;
 
-        return SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
-            child: ClipRRect(
-              borderRadius: widget.cardBorderRadius,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ListenableBuilder(
-                    listenable: _currentMapIndexNotifier,
-                    builder: (context, _) {
-                      if ((index - _currentMapIndexNotifier.value).abs() > 1) {
-                        return ColoredBox(color: colorScheme.map.background);
-                      }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: ClipRRect(
+            borderRadius: widget.cardBorderRadius,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ListenableBuilder(
+                  listenable: _currentMapIndexNotifier,
+                  builder: (context, _) {
+                    if ((index - _currentMapIndexNotifier.value).abs() > 1) {
+                      return ColoredBox(color: colorScheme.map.background);
+                    }
 
-                      const mapRadiusOffsetMultiplier = 1000;
-                      const mapRadiusReferenceHeight = 100;
-                      final mapRadiusOffset = Offset(
-                        0,
-                        mapRadiusOffsetMultiplier /
-                            (math.pow(MediaQuery.sizeOf(context).height / mapRadiusReferenceHeight, 2)),
-                      );
+                    const mapRadiusOffsetMultiplier = 1000;
+                    const mapRadiusReferenceHeight = 100;
+                    final mapRadiusOffset = Offset(
+                      0,
+                      mapRadiusOffsetMultiplier /
+                          (math.pow(MediaQuery.sizeOf(context).height / mapRadiusReferenceHeight, 2)),
+                    );
 
-                      return JobLocationMap(
-                        location: (latitude: location.latitude, longitude: location.longitude),
-                        areaDiameterInMeters: location.areaRadius.toDouble(),
-                        offset: mapRadiusOffset,
-                      );
-                    },
+                    return JobLocationMap(
+                      location: (latitude: location.latitude, longitude: location.longitude),
+                      areaDiameterInMeters: location.areaRadius.toDouble(),
+                      offset: mapRadiusOffset,
+                    );
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(9),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: FeedJobCard(feedJob: job),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(9),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: FeedJobCard(feedJob: job),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
@@ -102,16 +99,17 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     );
   }
 
-  Widget _buildScrollableState({required Widget child, double topContentInset = 0}) {
+  Widget _buildScrollableState({required Widget child}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
           primary: false,
+          clipBehavior: Clip.none,
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Padding(
-              padding: EdgeInsets.only(
-                top: MateoSearchBarButton.searchBarHeight + topContentInset,
+              padding: const EdgeInsets.only(
+                top: MateoSearchBarButton.searchBarHeight,
                 bottom: MateoSearchBarButton.searchBarHeight,
               ),
               child: Center(child: child),
@@ -125,11 +123,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildLoadMoreError(BuildContext context, VoidCallback retry) {
     final paginationError = ref.read(feedStateProvider).value?.paginationError;
     final i18n = ref.watch(translationProvider);
-    final topContentInset = MediaQuery.paddingOf(context).top + 65;
-
     if (paginationError.isOfflineConnectionDioException) {
       return _buildScrollableState(
-        topContentInset: topContentInset,
         child: OfflineErrorState(
           title: i18n.feed.loadingMore.offline.title,
           description: i18n.feed.loadingMore.offline.description,
@@ -139,7 +134,6 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     }
 
     return _buildScrollableState(
-      topContentInset: topContentInset,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -183,11 +177,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     );
   }
 
-  Widget _buildEnd(BuildContext context, {double topContentInset = 0}) {
+  Widget _buildEnd(BuildContext context) {
     final i18n = ref.watch(translationProvider);
 
     return _buildScrollableState(
-      topContentInset: topContentInset,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -229,37 +222,34 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildInitialLoading(BuildContext context) {
     final colorScheme = context.mateo.colorScheme;
 
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 12, top: 65, right: 12),
-        child: SizedBox.expand(
-          child: ClipRRect(
-            borderRadius: widget.cardBorderRadius,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ColoredBox(
-                  color: colorScheme.map.background,
-                  child: const Padding(padding: EdgeInsets.all(8), child: MateoDotMatrix(radius: 0, dotSize: 1)),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(9),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: FeedJobCard(
-                      feedJob: FeedJobDto.fixture().copyWith(
-                        title: 'Loading your next job',
-                        createdAt: clock.now(),
-                        descriptionSummary: 'Your next job is coming, wait a bit and it will appear...',
-                        payment: JobPaymentDto.fixture().copyWith(minAmount: 1200, type: JobPaymentType.fixed),
-                      ),
-                      skeleton: true,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: SizedBox.expand(
+        child: ClipRRect(
+          borderRadius: widget.cardBorderRadius,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ColoredBox(
+                color: colorScheme.map.background,
+                child: const Padding(padding: EdgeInsets.all(8), child: MateoDotMatrix(radius: 0, dotSize: 1)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(9),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: FeedJobCard(
+                    feedJob: FeedJobDto.fixture().copyWith(
+                      title: 'Loading your next job',
+                      createdAt: clock.now(),
+                      descriptionSummary: 'Your next job is coming, wait a bit and it will appear...',
+                      payment: JobPaymentDto.fixture().copyWith(minAmount: 1200, type: JobPaymentType.fixed),
                     ),
+                    skeleton: true,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
