@@ -96,11 +96,11 @@
       }
     },
     "location": {
-      "title": "Onde vai ser?",
-      "searchPlaceholder": "Rua oscar freire, liberdade, Autódromo de interlagos",
-      "currentLocationTitle": "Usar onde estou agora",
+      "title": "Em que região vai ser?",
+      "searchPlaceholder": "Bairro, região ou ponto de referência",
+      "currentLocationTitle": "Usar minha região de agora",
       "locationPermissionGuidance": "Precisa ativar a localização",
-      "emptyGuidance": "Procura algum lugar pra ver mais",
+      "emptyGuidance": "Procura lugares perto de você",
       "backButtonSemanticLabel": "Voltar"
     }
   },
