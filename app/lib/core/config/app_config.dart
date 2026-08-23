@@ -9,5 +9,11 @@ final class AppConfig {
     _ => throw StateError('Unsupported app flavor: $flavor.'),
   };
 
+  String get geosearchUrl => switch (flavor) {
+    'development' => 'https://staging.geosearch.cataqui.com',
+    'production' => 'https://geosearch.cataqui.com',
+    _ => throw StateError('Unsupported app flavor: $flavor.'),
+  };
+
   bool get isDevelopment => flavor == 'development';
 }

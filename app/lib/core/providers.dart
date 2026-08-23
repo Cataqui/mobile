@@ -5,8 +5,11 @@ import 'package:cataqui_app/core/app_toast.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/network/cataqui_api_v1_dio_factory.dart';
+import 'package:cataqui_app/core/network/geosearch/geosearch_access_token_interceptor.dart';
+import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
 import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
+import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
@@ -102,7 +105,43 @@ Dio authenticatedCataquiApiV1Dio(Ref ref) {
 
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
-  return AuthRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
+  return AuthRepository(
+    authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider),
+    unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider),
+  );
+}
+
+@Riverpod(keepAlive: true)
+Dio geosearchDio(Ref ref) {
+  final appConfig = ref.read(appConfigProvider);
+  final locale = ref.watch(appStateProvider.select((state) => state.currentLocale));
+
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: appConfig.geosearchUrl,
+      connectTimeout: const Duration(seconds: 10),
+      sendTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: <String, String>{
+        Headers.acceptHeader: Headers.jsonContentType,
+        Headers.contentTypeHeader: Headers.jsonContentType,
+        'accept-language': locale.languageTag,
+      },
+    ),
+  );
+  dio.interceptors.add(RateLimitInterceptor());
+  dio.interceptors.add(
+    GeosearchAccessTokenInterceptor(
+      geosearchDio: dio,
+      authRepository: ref.watch(authRepositoryProvider),
+      readAuthenticatedUserId: () => ref.read(appAuthStateProvider)?.userId,
+    ),
+  );
+
+  dio.interceptors.add(OfflineErrorDioInterceptor());
+
+  ref.onDispose(() => dio.close(force: true));
+  return dio;
 }
 
 @Riverpod(keepAlive: true)
@@ -159,6 +198,11 @@ JobRepository jobRepository(Ref ref) {
     authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider),
     unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider),
   );
+}
+
+@Riverpod(keepAlive: true)
+GeosearchRepository geosearchRepository(Ref ref) {
+  return GeosearchRepository(geosearchDio: ref.watch(geosearchDioProvider));
 }
 
 @riverpod

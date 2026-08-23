@@ -168,6 +168,10 @@ widget or model that produces or consumes the data.
 - Extract it when it is reused, represents an independently meaningful domain rule, is required by an API or lifecycle,
   or makes otherwise unclear logic materially easier to understand.
 
+- **Do not create single-use factory classes for providers.** When construction logic is used by exactly one provider,
+  build the dependency directly inside that provider. Extract a factory class only when construction is reused by
+  multiple production callers or the factory owns an independent domain responsibility.
+
 - Do **not** extract a value into a named constant unless it is used in **more than one place**. Single-use values should be inlined directly at the usage site. This avoids unnecessary indirection and keeps the widget code lean.
 - **Use getters directly in `build`:** Do not assign a getter's result to a local variable inside `build` merely to reference that value. Read the getter directly at each usage site instead.
 - **Name your math:** When combining numbers in an expression where each operand's meaning is not immediately obvious (e.g. `width - 30 - 12 - 14 - 26`), extract each operand into a named constant so the expression reads as intent. Simple standalone values like `padding: 24` do not need extraction — the position tells you what the number means.

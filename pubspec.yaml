@@ -8,7 +8,7 @@ workspace:
 
 dev_dependencies:
   build_runner: ^2.15.0
-  dart_husky: ^1.5.0
+  dart_husky: ^1.8.1
   melos: 8.2.2
   very_good_analysis: ^7.0.0
 

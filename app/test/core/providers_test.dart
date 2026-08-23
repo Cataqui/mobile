@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
+import 'package:cataqui_app/core/network/geosearch/geosearch_access_token_interceptor.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
@@ -180,6 +181,113 @@ void main() {
           receiveTimeout: unauthenticatedDio.options.receiveTimeout,
         ),
       );
+    });
+  });
+
+  group('geosearchDioProvider', () {
+    late MockAuthRepository authRepository;
+
+    setUp(() {
+      authRepository = MockAuthRepository();
+    });
+
+    ProviderContainer buildContainer({String? flavor}) {
+      return ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(authRepository),
+          if (flavor != null) appConfigProvider.overrideWithValue(AppConfig(flavor: flavor)),
+        ],
+      );
+    }
+
+    test('when the flavor is development, it should target the staging geosearch worker', () {
+      final container = buildContainer(flavor: 'development');
+      addTearDown(container.dispose);
+
+      final dio = container.read(geosearchDioProvider);
+
+      expect(dio.options.baseUrl, 'https://staging.geosearch.cataqui.com');
+    });
+
+    test('when the flavor is production, it should target the production geosearch worker', () {
+      final container = buildContainer(flavor: 'production');
+      addTearDown(container.dispose);
+
+      final dio = container.read(geosearchDioProvider);
+
+      expect(dio.options.baseUrl, 'https://geosearch.cataqui.com');
+    });
+
+    test('when read, it should use the active locale and network timeouts', () {
+      final container = buildContainer();
+      addTearDown(container.dispose);
+
+      final dio = container.read(geosearchDioProvider);
+
+      expect(
+        (
+          language: dio.options.headers['accept-language'],
+          connectTimeout: dio.options.connectTimeout,
+          sendTimeout: dio.options.sendTimeout,
+          receiveTimeout: dio.options.receiveTimeout,
+        ),
+        (
+          language: 'pt-BR',
+          connectTimeout: const Duration(seconds: 10),
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 30),
+        ),
+      );
+    });
+
+    test('when read, it should authenticate and convert network failures without leaking sensitive traffic', () {
+      final container = buildContainer();
+      addTearDown(container.dispose);
+
+      final dio = container.read(geosearchDioProvider);
+      final accessTokenInterceptor = dio.interceptors.whereType<GeosearchAccessTokenInterceptor>().single;
+
+      expect(
+        (
+          hasAccessToken: dio.interceptors.any((interceptor) => interceptor is GeosearchAccessTokenInterceptor),
+          usesAuthRepository: accessTokenInterceptor.authRepository,
+          hasRateLimit: dio.interceptors.any((interceptor) => interceptor is RateLimitInterceptor),
+          hasOffline: dio.interceptors.any((interceptor) => interceptor is OfflineErrorDioInterceptor),
+          hasCookies: dio.interceptors.any((interceptor) => interceptor is CookieManager),
+          hasLogging: dio.interceptors.any((interceptor) => interceptor is LogInterceptor),
+        ),
+        (
+          hasAccessToken: true,
+          usesAuthRepository: authRepository,
+          hasRateLimit: true,
+          hasOffline: true,
+          hasCookies: false,
+          hasLogging: false,
+        ),
+      );
+    });
+
+    test('when disposed, it should close its geosearch transport', () {
+      final container = buildContainer();
+      final dio = container.read(geosearchDioProvider);
+      final adapter = MockHttpClientAdapter();
+      dio.httpClientAdapter = adapter;
+
+      container.dispose();
+
+      verify(() => adapter.close(force: true)).called(1);
+    });
+  });
+
+  group('geosearchRepositoryProvider', () {
+    test('when read, it should use the authenticated geosearch client', () {
+      final dio = MockDio();
+      final container = ProviderContainer(overrides: [geosearchDioProvider.overrideWithValue(dio)]);
+      addTearDown(container.dispose);
+
+      final repository = container.read(geosearchRepositoryProvider);
+
+      expect(repository.geosearchDio, same(dio));
     });
   });
 

@@ -2,13 +2,19 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
+import 'package:cataqui_app/core/dtos/microservice_access_token_dto.dart';
 import 'package:cataqui_app/core/dtos/registered_auth_intent_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:dio/dio.dart';
 
 class AuthRepository {
-  const AuthRepository({required this.unauthenticatedDio, this.exchangeIntentTimeout = const Duration(seconds: 30)});
+  const AuthRepository({
+    required this.authenticatedDio,
+    required this.unauthenticatedDio,
+    this.exchangeIntentTimeout = const Duration(seconds: 30),
+  });
 
+  final Dio authenticatedDio;
   final Dio unauthenticatedDio;
   final Duration exchangeIntentTimeout;
 
@@ -85,6 +91,15 @@ class AuthRepository {
     return ApiEnvelopeDto<IssuedAuthSessionDto>.fromJson(
       response.data!,
       (json) => IssuedAuthSessionDto.fromJson(json! as Map<String, Object?>),
+    );
+  }
+
+  Future<ApiEnvelopeDto<MicroserviceAccessTokenDto>> createGeosearchAccessToken() async {
+    final response = await authenticatedDio.post<Map<String, Object?>>('/auth/microservices/geosearch');
+
+    return ApiEnvelopeDto<MicroserviceAccessTokenDto>.fromJson(
+      response.data!,
+      (json) => MicroserviceAccessTokenDto.fromJson(json! as Map<String, Object?>),
     );
   }
 }

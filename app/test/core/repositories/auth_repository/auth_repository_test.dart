@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
+import 'package:cataqui_app/core/enums/microservice_access_token_type.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.dart';
 import 'package:dio/dio.dart';
@@ -14,11 +15,13 @@ import '../../../mocks.dart';
 
 void main() {
   late MockDio dio;
+  late MockDio authenticatedDio;
   late AuthRepository repository;
 
   setUp(() {
     dio = MockDio();
-    repository = AuthRepository(unauthenticatedDio: dio);
+    authenticatedDio = MockDio();
+    repository = AuthRepository(authenticatedDio: authenticatedDio, unauthenticatedDio: dio);
     _AuthRepositoryTestData.stubRegisteredAuthIntentRequest(dio: dio);
   });
 
@@ -113,7 +116,11 @@ void main() {
       );
 
       test('when the auth intent stays pending past the exchange deadline, it should throw a timeout', () async {
-        repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: const Duration(milliseconds: 1));
+        repository = AuthRepository(
+          authenticatedDio: authenticatedDio,
+          unauthenticatedDio: dio,
+          exchangeIntentTimeout: const Duration(milliseconds: 1),
+        );
         var requestCount = 0;
         _AuthRepositoryTestData.stubPendingExchangeRequest(dio: dio, onRequest: () => requestCount += 1);
         Object? thrownError;
@@ -131,7 +138,11 @@ void main() {
       });
 
       test('when the exchange deadline has not started, it should keep polling until the session is issued', () async {
-        repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: Duration.zero);
+        repository = AuthRepository(
+          authenticatedDio: authenticatedDio,
+          unauthenticatedDio: dio,
+          exchangeIntentTimeout: Duration.zero,
+        );
         final exchangeTimeoutStart = Completer<void>();
         var requestCount = 0;
         _AuthRepositoryTestData.stubPendingThenIssuedSessionExchangeRequest(
@@ -151,7 +162,11 @@ void main() {
       });
 
       test('when an exchange request succeeds after the deadline, it should return the issued session', () async {
-        repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: Duration.zero);
+        repository = AuthRepository(
+          authenticatedDio: authenticatedDio,
+          unauthenticatedDio: dio,
+          exchangeIntentTimeout: Duration.zero,
+        );
         final responseCompleter = Completer<Response<Map<String, Object?>>>();
         when(
           () => dio.post<Map<String, Object?>>(
@@ -178,7 +193,11 @@ void main() {
       test(
         'when an in-flight exchange fails after the deadline, it should propagate the error without polling again',
         () async {
-          repository = AuthRepository(unauthenticatedDio: dio, exchangeIntentTimeout: Duration.zero);
+          repository = AuthRepository(
+            authenticatedDio: authenticatedDio,
+            unauthenticatedDio: dio,
+            exchangeIntentTimeout: Duration.zero,
+          );
           final terminalError = DioException(
             requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
             response: Response<void>(
@@ -253,16 +272,54 @@ void main() {
         );
       });
     });
+
+    group('createGeosearchAccessToken', () {
+      setUp(() {
+        _AuthRepositoryTestData.stubGeosearchAccessTokenRequest(dio: authenticatedDio);
+      });
+
+      test('when creating geosearch access, it should call the authenticated microservice endpoint', () async {
+        await repository.createGeosearchAccessToken();
+
+        verify(() => authenticatedDio.post<Map<String, Object?>>('/auth/microservices/geosearch')).called(1);
+      });
+
+      test('when geosearch access is issued, it should map the bearer access token', () async {
+        final envelope = await repository.createGeosearchAccessToken();
+
+        expect(
+          (accessToken: envelope.data.accessToken, tokenType: envelope.data.tokenType),
+          (accessToken: 'header.payload.signature', tokenType: MicroserviceAccessTokenType.bearer),
+        );
+      });
+
+      test('when geosearch access is issued, it should map the expiration timestamp', () async {
+        final envelope = await repository.createGeosearchAccessToken();
+
+        expect(envelope.data.expiresAt, DateTime.parse('2026-08-22T15:10:00.000Z'));
+      });
+    });
   });
 
   group('authRepositoryProvider', () {
-    test('when reading the provider, it should use the unauthenticated dio', () {
-      final container = ProviderContainer(overrides: [unauthenticatedCataquiApiV1DioProvider.overrideWithValue(dio)]);
+    test('when reading the provider, it should use both API clients for their matching operations', () {
+      final container = ProviderContainer(
+        overrides: [
+          authenticatedCataquiApiV1DioProvider.overrideWithValue(authenticatedDio),
+          unauthenticatedCataquiApiV1DioProvider.overrideWithValue(dio),
+        ],
+      );
       addTearDown(container.dispose);
 
       final repository = container.read(authRepositoryProvider);
 
-      expect(repository.unauthenticatedDio, same(dio));
+      expect(
+        (
+          usesAuthenticated: identical(repository.authenticatedDio, authenticatedDio),
+          usesUnauthenticated: identical(repository.unauthenticatedDio, dio),
+        ),
+        (usesAuthenticated: true, usesUnauthenticated: true),
+      );
     });
   });
 }
@@ -317,6 +374,17 @@ class _AuthRepositoryTestData {
     'requestId': 'auth-refresh-request-003',
     'timestamp': '2026-08-11T15:00:00.000Z',
     'endpoint': '/v1/auth/sessions/refresh',
+  };
+
+  static final geosearchAccessTokenResponseJson = <String, Object?>{
+    'data': <String, Object?>{
+      'accessToken': 'header.payload.signature',
+      'expiresAt': '2026-08-22T15:10:00.000Z',
+      'tokenType': 'Bearer',
+    },
+    'requestId': 'geosearch-token-request-004',
+    'timestamp': '2026-08-22T15:00:00.000Z',
+    'endpoint': '/v1/auth/microservices/geosearch',
   };
 
   static void stubRegisteredAuthIntentRequest({required MockDio dio}) {
@@ -392,6 +460,15 @@ class _AuthRepositoryTestData {
       (_) async => Response<Map<String, Object?>>(
         data: refreshSessionResponseJson,
         requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
+      ),
+    );
+  }
+
+  static void stubGeosearchAccessTokenRequest({required MockDio dio}) {
+    when(() => dio.post<Map<String, Object?>>('/auth/microservices/geosearch')).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
+        data: geosearchAccessTokenResponseJson,
+        requestOptions: RequestOptions(path: '/auth/microservices/geosearch'),
       ),
     );
   }

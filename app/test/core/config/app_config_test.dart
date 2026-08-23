@@ -21,6 +21,24 @@ void main() {
       expect(() => config.cataquiApiUrl, throwsStateError);
     });
 
+    test('when the flavor is development, it should use the staging geosearch worker', () {
+      const config = AppConfig(flavor: 'development');
+
+      expect(config.geosearchUrl, 'https://staging.geosearch.cataqui.com');
+    });
+
+    test('when the flavor is production, it should use the production geosearch worker', () {
+      const config = AppConfig(flavor: 'production');
+
+      expect(config.geosearchUrl, 'https://geosearch.cataqui.com');
+    });
+
+    test('when the flavor is unsupported, it should reject geosearch URL resolution', () {
+      const config = AppConfig(flavor: 'unsupported');
+
+      expect(() => config.geosearchUrl, throwsStateError);
+    });
+
     test('when the flavor is development, it should enable development behavior', () {
       const config = AppConfig(flavor: 'development');
 
