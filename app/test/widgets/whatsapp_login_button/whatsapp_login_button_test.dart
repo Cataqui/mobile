@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limited_dio_exception.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -62,7 +62,7 @@ void main() {
       (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () => authRepository.exchangeInboundMessageAuthIntent(
+          () => authRepository.exchangeNotpIntent(
             intentToken: WhatsappLoginButtonTestHelpers.intentToken,
             timeoutStart: any(named: 'timeoutStart'),
           ),
@@ -95,7 +95,7 @@ void main() {
       (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () => authRepository.exchangeInboundMessageAuthIntent(
+          () => authRepository.exchangeNotpIntent(
             intentToken: WhatsappLoginButtonTestHelpers.intentToken,
             timeoutStart: any(named: 'timeoutStart'),
           ),
@@ -121,7 +121,7 @@ void main() {
 
     testWidgets('when login preparation fails, it should show an error and enable another attempt', (tester) async {
       when(
-        () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
+        () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
       ).thenThrow(StateError('registration failed'));
       await WhatsappLoginButtonTestHelpers.pumpButton(
         tester: tester,
@@ -141,9 +141,9 @@ void main() {
     });
 
     testWidgets('when login is rate limited, it should ask the person to wait before trying again', (tester) async {
-      when(() => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).thenThrow(
+      when(() => authRepository.createNotpIntent(channel: AuthChannel.whatsapp)).thenThrow(
         RateLimitedDioException(
-          requestOptions: RequestOptions(path: '/auth/inbound-message/intents'),
+          requestOptions: RequestOptions(path: '/auth/notp/intents'),
           retryAfter: const Duration(seconds: 60),
         ),
       );
@@ -233,7 +233,7 @@ void main() {
     ) async {
       final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
       when(
-        () => authRepository.exchangeInboundMessageAuthIntent(
+        () => authRepository.exchangeNotpIntent(
           intentToken: WhatsappLoginButtonTestHelpers.intentToken,
           timeoutStart: any(named: 'timeoutStart'),
         ),

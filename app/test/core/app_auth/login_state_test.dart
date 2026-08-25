@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_auth/login_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
-import 'package:cataqui_app/core/dtos/registered_auth_intent_dto.dart';
+import 'package:cataqui_app/core/dtos/created_notp_intent_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,13 +51,13 @@ void main() {
   });
 
   group('LoginState', () {
-    test('when starting a login, it should register a WhatsApp inbound-message intent', () async {
+    test('when starting a login, it should create a WhatsApp NOTP intent', () async {
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
-      verify(() => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).called(1);
+      verify(() => authRepository.createNotpIntent(channel: AuthChannel.whatsapp)).called(1);
     });
 
-    test('when an intent is registered, it should open its receiver with instructions containing the code', () async {
+    test('when a NOTP intent is created, it should open its receiver with instructions containing the code', () async {
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verify(
@@ -69,7 +69,7 @@ void main() {
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verify(
-        () => authRepository.exchangeInboundMessageAuthIntent(
+        () => authRepository.exchangeNotpIntent(
           intentToken: _LoginStateTestData.intentToken,
           timeoutStart: appReturn.future,
         ),
@@ -102,9 +102,9 @@ void main() {
       );
     });
 
-    test('when intent registration fails, it should expose a retryable error', () async {
+    test('when NOTP intent creation fails, it should expose a retryable error', () async {
       when(
-        () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
+        () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
       ).thenThrow(StateError('registration failed'));
 
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
@@ -130,7 +130,7 @@ void main() {
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
       verifyNever(
-        () => authRepository.exchangeInboundMessageAuthIntent(
+        () => authRepository.exchangeNotpIntent(
           intentToken: any(named: 'intentToken'),
           timeoutStart: any(named: 'timeoutStart'),
         ),
@@ -139,7 +139,7 @@ void main() {
 
     test('when exchange fails before the app returns, it should expose the error only after returning', () async {
       when(
-        () => authRepository.exchangeInboundMessageAuthIntent(
+        () => authRepository.exchangeNotpIntent(
           intentToken: _LoginStateTestData.intentToken,
           timeoutStart: appReturn.future,
         ),
@@ -160,12 +160,12 @@ void main() {
       );
     });
 
-    test('when retrying after a failed attempt, it should register a fresh intent', () async {
+    test('when retrying after a failed attempt, it should create a fresh NOTP intent', () async {
       var registrationCount = 0;
-      when(() => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).thenAnswer((_) async {
+      when(() => authRepository.createNotpIntent(channel: AuthChannel.whatsapp)).thenAnswer((_) async {
         registrationCount += 1;
         if (registrationCount == 1) throw StateError('registration failed');
-        return _LoginStateTestData.registeredIntentEnvelope;
+        return _LoginStateTestData.createdNotpIntentEnvelope;
       });
 
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
@@ -178,27 +178,27 @@ void main() {
 
 abstract final class _LoginStateTestData {
   static const intentToken = 'kJ3YFf0SYkZp6gWlMTq3up5ELXWRw_zTuF8j0M5tJgI';
-  static const code = 'AUTH-K7F9Q2M8VD';
+  static const code = 'NOTP-K7F9Q2M8VD';
   static const codeReceiver = '+5511988887777';
   static const message = 'Entrar com o código $code.\n\nDepois de enviar só voltar pro app e esperar';
-  static final registeredIntentEnvelope = ApiEnvelopeDto.fixture(
-    data: RegisteredAuthIntentDto.fixture().copyWith(intentToken: intentToken, code: code, codeReceiver: codeReceiver),
+  static final createdNotpIntentEnvelope = ApiEnvelopeDto.fixture(
+    data: CreatedNotpIntentDto.fixture().copyWith(intentToken: intentToken, code: code, codeReceiver: codeReceiver),
   );
   static final IssuedAuthSessionDto issuedSession =
-      AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto;
+      NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto;
   static final issuedSessionEnvelope = ApiEnvelopeDto.fixture(data: issuedSession);
   static final authSession = AuthSessionDto.fromIssuedAuthSession(issuedSession);
 
   static void stubSuccessfulRegistration({required MockAuthRepository authRepository, required MockWhatsapp whatsapp}) {
     when(
-      () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
-    ).thenAnswer((_) async => registeredIntentEnvelope);
+      () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
+    ).thenAnswer((_) async => createdNotpIntentEnvelope);
     when(() => whatsapp.launchChat(number: codeReceiver, message: message)).thenAnswer((_) async => true);
   }
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {
     when(
-      () => authRepository.exchangeInboundMessageAuthIntent(
+      () => authRepository.exchangeNotpIntent(
         intentToken: intentToken,
         timeoutStart: any(named: 'timeoutStart'),
       ),

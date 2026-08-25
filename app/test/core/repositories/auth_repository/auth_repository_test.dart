@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/enums/microservice_access_token_type.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -22,81 +22,78 @@ void main() {
     dio = MockDio();
     authenticatedDio = MockDio();
     repository = AuthRepository(authenticatedDio: authenticatedDio, unauthenticatedDio: dio);
-    _AuthRepositoryTestData.stubRegisteredAuthIntentRequest(dio: dio);
+    _AuthRepositoryTestData.stubCreatedNotpIntentRequest(dio: dio);
   });
 
   group('AuthRepository', () {
-    group('registerIntent', () {
-      test('when registering a WhatsApp auth intent, it should post the supported backend channel', () async {
-        await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+    group('createNotpIntent', () {
+      test('when creating a WhatsApp NOTP intent, it should post the supported backend channel', () async {
+        await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
         verify(
-          () => dio.post<Map<String, Object?>>(
-            '/auth/inbound-message/intents',
-            data: <String, String>{'channel': 'WHATSAPP'},
-          ),
+          () => dio.post<Map<String, Object?>>('/auth/notp/intents', data: <String, String>{'channel': 'WHATSAPP'}),
         ).called(1);
       });
 
-      test('when receiving a registered auth intent, it should map the intent token', () async {
-        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+      test('when receiving a created NOTP intent, it should map the intent token', () async {
+        final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.data.intentToken, _AuthRepositoryTestData.intentToken);
       });
 
-      test('when receiving a registered auth intent, it should map the authentication code', () async {
-        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+      test('when receiving a created NOTP intent, it should map the NOTP code', () async {
+        final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
-        expect(envelope.data.code, 'AUTH-K7F9Q2M8VD');
+        expect(envelope.data.code, 'NOTP-K7F9Q2M8VD');
       });
 
-      test('when receiving a registered auth intent, it should map the code receiver', () async {
-        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+      test('when receiving a created NOTP intent, it should map the code receiver', () async {
+        final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.data.codeReceiver, '+5511988887777');
       });
 
-      test('when receiving a registered auth intent, it should map the expiration timestamp', () async {
-        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+      test('when receiving a created NOTP intent, it should map the expiration timestamp', () async {
+        final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.data.expiresAt, DateTime.parse('2026-08-10T15:15:00.000Z'));
       });
 
-      test('when receiving a registered auth intent, it should preserve the request id', () async {
-        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+      test('when receiving a created NOTP intent, it should preserve the request id', () async {
+        final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
-        expect(envelope.requestId, 'auth-intent-request-001');
+        expect(envelope.requestId, 'notp-intent-request-001');
       });
 
-      test('when receiving a registered auth intent, it should preserve the response timestamp', () async {
-        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+      test('when receiving a created NOTP intent, it should preserve the response timestamp', () async {
+        final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
         expect(envelope.timestamp, DateTime.parse('2026-08-10T15:00:00.000Z'));
       });
 
-      test('when receiving a registered auth intent, it should preserve the endpoint', () async {
-        final envelope = await repository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp);
+      test('when receiving a created NOTP intent, it should preserve the endpoint', () async {
+        final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
-        expect(envelope.endpoint, '/v1/auth/inbound-message/intents');
+        expect(envelope.endpoint, '/v1/auth/notp/intents');
       });
     });
 
-    group('exchangeIntent', () {
-      test('when exchanging an auth intent, it should post the intent token to the exchange endpoint', () async {
+    group('exchangeNotpIntent', () {
+      test('when exchanging a NOTP intent, it should post the intent token to the exchange endpoint', () async {
         _AuthRepositoryTestData.stubIssuedSessionExchangeRequest(dio: dio);
 
-        await repository.exchangeInboundMessageAuthIntent(intentToken: _AuthRepositoryTestData.intentToken);
+        await repository.exchangeNotpIntent(intentToken: _AuthRepositoryTestData.intentToken);
 
         verify(
           () => dio.post<Map<String, Object?>>(
-            '/auth/inbound-message/intents/exchange',
+            '/auth/notp/intents/exchange',
             data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
           ),
         ).called(1);
       });
 
       test(
-        'when the auth intent is pending before verification, it should poll and return the issued session',
+        'when the NOTP intent is pending before verification, it should poll and return the issued session',
         () async {
           var requestCount = 0;
           _AuthRepositoryTestData.stubPendingThenIssuedSessionExchangeRequest(
@@ -104,18 +101,16 @@ void main() {
             onRequest: () => requestCount += 1,
           );
 
-          final envelope = await repository.exchangeInboundMessageAuthIntent(
-            intentToken: _AuthRepositoryTestData.intentToken,
-          );
+          final envelope = await repository.exchangeNotpIntent(intentToken: _AuthRepositoryTestData.intentToken);
 
           expect(
             (session: envelope.data, requestCount: requestCount),
-            (session: AuthIntentExchangeResultDto.issuedSessionFixture(), requestCount: 2),
+            (session: NotpIntentExchangeResultDto.issuedSessionFixture(), requestCount: 2),
           );
         },
       );
 
-      test('when the auth intent stays pending past the exchange deadline, it should throw a timeout', () async {
+      test('when the NOTP intent stays pending past the exchange deadline, it should throw a timeout', () async {
         repository = AuthRepository(
           authenticatedDio: authenticatedDio,
           unauthenticatedDio: dio,
@@ -126,7 +121,7 @@ void main() {
         Object? thrownError;
 
         try {
-          await repository.exchangeInboundMessageAuthIntent(intentToken: _AuthRepositoryTestData.intentToken);
+          await repository.exchangeNotpIntent(intentToken: _AuthRepositoryTestData.intentToken);
         } on Object catch (error) {
           thrownError = error;
         }
@@ -150,14 +145,14 @@ void main() {
           onRequest: () => requestCount += 1,
         );
 
-        final envelope = await repository.exchangeInboundMessageAuthIntent(
+        final envelope = await repository.exchangeNotpIntent(
           intentToken: _AuthRepositoryTestData.intentToken,
           timeoutStart: exchangeTimeoutStart.future,
         );
 
         expect(
           (session: envelope.data, requestCount: requestCount),
-          (session: AuthIntentExchangeResultDto.issuedSessionFixture(), requestCount: 2),
+          (session: NotpIntentExchangeResultDto.issuedSessionFixture(), requestCount: 2),
         );
       });
 
@@ -170,12 +165,12 @@ void main() {
         final responseCompleter = Completer<Response<Map<String, Object?>>>();
         when(
           () => dio.post<Map<String, Object?>>(
-            '/auth/inbound-message/intents/exchange',
+            '/auth/notp/intents/exchange',
             data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
           ),
         ).thenAnswer((_) => responseCompleter.future);
 
-        final exchange = repository.exchangeInboundMessageAuthIntent(
+        final exchange = repository.exchangeNotpIntent(
           intentToken: _AuthRepositoryTestData.intentToken,
           timeoutStart: Future<void>.value(),
         );
@@ -183,11 +178,11 @@ void main() {
         responseCompleter.complete(
           Response<Map<String, Object?>>(
             data: _AuthRepositoryTestData.issuedSessionResponseJson,
-            requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+            requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
           ),
         );
 
-        expect((await exchange).data, AuthIntentExchangeResultDto.issuedSessionFixture());
+        expect((await exchange).data, NotpIntentExchangeResultDto.issuedSessionFixture());
       });
 
       test(
@@ -199,9 +194,9 @@ void main() {
             exchangeIntentTimeout: Duration.zero,
           );
           final terminalError = DioException(
-            requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+            requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
             response: Response<void>(
-              requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+              requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
               statusCode: 404,
             ),
           );
@@ -209,7 +204,7 @@ void main() {
           final responseCompleter = Completer<Response<Map<String, Object?>>>();
           when(
             () => dio.post<Map<String, Object?>>(
-              '/auth/inbound-message/intents/exchange',
+              '/auth/notp/intents/exchange',
               data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
             ),
           ).thenAnswer((_) {
@@ -219,7 +214,7 @@ void main() {
           Object? thrownError;
 
           try {
-            final exchange = repository.exchangeInboundMessageAuthIntent(
+            final exchange = repository.exchangeNotpIntent(
               intentToken: _AuthRepositoryTestData.intentToken,
               timeoutStart: Future<void>.value(),
             );
@@ -332,13 +327,13 @@ class _AuthRepositoryTestData {
   static final responseJson = <String, Object?>{
     'data': <String, Object?>{
       'intentToken': intentToken,
-      'code': 'AUTH-K7F9Q2M8VD',
+      'code': 'NOTP-K7F9Q2M8VD',
       'codeReceiver': '+5511988887777',
       'expiresAt': '2026-08-10T15:15:00.000Z',
     },
-    'requestId': 'auth-intent-request-001',
+    'requestId': 'notp-intent-request-001',
     'timestamp': '2026-08-10T15:00:00.000Z',
-    'endpoint': '/v1/auth/inbound-message/intents',
+    'endpoint': '/v1/auth/notp/intents',
   };
 
   static final issuedSessionResponseJson = <String, Object?>{
@@ -350,16 +345,16 @@ class _AuthRepositoryTestData {
       'refreshExpiresAt': '2026-09-09T15:15:00.000Z',
       'userId': '4963fef0-b62a-4760-9f99-675fdc42a896',
     },
-    'requestId': 'auth-exchange-request-002',
+    'requestId': 'notp-exchange-request-002',
     'timestamp': '2026-08-10T15:00:01.000Z',
-    'endpoint': '/v1/auth/inbound-message/intents/exchange',
+    'endpoint': '/v1/auth/notp/intents/exchange',
   };
 
   static final pendingResponseJson = <String, Object?>{
     'data': <String, Object?>{'status': 'PENDING', 'retryAfterSeconds': 1},
-    'requestId': 'auth-exchange-request-001',
+    'requestId': 'notp-exchange-request-001',
     'timestamp': '2026-08-10T15:00:00.000Z',
-    'endpoint': '/v1/auth/inbound-message/intents/exchange',
+    'endpoint': '/v1/auth/notp/intents/exchange',
   };
 
   static final refreshSessionResponseJson = <String, Object?>{
@@ -387,16 +382,13 @@ class _AuthRepositoryTestData {
     'endpoint': '/v1/auth/microservices/geosearch',
   };
 
-  static void stubRegisteredAuthIntentRequest({required MockDio dio}) {
+  static void stubCreatedNotpIntentRequest({required MockDio dio}) {
     when(
-      () => dio.post<Map<String, Object?>>(
-        '/auth/inbound-message/intents',
-        data: <String, String>{'channel': 'WHATSAPP'},
-      ),
+      () => dio.post<Map<String, Object?>>('/auth/notp/intents', data: <String, String>{'channel': 'WHATSAPP'}),
     ).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: responseJson,
-        requestOptions: RequestOptions(path: '/auth/inbound-message/intents'),
+        requestOptions: RequestOptions(path: '/auth/notp/intents'),
       ),
     );
   }
@@ -404,13 +396,13 @@ class _AuthRepositoryTestData {
   static void stubIssuedSessionExchangeRequest({required MockDio dio}) {
     when(
       () => dio.post<Map<String, Object?>>(
-        '/auth/inbound-message/intents/exchange',
+        '/auth/notp/intents/exchange',
         data: <String, String>{'intentToken': intentToken},
       ),
     ).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: issuedSessionResponseJson,
-        requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+        requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
       ),
     );
   }
@@ -419,7 +411,7 @@ class _AuthRepositoryTestData {
     var isFirstRequest = true;
     when(
       () => dio.post<Map<String, Object?>>(
-        '/auth/inbound-message/intents/exchange',
+        '/auth/notp/intents/exchange',
         data: <String, String>{'intentToken': intentToken},
       ),
     ).thenAnswer((_) async {
@@ -429,7 +421,7 @@ class _AuthRepositoryTestData {
 
       return Response<Map<String, Object?>>(
         data: responseData,
-        requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+        requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
       );
     });
   }
@@ -437,7 +429,7 @@ class _AuthRepositoryTestData {
   static void stubPendingExchangeRequest({required MockDio dio, required void Function() onRequest}) {
     when(
       () => dio.post<Map<String, Object?>>(
-        '/auth/inbound-message/intents/exchange',
+        '/auth/notp/intents/exchange',
         data: <String, String>{'intentToken': intentToken},
       ),
     ).thenAnswer((_) async {
@@ -445,7 +437,7 @@ class _AuthRepositoryTestData {
 
       return Response<Map<String, Object?>>(
         data: pendingResponseJson,
-        requestOptions: RequestOptions(path: '/auth/inbound-message/intents/exchange'),
+        requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
       );
     });
   }

@@ -4,8 +4,8 @@ import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_credentials_dto.dart';
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
@@ -149,7 +149,7 @@ void main() {
       var loginRequestCount = 0;
       when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
         refreshRequestCount += 1;
-        return ApiEnvelopeDto.fixture(data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
+        return ApiEnvelopeDto.fixture(data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
       });
       when(loginSheetController.show).thenAnswer((_) async {
         loginRequestCount += 1;
@@ -181,7 +181,7 @@ void main() {
       var loginRequestCount = 0;
       when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
         refreshRequestCount += 1;
-        return ApiEnvelopeDto.fixture(data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
+        return ApiEnvelopeDto.fixture(data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
       });
       when(loginSheetController.show).thenAnswer((_) async {
         loginRequestCount += 1;
@@ -339,7 +339,7 @@ void main() {
         when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
           refreshRequestCount += 1;
           return ApiEnvelopeDto.fixture(
-            data: AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
+            data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
           );
         });
         when(loginSheetController.show).thenAnswer((_) async {
@@ -514,7 +514,7 @@ void main() {
         refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
       );
       await container.read(appStorageStateProvider.notifier).setAuthCredentials(credentials: storedCredentials);
-      final issuedSession = AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto;
+      final issuedSession = NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto;
       final responseCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
       var refreshRequestCount = 0;
       when(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).thenAnswer((_) {

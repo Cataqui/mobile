@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'auth_session_dto.freezed.dart';

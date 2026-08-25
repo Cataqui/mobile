@@ -15,7 +15,7 @@ class LoginState extends _$LoginState {
   @override
   AsyncValue<AuthSessionDto?> build() => const AsyncData(null);
 
-  bool get isExchangingIntent => _isExchangeActive;
+  bool get isExchangingNotpIntent => _isExchangeActive;
 
   Future<void> loginWithWhatsapp({required Future<void> appReturn}) async {
     try {
@@ -24,8 +24,7 @@ class LoginState extends _$LoginState {
       _isExchangeActive = false;
       state = const AsyncLoading();
 
-      final intent =
-          (await ref.read(authRepositoryProvider).registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp)).data;
+      final intent = (await ref.read(authRepositoryProvider).createNotpIntent(channel: AuthChannel.whatsapp)).data;
 
       final didOpenWhatsapp = await ref
           .read(whatsappProvider)
@@ -38,7 +37,7 @@ class LoginState extends _$LoginState {
       if (!ref.mounted) return;
 
       _isExchangeActive = true;
-      unawaited(_exchangeIntent(intentToken: intent.intentToken, appReturn: appReturn));
+      unawaited(_exchangeNotpIntent(intentToken: intent.intentToken, appReturn: appReturn));
     } on Object catch (error, stackTrace) {
       if (!ref.mounted) return;
 
@@ -46,11 +45,11 @@ class LoginState extends _$LoginState {
     }
   }
 
-  Future<void> _exchangeIntent({required String intentToken, required Future<void> appReturn}) async {
+  Future<void> _exchangeNotpIntent({required String intentToken, required Future<void> appReturn}) async {
     try {
       final exchangeEnvelope = await ref
           .read(authRepositoryProvider)
-          .exchangeInboundMessageAuthIntent(intentToken: intentToken, timeoutStart: appReturn);
+          .exchangeNotpIntent(intentToken: intentToken, timeoutStart: appReturn);
 
       final session = AuthSessionDto.fromIssuedAuthSession(exchangeEnvelope.data);
       await appReturn;

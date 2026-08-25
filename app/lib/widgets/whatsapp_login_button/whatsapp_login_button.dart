@@ -45,7 +45,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
       if (!mounted) return;
 
       final loginState = ref.read(loginStateProvider.notifier);
-      if (!loginState.isExchangingIntent) return;
+      if (!loginState.isExchangingNotpIntent) return;
 
       _isCheckingToastVisible = true;
       ref
@@ -127,7 +127,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
 
     final loginState = ref.read(loginStateProvider.notifier);
     final appReturn = _appReturnCompleter;
-    if (!loginState.isExchangingIntent || appReturn == null || appReturn.isCompleted) return;
+    if (!loginState.isExchangingNotpIntent || appReturn == null || appReturn.isCompleted) return;
 
     appReturn.complete();
     _scheduleCheckingToast();

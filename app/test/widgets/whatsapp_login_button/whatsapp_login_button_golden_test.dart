@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
-import 'package:cataqui_app/core/dtos/registered_auth_intent_dto.dart';
+import 'package:cataqui_app/core/dtos/created_notp_intent_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
 import 'package:flutter/widgets.dart';
@@ -38,8 +38,8 @@ void main() {
       constraints: const BoxConstraints.tightFor(width: 390, height: 220),
       whilePerforming: (tester) async {
         when(
-          () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
-        ).thenAnswer((_) => Completer<ApiEnvelopeDto<RegisteredAuthIntentDto>>().future);
+          () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
+        ).thenAnswer((_) => Completer<ApiEnvelopeDto<CreatedNotpIntentDto>>().future);
         await tester.tap(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
         await tester.pump();
 
@@ -55,7 +55,7 @@ void main() {
       whilePerforming: (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () => authRepository.exchangeInboundMessageAuthIntent(
+          () => authRepository.exchangeNotpIntent(
             intentToken: WhatsappLoginButtonTestHelpers.intentToken,
             timeoutStart: any(named: 'timeoutStart'),
           ),
@@ -75,7 +75,7 @@ void main() {
       constraints: const BoxConstraints.tightFor(width: 390, height: 220),
       whilePerforming: (tester) async {
         when(
-          () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
+          () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
         ).thenThrow(StateError('registration failed'));
         await tester.tap(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
         await tester.pump();

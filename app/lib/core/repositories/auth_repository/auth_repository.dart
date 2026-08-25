@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
+import 'package:cataqui_app/core/dtos/created_notp_intent_dto.dart';
 import 'package:cataqui_app/core/dtos/microservice_access_token_dto.dart';
-import 'package:cataqui_app/core/dtos/registered_auth_intent_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:dio/dio.dart';
 
@@ -18,25 +18,23 @@ class AuthRepository {
   final Dio unauthenticatedDio;
   final Duration exchangeIntentTimeout;
 
-  Future<ApiEnvelopeDto<RegisteredAuthIntentDto>> registerInboundMessageAuthIntent({
-    required AuthChannel channel,
-  }) async {
-    final inboundMessageAuthChannel = switch (channel) {
+  Future<ApiEnvelopeDto<CreatedNotpIntentDto>> createNotpIntent({required AuthChannel channel}) async {
+    final notpChannel = switch (channel) {
       AuthChannel.whatsapp => 'WHATSAPP',
     };
 
     final response = await unauthenticatedDio.post<Map<String, Object?>>(
-      '/auth/inbound-message/intents',
-      data: <String, String>{'channel': inboundMessageAuthChannel},
+      '/auth/notp/intents',
+      data: <String, String>{'channel': notpChannel},
     );
 
-    return ApiEnvelopeDto<RegisteredAuthIntentDto>.fromJson(
+    return ApiEnvelopeDto<CreatedNotpIntentDto>.fromJson(
       response.data!,
-      (json) => RegisteredAuthIntentDto.fromJson(json! as Map<String, Object?>),
+      (json) => CreatedNotpIntentDto.fromJson(json! as Map<String, Object?>),
     );
   }
 
-  Future<ApiEnvelopeDto<IssuedAuthSessionDto>> exchangeInboundMessageAuthIntent({
+  Future<ApiEnvelopeDto<IssuedAuthSessionDto>> exchangeNotpIntent({
     required String intentToken,
     Future<void>? timeoutStart,
   }) async {
@@ -50,22 +48,22 @@ class AuthRepository {
 
     while (true) {
       final response = await unauthenticatedDio.post<Map<String, Object?>>(
-        '/auth/inbound-message/intents/exchange',
+        '/auth/notp/intents/exchange',
         data: <String, String>{'intentToken': intentToken},
       );
 
-      final envelope = ApiEnvelopeDto<AuthIntentExchangeResultDto>.fromJson(
+      final envelope = ApiEnvelopeDto<NotpIntentExchangeResultDto>.fromJson(
         response.data!,
-        (json) => AuthIntentExchangeResultDto.fromApiJson(json! as Map<String, Object?>),
+        (json) => NotpIntentExchangeResultDto.fromApiJson(json! as Map<String, Object?>),
       );
 
       switch (envelope.data) {
-        case PendingAuthIntentExchangeDto(:final retryAfterSeconds):
+        case PendingNotpIntentExchangeDto(:final retryAfterSeconds):
           await Future<void>.delayed(Duration(seconds: retryAfterSeconds));
 
           if (exchangeStopwatch.isRunning && exchangeStopwatch.elapsed >= exchangeIntentTimeout) {
             throw TimeoutException(
-              'Auth intent exchange did not complete within $exchangeIntentTimeout.',
+              'NOTP intent exchange did not complete within $exchangeIntentTimeout.',
               exchangeIntentTimeout,
             );
           }

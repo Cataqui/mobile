@@ -1,7 +1,7 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/auth_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
-import 'package:cataqui_app/core/dtos/registered_auth_intent_dto.dart';
+import 'package:cataqui_app/core/dtos/created_notp_intent_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -15,16 +15,16 @@ import '../../utils/test_app.dart';
 
 abstract final class WhatsappLoginButtonTestHelpers {
   static const intentToken = 'kJ3YFf0SYkZp6gWlMTq3up5ELXWRw_zTuF8j0M5tJgI';
-  static const code = 'AUTH-K7F9Q2M8VD';
+  static const code = 'NOTP-K7F9Q2M8VD';
   static const codeReceiver = '+5511988887777';
   static const message = 'Entrar com o código $code.\n\nDepois de enviar só voltar pro app e esperar';
   static const buttonKey = ValueKey('whatsapp_login_button_action');
 
-  static final registeredIntentEnvelope = ApiEnvelopeDto.fixture(
-    data: RegisteredAuthIntentDto.fixture().copyWith(intentToken: intentToken, code: code, codeReceiver: codeReceiver),
+  static final createdNotpIntentEnvelope = ApiEnvelopeDto.fixture(
+    data: CreatedNotpIntentDto.fixture().copyWith(intentToken: intentToken, code: code, codeReceiver: codeReceiver),
   );
   static final IssuedAuthSessionDto issuedSession =
-      AuthIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto;
+      NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto;
   static final issuedSessionEnvelope = ApiEnvelopeDto.fixture(data: issuedSession);
   static final authSession = AuthSessionDto.fromIssuedAuthSession(issuedSession);
 
@@ -66,14 +66,14 @@ abstract final class WhatsappLoginButtonTestHelpers {
 
   static void stubSuccessfulRegistration({required MockAuthRepository authRepository, required MockWhatsapp whatsapp}) {
     when(
-      () => authRepository.registerInboundMessageAuthIntent(channel: AuthChannel.whatsapp),
-    ).thenAnswer((_) async => registeredIntentEnvelope);
+      () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
+    ).thenAnswer((_) async => createdNotpIntentEnvelope);
     when(() => whatsapp.launchChat(number: codeReceiver, message: message)).thenAnswer((_) async => true);
   }
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {
     when(
-      () => authRepository.exchangeInboundMessageAuthIntent(
+      () => authRepository.exchangeNotpIntent(
         intentToken: intentToken,
         timeoutStart: any(named: 'timeoutStart'),
       ),
