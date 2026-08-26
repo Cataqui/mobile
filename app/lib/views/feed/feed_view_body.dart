@@ -40,7 +40,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   Widget _buildFeedContent(BuildContext context, FeedData feedData) {
     if (feedData.isEmpty) return _buildEnd(context);
 
-    final colorScheme = context.mateo.colorScheme;
+    final mapColorScheme = JobLocationMapColorScheme.fromBrightness(
+      brightness: Theme.of(context).brightness,
+      palette: context.mateo.palette,
+    );
 
     return MateoYSnapList<FeedJobDto>(
       spacing: 10,
@@ -66,7 +69,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                   listenable: _currentMapIndexNotifier,
                   builder: (context, _) {
                     if ((index - _currentMapIndexNotifier.value).abs() > 1) {
-                      return ColoredBox(color: colorScheme.map.background);
+                      return ColoredBox(color: mapColorScheme.background);
                     }
 
                     const mapRadiusOffsetMultiplier = 1000;
@@ -220,7 +223,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   }
 
   Widget _buildInitialLoading(BuildContext context) {
-    final colorScheme = context.mateo.colorScheme;
+    final mapColorScheme = JobLocationMapColorScheme.fromBrightness(
+      brightness: Theme.of(context).brightness,
+      palette: context.mateo.palette,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -231,8 +237,8 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             fit: StackFit.expand,
             children: [
               ColoredBox(
-                color: colorScheme.map.background,
-                child: const Padding(padding: EdgeInsets.all(8), child: MateoDotMatrix(radius: 0, dotSize: 1)),
+                color: mapColorScheme.background,
+                child: const Padding(padding: EdgeInsets.all(8)),
               ),
               Padding(
                 padding: const EdgeInsets.all(9),

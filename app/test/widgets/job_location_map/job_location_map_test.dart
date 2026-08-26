@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
+import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,16 +25,25 @@ class _JobLocationMapTestHelpers {
     Offset offset = Offset.zero,
   }) {
     return TestApp.screen(
-      child: Center(
-        child: SizedBox(
-          width: 320,
-          height: 240,
-          child: JobLocationMap(
-            location: location,
-            areaDiameterInMeters: areaDiameterInMeters,
-            zoom: zoom,
-            offset: offset,
-          ),
+      child: buildBareMap(location: location, areaDiameterInMeters: areaDiameterInMeters, zoom: zoom, offset: offset),
+    );
+  }
+
+  static Widget buildBareMap({
+    ({double latitude, double longitude}) location = testLocation,
+    double areaDiameterInMeters = testAreaDiameterInMeters,
+    double zoom = 14,
+    Offset offset = Offset.zero,
+  }) {
+    return Center(
+      child: SizedBox(
+        width: 320,
+        height: 240,
+        child: JobLocationMap(
+          location: location,
+          areaDiameterInMeters: areaDiameterInMeters,
+          zoom: zoom,
+          offset: offset,
         ),
       ),
     );
@@ -97,32 +107,35 @@ void main() {
       expect(renderer.lastMapObjects.circles.single.radius, 700);
     });
 
-    testWidgets('when rendering the approximate area, it should use the Mateo location radius token', (tester) async {
+    testWidgets('when rendering the approximate area, it should use the Cataquí location radius color', (tester) async {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
-      final mapColorScheme = tester.element(find.byType(JobLocationMap)).mateo.colorScheme.map;
 
-      expect(renderer.lastMapObjects.circles.single.fillColor, mapColorScheme.locationRadius);
+      expect(
+        renderer.lastMapObjects.circles.single.fillColor,
+        JobLocationMapColorScheme.light(palette: MateoPalette()).locationRadius,
+      );
     });
 
     testWidgets('when rendering the approximate area, it should omit a visible circle outline', (tester) async {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
-      final mapColorScheme = tester.element(find.byType(JobLocationMap)).mateo.colorScheme.map;
       final circle = renderer.lastMapObjects.circles.single;
 
       expect(
         (strokeColor: circle.strokeColor, strokeWidth: circle.strokeWidth),
-        (strokeColor: mapColorScheme.locationRadius.withValues(alpha: 0), strokeWidth: 0),
+        (
+          strokeColor: JobLocationMapColorScheme.light(palette: MateoPalette()).locationRadius.withValues(alpha: 0),
+          strokeWidth: 0,
+        ),
       );
     });
 
-    testWidgets('when the native map is still rendering, it should use the Mateo map background natively', (
+    testWidgets('when the native map is still rendering, it should use the Cataquí map background natively', (
       tester,
     ) async {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
-      final mapColorScheme = tester.element(find.byType(JobLocationMap)).mateo.colorScheme.map;
       final googleMap = tester.widget<GoogleMap>(find.byType(GoogleMap));
 
-      expect(googleMap.backgroundColor, mapColorScheme.background);
+      expect(googleMap.backgroundColor, JobLocationMapColorScheme.light(palette: MateoPalette()).background);
     });
 
     testWidgets('when no visual offset is supplied, it should account for attribution padding at the default zoom', (
@@ -237,7 +250,48 @@ void main() {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
       final style = renderer.lastMapConfiguration.style!;
 
-      expect(style, JobLocationMapStyle.googleMapsJson);
+      expect(
+        style,
+        JobLocationMapStyle.fromColorScheme(
+          colorScheme: JobLocationMapColorScheme.light(palette: MateoPalette()),
+        ).googleMapsJson,
+      );
+    });
+
+    testWidgets('when the active light theme changes, it should preserve the native map identity', (tester) async {
+      final mateoTheme = MateoTheme.light(
+        accentColor: const Color(0xFFFF4A4B),
+        onAccent: const Color(0xFFFFFFFF),
+      ).lightTheme;
+      final theme = ValueNotifier<ThemeData>(mateoTheme);
+      addTearDown(theme.dispose);
+      await tester.pumpWidget(
+        ValueListenableBuilder<ThemeData>(
+          valueListenable: theme,
+          builder: (context, value, child) => MaterialApp(theme: value, home: child),
+          child: _JobLocationMapTestHelpers.buildBareMap(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      theme.value = mateoTheme.copyWith(scaffoldBackgroundColor: const Color(0xFFF0F0F0));
+      await tester.pumpAndSettle();
+
+      expect(renderer.createdIds.toSet(), hasLength(1));
+    });
+
+    testWidgets('when the active theme is dark, it should reject the unsupported map appearance', (tester) async {
+      final lightTheme = MateoTheme.light(
+        accentColor: const Color(0xFFFF4A4B),
+        onAccent: const Color(0xFFFFFFFF),
+      ).lightTheme;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: lightTheme.copyWith(colorScheme: lightTheme.colorScheme.copyWith(brightness: Brightness.dark)),
+          home: _JobLocationMapTestHelpers.buildBareMap(),
+        ),
+      );
+
+      expect(tester.takeException(), isA<UnsupportedError>());
     });
 
     testWidgets('when rendering the decorative map, it should ignore pointer input', (tester) async {

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,11 @@ class JobLocationMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.mateo.colorScheme.map;
+    final colorScheme = JobLocationMapColorScheme.fromBrightness(
+      brightness: Theme.of(context).brightness,
+      palette: context.mateo.palette,
+    );
+    final style = JobLocationMapStyle.fromColorScheme(colorScheme: colorScheme);
     final mapKey = (location, areaDiameterInMeters, zoom, offset, mapPadding);
 
     return ColoredBox(
@@ -60,7 +65,7 @@ class JobLocationMap extends StatelessWidget {
           child: GoogleMap(
             key: ValueKey<Object>(mapKey),
             initialCameraPosition: CameraPosition(target: _cameraTarget(), zoom: zoom),
-            style: JobLocationMapStyle.googleMapsJson,
+            style: style.googleMapsJson,
             backgroundColor: colorScheme.background,
             mapType: MapType.normal,
             minMaxZoomPreference: MinMaxZoomPreference(zoom, zoom),
