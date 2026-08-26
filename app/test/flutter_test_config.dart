@@ -12,12 +12,13 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   (binding as dynamic).defaultTestTimeout = const test_package.Timeout(Duration(seconds: 10));
 
   final isRunningInCi = Platform.environment['CI'] == 'true';
+  final mateoTheme = MateoTheme.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
   await _loadMateoFonts();
 
   return AlchemistConfig.runWithConfig(
     config: AlchemistConfig(
-      theme: MateoTheme.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF)),
-      platformGoldensConfig: PlatformGoldensConfig(enabled: !isRunningInCi, theme: MateoTheme.light()),
+      theme: mateoTheme.lightTheme,
+      platformGoldensConfig: PlatformGoldensConfig(enabled: !isRunningInCi, theme: mateoTheme.lightTheme),
       ciGoldensConfig: CiGoldensConfig(diffThreshold: isRunningInCi ? 0.03 : 0),
     ),
     run: testMain,
