@@ -1,7 +1,6 @@
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +11,7 @@ abstract final class AppBootstrap {
   static Future<void> setup({required ProviderContainer providerContainer}) async {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    await Future.wait([_warmUpGoogleMaps(), Future<String>.value(JobLocationMapStyle.googleMapsJson)]);
+    await _warmUpGoogleMaps();
 
     // Block until essential providers are loaded (fail-fatal on error).
     await Future.wait([
