@@ -32,12 +32,7 @@ class _FeedJobCardTestHelpers {
             currency: 'BRL',
             note: '',
           ),
-      location: const FeedJobLocationDto(
-        neighborhood: 'Pinheiros',
-        latitude: -23.556391,
-        longitude: -46.844076,
-        areaRadius: 2000,
-      ),
+      location: const FeedJobLocationDto(latitude: -23.556391, longitude: -46.844076, areaRadius: 2000),
       descriptionSummary: descriptionSummary ?? 'Experiente em atendimento ao cliente.',
     );
   }

@@ -181,7 +181,7 @@ class JobView extends ConsumerWidget {
                         loading: () => Motion(
                           effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
                           child: MateoSkeleton(
-                            style: const MateoSkeletonStyle(effect: MateoSkeletonFadeEffect()),
+                            effect: MateoSkeletonEffect.fade,
                             child: Text(
                               JobDto.fixture().description,
                               style: TextStyle(

@@ -1,6 +1,10 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/dtos/address_search_attribution_dto.dart';
+import 'package:cataqui_app/core/dtos/address_search_response_dto.dart';
+import 'package:cataqui_app/core/dtos/address_suggestion_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/create_job_data.dart';
@@ -19,6 +23,26 @@ import 'create_job_test_state.dart';
 
 abstract final class CreateJobViewTestHelpers {
   static const openButtonKey = ValueKey('open_create_job');
+  static const addressSearchResponse = AddressSearchResponseDto(
+    suggestions: <AddressSuggestionDto>[
+      AddressSuggestionDto(
+        addressId: 'address-id-123',
+        fullText: 'Avenida Paulista, Bela Vista, São Paulo - SP, Brasil',
+        primaryText: 'Avenida Paulista',
+        secondaryText: 'Bela Vista, São Paulo - SP, Brasil',
+      ),
+      AddressSuggestionDto(
+        addressId: 'address-id-456',
+        fullText: 'Rua Augusta, Consolação, São Paulo - SP, Brasil',
+        primaryText: 'Rua Augusta',
+      ),
+    ],
+    attribution: AddressSearchAttributionDto(text: 'Google Maps'),
+  );
+  static const emptyAddressSearchResponse = AddressSearchResponseDto(
+    suggestions: <AddressSuggestionDto>[],
+    attribution: AddressSearchAttributionDto(text: 'Google Maps'),
+  );
 
   static Future<void> precachePaymentImages(WidgetTester tester) async {
     await tester.runAsync(
@@ -86,6 +110,7 @@ abstract final class CreateJobViewTestHelpers {
     bool disableAnimations = true,
     bool useViewMediaQuery = false,
     CreateJobData? initialCreateJobData,
+    GeosearchRepository? geosearchRepository,
     JobRepository? jobRepository,
   }) async {
     tester.view
@@ -105,6 +130,7 @@ abstract final class CreateJobViewTestHelpers {
         disableAnimations: disableAnimations,
         useViewMediaQuery: useViewMediaQuery,
         initialCreateJobData: initialCreateJobData,
+        geosearchRepository: geosearchRepository,
         jobRepository: jobRepository,
       ),
     );
@@ -121,6 +147,7 @@ abstract final class CreateJobViewTestHelpers {
     bool disableAnimations = true,
     bool useViewMediaQuery = false,
     CreateJobData? initialCreateJobData,
+    GeosearchRepository? geosearchRepository,
     JobRepository? jobRepository,
   }) {
     final routeObserver = RouteObserver<ModalRoute<void>>();
@@ -140,6 +167,7 @@ abstract final class CreateJobViewTestHelpers {
       providerOverrides: [
         translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
         routeObserverProvider.overrideWithValue(routeObserver),
+        if (geosearchRepository != null) geosearchRepositoryProvider.overrideWithValue(geosearchRepository),
         if (jobRepository != null) jobRepositoryProvider.overrideWithValue(jobRepository),
         if (initialCreateJobData != null)
           createJobStateProvider.overrideWith(() => CreateJobTestState(initialData: initialCreateJobData)),

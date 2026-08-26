@@ -21,11 +21,7 @@ final class CataquiApiV1DioFactory {
         connectTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 30),
-        headers: <String, String>{
-          Headers.acceptHeader: Headers.jsonContentType,
-          Headers.contentTypeHeader: Headers.jsonContentType,
-          'accept-language': languageTag,
-        },
+        headers: <String, String>{Headers.acceptHeader: Headers.jsonContentType, 'accept-language': languageTag},
       ),
     );
 

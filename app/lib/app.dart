@@ -16,7 +16,7 @@ class CataquiApp extends ConsumerWidget {
 
     return MateoApp.router(
       title: i18n.app.name,
-      color: (accent: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF)),
+      theme: MateoTheme.adaptive(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF)),
       routerConfig: goRouter,
       debugShowCheckedModeBanner: true,
       locale: Locale.fromSubtags(

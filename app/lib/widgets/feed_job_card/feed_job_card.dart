@@ -45,7 +45,7 @@ class FeedJobCard extends ConsumerWidget {
         ),
         padding: const EdgeInsets.all(24),
         child: MateoSkeleton(
-          style: const MateoSkeletonStyle(effect: MateoSkeletonFadeEffect(duration: Duration(seconds: 2))),
+          effect: MateoSkeletonEffect.fade,
           enabled: skeleton,
           child: Morph(
             tag: headerMorphTag,
