@@ -102,64 +102,65 @@ class JobView extends ConsumerWidget {
                     Morph(
                       tag: headerMorphTag,
                       curve: JobSurface.morphCurve,
-                      switchThreshold: 0.3,
+                      switchThreshold: 0.1,
                       onEnd: HapticFeedback.lightImpact,
                       child: Column(
                         key: ValueKey(headerMorphTag),
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
+                              onNow: () => i18n.feedJob.timeAgo.now,
+                              onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                              onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                              onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                              onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                              fallback: TimeAgoFallback.finer,
+                            ),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.text.secondary,
+                            ),
+                          ),
                           Padding(
-                            key: const ValueKey('job_time'),
-                            padding: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.only(top: 4),
                             child: Text(
-                              (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
-                                onNow: () => i18n.feedJob.timeAgo.now,
-                                onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
-                                onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
-                                onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
-                                onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                                fallback: TimeAgoFallback.finer,
-                              ),
+                              feedJob?.title ?? jobData!.job.title,
+                              key: const ValueKey('job_title'),
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: colorScheme.text.secondary,
+                                fontSize: 34,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.text.primary,
+                                height: 1.2, // arrumar height + sapcing
                               ),
                             ),
                           ),
                           Text(
-                            feedJob?.title ?? jobData!.job.title,
-                            key: const ValueKey('job_title'),
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.text.primary,
-                            ),
-                          ),
-                          Padding(
                             key: const ValueKey('job_payment'),
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Text(
-                              (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
-                              style: TextStyle(
-                                fontSize: 30,
-                                color: colorScheme.text.profit,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
+                            style: TextStyle(
+                              fontSize: 30,
+                              color: colorScheme.text.profit,
+                              fontWeight: FontWeight.w600,
+                              height: 1.3,
                             ),
                           ),
                           if (jobData != null)
-                            Motion(
-                              effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
-                              child: Text(
-                                jobData.job.description,
-                                key: const ValueKey('job_description'),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: colorScheme.text.secondary,
-                                  fontWeight: FontWeight.w500,
+                            Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Motion(
+                                effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
+                                child: Text(
+                                  jobData.job.description,
+                                  key: const ValueKey('job_description'),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: colorScheme.text.secondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
@@ -178,17 +179,14 @@ class JobView extends ConsumerWidget {
                             ),
                           );
                         },
-                        loading: () => Motion(
-                          effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
-                          child: MateoSkeleton(
-                            effect: MateoSkeletonEffect.fade,
-                            child: Text(
-                              JobDto.fixture().description,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: colorScheme.text.secondary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                        loading: () => MateoSkeleton(
+                          effect: MateoSkeletonEffect.fade,
+                          child: Text(
+                            JobDto.fixture().description,
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: colorScheme.text.secondary,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
