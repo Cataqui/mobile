@@ -144,6 +144,66 @@ void main() {
   });
 
   group('LoginSheetController', () {
+    testWidgets(
+      'when a keyboard inset is present, it should keep focus away during a cancelled drag and restore it after dismissal',
+      (tester) async {
+        final navigatorKey = GlobalKey<NavigatorState>();
+        final focusNode = FocusNode();
+        addTearDown(focusNode.dispose);
+        addTearDown(tester.view.reset);
+        tester.view
+          ..devicePixelRatio = 1
+          ..physicalSize = const Size(390, 844)
+          ..viewInsets = const FakeViewPadding(bottom: 300);
+        await tester.pumpWidget(
+          TestApp(
+            navigatorKey: navigatorKey,
+            providerOverrides: [
+              translationProvider.overrideWithValue(i18n),
+              authRepositoryProvider.overrideWithValue(authRepository),
+              whatsappProvider.overrideWithValue(whatsapp),
+            ],
+            child: TextField(focusNode: focusNode, autofocus: true),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final controller = LoginSheetController(navigatorKey);
+
+        final presentation = controller.show();
+        await tester.pumpAndSettle();
+        final fieldHasFocusWhileSheetIsOpen = focusNode.hasFocus;
+        final sheetRectWhileInsetIsPresent = tester.getRect(find.byKey(const Key('mateo_bottom_sheet_surface')));
+        final drag = await tester.startGesture(tester.getCenter(find.byType(LoginSheet)));
+        await drag.moveBy(const Offset(0, 40));
+        await tester.pump();
+        final fieldHasFocusDuringDrag = focusNode.hasFocus;
+        await drag.cancel();
+        await tester.pumpAndSettle();
+        final fieldHasFocusAfterCancelledDrag = focusNode.hasFocus;
+        Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+        await tester.pumpAndSettle();
+
+        expect(
+          (
+            fieldHasFocusWhileSheetIsOpen: fieldHasFocusWhileSheetIsOpen,
+            fieldHasFocusDuringDrag: fieldHasFocusDuringDrag,
+            fieldHasFocusAfterCancelledDrag: fieldHasFocusAfterCancelledDrag,
+            fieldHasFocusAfterDismissal: focusNode.hasFocus,
+            sheetBottomWhileInsetIsPresent: sheetRectWhileInsetIsPresent.bottom,
+            result: await presentation,
+          ),
+          (
+            fieldHasFocusWhileSheetIsOpen: false,
+            fieldHasFocusDuringDrag: false,
+            fieldHasFocusAfterCancelledDrag: false,
+            fieldHasFocusAfterDismissal: true,
+            sheetBottomWhileInsetIsPresent: 832,
+            result: false,
+          ),
+        );
+      },
+    );
+
     testWidgets('when presentation is already active, concurrent callers should share one sheet and result', (
       tester,
     ) async {

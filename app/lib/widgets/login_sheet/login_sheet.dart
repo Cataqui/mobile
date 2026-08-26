@@ -27,6 +27,7 @@ class LoginSheet extends ConsumerWidget {
 
     final didLogin = await MateoBottomSheet.show<bool>(
       context,
+      avoidKeyboardInset: false,
       shouldDismiss: (source) {
         final isLoginInProgress = providerContainer.read(loginStateProvider).isLoading;
         if (!isLoginInProgress) return true;

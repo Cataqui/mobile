@@ -12,7 +12,6 @@ class LoginSheetController {
     if (activePresentation != null) return activePresentation;
 
     final overlayContext = _navigatorKey.currentState?.overlay?.context;
-
     if (overlayContext == null) {
       throw StateError('The login sheet cannot be shown before the root navigator is mounted.');
     }
