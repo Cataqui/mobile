@@ -32,7 +32,7 @@ class CreateJobDescriptionView extends ConsumerStatefulWidget {
 class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionView> with RouteAware {
   final ScrollController _descriptionScrollController = ScrollController();
   late final MateoTextController _descriptionTextController;
-  late final ControlledVisibilityController _continueButtonVisibilityController;
+  late final VisibilityController _continueButtonVisibilityController;
   late final RouteObserver<ModalRoute<void>> _routeObserver;
   ModalRoute<void>? _subscribedRoute;
   double _keyboardInsetBefore = 0;
@@ -134,7 +134,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
     final descriptionText = ref.read(createJobStateProvider).descriptionText;
 
     _descriptionTextController = MateoTextController(text: descriptionText);
-    _continueButtonVisibilityController = ControlledVisibilityController();
+    _continueButtonVisibilityController = VisibilityController();
     _routeObserver = ref.read(routeObserverProvider);
     _handleContinueVisibility(ref.read(createJobStateProvider));
   }

@@ -179,8 +179,12 @@ class JobView extends ConsumerWidget {
                             ),
                           );
                         },
-                        loading: () => MateoSkeleton(
-                          effect: MateoSkeletonEffect.fade,
+                        loading: () => Skeleton(
+                          style: SkeletonStyle(
+                            color: colorScheme.skeleton.bone,
+                            effect: const SkeletonFadeEffect(),
+                            radius: const Radius.circular(999),
+                          ),
                           child: Text(
                             JobDto.fixture().description,
                             style: TextStyle(

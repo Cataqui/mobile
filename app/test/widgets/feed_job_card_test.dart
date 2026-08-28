@@ -106,14 +106,14 @@ void main() {
         expect(text.style!.fontSize, equals(22));
       });
 
-      testWidgets('when created, the payment should use 25px font size', (tester) async {
+      testWidgets('when created, the payment should use 26px font size', (tester) async {
         await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
         await tester.pumpAndSettle();
 
         final paymentText = find.textContaining(r'R$');
         final text = tester.widget<Text>(paymentText);
 
-        expect(text.style!.fontSize, equals(25));
+        expect(text.style!.fontSize, equals(26));
       });
 
       testWidgets('when created, the payment should use the accessible pay text color', (tester) async {

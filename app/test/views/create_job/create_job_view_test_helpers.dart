@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cataqui_app/core/dtos/address_search_attribution_dto.dart';
 import 'package:cataqui_app/core/dtos/address_search_response_dto.dart';
 import 'package:cataqui_app/core/dtos/address_suggestion_dto.dart';
+import 'package:cataqui_app/core/enums/address_category.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
@@ -13,10 +14,12 @@ import 'package:cataqui_app/views/create_job/description/create_job_description_
 import 'package:cataqui_app/views/create_job/location/create_job_location_route.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../utils/test_app.dart';
 import 'create_job_test_state.dart';
@@ -29,12 +32,14 @@ abstract final class CreateJobViewTestHelpers {
         addressId: 'address-id-123',
         fullText: 'Avenida Paulista, Bela Vista, São Paulo - SP, Brasil',
         primaryText: 'Avenida Paulista',
+        category: AddressCategory.street,
         secondaryText: 'Bela Vista, São Paulo - SP, Brasil',
       ),
       AddressSuggestionDto(
         addressId: 'address-id-456',
         fullText: 'Rua Augusta, Consolação, São Paulo - SP, Brasil',
         primaryText: 'Rua Augusta',
+        category: AddressCategory.street,
       ),
     ],
     attribution: AddressSearchAttributionDto(text: 'Google Maps'),
@@ -43,6 +48,20 @@ abstract final class CreateJobViewTestHelpers {
     suggestions: <AddressSuggestionDto>[],
     attribution: AddressSearchAttributionDto(text: 'Google Maps'),
   );
+
+  static DioException createOfflineDioException() {
+    return DioException(
+      requestOptions: RequestOptions(path: '/v1/addresses/search'),
+      type: DioExceptionType.connectionError,
+      error: const OfflineConnectionDioException(message: 'No internet connection'),
+    );
+  }
+
+  static Future<void> enterAddressQuery(WidgetTester tester, {required String query, bool settle = true}) async {
+    await tester.enterText(find.byType(TextField), query);
+    await tester.pump(const Duration(milliseconds: 301));
+    if (settle) await tester.pumpAndSettle();
+  }
 
   static Future<void> precachePaymentImages(WidgetTester tester) async {
     await tester.runAsync(

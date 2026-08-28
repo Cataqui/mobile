@@ -240,8 +240,8 @@ void main() {
       );
     });
 
-    test('when read, it should authenticate and convert network failures without leaking sensitive traffic', () {
-      final container = buildContainer();
+    test('when read in production, it should authenticate and convert failures without logging sensitive traffic', () {
+      final container = buildContainer(flavor: 'production');
       addTearDown(container.dispose);
 
       final dio = container.read(geosearchDioProvider);
@@ -265,6 +265,15 @@ void main() {
           hasLogging: false,
         ),
       );
+    });
+
+    test('when read in development, it should include request logging', () {
+      final container = buildContainer(flavor: 'development');
+      addTearDown(container.dispose);
+
+      final dio = container.read(geosearchDioProvider);
+
+      expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isTrue);
     });
 
     test('when disposed, it should close its geosearch transport', () {

@@ -12,7 +12,7 @@ class JobRepository {
   final Dio unauthenticatedDio;
 
   Future<ApiEnvelopeDto<JobDraftDto>> createDraft({required String description}) async {
-    return ApiEnvelopeDto.fixture(data: JobDraftDto.fixture());
+    // return ApiEnvelopeDto.fixture(data: JobDraftDto.fixture());
     final response = await authenticatedDio.post<Map<String, Object?>>(
       '/jobs/drafts',
       data: <String, String>{'description': description},

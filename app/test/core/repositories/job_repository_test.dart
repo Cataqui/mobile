@@ -22,17 +22,21 @@ void main() {
     repository = JobRepository(authenticatedDio: authenticatedDio, unauthenticatedDio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobRequest(dio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobContactRequest(dio: unauthenticatedDio);
+    _JobRepositoryTestHelpers.stubCreateDraftRequest(dio: authenticatedDio);
     _JobRepositoryTestHelpers.stubUpdateDraftRequest(dio: authenticatedDio);
   });
 
   group('JobRepository', () {
     group('createDraft', () {
-      test('when creating a local draft, it should not call the authenticated API', () async {
+      test('when creating a draft, it should post its description to the authenticated API', () async {
         await repository.createDraft(description: _JobRepositoryTestData.draftDescription);
 
-        verifyNever(
-          () => authenticatedDio.post<Map<String, Object?>>(any(), data: any<Map<String, String>>(named: 'data')),
-        );
+        verify(
+          () => authenticatedDio.post<Map<String, Object?>>(
+            '/jobs/drafts',
+            data: <String, String>{'description': _JobRepositoryTestData.draftDescription},
+          ),
+        ).called(1);
       });
 
       test('when creating a draft, it should not use the unauthenticated client', () async {
@@ -43,7 +47,7 @@ void main() {
         );
       });
 
-      test('when creating a local draft, it should return the draft status', () async {
+      test('when creating a draft, it should return the mapped draft status', () async {
         final envelope = await repository.createDraft(description: _JobRepositoryTestData.draftDescription);
 
         expect(envelope.data.status, JobStatus.draft);
@@ -335,6 +339,17 @@ abstract final class _JobRepositoryTestHelpers {
     );
     addTearDown(container.dispose);
     return container;
+  }
+
+  static void stubCreateDraftRequest({required MockDio dio}) {
+    when(
+      () => dio.post<Map<String, Object?>>('/jobs/drafts', data: any<Map<String, String>>(named: 'data')),
+    ).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
+        data: _JobRepositoryTestData.draftEnvelopeJson,
+        requestOptions: RequestOptions(path: '/jobs/drafts'),
+      ),
+    );
   }
 
   static void stubUpdateDraftRequest({required MockDio dio}) {

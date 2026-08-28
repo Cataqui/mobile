@@ -541,6 +541,16 @@ Every individual test block must contain **exactly one** `expect` or assertion c
     });
 ```
 
+### Production Widget Keys
+
+Add a production widget key when the application needs stable identity or when
+a test needs direct access to a specific widget and the alternative would be an
+indirect workaround, such as relying on list position, traversing ancestors from
+display text, or coupling the test to incidental widget structure. Prefer a
+clear semantic key when it makes the test substantially simpler and more
+readable. Do not add keys solely to inspect visual styling that belongs in a
+golden test.
+
 ### Golden Testing Requirement
 
 Every widget and screen created anywhere in this repository must have golden
@@ -548,6 +558,14 @@ tests covering all visual states (resting, active, error, loading, disabled,
 etc.). Golden tests use the `alchemist` package and serve as the primary
 visual regression guard.
 
+- Use golden tests for behavior whose observable outcome is visual, such as
+  colors, spacing, alignment, typography, shapes, icons, opacity, and other
+  rendered styling. Do not add production keys or inspect widget internals in a
+  normal widget test solely to assert a visual property; the golden scenario
+  should own that coverage.
+- Use normal widget tests only when the expected outcome requires information a
+  screenshot cannot prove, such as callbacks, navigation, state mutation,
+  scrolling behavior, focus behavior, semantics, or an exact non-visual value.
 - Use `goldenTest` from `alchemist` — not raw `matchesGoldenFile`.
 - If a package or app does not already have golden-test infrastructure, set it
   up before adding or changing widgets/screens. Add `alchemist` as a

@@ -152,6 +152,28 @@ void main() {
 
       expect(container.read(createJobStateProvider).currencyCode, 'USD');
     });
+
+    test('when selecting an address, it should preserve the deferred details identifiers', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+
+      container
+          .read(createJobStateProvider.notifier)
+          .setAddressSelection(addressId: 'address-id-123', sessionToken: 'session-token-123');
+
+      expect(container.read(createJobStateProvider).addressSelection, (
+        addressId: 'address-id-123',
+        sessionToken: 'session-token-123',
+      ));
+    });
+
+    test('when clearing an address selection, it should remove the deferred details identifiers', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+      container.read(createJobStateProvider.notifier)
+        ..setAddressSelection(addressId: 'address-id-123', sessionToken: 'session-token-123')
+        ..clearAddressSelection();
+
+      expect(container.read(createJobStateProvider).addressSelection, isNull);
+    });
   });
 }
 

@@ -1,3 +1,4 @@
+import 'package:cataqui_app/core/enums/address_category.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'address_suggestion_dto.freezed.dart';
@@ -9,6 +10,7 @@ abstract class AddressSuggestionDto with _$AddressSuggestionDto {
     @JsonKey(required: true) required String addressId,
     @JsonKey(required: true) required String fullText,
     @JsonKey(required: true) required String primaryText,
+    @JsonKey(required: true) required AddressCategory category,
     String? secondaryText,
   }) = _AddressSuggestionDto;
 

@@ -47,7 +47,11 @@ final class JobSurfaceEdgeFadeMorphPainter extends CustomPainter {
     final progressSquared = progress * progress;
     final progressCubed = progressSquared * progress;
     final smootherStep = progressCubed * (progress * (progress * 6 - 15) + 10);
-    return 1 - smootherStep;
+    final midpointDistance = smootherStep - 0.5;
+    final interiorStrengthBias = 0.4 * smootherStep * (1 - smootherStep) * midpointDistance * midpointDistance;
+    final passingContentVisibility = smootherStep * (0.12 + 0.88 * smootherStep) - interiorStrengthBias;
+
+    return 1 - passingContentVisibility;
   }
 
   static LinearGradient _gradient({required Color color, required MateoEdgeFadePosition position}) {

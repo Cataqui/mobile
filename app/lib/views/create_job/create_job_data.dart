@@ -9,8 +9,10 @@ part 'create_job_data.freezed.dart';
 abstract class CreateJobData with _$CreateJobData {
   const factory CreateJobData({
     required String currencyCode,
+    ({String addressId, String sessionToken})? addressSelection,
     String? descriptionText,
     String? jobId,
+    ({double latitude, double longitude})? location,
     @Default('0') String paymentMinimumAmount,
     @Default('0') String paymentMaximumAmount,
     @Default('') String paymentNote,

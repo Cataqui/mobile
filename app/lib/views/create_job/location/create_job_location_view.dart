@@ -1,13 +1,20 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/gen/logos.g.dart';
 import 'package:cataqui_app/gen/lotties.g.dart';
-import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/create_job/enums/create_job_morph_tag.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_data.dart';
+import 'package:cataqui_app/views/create_job/location/create_job_location_state.dart';
 import 'package:cataqui_app/widgets/use_current_location_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
+
+part 'create_job_location_view_initial_body.dart';
+part 'create_job_location_view_search_body.dart';
 
 class CreateJobLocationView extends ConsumerStatefulWidget {
   const CreateJobLocationView({required this.jobId, super.key});
@@ -21,10 +28,10 @@ class CreateJobLocationView extends ConsumerStatefulWidget {
 class _CreateJobLocationViewState extends ConsumerState<CreateJobLocationView> {
   final MateoTextController _searchTextController = MateoTextController();
 
-  Color get _curvedArrowColor => switch (Theme.of(context).brightness) {
-    Brightness.light => context.mateo.palette.neutral[5],
-    Brightness.dark => throw UnsupportedError('CreateJobLocationView does not support dark mode.'),
-  };
+  bool _hasAddressSearchStarted(CreateJobLocationData locationData) {
+    final addressSearch = locationData.addressSearch;
+    return addressSearch.isLoading || addressSearch.hasError || addressSearch.value != null;
+  }
 
   @override
   void dispose() {
@@ -35,11 +42,15 @@ class _CreateJobLocationViewState extends ConsumerState<CreateJobLocationView> {
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
+    final locationState = ref.watch(createJobLocationStateProvider.notifier);
 
-    return MateoView(
+    return MateoScrollableView(
       backgroundColor: Colors.transparent,
-      edgeFade: (top: null, bottom: MateoEdgeFadeStyle(color: context.mateo.colorScheme.background)),
-      extendBodyBehindFooter: true,
+      keyboardViewportBehavior: MateoViewKeyboardViewportBehavior.resize,
+      edgeFade: (
+        top: MateoEdgeFadeStyle(color: context.mateo.colorScheme.background),
+        bottom: MateoEdgeFadeStyle(color: context.mateo.colorScheme.background),
+      ),
       header: MateoViewHeader(
         title: i18n.createJob.location.title,
         leading: MateoFloatingActionButton(
@@ -55,23 +66,50 @@ class _CreateJobLocationViewState extends ConsumerState<CreateJobLocationView> {
               MateoIcon.arrowLeft(width: state.iconSize, height: state.iconSize, color: state.foregroundColor),
         ),
       ),
-      footer: MorphForeground(
-        key: const ValueKey('create_job_location_search_foreground'),
-        child: MateoTextField(
-          key: const ValueKey('create_job_location_search_field'),
-          controller: _searchTextController,
-          placeholder: i18n.createJob.location.searchPlaceholder,
-          variant: MateoTextFieldVariant.search,
-          textInputAction: TextInputAction.search,
-          onChanged: (_) {},
-        ),
+      footer: Column(
+        key: const ValueKey('create_job_location_search_footer'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 24, bottom: 12),
+            child: $Logos.googleMaps(
+              key: const ValueKey('create_job_location_google_maps_attribution'),
+              height: 14,
+              color1: switch (Theme.brightnessOf(context)) {
+                Brightness.dark => throw UnimplementedError('Dark mode not implemented yet'),
+                Brightness.light => context.mateo.palette.neutral[8],
+              },
+            ),
+          ),
+
+          MorphForeground(
+            key: const ValueKey('create_job_location_search_foreground'),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final hasAddressSearchStarted = ref.watch(
+                  createJobLocationStateProvider.select(_hasAddressSearchStarted),
+                );
+
+                return MateoTextField(
+                  key: const ValueKey('create_job_location_search_field'),
+                  controller: _searchTextController,
+                  placeholder: i18n.createJob.location.searchPlaceholder,
+                  variant: MateoTextFieldVariant.search,
+                  textInputAction: TextInputAction.search,
+                  unfocusOnTapOutside: !hasAddressSearchStarted,
+                  onChanged: (query) => unawaited(locationState.searchAddresses(query: query)),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       bodySurfaceBuilder: (context, content) {
         return Morph(
           tag: CreateJobMorphTag.surface,
           curve: Curves.fastOutSlowIn,
-          switchTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
-          switchThreshold: 0.2,
+          switchThreshold: 0.05,
           child: Container(
             key: const ValueKey('create_job_location_surface'),
             clipBehavior: Clip.antiAlias,
@@ -83,73 +121,16 @@ class _CreateJobLocationViewState extends ConsumerState<CreateJobLocationView> {
           ),
         );
       },
-      body: _buildContent(i18n),
-    );
-  }
+      body: Consumer(
+        builder: (context, ref, _) {
+          final hasAddressSearchStarted = ref.watch(createJobLocationStateProvider.select(_hasAddressSearchStarted));
 
-  Widget _buildContent(Translations i18n) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        key: const ValueKey('create_job_location_view_content'),
-        children: [
-          const SizedBox(height: 20),
-          const UseCurrentLocationButton(key: ValueKey('create_job_current_location_button')),
-          const SizedBox(height: 20),
-          Expanded(
-            child: Align(
-              alignment: AlignmentGeometry.bottomCenter,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Motion.list(
-                      effects: const [
-                        MoveMotionEffect(
-                          begin: Offset(0, 30),
-                          end: Offset.zero,
-                          curve: Curves.easeOutCubic,
-                          delay: Duration(milliseconds: 300),
-                        ),
-                        FadeInMotionEffect(curve: Curves.easeOutCubic, delay: Duration(milliseconds: 300)),
-                      ],
-                      child: Text(
-                        i18n.createJob.location.emptyGuidance,
-                        key: const ValueKey('create_job_location_empty_guidance'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: context.mateo.colorScheme.text.tertiary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 42),
-                    ExcludeSemantics(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 150),
-                        child: $Lotties.curvedArrowDraw(
-                          key: const ValueKey('create_job_location_curved_arrow'),
-                          height: 124,
-                          duration: const Duration(milliseconds: 900),
-                          playback: LottiePlayback.once,
-                          delay: const Duration(milliseconds: 400),
-                          overrides: CurvedArrowDrawOverrides(
-                            rightArrowheadColor: _curvedArrowColor,
-                            leftArrowheadColor: _curvedArrowColor,
-                            continuousMainPathColor: _curvedArrowColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+          if (!hasAddressSearchStarted) {
+            return _CreateJobLocationViewInitialBody(searchTextController: _searchTextController);
+          }
+
+          return const _CreateJobLocationViewSearchBody();
+        },
       ),
     );
   }

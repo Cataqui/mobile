@@ -152,7 +152,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                         fit: MateoButtonFit.expand,
                         colorScheme: context.mateo.colorScheme.buttons.tertiary,
                         leadingIconBuilder: (state) {
-                          return MateoIcon.boxPen(color: state.foregroundColor);
+                          return MateoIcon.boxPencil(color: state.foregroundColor);
                         },
                         onPressed: () => unawaited(const PosterOnboardingRoute().push<void>(context)),
                       ),

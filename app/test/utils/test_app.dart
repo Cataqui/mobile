@@ -38,7 +38,7 @@ class TestApp extends StatelessWidget {
        navigatorKey = null,
        _wrapInScaffold = false;
 
-  static const _color = (accent: Color(0xFFFF4A4B), onAccent: Color(0xFFFFFFFF));
+  static final _theme = MateoTheme.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
   static final _secureStorageOverride = secureStorageProvider.overrideWith((ref) {
     final secureStorage = MockFlutterSecureStorage();
     when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
@@ -68,7 +68,7 @@ class TestApp extends StatelessWidget {
         overrides: _resolvedProviderOverrides(),
         child: MateoApp.router(
           title: 'Test App',
-          color: _color,
+          theme: _theme,
           routerConfig: routerConfig,
           builder: (context, child) {
             final content = _withMediaQuery(child ?? const SizedBox.shrink());
@@ -93,7 +93,7 @@ class TestApp extends StatelessWidget {
       overrides: _resolvedProviderOverrides(),
       child: MateoApp(
         title: 'Test App',
-        color: _color,
+        theme: _theme,
         navigatorKey: navigatorKey,
         home: _withMediaQuery(_wrapInScaffold ? Scaffold(body: Center(child: child)) : child),
       ),

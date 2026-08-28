@@ -11,7 +11,7 @@ class _FeedSwipeUpHintOverlay extends ConsumerStatefulWidget {
 }
 
 class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay> {
-  final ControlledVisibilityController _visibilityController = ControlledVisibilityController();
+  final VisibilityController _visibilityController = VisibilityController();
 
   @override
   void initState() {

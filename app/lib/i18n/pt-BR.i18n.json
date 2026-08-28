@@ -101,6 +101,12 @@
       "currentLocationTitle": "Usar minha região de agora",
       "locationPermissionGuidance": "Precisa ativar a localização",
       "emptyGuidance": "Procura lugares perto de você",
+      "search": {
+        "loadingSemanticLabel": "Buscando o lugar que você digitou",
+        "empty": "Não achei nenhum lugar",
+        "error": "Deu ruim aqui. Tenta de novo",
+        "offlineError": "Tá sem internet parece"
+      },
       "backButtonSemanticLabel": "Voltar"
     }
   },

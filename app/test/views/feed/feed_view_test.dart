@@ -19,6 +19,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
@@ -161,12 +162,20 @@ void main() {
     });
 
     group('initial loading', () {
-      testWidgets('when feedState is loading, it should render the initial-loading skeleton', (tester) async {
+      testWidgets('when feedState is loading, it should render the generic skeleton with Mateo styling', (
+        tester,
+      ) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
         );
-        expect(find.byType(MateoSkeleton), findsOneWidget);
+        final skeleton = tester.widget<Skeleton>(find.byType(Skeleton));
+        final context = tester.element(find.byType(FeedView));
+
+        expect(
+          (skeleton.style.color, skeleton.style.effect.runtimeType, skeleton.style.radius),
+          (context.mateo.colorScheme.skeleton.bone, SkeletonFadeEffect, const Radius.circular(999)),
+        );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -235,7 +244,7 @@ void main() {
           feedState: FakeFeedState(initialAsyncValue: AsyncError(Exception('network error'), StackTrace.current)),
         );
         await tester.pump();
-        expect(find.byType(MateoSkeleton), findsNothing);
+        expect(find.byType(Skeleton), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 

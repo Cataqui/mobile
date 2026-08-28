@@ -129,6 +129,12 @@ Dio geosearchDio(Ref ref) {
       },
     ),
   );
+  if (appConfig.isDevelopment) {
+    dio.interceptors.add(
+      LogInterceptor(requestBody: true, responseBody: true, logPrint: (object) => debugPrint(object.toString())),
+    );
+  }
+
   dio.interceptors.add(RateLimitInterceptor());
   dio.interceptors.add(
     GeosearchAccessTokenInterceptor(

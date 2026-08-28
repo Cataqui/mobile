@@ -225,31 +225,32 @@ verify(() => whatsapp.launchChat(number: '+5511999999999')).called(1);
 - Always define package mock classes in `test/mocks.dart`, not inline in test
   files.
 
-## 11. Prefer `find.byKey` Over `find.text`
+## 11. Use Keys for Direct Test Access
 
-Always access widgets via `find.byKey` instead of `find.text`. Key-based lookups
-are more robust: they don't break when translation copy changes, are immune to
-duplicate strings, and make the test's intent explicit. If the widget under test
-doesn't have a `Key`, add one via `ValueKey` — the small production-code change
-is worth the test stability.
+Use `find.byKey` when a widget needs stable production identity or when a test
+needs to access a specific domain or interaction element directly. Add a clear
+semantic key when the alternative would be an indirect workaround, such as
+selecting by list position, traversing ancestors from display text, or coupling
+the test to incidental widget structure. A key is appropriate when it makes the
+test substantially simpler and easier to understand. Continue using localized
+text directly when the text itself is the behavior under test, and never add a
+key solely to inspect visual styling covered by a golden test.
 
 ```dart
-// ❌ Fragile — breaks when copy changes, ambiguous with duplicates
-await tester.tap(find.text(i18n.job.contactButton.whatsapp));
-expect(find.text(i18n.job.contactButton.unknown), findsOneWidget);
+// The test needs direct access to this specific domain row.
+await tester.tap(find.byKey(ValueKey('feed_job_$jobId')));
 
-// ✅ Robust — survives copy changes, unambiguous
-await tester.tap(find.byKey(const ValueKey('job_contact_whatsapp')));
-expect(find.byKey(const ValueKey('job_contact_unknown')), findsOneWidget);
+// Localized text is the behavior under test, so locate it directly.
+expect(find.text(i18n.job.contactButton.unknown), findsOneWidget);
 ```
 
 ### When to Use Each
 
-| Use `find.byKey` for                    | Use `find.text` for                                 |
-| --------------------------------------- | --------------------------------------------------- |
-| User-interaction points (taps, scrolls) | Content validation (is the right text showing?)     |
-| Verifying widget presence/absence       | Verifying dynamic or API-driven content values      |
-| Navigation targets                      | Fixture data assertions (with `copyWith` overrides) |
+| Use `find.byKey` for                              | Use another finder for                                    |
+| ------------------------------------------------- | --------------------------------------------------------- |
+| Production identity and state retention           | Localized or API-provided content validation               |
+| Direct access to a specific interaction target    | Widgets identified clearly by type or semantic properties |
+| Avoiding positional or ancestor-traversal workarounds | Visual styling covered by golden tests                  |
 
 ### Key Naming Convention
 
@@ -261,5 +262,5 @@ const ValueKey('feed_job_card_title')
 const ValueKey('job_detail_back_button')
 ```
 
-Keys are just for identification — namespace them by feature to avoid collisions.
-Do not use i18n strings or user-facing text as key values.
+When a key is warranted, namespace it by feature to avoid collisions. Do not
+use i18n strings or user-facing text as key values.

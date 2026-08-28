@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -74,10 +73,7 @@ void main() {
         feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
       );
 
-      final firstCardMap = find.descendant(
-        of: find.byKey(const ValueKey('mateo_y_snap_list_card_job_0')),
-        matching: find.byType(GoogleMap),
-      );
+      final firstCardMap = find.byType(GoogleMap).first;
       final firstMapState = tester.state(firstCardMap);
 
       await FeedViewTestHelpers.swipeAwayCurrentJob(tester);

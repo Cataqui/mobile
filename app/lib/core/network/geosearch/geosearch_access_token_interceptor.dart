@@ -83,6 +83,7 @@ final class GeosearchAccessTokenInterceptor extends Interceptor {
   MicroserviceAccessTokenDto? _readValidAccessToken() {
     final authenticatedUserId = readAuthenticatedUserId();
     final accessToken = _accessToken;
+
     if (authenticatedUserId != null &&
         authenticatedUserId == _accessTokenUserId &&
         accessToken != null &&

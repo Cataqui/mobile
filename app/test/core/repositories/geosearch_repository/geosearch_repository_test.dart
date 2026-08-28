@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/dtos/address_details_dto.dart';
 import 'package:cataqui_app/core/dtos/address_search_attribution_dto.dart';
 import 'package:cataqui_app/core/dtos/address_suggestion_dto.dart';
+import 'package:cataqui_app/core/enums/address_category.dart';
 import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,6 +59,7 @@ void main() {
               fullText: 'Avenida Paulista, Bela Vista, São Paulo - SP, Brasil',
               primaryText: 'Avenida Paulista',
               secondaryText: 'Bela Vista, São Paulo - SP, Brasil',
+              category: AddressCategory.racingVenue,
             ),
             attribution: const AddressSearchAttributionDto(text: 'Google Maps'),
           ),
@@ -103,6 +105,7 @@ final class _GeosearchRepositoryTestData {
               'fullText': 'Avenida Paulista, Bela Vista, São Paulo - SP, Brasil',
               'primaryText': 'Avenida Paulista',
               'secondaryText': 'Bela Vista, São Paulo - SP, Brasil',
+              'category': 'RACING_VENUE',
             },
           ],
           'attribution': <String, Object?>{'text': 'Google Maps'},

@@ -39,6 +39,32 @@ class CreateJobState extends _$CreateJobState {
     state = state.copyWith(descriptionText: normalizedDescriptionText);
   }
 
+  void setAddressSelection({required String addressId, required String sessionToken}) {
+    final addressSelection = (addressId: addressId, sessionToken: sessionToken);
+    if (state.addressSelection == addressSelection && state.location == null) return;
+
+    state = state.copyWith(addressSelection: addressSelection, location: null);
+  }
+
+  void clearAddressSelection() {
+    if (state.addressSelection == null) return;
+
+    state = state.copyWith(addressSelection: null);
+  }
+
+  void setLocation({required double latitude, required double longitude}) {
+    final location = (latitude: latitude, longitude: longitude);
+    if (state.location == location) return;
+
+    state = state.copyWith(location: location);
+  }
+
+  void clearLocation() {
+    if (state.location == null) return;
+
+    state = state.copyWith(location: null);
+  }
+
   void setCurrencyCode(String currencyCode) {
     if (state.currencyCode == currencyCode) return;
 

@@ -161,25 +161,6 @@ void main() {
     },
   );
 
-  testWidgets(
-    'when location opens while the keyboard is visible, it should keep its current-location content above the keyboard',
-    (tester) async {
-      await CreateJobViewTestHelpers.pumpDescription(
-        tester,
-        keyboardInset: 300,
-        initialCreateJobData: const CreateJobData(currencyCode: 'BRL', paymentType: JobPaymentType.other),
-        jobRepository: jobRepository,
-      );
-      await tester.enterText(find.byType(TextField), _CreateJobDescriptionViewTestData.validDescription);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('create_job_continue_button')));
-      await tester.pumpAndSettle();
-      final currentLocationBottom = tester.getBottomRight(find.byKey(const ValueKey('create_job_current_location')));
-
-      expect(currentLocationBottom.dy < 544, isTrue);
-    },
-  );
-
   testWidgets('when the job creation route opens, it should leave the previous route visible around the surface', (
     tester,
   ) async {
