@@ -382,6 +382,18 @@ void main() {
         ));
       });
 
+      testWidgets('when an address is selected, it should clear previously resolved coordinates', (tester) async {
+        final container = _CreateJobLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        container.read(createJobStateProvider.notifier).setLocation(latitude: -23.561684, longitude: -46.655981);
+        await _CreateJobLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
+
+        container
+            .read(createJobLocationStateProvider.notifier)
+            .selectAddress(addressId: _CreateJobLocationStateTestData.firstSuggestion.addressId);
+
+        expect(container.read(createJobStateProvider).location, isNull);
+      });
+
       testWidgets('when an address is selected, it should rotate the token before the next search session', (
         tester,
       ) async {
