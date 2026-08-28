@@ -23,6 +23,7 @@ void main() {
     late AuthSessionDto? session;
     late int foregroundRefreshCount;
     late int backgroundRefreshCount;
+    late Future<AuthSessionDto?> Function() getOrAuthenticateSession;
     late Future<AuthSessionDto?> Function() refreshSession;
     late Future<void> Function() refreshSessionInBackground;
 
@@ -36,6 +37,7 @@ void main() {
       session = null;
       foregroundRefreshCount = 0;
       backgroundRefreshCount = 0;
+      getOrAuthenticateSession = () async => session;
       refreshSession = () async {
         foregroundRefreshCount += 1;
         return session;
@@ -46,7 +48,8 @@ void main() {
       authenticatedDio.interceptors.add(
         AuthInterceptor(
           unauthenticatedDio: unauthenticatedDio,
-          readSession: () => session,
+          getCurrentSession: () => session,
+          getOrAuthenticateSession: () => getOrAuthenticateSession(),
           refreshSession: () => refreshSession(),
           refreshSessionInBackground: () => refreshSessionInBackground(),
         ),
@@ -94,6 +97,7 @@ void main() {
         session = refreshedSession;
         return refreshedSession;
       };
+      getOrAuthenticateSession = () => refreshSession();
       String? authorization;
       when(() => authenticatedAdapter.fetch(any(), any(), any())).thenAnswer((invocation) async {
         authorization = (invocation.positionalArguments.first as RequestOptions).headers['Authorization'] as String?;

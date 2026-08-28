@@ -30,6 +30,16 @@ class AppAuthState extends _$AppAuthState {
     }
   }
 
+  Future<AuthSessionDto?> getOrAuthenticateSession() {
+    final currentSession = state;
+
+    if (currentSession != null && currentSession.accessTokenExpiresAt.isAfter(clock.now())) {
+      return Future<AuthSessionDto?>.value(currentSession);
+    }
+
+    return refreshSession();
+  }
+
   Future<AuthSessionDto?> refreshSession() {
     final activeForegroundAuthentication = _activeForegroundAuthentication;
     if (activeForegroundAuthentication != null) return activeForegroundAuthentication;

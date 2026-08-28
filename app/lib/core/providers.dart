@@ -96,7 +96,8 @@ Dio authenticatedCataquiApiV1Dio(Ref ref) {
     cookieJar: cookieJar,
     authInterceptor: AuthInterceptor(
       unauthenticatedDio: unauthenticatedDio,
-      readSession: () => ref.read(appAuthStateProvider),
+      getCurrentSession: () => ref.read(appAuthStateProvider),
+      getOrAuthenticateSession: () => ref.read(appAuthStateProvider.notifier).getOrAuthenticateSession(),
       refreshSession: () => ref.read(appAuthStateProvider.notifier).refreshSession(),
       refreshSessionInBackground: () => ref.read(appAuthStateProvider.notifier).refreshSessionInBackground(),
     ),
@@ -141,6 +142,7 @@ Dio geosearchDio(Ref ref) {
       geosearchDio: dio,
       authRepository: ref.watch(authRepositoryProvider),
       readAuthenticatedUserId: () => ref.read(appAuthStateProvider)?.userId,
+      getOrAuthenticateSession: () => ref.read(appAuthStateProvider.notifier).getOrAuthenticateSession(),
     ),
   );
 

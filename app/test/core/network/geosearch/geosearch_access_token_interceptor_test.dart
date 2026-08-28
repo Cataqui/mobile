@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/microservice_access_token_dto.dart';
 import 'package:cataqui_app/core/enums/microservice_access_token_type.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/core/network/geosearch/geosearch_access_token_interceptor.dart';
 import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
@@ -22,6 +24,7 @@ void main() {
     late MockAuthRepository authRepository;
     late String? authenticatedUserId;
     late int accessTokenRequestCount;
+    late Future<AuthSessionDto?> Function() getOrAuthenticateSession;
     late Future<MicroserviceAccessTokenDto> Function() createAccessToken;
 
     setUp(() {
@@ -31,6 +34,12 @@ void main() {
       geosearchDio.httpClientAdapter = geosearchAdapter;
       authenticatedUserId = 'user-1';
       accessTokenRequestCount = 0;
+      getOrAuthenticateSession = () async {
+        final userId = authenticatedUserId;
+        if (userId == null) return null;
+
+        return AuthSessionDto.fixture().copyWith(userId: userId);
+      };
       createAccessToken = () async {
         accessTokenRequestCount += 1;
         return _GeosearchAccessTokenInterceptorTestData.accessToken(
@@ -45,6 +54,7 @@ void main() {
           geosearchDio: geosearchDio,
           authRepository: authRepository,
           readAuthenticatedUserId: () => authenticatedUserId,
+          getOrAuthenticateSession: () => getOrAuthenticateSession(),
         ),
       );
     });
@@ -54,6 +64,29 @@ void main() {
     });
 
     test('when no geosearch token is cached, it should issue and attach one', () async {
+      String? authorization;
+      when(() => geosearchAdapter.fetch(any(), any(), any())).thenAnswer((invocation) async {
+        authorization = (invocation.positionalArguments.first as RequestOptions).headers['Authorization'] as String?;
+        return ResponseBody.fromString('{}', 200, headers: _GeosearchAccessTokenInterceptorTestData.jsonHeaders);
+      });
+
+      await withClock(
+        Clock.fixed(_GeosearchAccessTokenInterceptorTestData.currentTime),
+        () => geosearchDio.get<void>('/v1/addresses/search'),
+      );
+
+      expect(
+        (authorization: authorization, accessTokenRequestCount: accessTokenRequestCount),
+        (authorization: 'Bearer access-token-1', accessTokenRequestCount: 1),
+      );
+    });
+
+    test('when geosearch is the first authenticated request, it should authenticate before issuing a token', () async {
+      authenticatedUserId = null;
+      getOrAuthenticateSession = () async {
+        authenticatedUserId = 'user-1';
+        return AuthSessionDto.fixture().copyWith(userId: 'user-1');
+      };
       String? authorization;
       when(() => geosearchAdapter.fetch(any(), any(), any())).thenAnswer((invocation) async {
         authorization = (invocation.positionalArguments.first as RequestOptions).headers['Authorization'] as String?;
@@ -197,7 +230,7 @@ void main() {
       );
     });
 
-    test('when the authenticated user disappears, it should discard the cached token', () async {
+    test('when the authenticated user disappears and login is dismissed, it should discard the cached token', () async {
       var workerRequestCount = 0;
       when(() => geosearchAdapter.fetch(any(), any(), any())).thenAnswer((_) async {
         workerRequestCount += 1;
@@ -221,11 +254,11 @@ void main() {
 
       expect(
         (
-          causeIsStateError: thrownError?.error is StateError,
+          errorType: thrownError.runtimeType,
           accessTokenRequestCount: accessTokenRequestCount,
           workerRequestCount: workerRequestCount,
         ),
-        (causeIsStateError: true, accessTokenRequestCount: 1, workerRequestCount: 1),
+        (errorType: AuthenticationDismissedDioException, accessTokenRequestCount: 1, workerRequestCount: 1),
       );
     });
 

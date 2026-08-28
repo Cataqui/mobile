@@ -91,50 +91,80 @@ void main() {
     });
 
     test(
-      'when valid credentials are saved, refreshing should return and persist the complete rotated session',
+      'when the current session is valid, getting an authenticated session should return it without refreshing',
       () async {
-        final storedCredentials = AuthCredentialsDto.fixture().copyWith(
-          refreshToken: 'saved-refresh-token',
-          refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
+        final currentTime = DateTime.utc(2026, 8, 10, 15);
+        final currentSession = AuthSessionDto.fixture().copyWith(
+          accessTokenExpiresAt: currentTime.add(const Duration(minutes: 10)),
         );
-        await container.read(appStorageStateProvider.notifier).setAuthCredentials(credentials: storedCredentials);
-        final issuedSession = IssuedAuthSessionDto(
-          accessToken: 'refreshed-access-token-12345678901234567890',
-          tokenType: 'Bearer',
-          expiresAt: DateTime.utc(2026, 8, 11, 15, 15),
-          refreshToken: 'rotated-refresh-token',
-          refreshExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
-          userId: '4963fef0-b62a-4760-9f99-675fdc42a896',
-        );
-        String? requestedRefreshToken;
-        when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((
-          invocation,
-        ) async {
-          requestedRefreshToken = invocation.namedArguments[#refreshToken]! as String;
-          return ApiEnvelopeDto.fixture(data: issuedSession);
+        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+        var refreshRequestCount = 0;
+        var loginRequestCount = 0;
+        when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
+          refreshRequestCount += 1;
+          return ApiEnvelopeDto.fixture(
+            data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
+          );
+        });
+        when(loginSheetController.show).thenAnswer((_) async {
+          loginRequestCount += 1;
+          return false;
         });
 
-        final result = await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () {
-          return container.read(appAuthStateProvider.notifier).refreshSession();
-        });
-        final expectedSession = AuthSessionDto.fromIssuedAuthSession(issuedSession);
+        final result = await withClock(
+          Clock.fixed(currentTime),
+          () => container.read(appAuthStateProvider.notifier).getOrAuthenticateSession(),
+        );
 
         expect(
-          (
-            requestedRefreshToken: requestedRefreshToken,
-            result: result,
-            session: container.read(appAuthStateProvider),
-            credentials: container.read(appStorageStateProvider).value!.authCredentials,
-          ),
-          (
-            requestedRefreshToken: 'saved-refresh-token',
-            result: expectedSession,
-            session: expectedSession,
-            credentials: AuthCredentialsDto.fromAuthSession(expectedSession),
-          ),
+          (result: result, refreshRequestCount: refreshRequestCount, loginRequestCount: loginRequestCount),
+          (result: currentSession, refreshRequestCount: 0, loginRequestCount: 0),
         );
       },
     );
+
+    test('when valid credentials are saved, getting an authenticated session should restore and persist it', () async {
+      final storedCredentials = AuthCredentialsDto.fixture().copyWith(
+        refreshToken: 'saved-refresh-token',
+        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
+      );
+      await container.read(appStorageStateProvider.notifier).setAuthCredentials(credentials: storedCredentials);
+      final issuedSession = IssuedAuthSessionDto(
+        accessToken: 'refreshed-access-token-12345678901234567890',
+        tokenType: 'Bearer',
+        expiresAt: DateTime.utc(2026, 8, 11, 15, 15),
+        refreshToken: 'rotated-refresh-token',
+        refreshExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
+        userId: '4963fef0-b62a-4760-9f99-675fdc42a896',
+      );
+      String? requestedRefreshToken;
+      when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((
+        invocation,
+      ) async {
+        requestedRefreshToken = invocation.namedArguments[#refreshToken]! as String;
+        return ApiEnvelopeDto.fixture(data: issuedSession);
+      });
+
+      final result = await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () {
+        return container.read(appAuthStateProvider.notifier).getOrAuthenticateSession();
+      });
+      final expectedSession = AuthSessionDto.fromIssuedAuthSession(issuedSession);
+
+      expect(
+        (
+          requestedRefreshToken: requestedRefreshToken,
+          result: result,
+          session: container.read(appAuthStateProvider),
+          credentials: container.read(appStorageStateProvider).value!.authCredentials,
+        ),
+        (
+          requestedRefreshToken: 'saved-refresh-token',
+          result: expectedSession,
+          session: expectedSession,
+          credentials: AuthCredentialsDto.fromAuthSession(expectedSession),
+        ),
+      );
+    });
 
     test('when no credentials are saved, refreshing should request login and return null when dismissed', () async {
       final currentSession = AuthSessionDto.fixture();
