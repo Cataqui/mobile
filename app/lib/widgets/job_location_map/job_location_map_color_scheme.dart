@@ -124,7 +124,7 @@ final class JobLocationMapColorScheme {
       waterGeometry: palette.cyan[2],
       waterLabel: palette.cyan[8],
       waterLabelHalo: palette.neutral[1],
-      locationRadius: palette.teal[9].withValues(alpha: 0.09),
+      locationRadius: palette.teal[9].withValues(alpha: 0.15),
     );
   }
 
