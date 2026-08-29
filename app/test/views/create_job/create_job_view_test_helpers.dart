@@ -123,6 +123,7 @@ abstract final class CreateJobViewTestHelpers {
   static Future<void> pumpDescription(
     WidgetTester tester, {
     AssetBundle? assetBundle,
+    DeviceLocation? deviceLocation,
     Key? repaintBoundaryKey,
     Size screenSize = const Size(390, 844),
     double keyboardInset = 0,
@@ -143,6 +144,7 @@ abstract final class CreateJobViewTestHelpers {
     await tester.pumpWidget(
       buildApp(
         assetBundle: assetBundle,
+        deviceLocation: deviceLocation,
         repaintBoundaryKey: repaintBoundaryKey,
         screenSize: screenSize,
         keyboardInset: keyboardInset,
@@ -160,6 +162,7 @@ abstract final class CreateJobViewTestHelpers {
 
   static Widget buildApp({
     AssetBundle? assetBundle,
+    DeviceLocation? deviceLocation,
     Key? repaintBoundaryKey,
     Size screenSize = const Size(390, 844),
     double keyboardInset = 0,
@@ -186,6 +189,7 @@ abstract final class CreateJobViewTestHelpers {
       providerOverrides: [
         translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
         routeObserverProvider.overrideWithValue(routeObserver),
+        if (deviceLocation != null) deviceLocationProvider.overrideWithValue(deviceLocation),
         if (geosearchRepository != null) geosearchRepositoryProvider.overrideWithValue(geosearchRepository),
         if (jobRepository != null) jobRepositoryProvider.overrideWithValue(jobRepository),
         if (initialCreateJobData != null)

@@ -1,7 +1,9 @@
 part of 'create_job_location_view.dart';
 
 class _CreateJobLocationViewSearchBody extends ConsumerWidget {
-  const _CreateJobLocationViewSearchBody();
+  const _CreateJobLocationViewSearchBody({required this.onAddressSelected});
+
+  final ValueChanged<String> onAddressSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,9 +54,7 @@ class _CreateJobLocationViewSearchBody extends ConsumerWidget {
                 for (final suggestion in response.suggestions)
                   MateoTap(
                     animation: MateoTapAnimationType.scale,
-                    onPressed: (_) async => ref
-                        .read(createJobLocationStateProvider.notifier)
-                        .selectAddress(addressId: suggestion.addressId),
+                    onPressed: (_) async => onAddressSelected(suggestion.addressId),
                     child: _buildSuggestionRow(
                       context,
                       key: ValueKey('create_job_location_suggestion_${suggestion.addressId}'),

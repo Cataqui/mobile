@@ -11,6 +11,7 @@ import 'package:cataqui_app/views/create_job/location/create_job_location_data.d
 import 'package:cataqui_app/views/create_job/location/create_job_location_route.dart';
 import 'package:cataqui_app/views/create_job/location/create_job_location_state.dart';
 import 'package:cataqui_app/views/create_job/location/create_job_location_view.dart';
+import 'package:cataqui_app/views/create_job/payment/create_job_payment_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -160,7 +161,7 @@ void main() {
     );
   });
 
-  testWidgets('when current location is requested, it should save the resolved device coordinates', (tester) async {
+  testWidgets('when current location is requested, it should save its coordinates and open payment', (tester) async {
     const address = DeviceLocationAddress(
       coordinates: DeviceLocationCoordinates(latitude: -23.561684, longitude: -46.655981, accuracy: 18),
       neighborhood: 'Pinheiros',
@@ -169,13 +170,23 @@ void main() {
       address: address,
       permissionStatuses: [DeviceLocationPermissionStatus.denied],
     );
-    await _CreateJobLocationViewTestActions.pumpLocation(tester, deviceLocation: deviceLocation);
+    await _CreateJobLocationViewTestActions.openFromDescription(
+      tester,
+      deviceLocation: deviceLocation,
+      jobRepository: jobRepository,
+    );
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobLocationView)));
 
     await tester.tap(find.byKey(const ValueKey('create_job_current_location_button')));
     await tester.pumpAndSettle();
 
-    expect(container.read(createJobStateProvider).location, (latitude: -23.561684, longitude: -46.655981));
+    expect(
+      (
+        location: container.read(createJobStateProvider).location,
+        paymentJobId: tester.widget<CreateJobPaymentView>(find.byType(CreateJobPaymentView)).jobId,
+      ),
+      (location: (latitude: -23.561684, longitude: -46.655981), paymentJobId: 'draft-job-id'),
+    );
   });
 
   testWidgets('when the address search body is visible, it should prevent outside taps from dismissing search focus', (
@@ -870,7 +881,7 @@ void main() {
     );
   });
 
-  testWidgets('when an address suggestion is tapped, it should save the deferred address selection', (tester) async {
+  testWidgets('when an address suggestion is tapped, it should save the selection and open payment', (tester) async {
     await _CreateJobLocationViewTestActions.openFromDescription(
       tester,
       jobRepository: jobRepository,
@@ -880,12 +891,20 @@ void main() {
     final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobLocationView)));
 
     await tester.tap(find.byKey(const ValueKey('create_job_location_suggestion_address-id-123')));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(container.read(createJobStateProvider).addressSelection?.addressId, 'address-id-123');
+    expect(
+      (
+        addressId: container.read(createJobStateProvider).addressSelection?.addressId,
+        paymentJobId: tester.widget<CreateJobPaymentView>(find.byType(CreateJobPaymentView)).jobId,
+      ),
+      (addressId: 'address-id-123', paymentJobId: 'draft-job-id'),
+    );
   });
 
-  testWidgets('when an address suggestion is tapped, it should keep the location view open', (tester) async {
+  testWidgets('when payment is opened from location, its back button should return to the saved location', (
+    tester,
+  ) async {
     await _CreateJobLocationViewTestActions.openFromDescription(
       tester,
       jobRepository: jobRepository,
@@ -895,8 +914,17 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('create_job_location_suggestion_address-id-123')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create_job_payment_back_button')));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobLocationView)));
 
-    expect(find.byType(CreateJobLocationView), findsOneWidget);
+    expect(
+      (
+        locationViewCount: find.byType(CreateJobLocationView).evaluate().length,
+        addressId: container.read(createJobStateProvider).addressSelection?.addressId,
+      ),
+      (locationViewCount: 1, addressId: 'address-id-123'),
+    );
   });
 
   testWidgets('when the location back button is tapped, it should return to the saved description', (tester) async {
@@ -980,12 +1008,14 @@ abstract final class _CreateJobLocationViewTestActions {
   static Future<void> openFromDescription(
     WidgetTester tester, {
     required MockJobRepository jobRepository,
+    DeviceLocation? deviceLocation,
     MockGeosearchRepository? geosearchRepository,
     bool disableAnimations = true,
     double keyboardInset = 0,
   }) async {
     await CreateJobViewTestHelpers.pumpDescription(
       tester,
+      deviceLocation: deviceLocation,
       disableAnimations: disableAnimations,
       keyboardInset: keyboardInset,
       jobRepository: jobRepository,

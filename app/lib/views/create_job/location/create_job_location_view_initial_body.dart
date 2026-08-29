@@ -1,9 +1,10 @@
 part of 'create_job_location_view.dart';
 
 class _CreateJobLocationViewInitialBody extends ConsumerStatefulWidget {
-  const _CreateJobLocationViewInitialBody({required this.searchTextController});
+  const _CreateJobLocationViewInitialBody({required this.searchTextController, required this.onLocationSelected});
 
   final MateoTextController searchTextController;
+  final void Function(DeviceLocationAddress address) onLocationSelected;
 
   @override
   ConsumerState<_CreateJobLocationViewInitialBody> createState() => _CreateJobLocationViewInitialBodyState();
@@ -66,11 +67,7 @@ class _CreateJobLocationViewInitialBodyState extends ConsumerState<_CreateJobLoc
           const SizedBox(height: 20),
           UseCurrentLocationButton(
             key: const ValueKey('create_job_current_location_button'),
-            onRequestedToUse: (address) {
-              ref
-                  .read(createJobStateProvider.notifier)
-                  .setLocation(latitude: address.coordinates.latitude, longitude: address.coordinates.longitude);
-            },
+            onRequestedToUse: widget.onLocationSelected,
           ),
           const SizedBox(height: 20),
           Expanded(

@@ -7,6 +7,7 @@ import 'package:cataqui_app/views/create_job/create_job_state.dart';
 import 'package:cataqui_app/views/create_job/enums/create_job_morph_tag.dart';
 import 'package:cataqui_app/views/create_job/location/create_job_location_data.dart';
 import 'package:cataqui_app/views/create_job/location/create_job_location_state.dart';
+import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:cataqui_app/widgets/use_current_location_button/use_current_location_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,6 +33,22 @@ class _CreateJobLocationViewState extends ConsumerState<CreateJobLocationView> {
   bool _hasAddressSearchStarted(CreateJobLocationData locationData) {
     final addressSearch = locationData.addressSearch;
     return addressSearch.isLoading || addressSearch.hasError || addressSearch.value != null;
+  }
+
+  void _openPayment() {
+    unawaited(CreateJobPaymentRoute(jobId: widget.jobId).push<void>(context));
+  }
+
+  void _selectSearchedAddress(String addressId) {
+    ref.read(createJobLocationStateProvider.notifier).selectAddress(addressId: addressId);
+    _openPayment();
+  }
+
+  void _useCurrentLocation(DeviceLocationAddress address) {
+    ref
+        .read(createJobStateProvider.notifier)
+        .setLocation(latitude: address.coordinates.latitude, longitude: address.coordinates.longitude);
+    _openPayment();
   }
 
   @override
@@ -127,10 +144,13 @@ class _CreateJobLocationViewState extends ConsumerState<CreateJobLocationView> {
           final hasAddressSearchStarted = ref.watch(createJobLocationStateProvider.select(_hasAddressSearchStarted));
 
           if (!hasAddressSearchStarted) {
-            return _CreateJobLocationViewInitialBody(searchTextController: _searchTextController);
+            return _CreateJobLocationViewInitialBody(
+              searchTextController: _searchTextController,
+              onLocationSelected: _useCurrentLocation,
+            );
           }
 
-          return const _CreateJobLocationViewSearchBody();
+          return _CreateJobLocationViewSearchBody(onAddressSelected: _selectSearchedAddress);
         },
       ),
     );
