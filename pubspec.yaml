@@ -58,7 +58,7 @@ melos:
       description: Run tests with coverage
       exec:
         command: |
-          fvm flutter test --coverage && \
+          fvm flutter test --coverage --test-randomize-ordering-seed=random && \
           if [ -s coverage/lcov.info ]; then \
             remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$' && \
             awk '/^name:/ {print $2; exit}' pubspec.yaml | xargs -I {} genhtml coverage/lcov.info \
@@ -74,7 +74,7 @@ melos:
     test:no-coverage:
       description: Run tests without coverage
       exec:
-        command: fvm flutter test
+        command: fvm flutter test --test-randomize-ordering-seed=random
         concurrency: 1
       packageFilters:
         dirExists: test
@@ -88,7 +88,7 @@ melos:
       description: Run tests with --coverage (no HTML report)
       exec:
         command: |
-          fvm flutter test --coverage && \
+          fvm flutter test --coverage --test-randomize-ordering-seed=random && \
           if [ -s coverage/lcov.info ]; then \
             remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$'; \
           fi
@@ -99,7 +99,7 @@ melos:
     goldens:update:
       description: Update approved golden files
       exec:
-        command: fvm flutter test --update-goldens
+        command: fvm flutter test --update-goldens --test-randomize-ordering-seed=random
         concurrency: 1
       packageFilters:
         fileExists: dart_test.yaml

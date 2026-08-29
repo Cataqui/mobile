@@ -158,7 +158,7 @@ void main() {
           return null;
         },
         builder: () => CreateJobViewTestHelpers.buildApp(
-          disableAnimations: false,
+          disableAnimations: true,
           geosearchRepository: geosearchRepository,
           jobRepository: jobRepository,
         ),
