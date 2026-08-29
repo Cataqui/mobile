@@ -30,14 +30,19 @@ class _FixedAppStorageState extends AppStorageState {
   }
 }
 
-Widget _goldenScenario({required FakeFeedState feedState, bool hasSeenSwipeFeedHint = true, double height = 780}) {
+Widget _goldenScenario({
+  required FakeFeedState feedState,
+  bool hasSeenSwipeFeedHint = true,
+  bool animationsEnabled = false,
+  double height = 780,
+}) {
   return SizedBox(
     width: 390,
     height: height,
     child: TickerMode(
-      enabled: false,
+      enabled: animationsEnabled,
       child: FeedViewTestHelpers.buildApp(
-        disableAnimations: true,
+        disableAnimations: !animationsEnabled,
         providerOverrides: [
           feedStateProvider.overrideWith(() => feedState),
           appStorageStateProvider.overrideWith(() => _FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint)),
@@ -273,6 +278,7 @@ void main() {
       },
       builder: () {
         return _goldenScenario(
+          animationsEnabled: true,
           feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
         );
       },

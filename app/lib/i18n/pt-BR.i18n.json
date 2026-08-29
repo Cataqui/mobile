@@ -4,6 +4,20 @@
     "name": "Cataquí",
     "tagline": "Oportunidades em tempo real"
   },
+  "useCurrentLocationButton": {
+    "title": "Usar minha região de agora",
+    "permissionGuidance": "Precisa ativar a localização",
+    "loading": "Pegando sua região...",
+    "unavailable": "Não conseguimos achar sua região",
+    "servicesDisabled": "A localização tá desativada",
+    "restricted": "A localização tá bloqueada",
+    "settingsOpenError": "Não deu pra abrir as configurações. Tenta de novo",
+    "permissionSheet": {
+      "title": "Ativar localização",
+      "description": "Precisamos da sua localização pra saber onde você tá. Ativa nas configurações",
+      "openSettings": "Abrir configurações"
+    }
+  },
   "feed": {
     "searchPlaceholder": "Buscar Oportunidades",
     "loading": "Buscando oportunidades perto de você...",
@@ -98,8 +112,6 @@
     "location": {
       "title": "Em que região vai ser?",
       "searchPlaceholder": "Bairro, região ou ponto de referência",
-      "currentLocationTitle": "Usar minha região de agora",
-      "locationPermissionGuidance": "Precisa ativar a localização",
       "emptyGuidance": "Procura lugares perto de você",
       "search": {
         "loadingSemanticLabel": "Buscando o lugar que você digitou",

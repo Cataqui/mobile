@@ -64,7 +64,14 @@ class _CreateJobLocationViewInitialBodyState extends ConsumerState<_CreateJobLoc
         key: const ValueKey('create_job_location_view_content'),
         children: [
           const SizedBox(height: 20),
-          const UseCurrentLocationButton(key: ValueKey('create_job_current_location_button')),
+          UseCurrentLocationButton(
+            key: const ValueKey('create_job_current_location_button'),
+            onRequestedToUse: (address) {
+              ref
+                  .read(createJobStateProvider.notifier)
+                  .setLocation(latitude: address.coordinates.latitude, longitude: address.coordinates.longitude);
+            },
+          ),
           const SizedBox(height: 20),
           Expanded(
             child: ControlledVisibility(

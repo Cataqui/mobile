@@ -174,6 +174,15 @@ void main() {
 
       expect(container.read(createJobStateProvider).addressSelection, isNull);
     });
+
+    test('when selecting current coordinates, it should clear the deferred address selection', () {
+      final container = _CreateJobStateTestHelpers.createContainer(jobRepository: jobRepository);
+      container.read(createJobStateProvider.notifier)
+        ..setAddressSelection(addressId: 'address-id-123', sessionToken: 'session-token-123')
+        ..setLocation(latitude: -23.561684, longitude: -46.655981);
+
+      expect(container.read(createJobStateProvider).addressSelection, isNull);
+    });
   });
 }
 

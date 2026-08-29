@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../mocks.dart';
 
@@ -50,6 +51,11 @@ class TestApp extends StatelessWidget {
     ).thenAnswer((_) async {});
     when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
     return secureStorage;
+  });
+  static final _deviceLocationOverride = deviceLocationProvider.overrideWith((ref) {
+    final deviceLocation = MockDeviceLocation();
+    when(() => deviceLocation.permissionStatus).thenAnswer((_) async => DeviceLocationPermissionStatus.denied);
+    return deviceLocation;
   });
 
   final Widget? child;
@@ -109,8 +115,12 @@ class TestApp extends StatelessWidget {
 
   List<Override> _resolvedProviderOverrides() {
     final overridesSecureStorage = providerOverrides.any((override) => override.origin == secureStorageProvider);
-    if (overridesSecureStorage) return providerOverrides;
+    final overridesDeviceLocation = providerOverrides.any((override) => override.origin == deviceLocationProvider);
 
-    return [_secureStorageOverride, ...providerOverrides];
+    return [
+      if (!overridesSecureStorage) _secureStorageOverride,
+      if (!overridesDeviceLocation) _deviceLocationOverride,
+      ...providerOverrides,
+    ];
   }
 }

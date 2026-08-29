@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class MockDio extends Mock implements Dio {}
 
+class MockDeviceLocation extends Mock implements DeviceLocation {}
+
 class MockHttpClientAdapter extends Mock implements HttpClientAdapter {}
 
 class MockAuthRepository extends Mock implements AuthRepository {}

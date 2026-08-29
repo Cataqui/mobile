@@ -54,9 +54,9 @@ class CreateJobState extends _$CreateJobState {
 
   void setLocation({required double latitude, required double longitude}) {
     final location = (latitude: latitude, longitude: longitude);
-    if (state.location == location) return;
+    if (state.location == location && state.addressSelection == null) return;
 
-    state = state.copyWith(location: location);
+    state = state.copyWith(location: location, addressSelection: null);
   }
 
   void clearLocation() {

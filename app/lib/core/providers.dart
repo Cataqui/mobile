@@ -50,6 +50,11 @@ AppConfig appConfig(Ref ref) {
   return const AppConfig(flavor: appFlavor ?? 'development');
 }
 
+@riverpod
+DeviceLocation deviceLocation(Ref ref) {
+  return const DeviceLocation();
+}
+
 @Riverpod(keepAlive: true)
 SharedPreferencesAsync sharedPreferencesAsync(Ref ref) {
   return SharedPreferencesAsync();

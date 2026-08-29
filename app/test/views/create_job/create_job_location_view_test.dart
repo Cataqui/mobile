@@ -20,6 +20,7 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
+import '../../widgets/use_current_location_button/fake_device_location.dart';
 import 'create_job_view_test_helpers.dart';
 
 void main() {
@@ -159,6 +160,24 @@ void main() {
     );
   });
 
+  testWidgets('when current location is requested, it should save the resolved device coordinates', (tester) async {
+    const address = DeviceLocationAddress(
+      coordinates: DeviceLocationCoordinates(latitude: -23.561684, longitude: -46.655981, accuracy: 18),
+      neighborhood: 'Pinheiros',
+    );
+    final deviceLocation = FakeDeviceLocation(
+      address: address,
+      permissionStatuses: [DeviceLocationPermissionStatus.denied],
+    );
+    await _CreateJobLocationViewTestActions.pumpLocation(tester, deviceLocation: deviceLocation);
+    final container = ProviderScope.containerOf(tester.element(find.byType(CreateJobLocationView)));
+
+    await tester.tap(find.byKey(const ValueKey('create_job_current_location_button')));
+    await tester.pumpAndSettle();
+
+    expect(container.read(createJobStateProvider).location, (latitude: -23.561684, longitude: -46.655981));
+  });
+
   testWidgets('when the address search body is visible, it should prevent outside taps from dismissing search focus', (
     tester,
   ) async {
@@ -236,7 +255,7 @@ void main() {
       (
         find.byKey(const ValueKey('mateo_text_field_search_placeholder')).evaluate().length,
         find.byKey(const ValueKey('create_job_current_location_button')).evaluate().length,
-        find.text(i18n.createJob.location.locationPermissionGuidance).evaluate().length,
+        find.text(i18n.useCurrentLocationButton.permissionGuidance).evaluate().length,
         find.text(i18n.createJob.location.emptyGuidance).evaluate().length,
         find.byKey(const ValueKey('create_job_current_location_circle')).evaluate().length,
         find.byKey(const ValueKey('create_job_location_curved_arrow')).evaluate().length,
@@ -915,6 +934,7 @@ abstract final class _CreateJobLocationViewTestActions {
 
   static Future<void> pumpLocation(
     WidgetTester tester, {
+    DeviceLocation? deviceLocation,
     MockGeosearchRepository? geosearchRepository,
     _ControllableCreateJobLocationState? locationState,
   }) async {
@@ -930,6 +950,7 @@ abstract final class _CreateJobLocationViewTestActions {
         ),
         providerOverrides: [
           translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
+          if (deviceLocation != null) deviceLocationProvider.overrideWithValue(deviceLocation),
           if (geosearchRepository != null) geosearchRepositoryProvider.overrideWithValue(geosearchRepository),
           if (locationState != null) createJobLocationStateProvider.overrideWith(() => locationState),
         ],

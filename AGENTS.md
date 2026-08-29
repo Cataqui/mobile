@@ -78,6 +78,15 @@ dependencies:
 
 Write explicit, boring, readable production code. Avoid speculative abstractions, magic numbers, and hyper-condensed naming conventions.
 
+### Keep Complexity Proportional
+
+- Do not add state, branching, synchronization, cancellation, or abstractions solely to defend against highly unlikely
+  theoretical scenarios. Complexity must be proportional to both the scenario's realistic probability and its impact.
+- Require a concrete product requirement, observed failure, or credible high-impact risk before adding defensive machinery
+  for an edge case. Prefer the simplest implementation that handles the expected lifecycle correctly.
+- For example, do not add request-generation bookkeeping only to guard against the app locale changing during a brief
+  one-shot location lookup unless that transition is an actual supported requirement or observed source of failures.
+
 - **Bad:** `final p = await repo.find(id);`
 - **Good:** `final post = await _postsRepository.findById(postId: postId);`
 
