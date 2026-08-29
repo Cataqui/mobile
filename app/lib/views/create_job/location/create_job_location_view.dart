@@ -70,7 +70,7 @@ class _CreateJobLocationViewState extends ConsumerState<CreateJobLocationView> {
         bottom: MateoEdgeFadeStyle(color: context.mateo.colorScheme.background),
       ),
       header: MateoViewHeader(
-        title: i18n.createJob.location.title,
+        title: Text(i18n.createJob.location.title),
         leading: MateoFloatingActionButton(
           key: const ValueKey('create_job_location_back_button'),
           onPressed: context.pop,

@@ -94,7 +94,7 @@ class _CreateJobPaymentViewState extends ConsumerState<CreateJobPaymentView> {
       edgeFade: null,
       header: MateoViewHeader(
         centerTitle: true,
-        title: i18n.createJob.payment.title,
+        title: Text(i18n.createJob.payment.title),
         leading: MateoFloatingActionButton(
           key: const ValueKey('create_job_payment_back_button'),
           onPressed: context.pop,

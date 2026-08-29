@@ -210,7 +210,7 @@ class _CreateJobDescriptionViewState extends ConsumerState<CreateJobDescriptionV
             header: Padding(
               padding: const EdgeInsets.only(top: 12),
               child: MateoViewHeader(
-                title: i18n.createJob.description.title,
+                title: Text(i18n.createJob.description.title),
                 leading: MateoFloatingActionButton(
                   key: const ValueKey('create_job_location_back_button'),
                   onPressed: context.pop,
