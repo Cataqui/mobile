@@ -7,7 +7,7 @@ void main() {
   group('AddressCategory', () {
     test('when resolving icons, each category should use its assigned dotdart-backed icon', () {
       final categoryIconTypes = AddressCategory.values
-          .map((category) => category.icon().runtimeType)
+          .map((category) => category.icon(opticalCenter: false).runtimeType)
           .toList(growable: false);
 
       expect(categoryIconTypes, <Type>[
@@ -17,6 +17,9 @@ void main() {
         MateoIcon.forkKnife().runtimeType,
         MateoIcon.hotCoffeeCup().runtimeType,
         MateoIcon.beerMug().runtimeType,
+        MateoIcon.matiniGlass().runtimeType,
+        MateoIcon.wineGlass().runtimeType,
+        MateoIcon.hookah().runtimeType,
         MateoIcon.discoBall().runtimeType,
         MateoIcon.tree().runtimeType,
         MateoIcon.ferrisWheel().runtimeType,
@@ -58,6 +61,33 @@ void main() {
       ]);
     });
 
+    test('when optical centering is enabled, asymmetric category icons should use size-relative offsets', () {
+      final hookahAt20 = AddressCategory.hookahBar.icon(size: 20) as Transform;
+      final hookahAt40 = AddressCategory.hookahBar.icon(size: 40) as Transform;
+      final parkingAt20 = AddressCategory.parking.icon(size: 20) as Transform;
+      final parkingAt40 = AddressCategory.parking.icon(size: 40) as Transform;
+
+      expect(
+        (
+          hookahAt20.transform.getTranslation().x,
+          hookahAt40.transform.getTranslation().x,
+          parkingAt20.transform.getTranslation().x,
+          parkingAt40.transform.getTranslation().x,
+        ),
+        (-1.5, -3.0, 1.0, 2.0),
+      );
+    });
+
+    test('when optical centering is disabled, asymmetric category icons should remain untouched', () {
+      expect(
+        (
+          AddressCategory.hookahBar.icon(opticalCenter: false).runtimeType,
+          AddressCategory.parking.icon(opticalCenter: false).runtimeType,
+        ),
+        (MateoIcon.hookah().runtimeType, MateoIcon.parkingSign().runtimeType),
+      );
+    });
+
     test('when resolving colors, each category should use its semantic Mateo color family', () {
       final palette = MateoPalette();
       final categoryColors = AddressCategory.values
@@ -71,6 +101,9 @@ void main() {
         palette.orange[9],
         palette.orange[9],
         palette.amber[9],
+        palette.pink[9],
+        palette.red[9],
+        palette.violet[9],
         palette.pink[9],
         palette.green[9],
         palette.pink[9],

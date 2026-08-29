@@ -57,6 +57,9 @@ void main() {
     test('when geosearch returns changed category names, it should map the current worker contract', () {
       final categories =
           <String>[
+            'COCKTAIL_BAR',
+            'WINE_BAR',
+            'HOOKAH_BAR',
             'AUTOMOTIVE_SHOP',
             'BICYCLE_SHOP',
             'VEHICLE_DEALER',
@@ -71,6 +74,9 @@ void main() {
           );
 
       expect(categories, <AddressCategory>[
+        AddressCategory.cocktailBar,
+        AddressCategory.wineBar,
+        AddressCategory.hookahBar,
         AddressCategory.automotiveShop,
         AddressCategory.bicycleShop,
         AddressCategory.vehicleDealer,

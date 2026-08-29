@@ -10,6 +10,9 @@ enum AddressCategory {
   restaurant,
   cafe,
   bar,
+  cocktailBar,
+  wineBar,
+  hookahBar,
   nightClub,
   park,
   amusementPark,
@@ -71,6 +74,15 @@ enum AddressCategory {
 
       case AddressCategory.bar:
         return palette.amber[9];
+
+      case AddressCategory.cocktailBar:
+        return palette.pink[9];
+
+      case AddressCategory.wineBar:
+        return palette.red[9];
+
+      case AddressCategory.hookahBar:
+        return palette.violet[9];
 
       case AddressCategory.nightClub:
       case AddressCategory.amusementPark:
@@ -141,6 +153,15 @@ enum AddressCategory {
 
       case AddressCategory.bar:
         return MateoIcon.beerMug(width: size, height: size, color: color);
+
+      case AddressCategory.cocktailBar:
+        return MateoIcon.matiniGlass(width: size, height: size, color: color);
+
+      case AddressCategory.wineBar:
+        return MateoIcon.wineGlass(width: size, height: size, color: color);
+
+      case AddressCategory.hookahBar:
+        return MateoIcon.hookah(width: size, height: size, color: color);
 
       case AddressCategory.nightClub:
         return MateoIcon.discoBall(width: size, height: size, color: color);
