@@ -86,13 +86,13 @@ enum AddressCategory {
       case AddressCategory.hookahBar:
         return palette.violet[9];
 
+      case AddressCategory.hairCare:
+        return palette.amber[9];
+
       case AddressCategory.nightClub:
       case AddressCategory.amusementPark:
-      case AddressCategory.hairCare:
       case AddressCategory.theater:
       case AddressCategory.movieTheater:
-        return palette.pink[9];
-
       case AddressCategory.park:
       case AddressCategory.bicycleShop:
       case AddressCategory.chargingStation:
