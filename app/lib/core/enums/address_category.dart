@@ -52,6 +52,8 @@ enum AddressCategory {
   governmentOffice,
   other;
 
+  static const _defaultIconSize = 20.0;
+
   Color color({required MateoPalette palette}) {
     switch (this) {
       case AddressCategory.street:
@@ -137,7 +139,7 @@ enum AddressCategory {
     }
   }
 
-  Widget icon({double? size, Color? color}) {
+  Widget icon({double? size, Color? color, bool opticalCenter = true}) {
     switch (this) {
       case AddressCategory.street:
       case AddressCategory.neighborhood:
@@ -152,7 +154,9 @@ enum AddressCategory {
         return MateoIcon.hotCoffeeCup(width: size, height: size, color: color);
 
       case AddressCategory.bar:
-        return MateoIcon.beerMug(width: size, height: size, color: color);
+        final beerIcon = MateoIcon.beerMug(width: size, height: size, color: color);
+        if (!opticalCenter) return beerIcon;
+        return Transform.translate(offset: Offset((size ?? _defaultIconSize) * 0.05, 0), child: beerIcon);
 
       case AddressCategory.cocktailBar:
         return MateoIcon.matiniGlass(width: size, height: size, color: color);
@@ -161,7 +165,10 @@ enum AddressCategory {
         return MateoIcon.wineGlass(width: size, height: size, color: color);
 
       case AddressCategory.hookahBar:
-        return MateoIcon.hookah(width: size, height: size, color: color);
+        final hookahIcon = MateoIcon.hookah(width: size, height: size, color: color);
+
+        if (!opticalCenter) return hookahIcon;
+        return Transform.translate(offset: Offset(-((size ?? _defaultIconSize) * 0.075), 0), child: hookahIcon);
 
       case AddressCategory.nightClub:
         return MateoIcon.discoBall(width: size, height: size, color: color);
@@ -247,7 +254,9 @@ enum AddressCategory {
         return MateoIcon.helicopterFront(width: size, height: size, color: color);
 
       case AddressCategory.parking:
-        return MateoIcon.parkingSign(width: size, height: size, color: color);
+        final parkingIcon = MateoIcon.parkingSign(width: size, height: size, color: color);
+        if (!opticalCenter) return parkingIcon;
+        return Transform.translate(offset: Offset((size ?? _defaultIconSize) * 0.05, 0), child: parkingIcon);
 
       case AddressCategory.chargingStation:
         return MateoIcon.evPlug(width: size, height: size, color: color);

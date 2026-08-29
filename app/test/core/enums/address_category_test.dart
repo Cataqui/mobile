@@ -62,6 +62,8 @@ void main() {
     });
 
     test('when optical centering is enabled, asymmetric category icons should use size-relative offsets', () {
+      final beerAt20 = AddressCategory.bar.icon(size: 20) as Transform;
+      final beerAt40 = AddressCategory.bar.icon(size: 40) as Transform;
       final hookahAt20 = AddressCategory.hookahBar.icon(size: 20) as Transform;
       final hookahAt40 = AddressCategory.hookahBar.icon(size: 40) as Transform;
       final parkingAt20 = AddressCategory.parking.icon(size: 20) as Transform;
@@ -69,22 +71,25 @@ void main() {
 
       expect(
         (
+          beerAt20.transform.getTranslation().x,
+          beerAt40.transform.getTranslation().x,
           hookahAt20.transform.getTranslation().x,
           hookahAt40.transform.getTranslation().x,
           parkingAt20.transform.getTranslation().x,
           parkingAt40.transform.getTranslation().x,
         ),
-        (-1.5, -3.0, 1.0, 2.0),
+        (1.0, 2.0, -1.5, -3.0, 1.0, 2.0),
       );
     });
 
     test('when optical centering is disabled, asymmetric category icons should remain untouched', () {
       expect(
         (
+          AddressCategory.bar.icon(opticalCenter: false).runtimeType,
           AddressCategory.hookahBar.icon(opticalCenter: false).runtimeType,
           AddressCategory.parking.icon(opticalCenter: false).runtimeType,
         ),
-        (MateoIcon.hookah().runtimeType, MateoIcon.parkingSign().runtimeType),
+        (MateoIcon.beerMug().runtimeType, MateoIcon.hookah().runtimeType, MateoIcon.parkingSign().runtimeType),
       );
     });
 
