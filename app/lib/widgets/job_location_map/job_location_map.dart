@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -20,7 +19,7 @@ class JobLocationMap extends StatelessWidget {
     required this.location,
     required this.areaDiameterInMeters,
     super.key,
-    this.zoom = 13,
+    this.zoom = 13.5,
     this.offset = Offset.zero,
   }) : assert(location.latitude >= -90 && location.latitude <= 90, 'location.latitude must be between -90 and 90'),
        assert(
@@ -35,7 +34,7 @@ class JobLocationMap extends StatelessWidget {
   static const _tileSize = 256.0;
 
   /// Insets that keep Google attribution clear of overlapping feed content.
-  static const mapPadding = EdgeInsets.only(bottom: 60);
+  static const mapPadding = EdgeInsets.only(bottom: 100);
 
   /// The approximate job location rendered by the map.
   final ({double latitude, double longitude}) location;
@@ -55,7 +54,6 @@ class JobLocationMap extends StatelessWidget {
       brightness: Theme.of(context).brightness,
       palette: context.mateo.palette,
     );
-    final style = JobLocationMapStyle.fromColorScheme(colorScheme: colorScheme);
     final mapKey = (location, areaDiameterInMeters, zoom, offset, mapPadding);
 
     return ColoredBox(
@@ -65,7 +63,6 @@ class JobLocationMap extends StatelessWidget {
           child: GoogleMap(
             key: ValueKey<Object>(mapKey),
             initialCameraPosition: CameraPosition(target: _cameraTarget(), zoom: zoom),
-            style: style.googleMapsJson,
             backgroundColor: colorScheme.background,
             mapType: MapType.normal,
             minMaxZoomPreference: MinMaxZoomPreference(zoom, zoom),

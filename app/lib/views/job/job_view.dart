@@ -5,12 +5,13 @@ import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
@@ -26,7 +27,6 @@ class JobView extends ConsumerWidget {
   }
 
   static const _errorIllustrationHeight = 140.0;
-
   final String jobId;
   final FeedJobDto? feedJob;
 
@@ -36,167 +36,197 @@ class JobView extends ConsumerWidget {
     final i18n = ref.watch(translationProvider);
     final jobState = ref.watch(jobStateProvider(jobId));
     final jobData = jobState.asData?.value;
-    final headerMorphTag = 'job-$jobId-header';
+    final headerMorphTag = JobViewMorphTag.header.valueFor(jobId: jobId);
 
-    return MateoSwipeToPopSurface(
-      borderRadius: BorderRadiusGeometry.circular(34),
-      sensibility: 0.15,
-      swipeDown: true,
-      child: MateoScrollableView(
-        backgroundColor: Colors.transparent,
-        edgeFade: null,
-        header: Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 20),
-          child: Align(
-            alignment: AlignmentGeometry.topLeft,
-            child: _buildWhenRouteSettled(
-              child: MateoFloatingActionButton(
-                semanticLabel: i18n.navigation.back,
-                onPressed: () {
-                  unawaited(Navigator.of(context).maybePop());
-                },
-                iconBuilder: (state) => MateoIcon.arrowLeft(color: state.foregroundColor),
-                backgroundColor: context.mateo.colorScheme.background,
-                foregroundColor: context.mateo.colorScheme.text.primary,
-                size: 50,
+    return SafeArea(
+      minimum: const EdgeInsets.all(12),
+      child: InteractiveSwipeDismiss(
+        direction: InteractiveSwipeDismissDirection.down,
+        dragConfig: const InteractiveSwipeDismissDragConfig(freeDrag: true, sensitivity: 0.37, dismissThreshold: 0.25),
+        onDismiss: () {
+          const FeedRoute().go(context);
+          return true;
+        },
+        child: MateoScrollableView(
+          edgeFade: null,
+          header: InteractiveSwipeDismissHandle(
+            key: const ValueKey('job_dismiss_handle'),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: MorphSibling(
+                tag: JobViewMorphTag.edgeFade.valueFor(jobId: jobId),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: CurvedAnimation(parent: animation, curve: const Interval(0.8, 1)),
+                  child: child,
+                ),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: DecoratedBox(
+                      decoration: ShapeDecoration(
+                        color: switch (Theme.of(context).brightness) {
+                          Brightness.light => context.mateo.palette.neutral[6],
+                          Brightness.dark => throw UnimplementedError('Dark mode color not implemented'),
+                        },
+                        shape: const StadiumBorder(),
+                      ),
+                      child: const SizedBox(key: ValueKey('job_dismiss_handle_visual'), width: 50, height: 7),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-        footer: jobState.isLoading || jobData != null
-            ? Center(
-                child: _buildWhenRouteSettled(child: JobContactButton(jobId: jobId)),
-              )
-            : null,
-        bodySurfaceBuilder: (context, scrollable) => JobSurface(
-          jobId: jobId,
-          decoration: BoxDecoration(color: colorScheme.background),
-          edgeFadeStyle: MateoEdgeFadeStyle(color: colorScheme.background),
-          fadeTop: true,
-          fadeBottom: true,
-          child: scrollable,
-        ),
-        body: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 0, 28, 40),
-          child: feedJob == null && jobData == null
-              ? SizedBox(
-                  height: 0,
-                  child: jobState.when(
-                    loading: () => Center(
-                      child: MateoDotMatrix(
-                        width: 60,
-                        height: 60,
-                        radius: 30,
-                        dotSize: 6,
-                        color: context.mateo.palette.accent[9],
-                      ),
+          footer: jobState.isLoading || jobData != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: MorphSibling(
+                      tag: JobViewMorphTag.edgeFade.valueFor(jobId: jobId),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: CurvedAnimation(
+                            parent: animation,
+                            curve: const Interval(0.95, 1),
+                            reverseCurve: const Interval(0.99, 1),
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: JobContactButton(jobId: jobId),
                     ),
-                    error: (error, _) => _buildError(context, ref, i18n, error),
-                    data: (_) => const SizedBox.shrink(),
                   ),
                 )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Morph(
-                      tag: headerMorphTag,
-                      curve: JobSurface.morphCurve,
-                      switchThreshold: 0.1,
-                      onEnd: HapticFeedback.lightImpact,
-                      child: Column(
-                        key: ValueKey(headerMorphTag),
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
-                              onNow: () => i18n.feedJob.timeAgo.now,
-                              onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
-                              onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
-                              onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
-                              onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                              fallback: TimeAgoFallback.finer,
-                            ),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: colorScheme.text.secondary,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              feedJob?.title ?? jobData!.job.title,
-                              key: const ValueKey('job_title'),
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
+              : null,
+          backgroundBuilder: (context, scrollable) => JobSurface(
+            jobId: jobId,
+            decoration: BoxDecoration(color: colorScheme.background, borderRadius: BorderRadius.circular(42)),
+            edgeFadeStyle: MateoEdgeFadeStyle(color: colorScheme.background),
+            fadeTop: true,
+            fadeBottom: true,
+            child: scrollable,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 32, 28, 40),
+            child: feedJob == null && jobData == null
+                ? SizedBox(
+                    height: 0,
+                    child: jobState.when(
+                      loading: () => Center(
+                        child: MateoDotMatrix(
+                          width: 60,
+                          height: 60,
+                          radius: 30,
+                          dotSize: 6,
+                          color: context.mateo.palette.accent[9],
+                        ),
+                      ),
+                      error: (error, _) => _buildError(context, ref, i18n, error),
+                      data: (_) => const SizedBox.shrink(),
+                    ),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Morph(
+                        tag: headerMorphTag,
+                        curve: JobSurface.morphCurve,
+                        switchThreshold: 0.1,
+                        child: Column(
+                          key: ValueKey(headerMorphTag),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
+                                onNow: () => i18n.feedJob.timeAgo.now,
+                                onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                                onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                                onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                                onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                                fallback: TimeAgoFallback.finer,
+                              ),
                               style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.text.primary,
-                                height: 1.2, // arrumar height + sapcing
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: colorScheme.text.secondary,
                               ),
                             ),
-                          ),
-                          Text(
-                            key: const ValueKey('job_payment'),
-                            (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
-                            style: TextStyle(
-                              fontSize: 30,
-                              color: colorScheme.text.profit,
-                              fontWeight: FontWeight.w600,
-                              height: 1.3,
-                            ),
-                          ),
-                          if (jobData != null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: Motion(
-                                effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
-                                child: Text(
-                                  jobData.job.description,
-                                  key: const ValueKey('job_description'),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: colorScheme.text.secondary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                feedJob?.title ?? jobData!.job.title,
+                                key: const ValueKey('job_title'),
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.text.primary,
+                                  height: 1.2, // arrumar height + sapcing
                                 ),
                               ),
                             ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    if (feedJob != null)
-                      jobState.when(
-                        data: (_) => const SizedBox.shrink(),
-                        error: (error, _) {
-                          return _buildWhenRouteSettled(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 40),
-                              child: _buildError(context, ref, i18n, error),
+                            Text(
+                              key: const ValueKey('job_payment'),
+                              (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
+                              style: TextStyle(
+                                fontSize: 30,
+                                color: colorScheme.text.profit,
+                                fontWeight: FontWeight.w600,
+                                height: 1.3,
+                              ),
                             ),
-                          );
-                        },
-                        loading: () => Skeleton(
-                          style: SkeletonStyle(
-                            color: colorScheme.skeleton.bone,
-                            effect: const SkeletonFadeEffect(),
-                            radius: const Radius.circular(999),
-                          ),
-                          child: Text(
-                            JobDto.fixture().description,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: colorScheme.text.secondary,
-                              fontWeight: FontWeight.w600,
+                            if (jobData != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 12),
+                                child: Motion(
+                                  effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
+                                  child: Text(
+                                    jobData.job.description,
+                                    key: const ValueKey('job_description'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: colorScheme.text.secondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (feedJob != null)
+                        jobState.when(
+                          data: (_) => const SizedBox.shrink(),
+                          error: (error, _) {
+                            return _buildWhenRouteSettled(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 40),
+                                child: _buildError(context, ref, i18n, error),
+                              ),
+                            );
+                          },
+                          loading: () => Skeleton(
+                            style: SkeletonStyle(
+                              color: colorScheme.skeleton.bone,
+                              effect: const SkeletonFadeEffect(),
+                              radius: const Radius.circular(999),
+                            ),
+                            child: Text(
+                              JobDto.fixture().description,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: colorScheme.text.secondary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );

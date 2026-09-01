@@ -6,10 +6,11 @@ import 'package:cataqui_app/widgets/use_current_location_button/use_current_loca
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
+import '../../fakes.dart';
 import '../../utils/test_app.dart';
-import 'fake_device_location.dart';
 
 void main() {
   const coordinates = DeviceLocationCoordinates(latitude: -23.561684, longitude: -46.655981, accuracy: 18);
@@ -32,7 +33,7 @@ void main() {
   }) async {
     await tester.pumpWidget(
       TestApp(
-        mediaQueryData: mediaQueryData,
+        mediaQueryData: mediaQueryData ?? const MediaQueryData(disableAnimations: true),
         providerOverrides: [
           translationProvider.overrideWithValue(i18n),
           deviceLocationProvider.overrideWithValue(deviceLocationService),
@@ -47,6 +48,10 @@ void main() {
         ),
       ),
     );
+    if (mediaQueryData?.disableAnimations == false) {
+      await tester.pump(const Duration(milliseconds: 350));
+      return;
+    }
     await tester.pumpAndSettle();
   }
 
@@ -89,6 +94,67 @@ void main() {
       ],
       <Object?>[1, 0],
     );
+  });
+
+  testWidgets('when current location is resting, it should show the pulse indicator', (tester) async {
+    final service = buildService();
+    await pumpButton(tester, deviceLocationService: service, onRequestedToUse: (_) {});
+
+    expect(tester.widget<AnimatedOpacity>(find.byKey(const ValueKey('current_location_pulse_transition'))).opacity, 1);
+  });
+
+  testWidgets('when current location is loading, it should keep the loading indicator', (tester) async {
+    final service = buildService(addressCompleter: Completer<DeviceLocationAddress>());
+    await pumpButton(tester, deviceLocationService: service, onRequestedToUse: (_) {});
+
+    await tester.tap(find.byType(UseCurrentLocationButton));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(
+      (
+        loadingOpacity: tester
+            .widget<AnimatedOpacity>(find.byKey(const ValueKey('current_location_loading_transition')))
+            .opacity,
+        pulseOpacity: tester
+            .widget<AnimatedOpacity>(find.byKey(const ValueKey('current_location_pulse_transition')))
+            .opacity,
+      ),
+      (loadingOpacity: 1, pulseOpacity: 0),
+    );
+  });
+
+  testWidgets('when loading resolves, it should crossfade without recreating the loading indicator', (tester) async {
+    final addressCompleter = Completer<DeviceLocationAddress>();
+    final service = buildService(addressCompleter: addressCompleter);
+    await pumpButton(
+      tester,
+      deviceLocationService: service,
+      onRequestedToUse: (_) {},
+      mediaQueryData: const MediaQueryData(disableAnimations: false),
+    );
+    await tester.tap(find.byType(UseCurrentLocationButton));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    final loadingIndicatorState = tester.state(find.byType(MateoCircularLoadingIndicator));
+
+    addressCompleter.complete(neighborhoodAddress);
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 175));
+    final transitioningLoadingIndicatorStates = tester.stateList(find.byType(MateoCircularLoadingIndicator)).toList();
+
+    expect(
+      (
+        loadingIndicatorCount: transitioningLoadingIndicatorStates.length,
+        preservesLoadingIndicatorState:
+            transitioningLoadingIndicatorStates.length == 1 &&
+            identical(transitioningLoadingIndicatorStates.single, loadingIndicatorState),
+        pulseCount: find.byKey(const ValueKey('current_location_pulse')).evaluate().length,
+      ),
+      (loadingIndicatorCount: 1, preservesLoadingIndicatorState: true, pulseCount: 1),
+    );
+    await tester.pump(const Duration(milliseconds: 25));
   });
 
   testWidgets('when permission is granted, it should resolve the region for display without selecting it', (
@@ -165,7 +231,7 @@ void main() {
     );
   });
 
-  testWidgets('when loading resolves, it should smoothly move the description with the indicator size', (tester) async {
+  testWidgets('when loading resolves, it should keep both descriptions aligned during the fade', (tester) async {
     final addressCompleter = Completer<DeviceLocationAddress>();
     final service = buildService(addressCompleter: addressCompleter);
     await pumpButton(
@@ -178,37 +244,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
 
-    final loadingIndicatorWidth = tester
-        .getSize(find.byKey(const ValueKey('create_job_current_location_circle')))
-        .width;
-
     addressCompleter.complete(neighborhoodAddress);
     await tester.pump();
     await tester.pump();
-    final transitionStartWidth = tester.getSize(find.byKey(const ValueKey('create_job_current_location_circle'))).width;
     await tester.pump(const Duration(milliseconds: 175));
-    final transitionMiddleWidth = tester
-        .getSize(find.byKey(const ValueKey('create_job_current_location_circle')))
-        .width;
     final loadingDescriptionHeight = tester.getTopLeft(find.text(i18n.useCurrentLocationButton.loading)).dy;
     final resolvedDescriptionHeight = tester.getTopLeft(find.text('Pinheiros, São Paulo')).dy;
+
+    expect(resolvedDescriptionHeight, loadingDescriptionHeight);
+
     await tester.pump(const Duration(milliseconds: 175));
-    final resolvedIndicatorWidth = tester
-        .getSize(find.byKey(const ValueKey('create_job_current_location_circle')))
-        .width;
-
-    expect(
-      (
-        startsAtLoadingWidth: transitionStartWidth == loadingIndicatorWidth,
-        movesBetweenWidths:
-            transitionMiddleWidth < transitionStartWidth && transitionMiddleWidth > resolvedIndicatorWidth,
-        reachesResolvedWidth: resolvedIndicatorWidth < loadingIndicatorWidth,
-        descriptionsStayAligned: resolvedDescriptionHeight == loadingDescriptionHeight,
-      ),
-      (startsAtLoadingWidth: true, movesBetweenWidths: true, reachesResolvedWidth: true, descriptionsStayAligned: true),
-    );
-
-    await tester.pumpAndSettle();
   });
 
   for (final testCase in <({DeviceLocationAddress address, String expected, String name})>[
@@ -357,7 +402,12 @@ void main() {
     final service = buildService(
       addressError: const DeviceLocationException(DeviceLocationExceptionReason.permissionPermanentlyDenied),
     );
-    await pumpButton(tester, deviceLocationService: service, onRequestedToUse: (_) {});
+    await pumpButton(
+      tester,
+      deviceLocationService: service,
+      onRequestedToUse: (_) {},
+      mediaQueryData: const MediaQueryData(disableAnimations: false),
+    );
     await tester.tap(find.byType(UseCurrentLocationButton));
     await tester.pump();
     await pumpRetryDelays(tester);
@@ -369,7 +419,8 @@ void main() {
         .evaluate()
         .length;
     final settingsCountWhileClosing = service.openLocationSettingsRequestCount;
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
 
     expect(
       (

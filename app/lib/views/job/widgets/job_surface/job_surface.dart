@@ -1,3 +1,4 @@
+import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
 import 'package:cataqui_app/views/job/widgets/job_surface/job_surface_edge_fade.dart';
 import 'package:cataqui_app/views/job/widgets/job_surface/job_surface_edge_fade_morph_flight_delegate.dart';
 import 'package:flutter/material.dart';
@@ -30,15 +31,10 @@ class JobSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final handoffBorderRadius = MateoSwipeToPopSurface.maybeHandoffStateOf(context)?.borderRadius;
-    final effectiveDecoration = handoffBorderRadius == null
-        ? decoration
-        : decoration.copyWith(borderRadius: handoffBorderRadius);
-    final resolvedBorderRadius =
-        effectiveDecoration.borderRadius?.resolve(Directionality.of(context)) ?? BorderRadius.zero;
-    final fadeStyle = edgeFadeStyle ?? MateoEdgeFadeStyle(color: effectiveDecoration.color);
-    final surfaceTag = 'job-$jobId-surface';
-    final fadeTag = 'job-$jobId-edge-fade';
+    final resolvedBorderRadius = decoration.borderRadius?.resolve(Directionality.of(context)) ?? BorderRadius.zero;
+    final fadeStyle = edgeFadeStyle ?? MateoEdgeFadeStyle(color: decoration.color);
+    final surfaceTag = JobViewMorphTag.surface.valueFor(jobId: jobId);
+    final fadeTag = JobViewMorphTag.edgeFade.valueFor(jobId: jobId);
     final edgeFade = JobSurfaceEdgeFade(
       key: ValueKey(fadeTag),
       borderRadius: resolvedBorderRadius,
@@ -59,7 +55,7 @@ class JobSurface extends StatelessWidget {
       child: Container(
         key: ValueKey(surfaceTag),
         width: width,
-        decoration: effectiveDecoration,
+        decoration: decoration,
         child: ClipRRect(
           borderRadius: resolvedBorderRadius,
           child: Stack(

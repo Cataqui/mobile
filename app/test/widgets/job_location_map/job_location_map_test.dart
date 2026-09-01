@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -148,7 +147,7 @@ void main() {
         (
           targetMatches: _JobLocationMapTestHelpers.cameraTargetMatchesOffset(
             target: cameraPosition.target,
-            offset: const Offset(0, 30),
+            offset: const Offset(0, 50),
             zoom: 14,
           ),
           zoom: cameraPosition.zoom,
@@ -166,7 +165,7 @@ void main() {
       final target = renderer.lastWidgetConfiguration.initialCameraPosition.target;
 
       expect(
-        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(30, 10), zoom: zoom),
+        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(30, 30), zoom: zoom),
         isTrue,
       );
     });
@@ -186,7 +185,7 @@ void main() {
       final target = renderer.lastWidgetConfiguration.initialCameraPosition.target;
 
       expect(
-        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(0, 48), zoom: 14),
+        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(0, 68), zoom: 14),
         isTrue,
       );
     });
@@ -246,16 +245,11 @@ void main() {
       expect(liteModeEnabled, isTrue);
     });
 
-    testWidgets('when rendering the location map style, it should use the approved local style', (tester) async {
+    testWidgets('when rendering the location map style, it should preserve the native style', (tester) async {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
-      final style = renderer.lastMapConfiguration.style!;
+      final googleMap = tester.widget<GoogleMap>(find.byType(GoogleMap));
 
-      expect(
-        style,
-        JobLocationMapStyle.fromColorScheme(
-          colorScheme: JobLocationMapColorScheme.light(palette: MateoPalette()),
-        ).googleMapsJson,
-      );
+      expect(googleMap.style, isNull);
     });
 
     testWidgets('when the active light theme changes, it should preserve the native map identity', (tester) async {

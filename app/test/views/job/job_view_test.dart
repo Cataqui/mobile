@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
@@ -124,115 +125,6 @@ void main() {
       expect(retryCount, equals(1));
     });
 
-    testWidgets('when opened, it should show the Mateo back button', (tester) async {
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: JobViewTestHelpers.feedJob(),
-        jobState: JobViewTestHelpers.loadingState(),
-      );
-
-      expect(find.byType(MateoFloatingActionButton), findsOneWidget);
-    });
-
-    testWidgets('when motion is enabled and the screen starts opening, it should keep the Mateo back button hidden', (
-      tester,
-    ) async {
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: JobViewTestHelpers.feedJob(),
-        jobState: JobViewTestHelpers.loadingState(),
-        disableAnimations: false,
-      );
-
-      final fadeTransition = tester.widget<FadeTransition>(
-        find
-            .ancestor(
-              of: find.byType(MateoFloatingActionButton, skipOffstage: false),
-              matching: find.byType(FadeTransition),
-            )
-            .first,
-      );
-      expect(fadeTransition.opacity.value, equals(0));
-    });
-
-    testWidgets(
-      'when motion is enabled and the opening transition finishes, it should show the Mateo back button once',
-      (tester) async {
-        await JobViewTestHelpers.pumpJobView(
-          tester: tester,
-          feedJob: JobViewTestHelpers.feedJob(),
-          jobState: JobViewTestHelpers.loadingState(),
-          disableAnimations: false,
-        );
-        await tester.pump(const Duration(milliseconds: 560));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-
-        final hasVisibleFade = tester.widgetList<FadeTransition>(
-          find.ancestor(
-            of: find.byType(MateoFloatingActionButton, skipOffstage: false),
-            matching: find.byType(FadeTransition),
-          ),
-        );
-        expect(hasVisibleFade.any((fadeTransition) => fadeTransition.opacity.value == 1), isTrue);
-      },
-    );
-
-    testWidgets('when motion is enabled and the Mateo back button is tapped, it should hide before leaving', (
-      tester,
-    ) async {
-      final feedJob = JobViewTestHelpers.feedJob();
-      await JobViewTestHelpers.pumpRoutedJobView(
-        tester: tester,
-        goRouter: goRouter,
-        feedJob: feedJob,
-        jobRepository: jobRepository,
-        disableAnimations: false,
-      );
-
-      await tester.tap(find.byType(MateoFloatingActionButton).last);
-      await tester.pump();
-
-      final fadeTransition = tester.widget<FadeTransition>(
-        find
-            .ancestor(
-              of: find.byType(MateoFloatingActionButton, skipOffstage: false).last,
-              matching: find.byType(FadeTransition),
-            )
-            .first,
-      );
-      expect(fadeTransition.opacity.value, equals(0));
-    });
-
-    testWidgets(
-      'when motion is enabled and the Mateo back button is tapped, it should keep the full description in the closing transition',
-      (tester) async {
-        const description = 'Descrição completa do trabalho com horários, local e detalhes importantes.';
-
-        await JobViewTestHelpers.pumpJobView(
-          tester: tester,
-          feedJob: JobViewTestHelpers.feedJob(),
-          jobState: JobViewTestHelpers.loadedState(job: JobViewTestHelpers.job(description: description)),
-          disableAnimations: false,
-        );
-        await tester.pump(const Duration(milliseconds: 560));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-        await tester.tap(find.byType(MateoFloatingActionButton));
-        await tester.pump();
-
-        expect(
-          find.ancestor(
-            of: find.text(description, skipOffstage: false),
-            matching: find.byWidgetPredicate(
-              (widget) => widget is Morph && widget.tag == 'job-${JobViewTestHelpers.feedJob().jobId}-header',
-            ),
-          ),
-          findsOneWidget,
-        );
-      },
-    );
-
     testWidgets('when opened, it should render the JobView screen', (tester) async {
       await JobViewTestHelpers.pumpJobView(
         tester: tester,
@@ -243,14 +135,28 @@ void main() {
       expect(find.byType(JobView), findsOneWidget);
     });
 
-    testWidgets('when opened, it should wrap the screen with the generic swipe-to-pop surface', (tester) async {
+    testWidgets('when opened, it should wrap the screen with interactive dismissal', (tester) async {
       await JobViewTestHelpers.pumpJobView(
         tester: tester,
         feedJob: JobViewTestHelpers.feedJob(),
         jobState: JobViewTestHelpers.loadingState(),
       );
 
-      expect(find.byType(MateoSwipeToPopSurface), findsOneWidget);
+      expect(find.byType(InteractiveSwipeDismiss), findsOneWidget);
+    });
+
+    testWidgets('when opened, it should make the whole header a dismissal handle', (tester) async {
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: JobViewTestHelpers.feedJob(),
+        jobState: JobViewTestHelpers.loadingState(),
+      );
+
+      final headerHandle = find.byKey(const ValueKey('job_dismiss_handle'));
+      expect(
+        find.descendant(of: headerHandle, matching: find.byKey(const ValueKey('job_dismiss_handle_visual'))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('when opened from the feed, it should render the title inside the moving header', (tester) async {
@@ -271,31 +177,36 @@ void main() {
             )
             .first,
       );
-      expect(headerMorph.tag, equals('job-${feedJob.jobId}-header'));
+      expect(headerMorph.tag, equals(JobViewMorphTag.header.valueFor(jobId: feedJob.jobId)));
     });
 
-    testWidgets(
-      'when dragging down from the top, it should preview the job route without scrubbing the route animation',
-      (tester) async {
-        final feedJob = JobViewTestHelpers.feedJob();
+    testWidgets('when dragging the surface down, it should preview dismissal without scrubbing the route animation', (
+      tester,
+    ) async {
+      final feedJob = JobViewTestHelpers.feedJob();
 
-        await JobViewTestHelpers.pumpRoutedJobView(
-          tester: tester,
-          goRouter: goRouter,
-          feedJob: feedJob,
-          jobRepository: jobRepository,
-        );
-        final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
-        await gesture.moveBy(const Offset(0, 220));
-        await tester.pump();
+      await JobViewTestHelpers.pumpRoutedJobView(
+        tester: tester,
+        goRouter: goRouter,
+        feedJob: feedJob,
+        jobRepository: jobRepository,
+      );
+      final surface = find.byType(MateoScrollableView);
+      final initialTopLeft = tester.getTopLeft(surface);
+      final gesture = await tester.startGesture(tester.getCenter(surface));
+      await gesture.moveBy(const Offset(0, 220));
+      await tester.pump();
 
-        final route = ModalRoute.of(tester.element(find.byType(JobView)));
-        expect(route!.animation!.value, equals(1));
-        await gesture.up();
-      },
-    );
+      final route = ModalRoute.of(tester.element(find.byType(JobView)));
+      expect((
+        route!.animation!.value,
+        tester.getTopLeft(surface) - initialTopLeft,
+      ), equals((1, const Offset(0, 81.4))));
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
 
-    testWidgets('when dragging down from the top past half the screen, it should pop back to the feed', (tester) async {
+    testWidgets('when dragging the surface past the threshold, it should pop back to the feed', (tester) async {
       final feedJob = JobViewTestHelpers.feedJob();
 
       await JobViewTestHelpers.pumpRoutedJobView(
@@ -310,7 +221,7 @@ void main() {
       expect(find.byType(JobView), findsNothing);
     });
 
-    testWidgets('when dragging down from the top less than half the screen, it should reopen JobView', (tester) async {
+    testWidgets('when dragging the surface below the threshold, it should restore JobView', (tester) async {
       final feedJob = JobViewTestHelpers.feedJob();
 
       await JobViewTestHelpers.pumpRoutedJobView(
@@ -356,35 +267,19 @@ void main() {
       },
     );
 
-    testWidgets('when the swipe-to-pop preview starts, it should keep the Mateo back button visible', (tester) async {
-      final feedJob = JobViewTestHelpers.feedJob();
-
-      await JobViewTestHelpers.pumpRoutedJobView(
-        tester: tester,
-        goRouter: goRouter,
-        feedJob: feedJob,
-        jobRepository: jobRepository,
-      );
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
-      await gesture.moveBy(const Offset(0, 120));
-      await tester.pump();
-
-      final fadeTransition = tester.widget<FadeTransition>(
-        find
-            .ancestor(
-              of: find.byType(MateoFloatingActionButton, skipOffstage: false).last,
-              matching: find.byType(FadeTransition),
-            )
-            .first,
-      );
-      expect(fadeTransition.opacity.value, equals(1));
-      await gesture.up();
-    });
-
     testWidgets(
-      'when the swipe-to-pop preview moves the surface, it should preserve fixed-slot geometry without scrolling',
+      'when the description is scrolled down and the header edge is dragged, it should pop back to the feed',
       (tester) async {
         final feedJob = JobViewTestHelpers.feedJob();
+        final description = List<String>.filled(80, 'Linha de descrição longa.').join('\n');
+        when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
+          (_) async => ApiEnvelopeDto<JobDto>(
+            data: JobViewTestHelpers.job(description: description),
+            requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
+            timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
+            endpoint: '/v1/jobs/job_123',
+          ),
+        );
 
         await JobViewTestHelpers.pumpRoutedJobView(
           tester: tester,
@@ -392,10 +287,44 @@ void main() {
           feedJob: feedJob,
           jobRepository: jobRepository,
         );
-        final header = find.byType(MateoFloatingActionButton).last;
+        await tester.drag(find.byType(MateoScrollableView), const Offset(0, -500));
+        await tester.pump();
+        final header = find.byKey(const ValueKey('job_dismiss_handle'));
+        final gesture = await tester.startGesture(tester.getCenter(header));
+        await gesture.moveBy(const Offset(0, 260));
+        await gesture.up();
+        await tester.pumpAndSettle();
+
+        expect(find.byType(JobView), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'when interactive dismissal moves the surface, it should preserve fixed-slot geometry without scrolling',
+      (tester) async {
+        final feedJob = JobViewTestHelpers.feedJob();
+        final description = List<String>.filled(80, 'Linha de descrição longa.').join('\n');
+        when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
+          (_) async => ApiEnvelopeDto<JobDto>(
+            data: JobViewTestHelpers.job(description: description),
+            requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
+            timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
+            endpoint: '/v1/jobs/job_123',
+          ),
+        );
+
+        await JobViewTestHelpers.pumpRoutedJobView(
+          tester: tester,
+          goRouter: goRouter,
+          feedJob: feedJob,
+          jobRepository: jobRepository,
+        );
+        final header = find.byKey(const ValueKey('job_dismiss_handle'));
         final body = find.byKey(const ValueKey('job_title')).last;
         final footer = find.descendant(of: find.byType(JobContactButton), matching: find.byType(MateoButton)).last;
         final scrollPosition = Scrollable.of(tester.element(body)).position;
+        await tester.drag(find.byType(MateoScrollableView), const Offset(0, -500));
+        await tester.pump();
         Offset positionInView(Finder finder) {
           final view = tester.renderObject<RenderBox>(find.byType(MateoScrollableView));
           final child = tester.renderObject<RenderBox>(finder);
@@ -408,7 +337,7 @@ void main() {
           scrollOffset: scrollPosition.pixels,
         );
 
-        final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
+        final gesture = await tester.startGesture(tester.getCenter(header));
         await gesture.moveBy(const Offset(0, 120));
         await tester.pump();
 
@@ -428,6 +357,7 @@ void main() {
           ),
         );
         await gesture.up();
+        await tester.pumpAndSettle();
       },
     );
   });

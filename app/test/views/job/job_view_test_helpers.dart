@@ -198,5 +198,6 @@ class JobViewTestHelpers {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 560));
     await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 225));
   }
 }

@@ -1,9 +1,11 @@
+import 'package:cataqui_app/app.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/network/geosearch/geosearch_access_token_interceptor.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet.dart';
@@ -12,13 +14,135 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
+import '../fakes.dart';
 import '../mocks.dart';
 import '../utils/test_app.dart';
 
 void main() {
+  group('deviceCornerRadiiProvider', () {
+    test('when first read, it should not assume display corner radii', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      expect(container.read(deviceCornerRadiiProvider), isNull);
+    });
+
+    testWidgets('when preloaded, it should publish the detected display corner radii', (tester) async {
+      const detectedRadii = BorderRadius.only(
+        topLeft: Radius.circular(48),
+        topRight: Radius.circular(49),
+        bottomLeft: Radius.circular(50),
+        bottomRight: Radius.circular(51),
+      );
+      final display = FakeDeviceDisplay(value: detectedRadii);
+      final container = ProviderContainer(overrides: [deviceProvider.overrideWithValue(Device(display: display))]);
+      addTearDown(container.dispose);
+      late BuildContext lookupContext;
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: Size(390, 844)),
+          child: Builder(
+            builder: (context) {
+              lookupContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      await container.read(deviceCornerRadiiProvider.notifier).preload(lookupContext);
+
+      expect(container.read(deviceCornerRadiiProvider), detectedRadii);
+    });
+
+    testWidgets('when display detection fails, it should retain an unavailable value', (tester) async {
+      final display = FakeDeviceDisplay(error: StateError('Display lookup failed'));
+      final container = ProviderContainer(overrides: [deviceProvider.overrideWithValue(Device(display: display))]);
+      addTearDown(container.dispose);
+      late BuildContext lookupContext;
+      await tester.pumpWidget(
+        Builder(
+          builder: (context) {
+            lookupContext = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      );
+
+      await container.read(deviceCornerRadiiProvider.notifier).preload(lookupContext);
+
+      expect(container.read(deviceCornerRadiiProvider), isNull);
+    });
+
+    testWidgets('when display detection returns no measurement, it should retain an unavailable value', (tester) async {
+      final display = FakeDeviceDisplay();
+      final container = ProviderContainer(overrides: [deviceProvider.overrideWithValue(Device(display: display))]);
+      addTearDown(container.dispose);
+      late BuildContext lookupContext;
+      await tester.pumpWidget(
+        Builder(
+          builder: (context) {
+            lookupContext = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      );
+
+      await container.read(deviceCornerRadiiProvider.notifier).preload(lookupContext);
+
+      expect(container.read(deviceCornerRadiiProvider), isNull);
+    });
+
+    testWidgets('when preload is requested repeatedly, it should perform one display lookup', (tester) async {
+      final display = FakeDeviceDisplay(value: BorderRadius.zero);
+      final container = ProviderContainer(overrides: [deviceProvider.overrideWithValue(Device(display: display))]);
+      addTearDown(container.dispose);
+      late BuildContext lookupContext;
+      await tester.pumpWidget(
+        Builder(
+          builder: (context) {
+            lookupContext = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      );
+
+      await Future.wait([
+        container.read(deviceCornerRadiiProvider.notifier).preload(lookupContext),
+        container.read(deviceCornerRadiiProvider.notifier).preload(lookupContext),
+      ]);
+
+      expect(display.requestCount, 1);
+    });
+
+    testWidgets('when the app root builds, it should start preloading display corner radii', (tester) async {
+      final display = FakeDeviceDisplay(value: BorderRadius.zero);
+      final router = GoRouter(
+        routes: [GoRoute(path: '/', builder: (_, _) => const SizedBox.shrink())],
+      );
+      final container = ProviderContainer(
+        overrides: [
+          deviceProvider.overrideWithValue(Device(display: display)),
+          goRouterProvider.overrideWithValue(router),
+          translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
+        ],
+      );
+      addTearDown(() {
+        router.dispose();
+        container.dispose();
+      });
+
+      await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const CataquiApp()));
+      await tester.pump();
+
+      expect(display.requestCount, 1);
+    });
+  });
+
   group('secureStorageProvider', () {
     test('when read, it should isolate and migrate the Cataquí authentication storage', () {
       final container = ProviderContainer();
@@ -345,6 +469,24 @@ void main() {
       addTearDown(goRouter.dispose);
 
       expect(goRouter.routeInformationProvider.value.uri.path, const FeedRoute().location);
+    });
+
+    test('when building app routes, it should keep post without legacy create-job routes', () async {
+      final providerContainer = await buildContainer();
+
+      final goRouter = providerContainer.read(goRouterProvider);
+      addTearDown(goRouter.dispose);
+      final routePaths = goRouter.configuration.routes.whereType<GoRoute>().map((route) => route.path).toSet();
+
+      expect(
+        (
+          hasPost: routePaths.contains('/post'),
+          hasPayment: routePaths.contains('/create-job/:jobId/payment'),
+          hasDescription: routePaths.contains('/create-job/description'),
+          hasLocation: routePaths.contains('/create-job/:jobId/location'),
+        ),
+        (hasPost: true, hasPayment: false, hasDescription: false, hasLocation: false),
+      );
     });
 
     testWidgets('when onboarding is complete, navigating to onboarding should redirect to the feed', (tester) async {

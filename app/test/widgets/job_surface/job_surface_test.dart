@@ -1,3 +1,4 @@
+import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
 import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
 import 'package:cataqui_app/views/job/widgets/job_surface/job_surface_edge_fade.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ void main() {
   group('JobSurface', () {
     testWidgets('when an edge fade is configured, it should paint the fade layer last', (tester) async {
       const jobId = 'job-surface';
-      const fadeTag = 'job-$jobId-edge-fade';
+      final fadeTag = JobViewMorphTag.edgeFade.valueFor(jobId: jobId);
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -62,7 +63,7 @@ void main() {
 
     testWidgets('when an edge fade rebuilds, it should keep a stable transition identity', (tester) async {
       const jobId = 'job-surface';
-      const fadeTag = 'job-$jobId-edge-fade';
+      final fadeTag = JobViewMorphTag.edgeFade.valueFor(jobId: jobId);
       Widget buildSurface(Color color) {
         return MaterialApp(
           home: Scaffold(
@@ -90,45 +91,7 @@ void main() {
           .child
           .key;
 
-      expect((firstKey, secondKey), equals((const ValueKey(fadeTag), const ValueKey(fadeTag))));
-    });
-
-    testWidgets('when dragging the job surface downward, it should round the visible surface before closing', (
-      tester,
-    ) async {
-      const jobId = 'swipe-job-surface';
-      const surfaceTag = 'job-$jobId-surface';
-      const dragTargetKey = ValueKey('swipe-job-surface-drag-target');
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MateoSwipeToPopSurface(
-            borderRadius: const BorderRadius.all(Radius.circular(40)),
-            child: Scaffold(
-              body: Center(
-                child: SizedBox(
-                  key: dragTargetKey,
-                  width: 240,
-                  height: 240,
-                  child: JobSurface(
-                    jobId: jobId,
-                    decoration: BoxDecoration(color: colorScheme.background),
-                    child: const Text('Content'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      final gesture = await tester.startGesture(tester.getCenter(find.byKey(dragTargetKey)));
-      await gesture.moveBy(const Offset(0, 40));
-      await tester.pump();
-      final container = tester.widget<Container>(find.byKey(const ValueKey(surfaceTag)));
-
-      expect((container.decoration! as BoxDecoration).borderRadius, isNot(BorderRadius.zero));
-      await gesture.up();
-      await tester.pumpAndSettle();
+      expect((firstKey, secondKey), equals((ValueKey(fadeTag), ValueKey(fadeTag))));
     });
   });
 }

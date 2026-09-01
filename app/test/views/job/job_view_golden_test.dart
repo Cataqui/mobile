@@ -120,7 +120,7 @@ void main() {
     );
 
     goldenTest(
-      'when dragging down from the top, it should show the card shrinking back toward the feed',
+      'when dragging the surface, it should show the job surface following the gesture',
       fileName: 'job_view_mid_drag_close',
       builder: JobViewGoldenTestHelpers.routedScenario,
       pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
@@ -259,12 +259,17 @@ class JobViewGoldenTestHelpers {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 560));
       await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 225));
 
       final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
       await gesture.moveBy(const Offset(0, 140));
       await tester.pump();
 
-      return gesture.up;
+      return () async {
+        await gesture.up();
+        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 225));
+      };
     });
   }
 

@@ -4,7 +4,11 @@ class _LocationPermissionSheet extends ConsumerWidget {
   const _LocationPermissionSheet({required this.onOpenSettings});
 
   static Future<void> show({required BuildContext context, required Future<void> Function() onOpenSettings}) {
-    return MateoBottomSheet.show<void>(context, child: _LocationPermissionSheet(onOpenSettings: onOpenSettings));
+    return MateoBottomSheet.show<void>(
+      context,
+      child: _LocationPermissionSheet(onOpenSettings: onOpenSettings),
+      avoidKeyboardInset: false,
+    );
   }
 
   final Future<void> Function() onOpenSettings;
@@ -17,7 +21,6 @@ class _LocationPermissionSheet extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 20),
         Center(
           child: $Lotties.pulse(
             height: 160,
@@ -31,7 +34,7 @@ class _LocationPermissionSheet extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 2),
         Text(
           i18n.useCurrentLocationButton.permissionSheet.title,
           key: const ValueKey('current_location_permission_sheet_title'),
@@ -53,7 +56,7 @@ class _LocationPermissionSheet extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 52),
+        const SizedBox(height: 32),
         MateoButton(
           key: const ValueKey('current_location_permission_sheet_settings_button'),
           variant: MateoButtonVariant.primary,

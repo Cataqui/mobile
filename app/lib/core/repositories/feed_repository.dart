@@ -8,6 +8,7 @@ class FeedRepository {
   final Dio unauthenticatedDio;
 
   Future<ApiEnvelopeDto<List<FeedJobDto>>> getFeedJobs({String? cursor}) async {
+    // return ApiEnvelopeDto.fixture(data: [FeedJobDto.fixture()]);
     final response = await unauthenticatedDio.get<Map<String, Object?>>(
       '/feed',
       queryParameters: <String, Object?>{if (cursor != null) 'cursor': cursor},

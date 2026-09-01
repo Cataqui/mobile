@@ -1,1 +1,0 @@
-enum CreateJobMorphTag { surface, navigationButton }

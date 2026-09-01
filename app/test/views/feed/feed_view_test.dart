@@ -1,14 +1,14 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
-import 'package:cataqui_app/views/create_job/description/create_job_description_view.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
+import 'package:cataqui_app/views/post/post_route.dart';
+import 'package:cataqui_app/views/post/post_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/foundation.dart';
@@ -124,7 +124,7 @@ void main() {
       });
 
       testWidgets('when tapping the job creation button, it should open the job creation flow', (tester) async {
-        final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $createJobDescriptionRoute, $jobRoute]);
+        final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $postRoute, $jobRoute]);
         addTearDown(goRouter.dispose);
         FeedViewTestHelpers.mockHapticFeedback(tester);
         FeedViewTestHelpers.mockPlatformViews(tester);
@@ -142,7 +142,7 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
         await tester.pumpAndSettle();
 
-        expect(find.byType(CreateJobDescriptionView), findsOneWidget);
+        expect(find.byType(PostView), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 

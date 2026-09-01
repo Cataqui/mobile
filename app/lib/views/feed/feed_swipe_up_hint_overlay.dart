@@ -76,10 +76,14 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(right: 15),
-                  child: MateoSwipeUpHint(
+                  child: $Lotties.swipeUpPhoneAnimation(
                     height: 120,
-                    accentColor: context.mateo.palette.accent[1],
-                    phoneColor: context.mateo.palette.neutral[11],
+                    overrides: SwipeUpPhoneAnimationOverrides(
+                      phoneColor: context.mateo.palette.neutral[11],
+                      upArrowColor: context.mateo.palette.accent[1],
+                      pointerHandColor: context.mateo.palette.accent[1],
+                    ),
+                    progress: MediaQuery.disableAnimationsOf(context) ? .3 : null,
                   ),
                 ),
               ),

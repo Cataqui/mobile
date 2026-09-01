@@ -62,64 +62,40 @@
       "closeButtonTitle": "Beleza"
     }
   },
-  "createJob": {
-    "continueButtonSemanticLabel": "Continuar",
-    "createDraftError": "Não deu. Tenta de novo",
+  "post": {
+    "title": "Postar",
+    "closeButtonSemanticLabel": "Fechar",
+    "publishButtonTitle": "Enviar",
     "description": {
-      "title": "Do que você precisa?",
-      "placeholder": "Preciso de...\n\nConte o que a pessoa vai fazer, os dias e horários, se precisa de experiência e qualquer outro detalhe importante.\n\n",
-      "tooShortError": "Muito curto. Explica melhor",
-      "tooLongError": "Só pode ter até 10.000 letras, seu texto tem {characterCount: int}"
+      "placeholder": "Do que você precisa?",
+      "inputSemanticLabel": "Descrição do trampo"
     },
-    "payment": {
-      "title": "Quanto você vai pagar?",
-      "amount": "{currencySymbol: String} {value: String}",
-      "backButtonSemanticLabel": "Voltar",
-      "range": {
-        "minimumLabel": "de",
-        "maximumLabel": "até"
-      },
-      "flexibleCarousel": {
-        "amount": "{currencySymbol: String} {value: decimalPattern}?",
-        "semanticLabel": "Exemplos de valores que podem ser combinados"
-      },
-      "flexibleSection": {
-        "title": "Valor a combinar",
-        "description": "Vocês combinam o pagamento final direto na conversa"
-      },
-      "otherSection": {
-        "placeholder": "Conte como vai ser o pagamento\n\nEx: Cesta básica"
-      },
-      "typeSelector": {
-        "fixed": {
-          "title": "Um valor só",
-          "description": "Você paga o mesmo pra qualquer um que fechar"
-        },
-        "range": {
-          "title": "Entre dois valores",
-          "description": "Depende de algo que varia entre um valor mínimo e um valor máximo"
-        },
-        "flexible": {
-          "title": "A combinar",
-          "description": "Acertar direto com a pessoa é melhor"
-        },
-        "other": {
-          "title": "Outro pagamento",
-          "description": "O pagamento não vai ser dinheiro"
-        }
-      }
+    "contact": {
+      "chipTitle": "Contato"
     },
     "location": {
-      "title": "Em que região vai ser?",
+      "chipTitle": "Localização",
+      "title": "Localização",
       "searchPlaceholder": "Bairro, região ou ponto de referência",
-      "emptyGuidance": "Procura lugares perto de você",
+      "emptyGuidance": "Você não buscou nada ainda",
       "search": {
         "loadingSemanticLabel": "Buscando o lugar que você digitou",
         "empty": "Não achei nenhum lugar",
         "error": "Deu ruim aqui. Tenta de novo",
         "offlineError": "Tá sem internet parece"
       },
-      "backButtonSemanticLabel": "Voltar"
+      "closeButtonSemanticLabel": "Fechar"
+    },
+    "payment": {
+      "chipTitle": "Pagamento",
+      "inputPlaceholder": "Quanto ou como vai pagar?",
+      "negotiable": {
+        "toggleTitle": "A Combinar",
+        "inputText": "A Combinar",
+        "toggleSemanticLabel": "Definir pagamento como a combinar"
+      },
+      "closeButtonSemanticLabel": "Fechar pagamento",
+      "confirmButtonSemanticLabel": "Confirmar pagamento digitado"
     }
   },
   "feedJob": {

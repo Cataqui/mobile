@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/widgets/app_animated_splash/app_animated_splash.dart';
@@ -33,6 +35,7 @@ class CataquiApp extends ConsumerWidget {
       ),
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (context, child) {
+        unawaited(ref.read(deviceCornerRadiiProvider.notifier).preload(context));
         return AppAnimatedSplash(child: child ?? const SizedBox.shrink());
       },
     );

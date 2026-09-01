@@ -11,8 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
+import '../../fakes.dart';
 import '../../utils/test_app.dart';
-import 'fake_device_location.dart';
 
 void main() {
   final goldenConfig = AlchemistConfig.current();
@@ -110,18 +110,21 @@ abstract final class _UseCurrentLocationButtonGoldenTestData {
   }
 
   static Widget buildComponent({required FakeDeviceLocation deviceLocation}) {
-    return Localizations(
-      locale: const Locale('pt', 'BR'),
-      delegates: GlobalMaterialLocalizations.delegates,
-      child: Center(
-        child: SizedBox(
-          width: 350,
-          child: ProviderScope(
-            overrides: [
-              translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
-              deviceLocationProvider.overrideWithValue(deviceLocation),
-            ],
-            child: UseCurrentLocationButton(onRequestedToUse: (_) {}),
+    return MediaQuery(
+      data: const MediaQueryData(disableAnimations: true),
+      child: Localizations(
+        locale: const Locale('pt', 'BR'),
+        delegates: GlobalMaterialLocalizations.delegates,
+        child: Center(
+          child: SizedBox(
+            width: 350,
+            child: ProviderScope(
+              overrides: [
+                translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
+                deviceLocationProvider.overrideWithValue(deviceLocation),
+              ],
+              child: UseCurrentLocationButton(onRequestedToUse: (_) {}),
+            ),
           ),
         ),
       ),

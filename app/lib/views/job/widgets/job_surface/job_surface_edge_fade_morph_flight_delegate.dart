@@ -20,8 +20,7 @@ final class JobSurfaceEdgeFadeMorphFlightDelegate extends MorphFlightDelegate<Jo
 
     final resolvedAbsentStyle = child.absentStyle.resolve(endpoint.context, position: MateoEdgeFadePosition.top);
     final zeroExtentStyle = resolvedAbsentStyle.copyWith(mainAxisExtent: 0);
-    final handoff = MateoSwipeToPopSurface.maybeHandoffStateOf(endpoint.context);
-    final borderRadius = (handoff?.borderRadius ?? child.borderRadius).resolve(Directionality.of(endpoint.context));
+    final borderRadius = child.borderRadius.resolve(Directionality.of(endpoint.context));
 
     return (
       borderRadius: borderRadius,

@@ -4,6 +4,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 part 'job_route.g.dart';
 
@@ -11,7 +12,7 @@ part 'job_route.g.dart';
 class JobRoute extends GoRouteData with $JobRoute {
   JobRoute({required this.jobId, this.$extra});
 
-  static const Duration pushDuration = Duration(milliseconds: 320);
+  static const Duration pushDuration = Duration(milliseconds: 300);
   static const Duration popDuration = Duration(milliseconds: 270);
 
   final String jobId;
@@ -36,6 +37,7 @@ class JobRoute extends GoRouteData with $JobRoute {
       transitionDuration: disableAnimations ? Duration.zero : pushDuration,
       reverseTransitionDuration: disableAnimations ? Duration.zero : popDuration,
       key: state.pageKey,
+      barrierColor: context.mateo.colorScheme.overlay.scrim,
       child: JobView(jobId: jobId, feedJob: feedJob),
       transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
     );

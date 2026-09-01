@@ -14,7 +14,6 @@ class _JobSurfaceEdgeFadeMorphFlightDelegateTestHelpers extends MorphFlightDeleg
 
   final List<JobSurfaceEdgeFadeMorphProperties> capturedProperties;
 
-  static const dragTargetKey = ValueKey('job_surface_edge_fade_drag_target');
   static const flightKey = ValueKey('job_surface_edge_fade_flight');
   static const captureKey = ValueKey('job_surface_edge_fade_capture');
   static final surfaceColor = MateoColorScheme.light().background;
@@ -86,44 +85,6 @@ class _JobSurfaceEdgeFadeMorphFlightDelegateTestHelpers extends MorphFlightDeleg
                 ),
               );
             },
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Widget swipeApp({
-    required ValueNotifier<int> captureGeneration,
-    required List<JobSurfaceEdgeFadeMorphProperties> capturedProperties,
-  }) {
-    final flightDelegate = _JobSurfaceEdgeFadeMorphFlightDelegateTestHelpers(capturedProperties);
-    return MaterialApp(
-      home: MateoSwipeToPopSurface(
-        borderRadius: const BorderRadius.all(Radius.circular(40)),
-        child: Scaffold(
-          body: Center(
-            child: SizedBox(
-              key: dragTargetKey,
-              width: 240,
-              height: 240,
-              child: ValueListenableBuilder<int>(
-                valueListenable: captureGeneration,
-                builder: (context, generation, child) {
-                  return Morph(
-                    tag: _captureTag,
-                    flightDelegate: flightDelegate,
-                    child: JobSurfaceEdgeFade(
-                      key: ValueKey('job_surface_edge_fade_$generation'),
-                      borderRadius: BorderRadius.zero,
-                      absentStyle: MateoEdgeFadeStyle(
-                        color: _JobSurfaceEdgeFadeMorphFlightDelegateTestHelpers.surfaceColor,
-                        mainAxisExtent: 80,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
           ),
         ),
       ),
@@ -339,30 +300,6 @@ void main() {
       final properties = delegate.lerp(source, destination, 0.5);
 
       expect((properties.topStyle.mainAxisExtent, properties.bottomStyle.mainAxisExtent), equals((50, 30)));
-    });
-
-    testWidgets('when a swipe preview is active, it should capture the preview radius', (tester) async {
-      await tester.pumpWidget(
-        _JobSurfaceEdgeFadeMorphFlightDelegateTestHelpers.swipeApp(
-          captureGeneration: captureGeneration,
-          capturedProperties: capturedProperties,
-        ),
-      );
-      await tester.pumpAndSettle();
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.byKey(_JobSurfaceEdgeFadeMorphFlightDelegateTestHelpers.dragTargetKey)),
-      );
-      await gesture.moveBy(const Offset(0, 40));
-      await tester.pump();
-
-      final properties = await _JobSurfaceEdgeFadeMorphFlightDelegateTestHelpers.captureProperties(
-        tester: tester,
-        captureGeneration: captureGeneration,
-        capturedProperties: capturedProperties,
-      );
-
-      expect(properties.borderRadius.topLeft.x, greaterThan(0));
-      await gesture.up();
     });
 
     testWidgets('when an edge-fade transition is active, it should paint without rebuilding edge-fade widgets', (

@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 @JsonEnum(valueField: 'jsonValue')
 enum JobStatus {
-  draft('DRAFT'),
   active('ACTIVE'),
   closed('CLOSED'),
   unknown('unknown');

@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
@@ -20,11 +20,11 @@ class FeedJobCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = context.mateo.colorScheme;
     final i18n = ref.watch(translationProvider);
-    final headerMorphTag = 'job-${feedJob.jobId}-header';
+    final headerMorphTag = JobViewMorphTag.header.valueFor(jobId: feedJob.jobId);
 
     return MateoTap(
-      animation: MateoTapAnimationType.scale,
-      fireHapticFeedback: false,
+      animation: MateoTapAnimationType.none,
+      fireHapticFeedback: true,
       onPressed: (animation) async {
         if (skeleton) return;
         unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(context));
@@ -34,16 +34,16 @@ class FeedJobCard extends ConsumerWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: colorScheme.background,
-          borderRadius: BorderRadius.circular(38),
+          borderRadius: BorderRadius.circular(44),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.colors.neutral.solid.withValues(alpha: 0.05),
+              color: colorScheme.colors.neutral.solid.withValues(alpha: 0.07),
               blurRadius: 42,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
         child: Skeleton(
           enabled: skeleton,
           style: SkeletonStyle(
@@ -55,7 +55,7 @@ class FeedJobCard extends ConsumerWidget {
             tag: headerMorphTag,
             curve: JobSurface.morphCurve,
             switchThreshold: 0.1,
-            onStart: HapticFeedback.successNotification,
+
             child: Column(
               key: ValueKey(headerMorphTag),
               crossAxisAlignment: CrossAxisAlignment.start,

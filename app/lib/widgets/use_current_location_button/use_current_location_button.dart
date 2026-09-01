@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/extensions/device_location_address_extension.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/lotties.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -22,23 +23,24 @@ class UseCurrentLocationButton extends ConsumerStatefulWidget {
 }
 
 class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationButton> with WidgetsBindingObserver {
+  static const _stateTransitionDuration = Duration(milliseconds: 200);
+
   bool _isUseRequestPending = false;
   bool _shouldUseAfterSettings = false;
 
-  ({Color background, Color indicator}) _colors(AsyncValue<CurrentLocationData> currentLocation) {
+  Color _indicatorColor(AsyncValue<CurrentLocationData> currentLocation) {
     return switch (Theme.of(context).brightness) {
-      Brightness.light => (
-        background: context.mateo.palette.neutral[2],
-        indicator: switch (currentLocation.value) {
-          ResolvedCurrentLocationData(:final address)
-              when address.neighborhood != null || address.city != null || address.street != null =>
-            context.mateo.palette.green[9],
-          CurrentLocationPermissionData() ||
-          ResolvedCurrentLocationData() ||
-          FailedCurrentLocationData() ||
-          null => context.mateo.palette.red,
-        },
-      ),
+      Brightness.light => switch (currentLocation.value) {
+        ResolvedCurrentLocationData(:final address)
+            when address.neighborhood != null || address.city != null || address.street != null =>
+          context.mateo.palette.green[9],
+
+        CurrentLocationPermissionData() ||
+        ResolvedCurrentLocationData() ||
+        FailedCurrentLocationData() ||
+        null => context.mateo.palette.red[9],
+      },
+
       Brightness.dark => throw UnsupportedError('CurrentLocationButton does not support dark mode.'),
     };
   }
@@ -58,12 +60,7 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
         DeviceLocationPermissionStatus.whileInUse ||
         DeviceLocationPermissionStatus.always => i18n.useCurrentLocationButton.permissionGuidance,
       },
-      ResolvedCurrentLocationData(:final address) => switch ((address.neighborhood, address.city)) {
-        (final neighborhood?, final city?) => '$neighborhood, $city',
-        (final neighborhood?, null) => neighborhood,
-        (null, final city?) => city,
-        (null, null) => address.street ?? i18n.useCurrentLocationButton.unavailable,
-      },
+      ResolvedCurrentLocationData(:final address) => address.jobLocation() ?? i18n.useCurrentLocationButton.unavailable,
       FailedCurrentLocationData(:final reason) => switch (reason) {
         DeviceLocationExceptionReason.servicesDisabled => i18n.useCurrentLocationButton.servicesDisabled,
         DeviceLocationExceptionReason.permissionDenied ||
@@ -114,7 +111,20 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
     await _LocationPermissionSheet.show(context: context, onOpenSettings: _openLocationSettings);
   }
 
-  Future<void> _handleRequestedToUse(Future<void> animation) async {
+  Future<DeviceLocationAddress?> _waitForResolvedAddress(Future<DeviceLocationAddress?> addressRequest) async {
+    final shouldWaitForTransition = ref.read(currentLocationStateProvider).isLoading;
+    final address = await addressRequest;
+    if (address == null || !shouldWaitForTransition) return address;
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return null;
+    if (MediaQuery.disableAnimationsOf(context)) return address;
+
+    await Future<void>.delayed(_stateTransitionDuration);
+    return mounted ? address : null;
+  }
+
+  Future<void> _handleRequestedToUse() async {
     if (_isUseRequestPending) return;
 
     setState(() => _isUseRequestPending = true);
@@ -126,7 +136,9 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
 
       if (_permissionStatus() == DeviceLocationPermissionStatus.restricted) return;
 
-      final address = await ref.read(currentLocationStateProvider.notifier).requestCurrentAddress();
+      final address = await _waitForResolvedAddress(
+        ref.read(currentLocationStateProvider.notifier).requestCurrentAddress(),
+      );
       if (!mounted) return;
 
       if (address == null) {
@@ -137,7 +149,6 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
         return;
       }
 
-      await animation;
       if (!mounted) return;
 
       widget.onRequestedToUse(address);
@@ -153,9 +164,9 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
     setState(() => _isUseRequestPending = true);
 
     try {
-      final address = await ref
-          .read(currentLocationStateProvider.notifier)
-          .resumeCurrentAddressRequestAfterSettingsPermission();
+      final address = await _waitForResolvedAddress(
+        ref.read(currentLocationStateProvider.notifier).resumeCurrentAddressRequestAfterSettingsPermission(),
+      );
       if (!mounted) return;
       if (address == null) {
         if (_permissionStatus() != DeviceLocationPermissionStatus.restricted) {
@@ -196,7 +207,7 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
     final description = _description(i18n, currentLocation);
     final transitionDuration = MediaQuery.disableAnimationsOf(context)
         ? const Duration(microseconds: 1)
-        : const Duration(milliseconds: 350);
+        : _stateTransitionDuration;
 
     return Semantics(
       button: true,
@@ -206,80 +217,71 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
       excludeSemantics: true,
       child: MateoTap(
         animation: MateoTapAnimationType.scale,
-        onPressed: _isUseRequestPending ? null : _handleRequestedToUse,
+        onPressed: _isUseRequestPending ? (_) async {} : (animation) => _handleRequestedToUse(),
         child: Container(
-          key: const ValueKey('create_job_current_location'),
+          key: const ValueKey('current_location'),
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          decoration: BoxDecoration(
-            color: _colors(currentLocation).background,
-            borderRadius: BorderRadius.circular(99),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
             children: [
-              Text(
-                i18n.useCurrentLocationButton.title,
-                style: TextStyle(
-                  color: context.mateo.colorScheme.text.primary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Row(
-                children: [
-                  AnimatedSize(
-                    key: const ValueKey('create_job_current_location_circle'),
-                    duration: transitionDuration,
-                    curve: Curves.easeInOutCubic,
-                    alignment: Alignment.centerLeft,
-                    clipBehavior: Clip.none,
-                    child: AnimatedSwitcher(
+              Container(
+                key: const ValueKey('current_location_icon_surface'),
+                width: 42,
+                height: 42,
+                alignment: Alignment.center,
+                child: Stack(
+                  key: const ValueKey('current_location_circle'),
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    _buildIndicatorTransition(
+                      key: const ValueKey('current_location_loading_transition'),
+                      visible: currentLocation.isLoading,
                       duration: transitionDuration,
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      layoutBuilder: (currentChild, previousChildren) => Stack(
-                        alignment: Alignment.center,
-                        clipBehavior: Clip.none,
-                        children: [
-                          for (final previousChild in previousChildren)
-                            Align(widthFactor: 0, heightFactor: 0, child: previousChild),
-                          if (currentChild != null) currentChild,
-                        ],
+                      child: MateoCircularLoadingIndicator(
+                        key: const ValueKey((isLoading: true, isResolved: false)),
+                        size: 28,
+                        color: context.mateo.palette.blue[9],
+                        trackColor: context.mateo.palette.blue[4],
                       ),
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: ScaleTransition(
-                          scale: Tween<double>(begin: .6, end: 1).animate(animation),
-                          child: child,
+                    ),
+                    _buildIndicatorTransition(
+                      key: const ValueKey('current_location_pulse_transition'),
+                      visible: !currentLocation.isLoading,
+                      duration: transitionDuration,
+                      child: $Lotties.pulse(
+                        key: const ValueKey('current_location_pulse'),
+                        height: 45,
+                        playback: LottiePlayback.loop,
+                        duration: const Duration(milliseconds: 2800),
+                        overrides: PulseOverrides(
+                          layer1Color: _indicatorColor(currentLocation),
+                          layer2Color: _indicatorColor(currentLocation),
+                          layer3Color: _indicatorColor(currentLocation),
+                          layer4Color: _indicatorColor(currentLocation),
                         ),
                       ),
-                      child: currentLocation.isLoading
-                          ? MateoCircularLoadingIndicator(
-                              key: const ValueKey((isLoading: true, isResolved: false)),
-                              size: 15,
-                              color: context.mateo.palette.blue[9],
-                              trackColor: context.mateo.palette.blue[4],
-                            )
-                          : Container(
-                              key: ValueKey((
-                                isLoading: false,
-                                isResolved: currentLocation.value is ResolvedCurrentLocationData,
-                              )),
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: _colors(currentLocation).indicator,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      key: const ValueKey('create_job_location_permission_guidance'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      i18n.useCurrentLocationButton.title,
+                      style: TextStyle(
+                        color: context.mateo.colorScheme.text.primary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    // const SizedBox(height: 2),
+                    AnimatedSwitcher(
+                      key: const ValueKey('current_location_permission_guidance'),
                       duration: transitionDuration,
                       switchInCurve: Curves.easeOutCubic,
                       switchOutCurve: Curves.easeInCubic,
@@ -301,12 +303,32 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildIndicatorTransition({
+    required Key key,
+    required bool visible,
+    required Duration duration,
+    required Widget child,
+  }) {
+    return AnimatedOpacity(
+      key: key,
+      opacity: visible ? 1 : 0,
+      duration: duration,
+      curve: visible ? Curves.easeOutCubic : Curves.easeInCubic,
+      child: AnimatedScale(
+        scale: visible ? 1 : .3,
+        duration: duration,
+        curve: visible ? Curves.easeOutCubic : Curves.easeInCubic,
+        child: TickerMode(enabled: visible, child: child),
       ),
     );
   }

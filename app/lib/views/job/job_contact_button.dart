@@ -110,8 +110,8 @@ class JobContactButton extends ConsumerWidget {
     return MateoButton(
       variant: MateoButtonVariant.primary,
       label: i18n.job.contactButton.whatsapp,
+      fit: MateoButtonFit.expand,
       colorScheme: colorScheme.buttons.whatsapp.tertiary,
-      padding: _buttonPadding,
       isLoading: isLoading,
       onPressed: () => _contact(ref, jobId, contactReference.contactId),
       leadingIconBuilder: (state) {

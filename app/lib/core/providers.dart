@@ -12,12 +12,10 @@ import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
-import 'package:cataqui_app/views/create_job/location/create_job_location_route.dart';
-import 'package:cataqui_app/views/create_job/payment/create_job_payment_route.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
+import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
 import 'package:cookie_jar/cookie_jar.dart';
@@ -50,9 +48,34 @@ AppConfig appConfig(Ref ref) {
   return const AppConfig(flavor: appFlavor ?? 'development');
 }
 
+@Riverpod(keepAlive: true)
+Device device(Ref ref) {
+  return const Device();
+}
+
+@Riverpod(keepAlive: true)
+class DeviceCornerRadii extends _$DeviceCornerRadii {
+  Future<void>? _preloadFuture;
+
+  @override
+  BorderRadius? build() => null;
+
+  Future<void> preload(BuildContext context) {
+    return _preloadFuture ??= _load(context);
+  }
+
+  Future<void> _load(BuildContext context) async {
+    try {
+      state = await ref.read(deviceProvider).display.cornerRadii(context, estimate: true);
+    } on Object {
+      state = null;
+    }
+  }
+}
+
 @riverpod
 DeviceLocation deviceLocation(Ref ref) {
-  return const DeviceLocation();
+  return ref.watch(deviceProvider).location;
 }
 
 @Riverpod(keepAlive: true)
@@ -183,15 +206,7 @@ GoRouter goRouter(Ref ref) {
 
       return const FeedRoute().location;
     },
-    routes: [
-      $onboardingRoute,
-      $posterOnboardingRoute,
-      $feedRoute,
-      $createJobDescriptionRoute,
-      $createJobLocationRoute,
-      $createJobPaymentRoute,
-      $jobRoute,
-    ],
+    routes: [$onboardingRoute, $posterOnboardingRoute, $feedRoute, $postRoute, $jobRoute],
   );
 }
 
@@ -207,10 +222,7 @@ GlobalKey<NavigatorState> rootNavigatorKey(Ref ref) {
 
 @Riverpod(keepAlive: true)
 JobRepository jobRepository(Ref ref) {
-  return JobRepository(
-    authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider),
-    unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider),
-  );
+  return JobRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)

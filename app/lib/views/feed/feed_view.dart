@@ -7,10 +7,11 @@ import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
+import 'package:cataqui_app/gen/lotties.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/create_job/description/create_job_description_route.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
@@ -52,7 +53,7 @@ class FeedView extends ConsumerStatefulWidget {
 
 class _FeedViewState extends ConsumerState<FeedView> {
   final MateoYSnapListController _feedController = MateoYSnapListController();
-  final _cardBorderRadius = BorderRadius.circular(44);
+  final _cardBorderRadius = BorderRadius.circular(48);
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
   late final ValueNotifier<bool> _isHintActiveNotifier;
 
@@ -115,9 +116,10 @@ class _FeedViewState extends ConsumerState<FeedView> {
     return MateoView(
       backgroundColor: colorScheme.background,
       extendBodyBehindFooter: true,
+      edgeFade: (top: const MateoEdgeFadeStyle(), bottom: const MateoEdgeFadeStyle(mainAxisExtent: 160)),
       header: RepaintBoundary(
         child: Padding(
-          padding: const EdgeInsetsDirectional.only(start: 20, end: 20, bottom: 10),
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 20, bottom: 10),
           child: Align(
             alignment: AlignmentGeometry.topStart,
             child: ConstrainedBox(
@@ -125,7 +127,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
               child: MateoTextButton(
                 text: i18n.feed.locationAvailability.cityLabel,
                 leadingIconBuilder: (state) {
-                  return MateoIcon.mapPin(height: 14, width: 14, color: context.mateo.palette.accent[9]);
+                  return MateoIcon.mapPin(height: 17, width: 17, color: context.mateo.palette.accent[9]);
                 },
                 leadingIconSpacing: 10,
                 trailingIconSpacing: 10,
@@ -168,7 +170,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
       backgroundColor: context.mateo.colorScheme.inverse.background,
       foregroundColor: context.mateo.colorScheme.inverse.onBackground,
       semanticLabel: i18n.feed.jobCreationButtonSemanticLabel,
-      onPressed: () => unawaited(const CreateJobDescriptionRoute().push(context)),
+      onPressed: () => unawaited(const PostRoute().push(context)),
       iconBuilder: (state) => MateoIcon.plusSignal(
         key: const ValueKey('feed_job_creation_plus_icon'),
         width: state.iconSize,

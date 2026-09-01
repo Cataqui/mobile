@@ -3,6 +3,7 @@ import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
@@ -79,13 +80,13 @@ void main() {
         expect(find.text('Experiente em atendimento ao cliente.'), findsOneWidget);
       });
 
-      testWidgets('when created, the card should have 38px border radius', (tester) async {
+      testWidgets('when created, the card should have 44px border radius', (tester) async {
         await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
         await tester.pumpAndSettle();
 
         final decoratedBox = tester.widget<DecoratedBox>(find.byType(DecoratedBox).first);
 
-        expect((decoratedBox.decoration as BoxDecoration).borderRadius, equals(BorderRadius.circular(38)));
+        expect((decoratedBox.decoration as BoxDecoration).borderRadius, equals(BorderRadius.circular(44)));
       });
 
       testWidgets('when created, the title should use semi-bold weight', (tester) async {
@@ -225,7 +226,9 @@ void main() {
         await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: feedJob)));
         await tester.pumpAndSettle();
         final surfaceMorph = tester.widget<Morph>(
-          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-${feedJob.jobId}-surface'),
+          find.byWidgetPredicate(
+            (widget) => widget is Morph && widget.tag == JobViewMorphTag.surface.valueFor(jobId: feedJob.jobId),
+          ),
         );
 
         expect(
@@ -247,10 +250,14 @@ void main() {
 
         await tester.pumpAndSettle();
         final cardSurface = tester.widget<Morph>(
-          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-surface'),
+          find.byWidgetPredicate(
+            (widget) => widget is Morph && widget.tag == JobViewMorphTag.surface.valueFor(jobId: jobId),
+          ),
         );
         final cardHeader = tester.widget<Morph>(
-          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-header'),
+          find.byWidgetPredicate(
+            (widget) => widget is Morph && widget.tag == JobViewMorphTag.header.valueFor(jobId: jobId),
+          ),
         );
 
         await tester.pumpWidget(const SizedBox());
@@ -262,10 +269,14 @@ void main() {
           jobState: JobViewTestHelpers.loadingState(),
         );
         final viewSurface = tester.widget<Morph>(
-          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-surface'),
+          find.byWidgetPredicate(
+            (widget) => widget is Morph && widget.tag == JobViewMorphTag.surface.valueFor(jobId: jobId),
+          ),
         );
         final viewHeader = tester.widget<Morph>(
-          find.byWidgetPredicate((widget) => widget is Morph && widget.tag == 'job-$jobId-header'),
+          find.byWidgetPredicate(
+            (widget) => widget is Morph && widget.tag == JobViewMorphTag.header.valueFor(jobId: jobId),
+          ),
         );
 
         expect((viewSurface.tag, viewHeader.tag), equals((cardSurface.tag, cardHeader.tag)));
@@ -275,9 +286,9 @@ void main() {
         tester,
       ) async {
         const jobId = 'job_123';
-        const surfaceTag = 'job-$jobId-surface';
-        const headerTag = 'job-$jobId-header';
-        const fadeTag = 'job-$jobId-edge-fade';
+        final surfaceTag = JobViewMorphTag.surface.valueFor(jobId: jobId);
+        final headerTag = JobViewMorphTag.header.valueFor(jobId: jobId);
+        final fadeTag = JobViewMorphTag.edgeFade.valueFor(jobId: jobId);
 
         await tester.pumpWidget(
           _FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture().copyWith(jobId: jobId))),
@@ -318,8 +329,8 @@ void main() {
         expect(
           (cardKeys, viewKeys),
           equals((
-            (const ValueKey(surfaceTag), const ValueKey(headerTag), const ValueKey(fadeTag)),
-            (const ValueKey(surfaceTag), const ValueKey(headerTag), const ValueKey(fadeTag)),
+            (ValueKey(surfaceTag), ValueKey(headerTag), ValueKey(fadeTag)),
+            (ValueKey(surfaceTag), ValueKey(headerTag), ValueKey(fadeTag)),
           )),
         );
       });

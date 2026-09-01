@@ -15,6 +15,7 @@ class TestApp extends StatelessWidget {
     this.mediaQueryData,
     this.navigatorKey,
     this.providerOverrides = const [],
+    this.targetPlatform,
   }) : routerConfig = null,
        fontFamily = null,
        _wrapInScaffold = true;
@@ -25,6 +26,7 @@ class TestApp extends StatelessWidget {
     this.mediaQueryData,
     this.navigatorKey,
     this.providerOverrides = const [],
+    this.targetPlatform,
   }) : routerConfig = null,
        fontFamily = null,
        _wrapInScaffold = false;
@@ -35,6 +37,7 @@ class TestApp extends StatelessWidget {
     this.mediaQueryData,
     this.providerOverrides = const [],
     this.fontFamily,
+    this.targetPlatform,
   }) : child = null,
        navigatorKey = null,
        _wrapInScaffold = false;
@@ -64,6 +67,7 @@ class TestApp extends StatelessWidget {
   final GlobalKey<NavigatorState>? navigatorKey;
   final List<Override> providerOverrides;
   final RouterConfig<Object>? routerConfig;
+  final TargetPlatform? targetPlatform;
   final bool _wrapInScaffold;
 
   @override
@@ -77,7 +81,13 @@ class TestApp extends StatelessWidget {
           theme: _theme,
           routerConfig: routerConfig,
           builder: (context, child) {
-            final content = _withMediaQuery(child ?? const SizedBox.shrink());
+            final mediaQueryContent = _withMediaQuery(child ?? const SizedBox.shrink());
+            final content = targetPlatform == null
+                ? mediaQueryContent
+                : Theme(
+                    data: _theme.lightTheme.copyWith(platform: targetPlatform),
+                    child: mediaQueryContent,
+                  );
             final fontFamily = this.fontFamily;
             if (fontFamily == null) return content;
 
@@ -101,6 +111,12 @@ class TestApp extends StatelessWidget {
         title: 'Test App',
         theme: _theme,
         navigatorKey: navigatorKey,
+        builder: targetPlatform == null
+            ? null
+            : (context, child) => Theme(
+                data: Theme.of(context).copyWith(platform: targetPlatform),
+                child: child ?? const SizedBox.shrink(),
+              ),
         home: _withMediaQuery(_wrapInScaffold ? Scaffold(body: Center(child: child)) : child),
       ),
     );

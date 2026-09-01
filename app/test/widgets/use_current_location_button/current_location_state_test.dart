@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
-import 'fake_device_location.dart';
+import '../../fakes.dart';
 
 void main() {
   const coordinates = DeviceLocationCoordinates(latitude: -23.561684, longitude: -46.655981, accuracy: 18);

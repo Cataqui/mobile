@@ -55,6 +55,12 @@ This repository is structured as a **Flutter workspace** using melos:
 
 To maintain absolute structural health across the workspace, follow these modularization rules:
 
+- **Reuse Before Building:** Before designing or implementing anything custom,
+  search the repository's current code and existing package dependencies for an
+  implementation that satisfies the requirement. Reuse or adapt an existing
+  solution whenever it fits; never build a custom alternative when the codebase
+  or an already-adopted package already provides what is needed.
+
 - **Packages** should always live at `packages/`, when implementing something think if it fits better to be a package or an internal app thing. Prefer to create packages when it's stuff that later could be decoupled from this repo and become an standalone package to be implemented in other apps and repositories
 
 - **Locales:** The app owns its locale catalog and generated translation API in
@@ -100,6 +106,15 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
   `find...`, `create...`, or `parse...`.
 - Keep verification and value retrieval as separate operations. This preserves single responsibility and makes call
   sites honest about what the code does.
+
+### Controller Names Must Identify What They Control
+
+- Every controller identifier must name the value or component it controls. This applies to fields, local variables,
+  constructor properties, parameters, and public API names.
+- Use names such as `textController`, `toggleController`, `scrollController`, and `animationController`, adding a
+  domain qualifier when needed, such as `paymentTextController`.
+- Never use a generic name such as `controller` or a domain-only name such as `paymentController` when the controller
+  kind is not explicit.
 
 ### Strong Type Safety
 
@@ -174,6 +189,12 @@ widget or model that produces or consumes the data.
 
 - Do not extract a function, getter, constant, number, string, or other expression when it has only one use and no
   independent domain responsibility. Inline it at its usage site so readers do not need to jump between declarations.
+- Prefer the inline expression whenever its meaning remains clear at the call site and evaluating it inline does not
+  introduce a meaningful performance cost. Do not create a static member, constant, or local variable merely to name
+  an already-obvious value.
+- **Inline small single-use functions:** Prefer to write a short function's logic directly at its sole call site. Do not
+  create a helper merely to name a small local operation. Extract it only when the logic has an independent domain
+  responsibility, materially improves readability, is reused, or an API or lifecycle requires stable function identity.
 - Extract it when it is reused, represents an independently meaningful domain rule, is required by an API or lifecycle,
   or makes otherwise unclear logic materially easier to understand.
 

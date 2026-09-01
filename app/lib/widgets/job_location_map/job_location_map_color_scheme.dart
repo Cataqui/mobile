@@ -1,3 +1,5 @@
+// ### CURRENTLY NOT USED, NEED IMPROVEMENT ON COLOR SCHEME TO LOOK BETTER
+
 import 'package:flutter/material.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
@@ -88,26 +90,26 @@ final class JobLocationMapColorScheme {
       attractionLabel: palette.neutral[8],
       attractionIcon: palette.violet[7],
       businessGeometry: palette.neutral[1],
-      businessIcon: palette.orange[7],
+      businessIcon: palette.neutral[8],
       governmentGeometry: palette.neutral[1],
       governmentLabel: palette.amber[8],
       governmentLabelHalo: palette.neutral[1],
-      governmentIcon: palette.amber[7],
+      governmentIcon: palette.amber[8],
       medicalGeometry: palette.neutral[1],
       parkGeometry: palette.green[4],
       parkLabel: palette.green[8],
       parkLabelHalo: palette.neutral[1],
-      parkIcon: palette.green[7],
+      parkIcon: palette.green[8],
       schoolGeometry: palette.neutral[1],
       sportsComplexGeometry: palette.neutral[1],
       sportsComplexLabel: palette.violet[8],
       sportsComplexLabelHalo: palette.neutral[1],
       sportsComplexIcon: palette.violet[7],
-      roadGeometryFill: palette.neutral[1],
+      roadGeometryFill: Colors.white,
       roadGeometryStroke: palette.neutral[1],
       roadLabel: palette.neutral[10],
       roadLabelHalo: palette.neutral[1],
-      arterialRoadGeometryFill: palette.neutral[1],
+      arterialRoadGeometryFill: Colors.white,
       arterialRoadGeometryStroke: palette.neutral[1],
       arterialRoadLabel: palette.neutral[10],
       highwayGeometryFill: Colors.white,
@@ -124,7 +126,7 @@ final class JobLocationMapColorScheme {
       waterGeometry: palette.cyan[2],
       waterLabel: palette.cyan[8],
       waterLabelHalo: palette.neutral[1],
-      locationRadius: palette.teal[9].withValues(alpha: 0.15),
+      locationRadius: palette.orange[8].withValues(alpha: 0.15),
     );
   }
 

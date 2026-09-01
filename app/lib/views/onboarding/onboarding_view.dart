@@ -105,7 +105,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
       edgeFade: null,
       extendBodyBehindFooter: true,
       footer: Padding(
-        padding: EdgeInsets.only(bottom: bottomSafePadding < 12 ? 12 : 0),
+        padding: EdgeInsets.only(bottom: bottomSafePadding),
         child: Align(
           alignment: Alignment.bottomCenter,
           child: ConstrainedBox(
