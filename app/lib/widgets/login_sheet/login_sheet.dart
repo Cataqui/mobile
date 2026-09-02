@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/app_auth/login_state.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/gen/icons.g.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class LoginSheet extends ConsumerWidget {
     return $IllustrationsCache.precacheKeys(context, height: _illustrationHeight);
   }
 
-  static const _illustrationHeight = 48.0;
+  static const _illustrationHeight = 110.0;
 
   static Future<bool> show({required BuildContext context}) async {
     unawaited(precacheImages(context));
@@ -55,49 +56,38 @@ class LoginSheet extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 4),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 6),
-              ExcludeSemantics(
-                child: $Illustrations.keys(key: imageKey, height: _illustrationHeight, fit: BoxFit.contain),
-              ),
-              const SizedBox(height: 24),
-              FractionallySizedBox(
-                widthFactor: 0.8,
-                child: Text(
-                  key: titleKey,
-                  i18n.loginSheet.title,
-                  style: TextStyle(
-                    color: colorScheme.text.primary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    height: 1.2,
-                  ),
+        const SizedBox(height: 24),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 6),
+            ExcludeSemantics(
+              child: $Icons.padlock(key: imageKey, height: _illustrationHeight, fit: BoxFit.contain),
+            ),
+            const SizedBox(height: 42),
+            FractionallySizedBox(
+              widthFactor: 0.9,
+              child: Text(
+                key: titleKey,
+
+                i18n.loginSheet.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colorScheme.text.primary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
                 ),
               ),
-              const SizedBox(height: 6),
-              FractionallySizedBox(
-                widthFactor: 0.6,
-                child: Text(
-                  key: subtitleKey,
-                  i18n.loginSheet.subtitle,
-                  style: TextStyle(
-                    color: colorScheme.text.secondary,
-                    fontSize: 16,
-                    height: 1.3,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+          ],
         ),
         const SizedBox(height: 32),
-        WhatsappLoginButton(onSuccess: (_) => Navigator.of(context).pop(true)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: WhatsappLoginButton(onSuccess: (_) => Navigator.of(context).pop(true)),
+        ),
       ],
     );
   }
