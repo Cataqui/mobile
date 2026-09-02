@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
+import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -19,6 +20,7 @@ class JobLocationMap extends StatelessWidget {
     required this.location,
     required this.areaDiameterInMeters,
     super.key,
+    this.colorScheme,
     this.zoom = 13.5,
     this.offset = Offset.zero,
   }) : assert(location.latitude >= -90 && location.latitude <= 90, 'location.latitude must be between -90 and 90'),
@@ -42,6 +44,8 @@ class JobLocationMap extends StatelessWidget {
   /// The full diameter, in meters, of the approximate location area.
   final double areaDiameterInMeters;
 
+  final JobLocationMapColorScheme? colorScheme;
+
   /// The fixed Google Maps camera zoom level.
   final double zoom;
 
@@ -50,20 +54,22 @@ class JobLocationMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = JobLocationMapColorScheme.fromBrightness(
-      brightness: Theme.of(context).brightness,
-      palette: context.mateo.palette,
-    );
+    final resolvedColorScheme =
+        colorScheme ??
+        JobLocationMapColorScheme.fromBrightness(
+          brightness: Theme.of(context).brightness,
+          palette: context.mateo.palette,
+        );
     final mapKey = (location, areaDiameterInMeters, zoom, offset, mapPadding);
 
     return ColoredBox(
-      color: colorScheme.background,
+      color: resolvedColorScheme.background,
       child: ExcludeSemantics(
         child: IgnorePointer(
           child: GoogleMap(
             key: ValueKey<Object>(mapKey),
             initialCameraPosition: CameraPosition(target: _cameraTarget(), zoom: zoom),
-            backgroundColor: colorScheme.background,
+            style: JobLocationMapStyle.fromColorScheme(colorScheme: resolvedColorScheme).googleMapsJson,
             mapType: MapType.normal,
             minMaxZoomPreference: MinMaxZoomPreference(zoom, zoom),
             padding: mapPadding,
@@ -91,8 +97,8 @@ class JobLocationMap extends StatelessWidget {
                       circleId: _circleId,
                       center: LatLng(location.latitude, location.longitude),
                       radius: areaDiameterInMeters / 2,
-                      fillColor: colorScheme.locationRadius,
-                      strokeColor: colorScheme.locationRadius.withValues(alpha: 0),
+                      fillColor: resolvedColorScheme.locationRadius,
+                      strokeColor: resolvedColorScheme.locationRadius.withValues(alpha: 0),
                       strokeWidth: 0,
                     ),
                   },

@@ -39,7 +39,7 @@ class FeedJobCard extends ConsumerWidget {
             BoxShadow(
               color: colorScheme.colors.neutral.solid.withValues(alpha: 0.07),
               blurRadius: 42,
-              offset: const Offset(0, 4),
+              offset: Offset.zero,
             ),
           ],
         ),

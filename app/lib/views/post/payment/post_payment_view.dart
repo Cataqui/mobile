@@ -93,7 +93,7 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
     final colors = switch (Theme.brightnessOf(context)) {
       Brightness.light => (
         surface: context.mateo.palette.green[9],
-        surfaceText: context.mateo.palette.neutral[12].withValues(alpha: 0.4),
+        surfaceText: context.mateo.palette.neutral[12].withValues(alpha: 0.5),
         inputText: context.mateo.palette.neutral[1],
         actionBackground: context.mateo.palette.neutral[1],
         actionForeground: context.mateo.palette.neutral[12],

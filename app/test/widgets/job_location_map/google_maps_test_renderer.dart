@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -85,16 +84,12 @@ class GoogleMapsTestRenderer extends GoogleMapsFlutterPlatform {
 
     return Builder(
       builder: (context) {
-        final mapColorScheme = JobLocationMapColorScheme.fromBrightness(
-          brightness: Theme.of(context).brightness,
-          palette: context.mateo.palette,
-        );
         final rules = _decodeStyle(mapConfiguration.style);
         final backgroundColor = _styleColor(
           rules: rules,
           featureType: 'all',
           elementType: 'geometry',
-          fallback: mapColorScheme.allGeometry,
+          fallback: context.mateo.palette.neutral[2],
         );
         if (!renderMapSurface) return ColoredBox(color: backgroundColor);
 
@@ -104,43 +99,43 @@ class GoogleMapsTestRenderer extends GoogleMapsFlutterPlatform {
           rules: rules,
           featureType: 'poi.park',
           elementType: 'geometry',
-          fallback: mapColorScheme.parkGeometry,
+          fallback: context.mateo.palette.green[4],
         );
         final waterColor = _styleColor(
           rules: rules,
           featureType: 'water',
           elementType: 'geometry',
-          fallback: mapColorScheme.waterGeometry,
+          fallback: context.mateo.palette.cyan[2],
         );
         final businessColor = _styleColor(
           rules: rules,
           featureType: 'poi.business',
           elementType: 'geometry',
-          fallback: mapColorScheme.businessGeometry,
+          fallback: context.mateo.palette.neutral[1],
         );
         final attractionColor = _styleColor(
           rules: rules,
           featureType: 'poi.attraction',
           elementType: 'geometry',
-          fallback: mapColorScheme.attractionGeometry,
+          fallback: context.mateo.palette.neutral[1],
         );
         final roadColor = _styleColor(
           rules: rules,
           featureType: 'road',
           elementType: 'geometry.fill',
-          fallback: mapColorScheme.roadGeometryFill,
+          fallback: Theme.of(context).colorScheme.surface,
         );
         final roadOutlineColor = _styleColor(
           rules: rules,
           featureType: 'road',
           elementType: 'geometry.stroke',
-          fallback: mapColorScheme.roadGeometryStroke,
+          fallback: context.mateo.palette.neutral[1],
         );
         final transitColor = _styleColor(
           rules: rules,
           featureType: 'transit.line',
           elementType: 'geometry',
-          fallback: mapColorScheme.transitStationGeometry,
+          fallback: context.mateo.palette.blue[1],
         );
         return ColoredBox(
           key: ValueKey<String>('google_maps_test_renderer_$creationId'),

@@ -67,12 +67,14 @@ enum AddressCategory {
 
       case AddressCategory.restaurant:
       case AddressCategory.cafe:
-      case AddressCategory.shoppingMall:
-      case AddressCategory.store:
-      case AddressCategory.vehicleDealer:
-      case AddressCategory.supermarket:
       case AddressCategory.gasStation:
         return palette.orange[9];
+
+      case AddressCategory.supermarket:
+      case AddressCategory.vehicleDealer:
+      case AddressCategory.shoppingMall:
+      case AddressCategory.store:
+        return palette.blue[9];
 
       case AddressCategory.bar:
         return palette.amber[9];

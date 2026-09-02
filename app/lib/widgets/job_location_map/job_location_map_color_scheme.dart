@@ -1,65 +1,72 @@
-// ### CURRENTLY NOT USED, NEED IMPROVEMENT ON COLOR SCHEME TO LOOK BETTER
-
+import 'package:cataqui_app/core/enums/address_category.dart';
 import 'package:flutter/material.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
+import 'package:oh_my_flutter/oh_my_flutter.dart';
+
+@immutable
+final class JobLocationMapFeatureColorScheme {
+  const JobLocationMapFeatureColorScheme({
+    this.all,
+    this.geometry,
+    this.geometryFill,
+    this.geometryStroke,
+    this.geometryWeight,
+    this.labels,
+    this.labelsIcon,
+    this.labelsText,
+    this.labelsTextFill,
+    this.labelsTextStroke,
+  });
+
+  final Color? all;
+  final Color? geometry;
+  final Color? geometryFill;
+  final Color? geometryStroke;
+  final int? geometryWeight;
+  final Color? labels;
+  final Color? labelsIcon;
+  final Color? labelsText;
+  final Color? labelsTextFill;
+  final Color? labelsTextStroke;
+}
 
 @immutable
 final class JobLocationMapColorScheme {
   const JobLocationMapColorScheme._({
+    required this.all,
+    required this.administrative,
+    required this.administrativeCountry,
+    required this.administrativeLandParcel,
+    required this.administrativeLocality,
+    required this.administrativeNeighborhood,
+    required this.administrativeProvince,
+    required this.landscape,
+    required this.landscapeManMade,
+    required this.landscapeNatural,
+    required this.landscapeNaturalLandcover,
+    required this.landscapeNaturalTerrain,
+    required this.pointOfInterest,
+    required this.pointOfInterestAttraction,
+    required this.pointOfInterestBusiness,
+    required this.pointOfInterestGovernment,
+    required this.pointOfInterestMedical,
+    required this.pointOfInterestPark,
+    required this.pointOfInterestPlaceOfWorship,
+    required this.pointOfInterestSchool,
+    required this.pointOfInterestSportsComplex,
+    required this.road,
+    required this.roadArterial,
+    required this.roadHighway,
+    required this.roadHighwayControlledAccess,
+    required this.roadLocal,
+    required this.transit,
+    required this.transitLine,
+    required this.transitStation,
+    required this.transitStationAirport,
+    required this.transitStationBus,
+    required this.transitStationRail,
+    required this.water,
     required this.background,
-    required this.allGeometry,
-    required this.allLabel,
-    required this.allLabelHalo,
-    required this.landscapeGeometry,
-    required this.manMadeFill,
-    required this.manMadeStroke,
-    required this.naturalGeometry,
-    required this.administrativeLabel,
-    required this.administrativeCountryLabel,
-    required this.administrativeLocalityLabel,
-    required this.administrativeNeighborhoodLabel,
-    required this.administrativeProvinceLabel,
-    required this.pointOfInterestGeometry,
-    required this.attractionGeometry,
-    required this.attractionLabel,
-    required this.attractionIcon,
-    required this.businessGeometry,
-    required this.businessIcon,
-    required this.governmentGeometry,
-    required this.governmentLabel,
-    required this.governmentLabelHalo,
-    required this.governmentIcon,
-    required this.medicalGeometry,
-    required this.parkGeometry,
-    required this.parkLabel,
-    required this.parkLabelHalo,
-    required this.parkIcon,
-    required this.schoolGeometry,
-    required this.sportsComplexGeometry,
-    required this.sportsComplexLabel,
-    required this.sportsComplexLabelHalo,
-    required this.sportsComplexIcon,
-    required this.roadGeometryFill,
-    required this.roadGeometryStroke,
-    required this.roadLabel,
-    required this.roadLabelHalo,
-    required this.arterialRoadGeometryFill,
-    required this.arterialRoadGeometryStroke,
-    required this.arterialRoadLabel,
-    required this.highwayGeometryFill,
-    required this.highwayLabel,
-    required this.localRoadGeometryFill,
-    required this.localRoadLabel,
-    required this.transitStationGeometry,
-    required this.transitStationLabel,
-    required this.transitStationLabelHalo,
-    required this.transitStationIcon,
-    required this.railStationLabel,
-    required this.railStationLabelHalo,
-    required this.railStationIcon,
-    required this.waterGeometry,
-    required this.waterLabel,
-    required this.waterLabelHalo,
     required this.locationRadius,
   });
 
@@ -72,117 +79,94 @@ final class JobLocationMapColorScheme {
 
   factory JobLocationMapColorScheme.light({required MateoPalette palette}) {
     return JobLocationMapColorScheme._(
+      all: const JobLocationMapFeatureColorScheme(),
+      administrative: const JobLocationMapFeatureColorScheme(),
+      administrativeCountry: const JobLocationMapFeatureColorScheme(),
+      administrativeLandParcel: const JobLocationMapFeatureColorScheme(),
+      administrativeLocality: const JobLocationMapFeatureColorScheme(),
+      administrativeNeighborhood: const JobLocationMapFeatureColorScheme(),
+      administrativeProvince: const JobLocationMapFeatureColorScheme(),
+      landscape: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2].lighten(0.2)),
+      landscapeManMade: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2].lighten(0.2)),
+      landscapeNatural: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2].lighten(0.2)),
+      landscapeNaturalLandcover: const JobLocationMapFeatureColorScheme(),
+      landscapeNaturalTerrain: const JobLocationMapFeatureColorScheme(),
+      pointOfInterest: const JobLocationMapFeatureColorScheme(),
+      pointOfInterestAttraction: const JobLocationMapFeatureColorScheme(),
+      pointOfInterestBusiness: const JobLocationMapFeatureColorScheme(),
+      pointOfInterestGovernment: const JobLocationMapFeatureColorScheme(),
+      pointOfInterestMedical: const JobLocationMapFeatureColorScheme(),
+      pointOfInterestPark: JobLocationMapFeatureColorScheme(
+        labelsIcon: AddressCategory.park.color(palette: palette),
+        geometryFill: palette.green[6],
+      ),
+      pointOfInterestPlaceOfWorship: const JobLocationMapFeatureColorScheme(),
+      pointOfInterestSchool: const JobLocationMapFeatureColorScheme(),
+      pointOfInterestSportsComplex: const JobLocationMapFeatureColorScheme(),
+      road: JobLocationMapFeatureColorScheme(geometryFill: palette.neutral[1]),
+      roadArterial: const JobLocationMapFeatureColorScheme(
+        geometry: Colors.white,
+        // geometryFill: palette.neutral[3],
+        // geometryStroke: palette.neutral[5],
+        geometryWeight: 1,
+      ),
+      roadHighway: JobLocationMapFeatureColorScheme(
+        geometry: palette.neutral[5],
+        // geometryStroke: palette.green[1],
+        geometryWeight: 1,
+      ),
+      roadHighwayControlledAccess: const JobLocationMapFeatureColorScheme(),
+      roadLocal: JobLocationMapFeatureColorScheme(
+        geometry: palette.neutral[2].darken(0.06),
+        // geometryStroke: Colors.red,
+        // geometryStroke: Colors.white,
+        geometryWeight: 1,
+      ),
+      transit: const JobLocationMapFeatureColorScheme(),
+      transitLine: const JobLocationMapFeatureColorScheme(),
+      transitStation: const JobLocationMapFeatureColorScheme(),
+      transitStationAirport: const JobLocationMapFeatureColorScheme(),
+      transitStationBus: const JobLocationMapFeatureColorScheme(),
+      transitStationRail: const JobLocationMapFeatureColorScheme(),
+      water: JobLocationMapFeatureColorScheme(geometryFill: palette.cyan[7]),
       background: palette.neutral[2],
-      allGeometry: palette.neutral[2],
-      allLabel: palette.neutral[8],
-      allLabelHalo: palette.neutral[1],
-      landscapeGeometry: palette.neutral[2],
-      manMadeFill: palette.neutral[2],
-      manMadeStroke: palette.neutral[5],
-      naturalGeometry: palette.green[5],
-      administrativeLabel: palette.neutral[7],
-      administrativeCountryLabel: palette.neutral[8],
-      administrativeLocalityLabel: palette.neutral[8],
-      administrativeNeighborhoodLabel: palette.neutral[7],
-      administrativeProvinceLabel: palette.neutral[7],
-      pointOfInterestGeometry: palette.neutral[1],
-      attractionGeometry: palette.neutral[1],
-      attractionLabel: palette.neutral[8],
-      attractionIcon: palette.violet[7],
-      businessGeometry: palette.neutral[1],
-      businessIcon: palette.neutral[8],
-      governmentGeometry: palette.neutral[1],
-      governmentLabel: palette.amber[8],
-      governmentLabelHalo: palette.neutral[1],
-      governmentIcon: palette.amber[8],
-      medicalGeometry: palette.neutral[1],
-      parkGeometry: palette.green[4],
-      parkLabel: palette.green[8],
-      parkLabelHalo: palette.neutral[1],
-      parkIcon: palette.green[8],
-      schoolGeometry: palette.neutral[1],
-      sportsComplexGeometry: palette.neutral[1],
-      sportsComplexLabel: palette.violet[8],
-      sportsComplexLabelHalo: palette.neutral[1],
-      sportsComplexIcon: palette.violet[7],
-      roadGeometryFill: Colors.white,
-      roadGeometryStroke: palette.neutral[1],
-      roadLabel: palette.neutral[10],
-      roadLabelHalo: palette.neutral[1],
-      arterialRoadGeometryFill: Colors.white,
-      arterialRoadGeometryStroke: palette.neutral[1],
-      arterialRoadLabel: palette.neutral[10],
-      highwayGeometryFill: Colors.white,
-      highwayLabel: palette.neutral[10],
-      localRoadGeometryFill: palette.neutral[1],
-      localRoadLabel: palette.neutral[10],
-      transitStationGeometry: palette.blue[1],
-      transitStationLabel: palette.blue[8],
-      transitStationLabelHalo: palette.neutral[1],
-      transitStationIcon: palette.blue[8],
-      railStationLabel: palette.blue[8],
-      railStationLabelHalo: palette.neutral[1],
-      railStationIcon: palette.blue[6],
-      waterGeometry: palette.cyan[2],
-      waterLabel: palette.cyan[8],
-      waterLabelHalo: palette.neutral[1],
-      locationRadius: palette.orange[8].withValues(alpha: 0.15),
+      locationRadius: palette.green[9].withValues(alpha: 0.12),
     );
   }
 
+  final JobLocationMapFeatureColorScheme all;
+  final JobLocationMapFeatureColorScheme administrative;
+  final JobLocationMapFeatureColorScheme administrativeCountry;
+  final JobLocationMapFeatureColorScheme administrativeLandParcel;
+  final JobLocationMapFeatureColorScheme administrativeLocality;
+  final JobLocationMapFeatureColorScheme administrativeNeighborhood;
+  final JobLocationMapFeatureColorScheme administrativeProvince;
+  final JobLocationMapFeatureColorScheme landscape;
+  final JobLocationMapFeatureColorScheme landscapeManMade;
+  final JobLocationMapFeatureColorScheme landscapeNatural;
+  final JobLocationMapFeatureColorScheme landscapeNaturalLandcover;
+  final JobLocationMapFeatureColorScheme landscapeNaturalTerrain;
+  final JobLocationMapFeatureColorScheme pointOfInterest;
+  final JobLocationMapFeatureColorScheme pointOfInterestAttraction;
+  final JobLocationMapFeatureColorScheme pointOfInterestBusiness;
+  final JobLocationMapFeatureColorScheme pointOfInterestGovernment;
+  final JobLocationMapFeatureColorScheme pointOfInterestMedical;
+  final JobLocationMapFeatureColorScheme pointOfInterestPark;
+  final JobLocationMapFeatureColorScheme pointOfInterestPlaceOfWorship;
+  final JobLocationMapFeatureColorScheme pointOfInterestSchool;
+  final JobLocationMapFeatureColorScheme pointOfInterestSportsComplex;
+  final JobLocationMapFeatureColorScheme road;
+  final JobLocationMapFeatureColorScheme roadArterial;
+  final JobLocationMapFeatureColorScheme roadHighway;
+  final JobLocationMapFeatureColorScheme roadHighwayControlledAccess;
+  final JobLocationMapFeatureColorScheme roadLocal;
+  final JobLocationMapFeatureColorScheme transit;
+  final JobLocationMapFeatureColorScheme transitLine;
+  final JobLocationMapFeatureColorScheme transitStation;
+  final JobLocationMapFeatureColorScheme transitStationAirport;
+  final JobLocationMapFeatureColorScheme transitStationBus;
+  final JobLocationMapFeatureColorScheme transitStationRail;
+  final JobLocationMapFeatureColorScheme water;
   final Color background;
-  final Color allGeometry;
-  final Color allLabel;
-  final Color allLabelHalo;
-  final Color landscapeGeometry;
-  final Color manMadeFill;
-  final Color manMadeStroke;
-  final Color naturalGeometry;
-  final Color administrativeLabel;
-  final Color administrativeCountryLabel;
-  final Color administrativeLocalityLabel;
-  final Color administrativeNeighborhoodLabel;
-  final Color administrativeProvinceLabel;
-  final Color pointOfInterestGeometry;
-  final Color attractionGeometry;
-  final Color attractionLabel;
-  final Color attractionIcon;
-  final Color businessGeometry;
-  final Color businessIcon;
-  final Color governmentGeometry;
-  final Color governmentLabel;
-  final Color governmentLabelHalo;
-  final Color governmentIcon;
-  final Color medicalGeometry;
-  final Color parkGeometry;
-  final Color parkLabel;
-  final Color parkLabelHalo;
-  final Color parkIcon;
-  final Color schoolGeometry;
-  final Color sportsComplexGeometry;
-  final Color sportsComplexLabel;
-  final Color sportsComplexLabelHalo;
-  final Color sportsComplexIcon;
-  final Color roadGeometryFill;
-  final Color roadGeometryStroke;
-  final Color roadLabel;
-  final Color roadLabelHalo;
-  final Color arterialRoadGeometryFill;
-  final Color arterialRoadGeometryStroke;
-  final Color arterialRoadLabel;
-  final Color highwayGeometryFill;
-  final Color highwayLabel;
-  final Color localRoadGeometryFill;
-  final Color localRoadLabel;
-  final Color transitStationGeometry;
-  final Color transitStationLabel;
-  final Color transitStationLabelHalo;
-  final Color transitStationIcon;
-  final Color railStationLabel;
-  final Color railStationLabelHalo;
-  final Color railStationIcon;
-  final Color waterGeometry;
-  final Color waterLabel;
-  final Color waterLabelHalo;
   final Color locationRadius;
 }

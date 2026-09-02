@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
+import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,17 +21,25 @@ class _JobLocationMapTestHelpers {
   static Widget buildApp({
     ({double latitude, double longitude}) location = testLocation,
     double areaDiameterInMeters = testAreaDiameterInMeters,
+    JobLocationMapColorScheme? colorScheme,
     double zoom = 14,
     Offset offset = Offset.zero,
   }) {
     return TestApp.screen(
-      child: buildBareMap(location: location, areaDiameterInMeters: areaDiameterInMeters, zoom: zoom, offset: offset),
+      child: buildBareMap(
+        location: location,
+        areaDiameterInMeters: areaDiameterInMeters,
+        colorScheme: colorScheme,
+        zoom: zoom,
+        offset: offset,
+      ),
     );
   }
 
   static Widget buildBareMap({
     ({double latitude, double longitude}) location = testLocation,
     double areaDiameterInMeters = testAreaDiameterInMeters,
+    JobLocationMapColorScheme? colorScheme,
     double zoom = 14,
     Offset offset = Offset.zero,
   }) {
@@ -41,6 +50,7 @@ class _JobLocationMapTestHelpers {
         child: JobLocationMap(
           location: location,
           areaDiameterInMeters: areaDiameterInMeters,
+          colorScheme: colorScheme,
           zoom: zoom,
           offset: offset,
         ),
@@ -52,11 +62,18 @@ class _JobLocationMapTestHelpers {
     required WidgetTester tester,
     ({double latitude, double longitude}) location = testLocation,
     double areaDiameterInMeters = testAreaDiameterInMeters,
+    JobLocationMapColorScheme? colorScheme,
     double zoom = 14,
     Offset offset = Offset.zero,
   }) async {
     await tester.pumpWidget(
-      buildApp(location: location, areaDiameterInMeters: areaDiameterInMeters, zoom: zoom, offset: offset),
+      buildApp(
+        location: location,
+        areaDiameterInMeters: areaDiameterInMeters,
+        colorScheme: colorScheme,
+        zoom: zoom,
+        offset: offset,
+      ),
     );
     await tester.pumpAndSettle();
   }
@@ -128,13 +145,11 @@ void main() {
       );
     });
 
-    testWidgets('when the native map is still rendering, it should use the Cataquí map background natively', (
-      tester,
-    ) async {
+    testWidgets('when the native map is still rendering, it should inherit the Google map background', (tester) async {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
       final googleMap = tester.widget<GoogleMap>(find.byType(GoogleMap));
 
-      expect(googleMap.backgroundColor, JobLocationMapColorScheme.light(palette: MateoPalette()).background);
+      expect(googleMap.backgroundColor, isNull);
     });
 
     testWidgets('when no visual offset is supplied, it should account for attribution padding at the default zoom', (
@@ -245,11 +260,18 @@ void main() {
       expect(liteModeEnabled, isTrue);
     });
 
-    testWidgets('when rendering the location map style, it should preserve the native style', (tester) async {
+    testWidgets('when rendering the location map style, it should apply the address-category POI colors', (
+      tester,
+    ) async {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
       final googleMap = tester.widget<GoogleMap>(find.byType(GoogleMap));
 
-      expect(googleMap.style, isNull);
+      expect(
+        googleMap.style,
+        JobLocationMapStyle.fromColorScheme(
+          colorScheme: JobLocationMapColorScheme.light(palette: MateoPalette()),
+        ).googleMapsJson,
+      );
     });
 
     testWidgets('when the active light theme changes, it should preserve the native map identity', (tester) async {
