@@ -12,8 +12,8 @@ part 'job_route.g.dart';
 class JobRoute extends GoRouteData with $JobRoute {
   JobRoute({required this.jobId, this.$extra});
 
-  static const Duration pushDuration = Duration(milliseconds: 300);
-  static const Duration popDuration = Duration(milliseconds: 270);
+  static const Duration pushDuration = Duration(milliseconds: 270);
+  static const Duration popDuration = Duration(milliseconds: 230);
 
   final String jobId;
   final FeedJobDto? $extra;

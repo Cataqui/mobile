@@ -54,7 +54,7 @@ class FeedJobCard extends ConsumerWidget {
           child: Morph(
             tag: headerMorphTag,
             curve: JobSurface.morphCurve,
-            switchThreshold: 0.1,
+            switchThreshold: 0,
 
             child: Column(
               key: ValueKey(headerMorphTag),

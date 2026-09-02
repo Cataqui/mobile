@@ -18,7 +18,7 @@ class JobSurface extends StatelessWidget {
     this.fadeBottom = false,
   });
 
-  static const Curve morphCurve = Curves.easeOutCubic;
+  static const Curve morphCurve = Curves.easeInOutCubic;
 
   final String jobId;
   final BoxDecoration decoration;
