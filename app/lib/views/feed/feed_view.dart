@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
@@ -56,6 +57,27 @@ class _FeedViewState extends ConsumerState<FeedView> {
   final _cardBorderRadius = BorderRadius.circular(48);
   final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
   late final ValueNotifier<bool> _isHintActiveNotifier;
+  bool _isOpeningPost = false;
+
+  Future<void> _openPost() async {
+    if (_isOpeningPost) return;
+    _isOpeningPost = true;
+
+    try {
+      final authenticatedSession = await ref.read(appAuthStateProvider.notifier).getOrAuthenticateSession();
+      if (!mounted || authenticatedSession == null) return;
+
+      await const PostRoute().push<void>(context);
+    } on Object catch (error) {
+      if (!mounted) return;
+
+      ref
+          .read(appToastProvider)
+          .maybeShowError(context, error: error, message: ref.read(translationProvider).whatsappLoginButton.error);
+    } finally {
+      _isOpeningPost = false;
+    }
+  }
 
   void _showLocationAvailabilitySheet() {
     final i18n = ref.read(translationProvider);
@@ -170,7 +192,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
       backgroundColor: context.mateo.colorScheme.inverse.background,
       foregroundColor: context.mateo.colorScheme.inverse.onBackground,
       semanticLabel: i18n.feed.jobCreationButtonSemanticLabel,
-      onPressed: () => unawaited(const PostRoute().push(context)),
+      onPressed: () => unawaited(_openPost()),
       iconBuilder: (state) => MateoIcon.plusSignal(
         key: const ValueKey('feed_job_creation_plus_icon'),
         width: state.iconSize,

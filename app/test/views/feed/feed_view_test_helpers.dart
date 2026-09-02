@@ -2,11 +2,15 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
+import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
+import 'package:cataqui_app/views/job/job_route.dart';
+import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -180,6 +184,37 @@ class FeedViewTestHelpers {
     await tester.pump(); // Enter starts, content renders in tree
   }
 
+  static Future<ProviderContainer> pumpFeedRoute({
+    required WidgetTester tester,
+    List<Override> providerOverrides = const [],
+  }) async {
+    final rootNavigatorKey = GlobalKey<NavigatorState>();
+    final goRouter = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      initialLocation: '/',
+      routes: [$feedRoute, $postRoute, $jobRoute],
+    );
+    addTearDown(goRouter.dispose);
+    mockHapticFeedback(tester);
+    mockPlatformViews(tester);
+    mockGoogleMapsPlatform();
+    await tester.pumpWidget(
+      TestApp.router(
+        routerConfig: goRouter,
+        providerOverrides: [
+          feedStateProvider.overrideWith(() => FakeFeedState(buildResult: feedDataEmpty)),
+          goRouterProvider.overrideWithValue(goRouter),
+          rootNavigatorKeyProvider.overrideWithValue(rootNavigatorKey),
+          appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
+          ...providerOverrides,
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    return ProviderScope.containerOf(tester.element(find.byType(FeedView)), listen: false);
+  }
+
   static Widget buildFeedViewApp({
     required FakeFeedState feedState,
     bool disableAnimations = false,
@@ -198,6 +233,13 @@ class FeedViewTestHelpers {
   }
 
   static FeedData feedDataEmpty() => const FeedData(jobs: [], hasMore: false);
+
+  static AuthSessionDto authenticatedSession() {
+    return AuthSessionDto.fixture().copyWith(
+      accessTokenExpiresAt: DateTime.utc(2100),
+      refreshTokenExpiresAt: DateTime.utc(2100),
+    );
+  }
 
   static FeedData feedDataWithJobs({int count = 1, bool hasMore = true}) {
     return FeedData(

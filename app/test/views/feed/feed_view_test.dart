@@ -1,3 +1,4 @@
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -7,9 +8,9 @@ import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
-import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/post/post_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
+import 'package:cataqui_app/widgets/login_sheet/login_sheet.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -123,26 +124,87 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when tapping the job creation button, it should open the job creation flow', (tester) async {
-        final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $postRoute, $jobRoute]);
-        addTearDown(goRouter.dispose);
-        FeedViewTestHelpers.mockHapticFeedback(tester);
-        FeedViewTestHelpers.mockPlatformViews(tester);
-
-        await tester.pumpWidget(
-          TestApp.router(
-            routerConfig: goRouter,
-            providerOverrides: [
-              feedStateProvider.overrideWith(() => FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty)),
-              goRouterProvider.overrideWithValue(goRouter),
-            ],
-          ),
-        );
+      testWidgets('when unauthenticated, tapping the job creation button should present login', (tester) async {
+        await FeedViewTestHelpers.pumpFeedRoute(tester: tester);
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
         await tester.pumpAndSettle();
+
+        expect(find.byType(LoginSheet), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when login is dismissed, the job creation button should keep the feed open', (tester) async {
+        await FeedViewTestHelpers.pumpFeedRoute(tester: tester);
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('mateo_bottom_sheet_close_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(FeedView), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when authenticated, tapping the job creation button should open the post flow', (tester) async {
+        final providerContainer = await FeedViewTestHelpers.pumpFeedRoute(tester: tester);
+        await providerContainer
+            .read(appAuthStateProvider.notifier)
+            .setSession(FeedViewTestHelpers.authenticatedSession());
         await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
         await tester.pumpAndSettle();
 
         expect(find.byType(PostView), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when login succeeds, the job creation button should resume opening the post flow', (tester) async {
+        final loginSheetController = MockLoginSheetController();
+        late ProviderContainer providerContainer;
+        when(loginSheetController.show).thenAnswer((_) async {
+          await providerContainer
+              .read(appAuthStateProvider.notifier)
+              .setSession(FeedViewTestHelpers.authenticatedSession());
+          return true;
+        });
+        providerContainer = await FeedViewTestHelpers.pumpFeedRoute(
+          tester: tester,
+          providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+        );
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PostView), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when authentication fails, the job creation button should show the login error', (tester) async {
+        final loginSheetController = MockLoginSheetController();
+        when(loginSheetController.show).thenThrow(StateError('login unavailable'));
+        await FeedViewTestHelpers.pumpFeedRoute(
+          tester: tester,
+          providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+        );
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.text(i18n.whatsappLoginButton.error), findsOneWidget);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('when tapped twice, the job creation button should open only one post route', (tester) async {
+        final providerContainer = await FeedViewTestHelpers.pumpFeedRoute(tester: tester);
+        await providerContainer
+            .read(appAuthStateProvider.notifier)
+            .setSession(FeedViewTestHelpers.authenticatedSession());
+        final jobCreationButton = tester.widget<MateoFloatingActionButton>(
+          find.byKey(const ValueKey('feed_job_creation_button')),
+        );
+        jobCreationButton.onPressed?.call();
+        jobCreationButton.onPressed?.call();
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('post_close_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(FeedView), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
