@@ -32,7 +32,7 @@ class PostLocationView extends ConsumerStatefulWidget {
           context,
           listen: false,
         ).read(translationProvider).post.location.closeButtonSemanticLabel,
-        barrierColor: Colors.black.withValues(alpha: 0.1),
+        barrierColor: Colors.black.withValues(alpha: 0.05),
         transitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 320),
         reverseTransitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 270),
         pageBuilder: (routeContext, _, _) => const PostLocationView(),
@@ -101,7 +101,7 @@ class _PostLocationViewState extends ConsumerState<PostLocationView> {
       backgroundBuilder: (context, content) => Morph(
         tag: PostLocationMorphTag.surface,
         duration: Duration.zero,
-        curve: Curves.easeOutCubic,
+        curve: Curves.fastLinearToSlowEaseIn,
         watchDestination: true,
         switchThreshold: 0.1,
         onReceived: () {
