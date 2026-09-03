@@ -37,7 +37,7 @@ void main() {
 
       expect(
         (
-          card: find.byKey(const ValueKey('welcome_job_0')).evaluate().length,
+          card: find.byKey(const ValueKey('welcome_job_card')).evaluate().length,
           postedTime: find.text(i18n.welcome.jobs.job1.postedTime).evaluate().length,
           title: find.text(i18n.welcome.jobs.job1.title).evaluate().length,
           amount: find.text(i18n.welcome.jobs.job1.amount).evaluate().length,
@@ -121,7 +121,7 @@ void main() {
     testWidgets('when the scene paints, every artwork should remain behind the card', (tester) async {
       await WelcomeViewTestHelpers.pumpView(tester: tester);
       final stack = tester.widget<Stack>(
-        find.descendant(of: find.byKey(const ValueKey('welcome_scene_size')), matching: find.byType(Stack)),
+        find.descendant(of: find.byKey(const ValueKey('welcome_scene_size')), matching: find.byType(Stack)).first,
       );
 
       expect(
@@ -141,7 +141,7 @@ void main() {
     testWidgets('when welcome opens, artworks should wait until their configured entrance delay', (tester) async {
       await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
       final initialState = WelcomeViewTestHelpers.motionState(tester, 'welcome_artwork_transition_top');
-      final cardRect = tester.getRect(find.byKey(const ValueKey('welcome_job_0')));
+      final cardRect = tester.getRect(find.byKey(const ValueKey('welcome_job_card')));
       final allArtworkCentersStartBehindCard = WelcomeViewTestHelpers.artworkSlots.every(
         (slot) => cardRect.contains(tester.getCenter(find.byKey(ValueKey('welcome_artwork_circle_$slot')))),
       );
@@ -212,11 +212,11 @@ void main() {
 
       expect(
         (
-          jobBefore: find.byKey(const ValueKey('welcome_job_0')).evaluate().length,
+          jobBefore: find.text(i18n.welcome.jobs.job1.title).evaluate().length,
           effectsBefore: beforeReturn.map((effect) => effect.runtimeType).join(','),
           curveBefore: beforeReturn.map((effect) => effect.curve).toSet().single,
           stateBefore: beforeReturnState,
-          jobAtBoundary: find.byKey(const ValueKey('welcome_job_0')).evaluate().length,
+          jobAtBoundary: find.text(i18n.welcome.jobs.job1.title).evaluate().length,
           effectsAtBoundary: atReturn.map((effect) => effect.runtimeType).join(','),
           curveAtBoundary: atReturn.map((effect) => effect.curve).toSet().single,
           durationAtBoundary: atReturn.map((effect) => effect.duration).toSet().single,
@@ -246,10 +246,10 @@ void main() {
       await WelcomeViewTestHelpers.finishInitialReveal(tester);
       await WelcomeViewTestHelpers.beginNextReturn(tester);
       await tester.pump(const Duration(milliseconds: 349));
-      final oldJobBeforeCompletion = find.byKey(const ValueKey('welcome_job_0')).evaluate().length;
+      final oldJobBeforeCompletion = find.text(i18n.welcome.jobs.job1.title).evaluate().length;
       final beforeCompletion = WelcomeViewTestHelpers.motionState(tester, 'welcome_artwork_transition_top');
       await tester.pump(const Duration(milliseconds: 1));
-      final oldJobAtCompletionFrame = find.byKey(const ValueKey('welcome_job_0')).evaluate().length;
+      final oldJobAtCompletionFrame = find.text(i18n.welcome.jobs.job1.title).evaluate().length;
       await tester.pump();
       final nextArtworkKeysMounted = WelcomeViewTestHelpers.artworkSlots.every(
         (slot) => find.byKey(ValueKey('welcome_artwork_content_1_$slot')).evaluate().length == 1,
@@ -260,7 +260,7 @@ void main() {
           oldJobBeforeCompletion: oldJobBeforeCompletion,
           returnNearlyHidden: beforeCompletion.scale < 0.7,
           oldJobAtCompletionFrame: oldJobAtCompletionFrame,
-          nextJobAfterRebuild: find.byKey(const ValueKey('welcome_job_1')).evaluate().length,
+          nextJobAfterRebuild: find.text(i18n.welcome.jobs.job2.title).evaluate().length,
           nextArtworkKeysMounted: nextArtworkKeysMounted,
           artworkRevealMatchesInitial:
               WelcomeViewTestHelpers.motionState(tester, 'welcome_artwork_transition_top') == initialArtworkState,
@@ -285,12 +285,12 @@ void main() {
       await WelcomeViewTestHelpers.finishInitialReveal(tester);
       await WelcomeViewTestHelpers.beginNextReturn(tester);
       await WelcomeViewTestHelpers.finishNextReturn(tester);
-      final firstSwitch = find.byKey(const ValueKey('welcome_job_1')).evaluate().length;
+      final firstSwitch = find.text(i18n.welcome.jobs.job2.title).evaluate().length;
       await WelcomeViewTestHelpers.finishNextReveal(tester);
       await tester.pump(const Duration(milliseconds: 2049));
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump(const Duration(milliseconds: 349));
-      final jobBeforeThreeSeconds = find.byKey(const ValueKey('welcome_job_1')).evaluate().length;
+      final jobBeforeThreeSeconds = find.text(i18n.welcome.jobs.job2.title).evaluate().length;
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump();
 
@@ -298,7 +298,7 @@ void main() {
         (
           firstSwitch: firstSwitch,
           jobBeforeThreeSeconds: jobBeforeThreeSeconds,
-          jobAtThreeSeconds: find.byKey(const ValueKey('welcome_job_2')).evaluate().length,
+          jobAtThreeSeconds: find.text(i18n.welcome.jobs.job3.title).evaluate().length,
         ),
         (firstSwitch: 1, jobBeforeThreeSeconds: 1, jobAtThreeSeconds: 1),
       );
@@ -401,6 +401,11 @@ void main() {
       final stableKeys = [
         'welcome_card_float',
         'welcome_card_transition',
+        'welcome_job_card',
+        'welcome_job_posted_time',
+        'welcome_job_title',
+        'welcome_job_amount',
+        'welcome_job_description',
         for (final slot in WelcomeViewTestHelpers.artworkSlots) ...[
           'welcome_artwork_$slot',
           'welcome_artwork_transition_$slot',
@@ -464,8 +469,10 @@ void main() {
       final initialTranslations = {
         for (final key in floatingKeys) key: WelcomeViewTestHelpers.motionState(tester, key).translation,
       };
-      await tester.pump(const Duration(milliseconds: 900));
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 1600));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(
         floatingKeys.every(
@@ -473,6 +480,124 @@ void main() {
         ),
         isTrue,
       );
+    });
+
+    testWidgets('when the scene appears, deferred floating should start every cycle from rest', (tester) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
+      await tester.pump(const Duration(milliseconds: 1600));
+      final translations = [
+        for (final slot in WelcomeViewTestHelpers.artworkSlots)
+          WelcomeViewTestHelpers.motionState(tester, 'welcome_artwork_$slot').translation.dy,
+        WelcomeViewTestHelpers.motionState(tester, 'welcome_card_float').translation.dy,
+      ];
+
+      expect(translations.every((translation) => translation.abs() < 0.001), isTrue);
+    });
+
+    testWidgets('when the scene is hidden on startup, perpetual floating should not consume frames', (tester) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
+      final floatingKeys = [
+        'welcome_card_float',
+        for (final slot in WelcomeViewTestHelpers.artworkSlots) 'welcome_artwork_$slot',
+      ];
+      final initialTranslations = {
+        for (final key in floatingKeys) key: WelcomeViewTestHelpers.motionState(tester, key).translation,
+      };
+      final initialCallbackCount = tester.binding.transientCallbackCount;
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        (
+          callbacksWithinStaticEntranceBudget: initialCallbackCount <= 2,
+          floatingStayedStill: floatingKeys.every(
+            (key) => WelcomeViewTestHelpers.motionState(tester, key).translation == initialTranslations[key],
+          ),
+        ),
+        (callbacksWithinStaticEntranceBudget: true, floatingStayedStill: true),
+      );
+    });
+
+    testWidgets('when the scene rebuilds, perpetual floating effects should retain their precomputed identity', (
+      tester,
+    ) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester);
+      final floatingKeys = [
+        'welcome_card_float',
+        for (final slot in WelcomeViewTestHelpers.artworkSlots) 'welcome_artwork_$slot',
+      ];
+      final originalEffects = {for (final key in floatingKeys) key: WelcomeViewTestHelpers.motion(tester, key).effect};
+      await WelcomeViewTestHelpers.advanceToNextReducedMotionJob(tester);
+
+      expect(
+        floatingKeys.every((key) => identical(originalEffects[key], WelcomeViewTestHelpers.motion(tester, key).effect)),
+        isTrue,
+      );
+    });
+
+    testWidgets('when artwork colors change, the scene should use at most one color animation ticker', (tester) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
+      await WelcomeViewTestHelpers.finishInitialReveal(tester);
+      final idleCallbackCount = tester.binding.transientCallbackCount;
+      await WelcomeViewTestHelpers.beginNextReturn(tester);
+      await WelcomeViewTestHelpers.finishNextReturn(tester);
+      await tester.pump(const Duration(milliseconds: 16));
+
+      expect(tester.binding.transientCallbackCount - idleCallbackCount, lessThanOrEqualTo(1));
+    });
+
+    testWidgets('when a reveal finishes, the unchanged scene should not rebuild', (tester) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
+      await WelcomeViewTestHelpers.finishInitialReveal(tester);
+      await WelcomeViewTestHelpers.beginNextReturn(tester);
+      await WelcomeViewTestHelpers.finishNextReturn(tester);
+      await tester.pump(const Duration(milliseconds: 599));
+      final transitionBeforeCompletion = WelcomeViewTestHelpers.motion(tester, 'welcome_artwork_transition_top');
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump();
+
+      expect(
+        identical(transitionBeforeCompletion, WelcomeViewTestHelpers.motion(tester, 'welcome_artwork_transition_top')),
+        isTrue,
+      );
+    });
+
+    testWidgets('when entrance semantics become visible, the complete welcome scene should not rebuild', (
+      tester,
+    ) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
+      final sceneBeforeEntranceCompletion = tester.widget(find.byKey(const ValueKey('welcome_scene_size')));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(milliseconds: 150));
+      await tester.pump();
+
+      expect(
+        identical(sceneBeforeEntranceCompletion, tester.widget(find.byKey(const ValueKey('welcome_scene_size')))),
+        isTrue,
+      );
+    });
+
+    testWidgets('when entrance surfaces move, every motion should retain its painted child', (tester) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
+
+      expect(
+        [
+          'welcome_message_entrance',
+          'welcome_terms_entrance',
+          'welcome_button_entrance',
+        ].every((key) => WelcomeViewTestHelpers.motion(tester, key).child is RepaintBoundary),
+        isTrue,
+      );
+    });
+
+    testWidgets('when a job changes, the expensive card surface should remain mounted', (tester) async {
+      await WelcomeViewTestHelpers.pumpView(tester: tester);
+      final surface = find.byKey(const ValueKey('welcome_card_surface')).evaluate().single;
+      await WelcomeViewTestHelpers.advanceToNextReducedMotionJob(tester);
+
+      expect(identical(surface, find.byKey(const ValueKey('welcome_card_surface')).evaluate().single), isTrue);
     });
 
     testWidgets('when reduced motion is enabled, all scene motion should stay at its static endpoint', (tester) async {
@@ -571,16 +696,16 @@ void main() {
       await WelcomeViewTestHelpers.finishInitialReveal(tester);
       await WelcomeViewTestHelpers.repumpView(tester: tester);
       await tester.pump(const Duration(milliseconds: 2999));
-      final firstJobBeforeReducedBoundary = find.byKey(const ValueKey('welcome_job_0')).evaluate().length;
+      final firstJobBeforeReducedBoundary = find.text(i18n.welcome.jobs.job1.title).evaluate().length;
       await tester.pump(const Duration(milliseconds: 1));
-      final reducedSwitchAtBoundary = find.byKey(const ValueKey('welcome_job_1')).evaluate().length;
+      final reducedSwitchAtBoundary = find.text(i18n.welcome.jobs.job2.title).evaluate().length;
       await WelcomeViewTestHelpers.repumpView(tester: tester, disableAnimations: false);
       await tester.pump(const Duration(milliseconds: 2649));
       final effectBeforeReturn = WelcomeViewTestHelpers.motion(tester, 'welcome_artwork_transition_top').effects!.first;
       await tester.pump(const Duration(milliseconds: 1));
       final effectAtReturn = WelcomeViewTestHelpers.motion(tester, 'welcome_artwork_transition_top').effects!.first;
       await tester.pump(const Duration(milliseconds: 349));
-      final secondJobBeforeAnimatedBoundary = find.byKey(const ValueKey('welcome_job_1')).evaluate().length;
+      final secondJobBeforeAnimatedBoundary = find.text(i18n.welcome.jobs.job2.title).evaluate().length;
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump();
 
@@ -591,7 +716,7 @@ void main() {
           curveBeforeReturn: effectBeforeReturn.curve,
           curveAtReturn: effectAtReturn.curve,
           secondJobBeforeAnimatedBoundary: secondJobBeforeAnimatedBoundary,
-          animatedSwitchAtBoundary: find.byKey(const ValueKey('welcome_job_2')).evaluate().length,
+          animatedSwitchAtBoundary: find.text(i18n.welcome.jobs.job3.title).evaluate().length,
         ),
         (
           firstJobBeforeReducedBoundary: 1,
@@ -678,8 +803,12 @@ void main() {
       await tester.pump(const Duration(seconds: 4));
 
       expect(
-        (exception: tester.takeException(), scheduledFrame: tester.binding.hasScheduledFrame),
-        (exception: null, scheduledFrame: false),
+        (
+          exception: tester.takeException(),
+          scheduledFrame: tester.binding.hasScheduledFrame,
+          transientCallbacks: tester.binding.transientCallbackCount,
+        ),
+        (exception: null, scheduledFrame: false, transientCallbacks: 0),
       );
     });
   });
@@ -917,6 +1046,22 @@ void main() {
         ),
         (label: i18n.welcome.sceneAccessibilityLabel, isImage: true, headlineIsHeader: true, nestedJobSemantics: 0),
       );
+    });
+
+    testWidgets('when artwork floats, decorative transforms should not update the semantics tree', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
+      await WelcomeViewTestHelpers.finishInitialReveal(tester);
+      var semanticsUpdateCount = 0;
+      void countSemanticsUpdate() => semanticsUpdateCount += 1;
+      tester.binding.rootPipelineOwner.semanticsOwner!.addListener(countSemanticsUpdate);
+      for (var frame = 0; frame < 10; frame += 1) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      tester.binding.rootPipelineOwner.semanticsOwner!.removeListener(countSemanticsUpdate);
+      semantics.dispose();
+
+      expect(semanticsUpdateCount, 0);
     });
 
     testWidgets('when welcome opens, controls should remain active accessible touch targets', (tester) async {

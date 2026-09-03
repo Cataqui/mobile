@@ -10,6 +10,7 @@ import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/welcome/welcome_view/enums/welcome_artwork_slot.dart';
 import 'package:cataqui_app/views/welcome/welcome_view/enums/welcome_scene_phase.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -17,6 +18,8 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 part 'welcome_job.dart';
+part 'welcome_artwork_background_box_painter.dart';
+part 'welcome_artwork_background_decoration.dart';
 part 'welcome_job_card.dart';
 part 'welcome_job_scene.dart';
 part 'welcome_jobs.dart';
@@ -25,11 +28,11 @@ class WelcomeView extends ConsumerStatefulWidget {
   const WelcomeView({super.key});
 
   static Future<void> precacheImages(BuildContext context) {
-    return _WelcomeJobScene.precacheJob(
+    return _WelcomeJobScene.precacheArtwork(
       context,
-      job: _WelcomeJobs.forTranslations(
+      artwork: _WelcomeJobs.forTranslations(
         ProviderScope.containerOf(context, listen: false).read(translationProvider),
-      ).first,
+      ).first.artwork,
     );
   }
 
@@ -50,23 +53,31 @@ class WelcomeView extends ConsumerStatefulWidget {
 }
 
 class _WelcomeViewState extends ConsumerState<WelcomeView> {
-  bool _sceneVisible = false;
-  bool _termsVisible = false;
-  bool _buttonVisible = false;
+  final ValueNotifier<bool> _sceneVisible = ValueNotifier(false);
+  final ValueNotifier<bool> _termsVisible = ValueNotifier(false);
+  final ValueNotifier<bool> _buttonVisible = ValueNotifier(false);
 
   void _showScene() {
-    if (_sceneVisible || !mounted) return;
-    setState(() => _sceneVisible = true);
+    if (_sceneVisible.value || !mounted) return;
+    _sceneVisible.value = true;
   }
 
   void _showTerms() {
-    if (_termsVisible || !mounted) return;
-    setState(() => _termsVisible = true);
+    if (_termsVisible.value || !mounted) return;
+    _termsVisible.value = true;
   }
 
   void _showButton() {
-    if (_buttonVisible || !mounted) return;
-    setState(() => _buttonVisible = true);
+    if (_buttonVisible.value || !mounted) return;
+    _buttonVisible.value = true;
+  }
+
+  @override
+  void dispose() {
+    _sceneVisible.dispose();
+    _termsVisible.dispose();
+    _buttonVisible.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,26 +89,31 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
       child: MateoView(
         backgroundColor: context.mateo.colorScheme.background,
         edgeFade: null,
-        footer: ExcludeSemantics(
-          excluding: !_termsVisible,
-          child: Motion.list(
-            key: const ValueKey('welcome_terms_entrance'),
-            effects: [
-              const MoveMotionEffect(
-                begin: WelcomeView._controlsEntranceOffset,
-                end: Offset.zero,
-                delay: WelcomeView._controlsEntranceDelay,
-                duration: WelcomeView._controlsEntranceDuration,
-                curve: Curves.easeOutCubic,
+        footer: ValueListenableBuilder<bool>(
+          valueListenable: _termsVisible,
+          builder: (_, visible, child) => ExcludeSemantics(excluding: !visible, child: child),
+          child: RepaintBoundary(
+            child: Motion.list(
+              key: const ValueKey('welcome_terms_entrance'),
+              effects: [
+                const MoveMotionEffect(
+                  begin: WelcomeView._controlsEntranceOffset,
+                  end: Offset.zero,
+                  delay: WelcomeView._controlsEntranceDelay,
+                  duration: WelcomeView._controlsEntranceDuration,
+                  curve: Curves.easeOutCubic,
+                ),
+                FadeInMotionEffect(
+                  delay: WelcomeView._controlsEntranceDelay,
+                  duration: WelcomeView._controlsEntranceDuration,
+                  curve: Curves.easeOutCubic,
+                  onEnd: _showTerms,
+                ),
+              ],
+              child: RepaintBoundary(
+                child: _buildTerms(context: context, i18n: i18n),
               ),
-              FadeInMotionEffect(
-                delay: WelcomeView._controlsEntranceDelay,
-                duration: WelcomeView._controlsEntranceDuration,
-                curve: Curves.easeOutCubic,
-                onEnd: _showTerms,
-              ),
-            ],
-            child: _buildTerms(context: context, i18n: i18n),
+            ),
           ),
         ),
         body: SafeArea(
@@ -136,8 +152,9 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                           fit: BoxFit.fill,
                           child: SizedBox.fromSize(
                             size: _WelcomeJobScene.sceneSize,
-                            child: ExcludeSemantics(
-                              excluding: !_sceneVisible,
+                            child: ValueListenableBuilder<bool>(
+                              valueListenable: _sceneVisible,
+                              builder: (_, visible, child) => ExcludeSemantics(excluding: !visible, child: child),
                               child: Motion(
                                 key: const ValueKey('welcome_scene_entrance'),
                                 effect: FadeInMotionEffect(
@@ -150,6 +167,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                                   key: const ValueKey('welcome_scene_size'),
                                   jobs: _WelcomeJobs.forTranslations(i18n),
                                   accessibilityLabel: i18n.welcome.sceneAccessibilityLabel,
+                                  floatingStartDelay: WelcomeView._sceneEntranceDelay,
                                   initialRevealDelay: WelcomeView._artworkEntranceDelay,
                                 ),
                               ),
@@ -169,80 +187,84 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                           fit: BoxFit.scaleDown,
                           child: SizedBox(
                             width: _WelcomeJobScene.sceneSize.width,
-                            child: Motion.list(
-                              key: const ValueKey('welcome_message_entrance'),
-                              effects: [
-                                const ScaleInMotionEffect(
-                                  scale: 1.12,
-                                  delay: WelcomeView._titleRevealDelay,
-                                  duration: WelcomeView._titleRevealDuration,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                                const FadeInMotionEffect(
-                                  delay: WelcomeView._titleRevealDelay,
-                                  duration: WelcomeView._titleRevealDuration,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                                MoveMotionEffect(
-                                  begin: Offset(
-                                    0,
-                                    MediaQuery.sizeOf(context).height / 2 -
-                                        math.max(MediaQuery.paddingOf(context).top, WelcomeView._minimumTopInset) -
-                                        (fittedSceneSize.height + constraints.maxHeight) / 2,
+                            child: RepaintBoundary(
+                              child: Motion.list(
+                                key: const ValueKey('welcome_message_entrance'),
+                                effects: [
+                                  const ScaleInMotionEffect(
+                                    scale: 1.12,
+                                    delay: WelcomeView._titleRevealDelay,
+                                    duration: WelcomeView._titleRevealDuration,
+                                    curve: Curves.easeOutCubic,
                                   ),
-                                  end: Offset.zero,
-                                  delay: WelcomeView._titleMoveDelay,
-                                  duration: WelcomeView._titleMoveDuration,
-                                  curve: Curves.easeInOutCubic,
-                                ),
-                              ],
-                              child: Column(
-                                key: const ValueKey('welcome_message'),
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Semantics(
-                                    header: true,
-                                    child: Text(
-                                      i18n.welcome.headline,
-                                      key: const ValueKey('welcome_headline'),
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: context.mateo.colorScheme.text.primary,
-                                        fontSize: 28,
-                                        height: 1.12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                  const FadeInMotionEffect(
+                                    delay: WelcomeView._titleRevealDelay,
+                                    duration: WelcomeView._titleRevealDuration,
+                                    curve: Curves.easeOutCubic,
                                   ),
-                                  const SizedBox(height: 7),
-                                  FractionallySizedBox(
-                                    widthFactor: 0.6,
-                                    child: Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(text: i18n.welcome.subtitle),
-                                          const WidgetSpan(child: SizedBox(width: 5)),
-                                          WidgetSpan(
-                                            alignment: PlaceholderAlignment.middle,
-                                            child: MateoIcon.buildings(
-                                              width: 18,
-                                              height: 18,
-                                              color: context.mateo.colorScheme.text.tertiary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      key: const ValueKey('welcome_subtitle'),
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: context.mateo.colorScheme.text.tertiary,
-                                        fontSize: 17,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  MoveMotionEffect(
+                                    begin: Offset(
+                                      0,
+                                      MediaQuery.sizeOf(context).height / 2 -
+                                          math.max(MediaQuery.paddingOf(context).top, WelcomeView._minimumTopInset) -
+                                          (fittedSceneSize.height + constraints.maxHeight) / 2,
                                     ),
+                                    end: Offset.zero,
+                                    delay: WelcomeView._titleMoveDelay,
+                                    duration: WelcomeView._titleMoveDuration,
+                                    curve: Curves.easeInOutCubic,
                                   ),
                                 ],
+                                child: RepaintBoundary(
+                                  child: Column(
+                                    key: const ValueKey('welcome_message'),
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Semantics(
+                                        header: true,
+                                        child: Text(
+                                          i18n.welcome.headline,
+                                          key: const ValueKey('welcome_headline'),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: context.mateo.colorScheme.text.primary,
+                                            fontSize: 28,
+                                            height: 1.12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 7),
+                                      FractionallySizedBox(
+                                        widthFactor: 0.6,
+                                        child: Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              TextSpan(text: i18n.welcome.subtitle),
+                                              const WidgetSpan(child: SizedBox(width: 5)),
+                                              WidgetSpan(
+                                                alignment: PlaceholderAlignment.middle,
+                                                child: MateoIcon.buildings(
+                                                  width: 18,
+                                                  height: 18,
+                                                  color: context.mateo.colorScheme.text.tertiary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          key: const ValueKey('welcome_subtitle'),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: context.mateo.colorScheme.text.tertiary,
+                                            fontSize: 17,
+                                            height: 1.2,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -256,78 +278,83 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: ExcludeSemantics(
-              excluding: !_buttonVisible,
-              child: Motion.list(
-                key: const ValueKey('welcome_button_entrance'),
-                effects: [
-                  const MoveMotionEffect(
-                    begin: WelcomeView._controlsEntranceOffset,
-                    end: Offset.zero,
-                    delay: WelcomeView._controlsEntranceDelay,
-                    duration: WelcomeView._controlsEntranceDuration,
-                    curve: Curves.easeOutCubic,
-                  ),
-                  FadeInMotionEffect(
-                    delay: WelcomeView._controlsEntranceDelay,
-                    duration: WelcomeView._controlsEntranceDuration,
-                    curve: Curves.easeOutCubic,
-                    onEnd: _showButton,
-                  ),
-                ],
-                child: MateoMenuButton(
-                  key: const ValueKey('welcome_start_button'),
-                  menuTone: MateoMenuButtonMenuTone.dark,
-                  buttonPresentation: MateoButtonPresentation(
-                    label: i18n.welcome.startButton,
-                    variant: MateoButtonVariant.primary,
-                    tone: MateoButtonTone.neutral,
-                    fit: MateoButtonFit.expand,
-                  ),
-                  actions: [
-                    MateoMenuButtonAction(
-                      title: i18n.welcome.actions.post.title,
-                      description: i18n.welcome.actions.post.description,
-                      leadingIconBuilder: (state) => CircleAvatar(
-                        radius: 24,
-                        backgroundColor: context.mateo.palette.blue,
-                        child: MateoIcon.boxPencil(height: 22, color: state.iconColor),
-                      ),
-                      onPressed: (animation) async {
-                        await animation;
-                        if (context.mounted) {
-                          await ref.read(appRouterProvider.notifier).go(context, const PostRoute());
-                        }
-                      },
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _buttonVisible,
+              builder: (_, visible, child) => ExcludeSemantics(excluding: !visible, child: child),
+              child: RepaintBoundary(
+                child: Motion.list(
+                  key: const ValueKey('welcome_button_entrance'),
+                  effects: [
+                    const MoveMotionEffect(
+                      begin: WelcomeView._controlsEntranceOffset,
+                      end: Offset.zero,
+                      delay: WelcomeView._controlsEntranceDelay,
+                      duration: WelcomeView._controlsEntranceDuration,
+                      curve: Curves.easeOutCubic,
                     ),
-                    MateoMenuButtonAction(
-                      title: i18n.welcome.actions.browse.title,
-                      description: i18n.welcome.actions.browse.description,
-                      leadingIconBuilder: (state) => CircleAvatar(
-                        backgroundColor: context.mateo.palette.green,
-                        radius: 24,
-                        child: MateoIcon.rectangleStack(height: 22, color: state.iconColor),
-                      ),
-                      onPressed: (animation) async {
-                        await animation;
-                        try {
-                          await ref.read(appStorageStateProvider.notifier).completeOnboarding();
-                        } catch (error, stackTrace) {
-                          FlutterError.reportError(
-                            FlutterErrorDetails(
-                              exception: error,
-                              stack: stackTrace,
-                              library: 'cataqui_app',
-                              context: ErrorDescription('while saving onboarding completion'),
-                            ),
-                          );
-                        }
-
-                        if (!context.mounted) return;
-                        await ref.read(appRouterProvider.notifier).go(context, const FeedRoute());
-                      },
+                    FadeInMotionEffect(
+                      delay: WelcomeView._controlsEntranceDelay,
+                      duration: WelcomeView._controlsEntranceDuration,
+                      curve: Curves.easeOutCubic,
+                      onEnd: _showButton,
                     ),
                   ],
+                  child: RepaintBoundary(
+                    child: MateoMenuButton(
+                      key: const ValueKey('welcome_start_button'),
+                      menuTone: MateoMenuButtonMenuTone.dark,
+                      buttonPresentation: MateoButtonPresentation(
+                        label: i18n.welcome.startButton,
+                        variant: MateoButtonVariant.primary,
+                        tone: MateoButtonTone.neutral,
+                        fit: MateoButtonFit.expand,
+                      ),
+                      actions: [
+                        MateoMenuButtonAction(
+                          title: i18n.welcome.actions.post.title,
+                          description: i18n.welcome.actions.post.description,
+                          leadingIconBuilder: (state) => CircleAvatar(
+                            radius: 24,
+                            backgroundColor: context.mateo.palette.blue,
+                            child: MateoIcon.boxPencil(height: 22, color: state.iconColor),
+                          ),
+                          onPressed: (animation) async {
+                            await animation;
+                            if (context.mounted) {
+                              await ref.read(appRouterProvider.notifier).go(context, const PostRoute());
+                            }
+                          },
+                        ),
+                        MateoMenuButtonAction(
+                          title: i18n.welcome.actions.browse.title,
+                          description: i18n.welcome.actions.browse.description,
+                          leadingIconBuilder: (state) => CircleAvatar(
+                            backgroundColor: context.mateo.palette.green,
+                            radius: 24,
+                            child: MateoIcon.rectangleStack(height: 22, color: state.iconColor),
+                          ),
+                          onPressed: (animation) async {
+                            await animation;
+                            try {
+                              await ref.read(appStorageStateProvider.notifier).completeOnboarding();
+                            } catch (error, stackTrace) {
+                              FlutterError.reportError(
+                                FlutterErrorDetails(
+                                  exception: error,
+                                  stack: stackTrace,
+                                  library: 'cataqui_app',
+                                  context: ErrorDescription('while saving onboarding completion'),
+                                ),
+                              );
+                            }
+
+                            if (!context.mounted) return;
+                            await ref.read(appRouterProvider.notifier).go(context, const FeedRoute());
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

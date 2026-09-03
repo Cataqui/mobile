@@ -118,16 +118,9 @@ abstract final class WelcomeViewTestHelpers {
   }
 
   static Color artworkCircleColor(WidgetTester tester, String slot) {
-    final decoratedBox = find.descendant(
-      of: find.byKey(ValueKey('welcome_artwork_circle_$slot')),
-      matching: find.byWidgetPredicate(
-        (widget) =>
-            widget is DecoratedBox &&
-            widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).shape == BoxShape.circle,
-      ),
-    );
-    return (tester.widget<DecoratedBox>(decoratedBox).decoration as BoxDecoration).color!;
+    final decoration = tester.widget<DecoratedBox>(find.byKey(ValueKey('welcome_artwork_circle_$slot'))).decoration;
+    final color = decoration.toDiagnosticsNode().getProperties().singleWhere((property) => property.name == 'color');
+    return (color as ColorProperty).value!;
   }
 
   static Map<String, Element> mountedElements(WidgetTester tester, Iterable<String> keys) {

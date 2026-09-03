@@ -2,7 +2,10 @@ part of 'welcome_view.dart';
 
 abstract final class _WelcomeJobs {
   static List<_WelcomeJob> forTranslations(Translations i18n) {
-    return [
+    if (identical(_cachedTranslations, i18n)) return _cachedJobs;
+
+    _cachedTranslations = i18n;
+    return _cachedJobs = List.unmodifiable([
       _WelcomeJob(
         title: i18n.welcome.jobs.job1.title,
         amount: i18n.welcome.jobs.job1.amount,
@@ -231,6 +234,9 @@ abstract final class _WelcomeJobs {
           ),
         ),
       ),
-    ];
+    ]);
   }
+
+  static Translations? _cachedTranslations;
+  static List<_WelcomeJob> _cachedJobs = const [];
 }
