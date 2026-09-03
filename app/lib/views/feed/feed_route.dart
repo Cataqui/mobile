@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_router/app_route_data.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -8,8 +9,8 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 
 part 'feed_route.g.dart';
 
-@TypedGoRoute<FeedRoute>(path: '/')
-class FeedRoute extends GoRouteData with $FeedRoute {
+@TypedGoRoute<FeedRoute>(path: '/feed')
+class FeedRoute extends AppRouteData with $FeedRoute {
   const FeedRoute();
 
   @override

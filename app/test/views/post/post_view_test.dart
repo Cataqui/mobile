@@ -643,6 +643,29 @@ void main() {
 
     expect(find.byType(PostView), findsNothing);
   });
+
+  testWidgets('when post is the root route, tapping close should open the feed', (tester) async {
+    final goRouter = GoRouter(
+      initialLocation: const PostRoute().location,
+      routes: [
+        GoRoute(path: '/feed', builder: (context, state) => const SizedBox.shrink()),
+        $postRoute,
+      ],
+    );
+    addTearDown(goRouter.dispose);
+    await tester.pumpWidget(
+      TestApp.router(
+        routerConfig: goRouter,
+        providerOverrides: PostViewTestHelpers.providerOverrides(i18n: i18n),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('post_close_button')));
+    await tester.pumpAndSettle();
+
+    expect(goRouter.routeInformationProvider.value.uri.path, '/feed');
+  });
 }
 
 abstract final class PostViewTestHelpers {

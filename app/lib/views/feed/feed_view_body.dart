@@ -166,11 +166,13 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           ),
           const SizedBox(height: 20),
           MateoButton(
-            variant: MateoButtonVariant.primary,
-            label: i18n.feed.loadingMore.error.retryButtonTitle,
-            leadingIconBuilder: (state) =>
-                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
-            leadingIconSpacing: 10,
+            presentation: MateoButtonPresentation(
+              variant: MateoButtonVariant.primary,
+              label: i18n.feed.loadingMore.error.retryButtonTitle,
+              leadingIconBuilder: (state) =>
+                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+              leadingIconSpacing: 10,
+            ),
             onPressed: () {
               retry();
             },
@@ -210,11 +212,13 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           ),
           const SizedBox(height: 40),
           MateoButton(
+            presentation: MateoButtonPresentation(
+              variant: MateoButtonVariant.secondary,
+              label: i18n.feed.empty.adjustAreaButtonTitle,
+              leadingIconBuilder: (state) => MateoIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
+              leadingIconSpacing: 10,
+            ),
             key: const ValueKey('feed_empty_adjust_area_button'),
-            variant: MateoButtonVariant.secondary,
-            label: i18n.feed.empty.adjustAreaButtonTitle,
-            leadingIconBuilder: (state) => MateoIcon.wrench(height: 15, width: 15, color: state.foregroundColor),
-            leadingIconSpacing: 10,
             onPressed: widget.onAdjustAreaPressed,
           ),
         ],
@@ -303,11 +307,13 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           ),
           const SizedBox(height: 20),
           MateoButton(
-            variant: MateoButtonVariant.primary,
-            label: i18n.feed.error.retryButtonTitle,
-            leadingIconBuilder: (state) =>
-                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
-            leadingIconSpacing: 10,
+            presentation: MateoButtonPresentation(
+              variant: MateoButtonVariant.primary,
+              label: i18n.feed.error.retryButtonTitle,
+              leadingIconBuilder: (state) =>
+                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+              leadingIconSpacing: 10,
+            ),
             onPressed: () => ref.read(feedStateProvider.notifier).getFeedJobs(),
           ),
         ],

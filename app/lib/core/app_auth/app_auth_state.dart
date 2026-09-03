@@ -16,6 +16,11 @@ class AppAuthState extends _$AppAuthState {
   @override
   AuthSessionDto? build() => null;
 
+  bool get hasValidSession {
+    final currentSession = state;
+    return currentSession != null && currentSession.accessTokenExpiresAt.isAfter(clock.now());
+  }
+
   // setSession is an authentication command rather than a property-style setter.
   // ignore: use_setters_to_change_properties
   Future<void> setSession(AuthSessionDto session) async {
@@ -31,11 +36,7 @@ class AppAuthState extends _$AppAuthState {
   }
 
   Future<AuthSessionDto?> getOrAuthenticateSession() {
-    final currentSession = state;
-
-    if (currentSession != null && currentSession.accessTokenExpiresAt.isAfter(clock.now())) {
-      return Future<AuthSessionDto?>.value(currentSession);
-    }
+    if (hasValidSession) return Future<AuthSessionDto?>.value(state);
 
     return refreshSession();
   }

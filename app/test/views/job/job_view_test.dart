@@ -27,7 +27,7 @@ void main() {
   });
 
   setUp(() {
-    goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
+    goRouter = GoRouter(initialLocation: const FeedRoute().location, routes: [$feedRoute, $jobRoute]);
     jobRepository = MockJobRepository();
     when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(

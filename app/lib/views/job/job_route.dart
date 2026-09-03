@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_router/app_route_data.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,7 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 part 'job_route.g.dart';
 
 @TypedGoRoute<JobRoute>(path: '/job/:jobId')
-class JobRoute extends GoRouteData with $JobRoute {
+class JobRoute extends AppRouteData with $JobRoute {
   JobRoute({required this.jobId, this.$extra});
 
   static const Duration pushDuration = Duration(milliseconds: 270);

@@ -49,7 +49,7 @@ class JobView extends ConsumerWidget {
             dismissThreshold: 0.25,
           ),
           onDismiss: () {
-            const FeedRoute().go(context);
+            unawaited(ref.read(appRouterProvider.notifier).go(context, const FeedRoute()));
             return true;
           },
           child: MateoScrollableView(
@@ -274,11 +274,13 @@ class JobView extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           MateoButton(
-            variant: MateoButtonVariant.secondary,
-            label: i18n.job.error.retryButtonTitle,
-            leadingIconBuilder: (state) =>
-                MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
-            leadingIconSpacing: 10,
+            presentation: MateoButtonPresentation(
+              variant: MateoButtonVariant.secondary,
+              label: i18n.job.error.retryButtonTitle,
+              leadingIconBuilder: (state) =>
+                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+              leadingIconSpacing: 10,
+            ),
             onPressed: () => ref.read(jobStateProvider(jobId).notifier).retry(),
           ),
         ],

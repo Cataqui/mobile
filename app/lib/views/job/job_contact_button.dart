@@ -108,15 +108,17 @@ class JobContactButton extends ConsumerWidget {
     JobContactReferenceDto contactReference,
   ) {
     return MateoButton(
-      variant: MateoButtonVariant.primary,
-      label: i18n.job.contactButton.whatsapp,
-      fit: MateoButtonFit.expand,
-      colorScheme: colorScheme.buttons.whatsapp.tertiary,
+      presentation: MateoButtonPresentation(
+        variant: MateoButtonVariant.primary,
+        label: i18n.job.contactButton.whatsapp,
+        fit: MateoButtonFit.expand,
+        colorScheme: colorScheme.buttons.whatsapp.tertiary,
+        leadingIconBuilder: (state) {
+          return MateoIcon.whatsapp(width: _iconSize, height: _iconSize, color: state.foregroundColor);
+        },
+      ),
       isLoading: isLoading,
       onPressed: () => _contact(ref, jobId, contactReference.contactId),
-      leadingIconBuilder: (state) {
-        return MateoIcon.whatsapp(width: _iconSize, height: _iconSize, color: state.foregroundColor);
-      },
     );
   }
 
@@ -129,31 +131,39 @@ class JobContactButton extends ConsumerWidget {
     JobContactReferenceDto contactReference,
   ) {
     return MateoButton(
-      variant: MateoButtonVariant.primary,
-      label: i18n.job.contactButton.phoneCall,
-      colorScheme: colorScheme.buttons.success,
-      padding: _buttonPadding,
-      leadingIconSpacing: 12,
+      presentation: MateoButtonPresentation(
+        variant: MateoButtonVariant.primary,
+        label: i18n.job.contactButton.phoneCall,
+        colorScheme: colorScheme.buttons.success,
+        padding: _buttonPadding,
+        leadingIconSpacing: 12,
+        leadingIconBuilder: (state) =>
+            MateoIcon.phone(width: _iconSize, height: _iconSize, color: state.foregroundColor),
+      ),
       isLoading: isLoading,
-      leadingIconBuilder: (state) => MateoIcon.phone(width: _iconSize, height: _iconSize, color: state.foregroundColor),
       onPressed: () => _contact(ref, jobId, contactReference.contactId),
     );
   }
 
   MateoButton _buildUnknownButton(Translations i18n, bool isLoading) {
     return MateoButton(
-      variant: MateoButtonVariant.primary,
-      label: i18n.job.contactButton.unknown,
-      padding: _buttonPadding,
-      leadingIconSpacing: 10,
+      presentation: MateoButtonPresentation(
+        variant: MateoButtonVariant.primary,
+        label: i18n.job.contactButton.unknown,
+        padding: _buttonPadding,
+        leadingIconSpacing: 10,
+        leadingIconBuilder: (state) {
+          return MateoIcon.circleBlock(width: _iconSize, height: _iconSize, color: state.foregroundColor);
+        },
+      ),
       isLoading: isLoading,
-      leadingIconBuilder: (state) {
-        return MateoIcon.circleBlock(width: _iconSize, height: _iconSize, color: state.foregroundColor);
-      },
     );
   }
 
   MateoButton _buildLoadingButton() {
-    return const MateoButton(variant: MateoButtonVariant.primary, label: '', padding: _buttonPadding, isLoading: true);
+    return const MateoButton(
+      presentation: MateoButtonPresentation(variant: MateoButtonVariant.primary, label: '', padding: _buttonPadding),
+      isLoading: true,
+    );
   }
 }

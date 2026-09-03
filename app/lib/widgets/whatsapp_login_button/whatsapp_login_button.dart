@@ -141,18 +141,20 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
     ref.listen(loginStateProvider, _handleStateChange);
 
     return MateoButton(
+      presentation: MateoButtonPresentation(
+        variant: MateoButtonVariant.primary,
+        fit: MateoButtonFit.expand,
+        label: i18n.whatsappLoginButton.label,
+        colorScheme: context.mateo.colorScheme.buttons.whatsapp.tertiary,
+        leadingIconSpacing: 6,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+        leadingIconBuilder: (state) {
+          return MateoIcon.whatsapp(width: 22, height: 22, color: state.foregroundColor);
+        },
+      ),
       key: const ValueKey('whatsapp_login_button_action'),
-      variant: MateoButtonVariant.primary,
-      fit: MateoButtonFit.expand,
-      label: i18n.whatsappLoginButton.label,
-      colorScheme: context.mateo.colorScheme.buttons.whatsapp.tertiary,
-      leadingIconSpacing: 6,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       isLoading: isLoading,
       onPressed: _startLogin,
-      leadingIconBuilder: (state) {
-        return MateoIcon.whatsapp(width: 22, height: 22, color: state.foregroundColor);
-      },
     );
   }
 }

@@ -144,110 +144,57 @@
       }
     }
   },
-  "onboarding": {
-    "headline": "Pra achar trabalho.\nPra achar alguém.\nPerto de você",
-    "sceneAccessibilityLabel": "Exemplos de trabalhos perto de você",
+  "welcome": {
+    "headline": "O app dos bicos",
+    "subtitle": "Encontre e poste bicos na sua cidade",
+    "sceneAccessibilityLabel": "Exemplos de bicos perto de você",
+    "startButton": "Começar",
     "actions": {
-      "viewJobs": "Ver trabalhos",
-      "postJob": "Postar trabalho"
-    },
-    "jobCards": {
-      "postedTime": "Exemplo",
-      "card1": {
-        "title": "Ajudante de mudança",
-        "amount": "R$240/dia",
-        "description": "Preciso de ajuda para carregar móveis no Campo Limpo. Sábado, 8h às 16h. Almoço incluso."
+      "post": {
+        "title": "Postar um bico",
+        "description": "Tá precisando de alguém pra fazer algo? Cria um post"
       },
-      "card2": {
-        "title": "Atendente de loja",
-        "amount": "R$2.100/mês",
-        "description": "Preciso de atendente para uma loja na Lapa. Terça a sábado, 10h às 18h. 1h de almoço. A gente treina."
-      },
-      "card3": {
-        "title": "Garçom para evento",
-        "amount": "R$220",
-        "description": "Preciso de garçom para aniversário em Itaquera. Sábado, 18h às 23h. Jantar incluso."
-      },
-      "card4": {
-        "title": "Diarista",
-        "amount": "R$200",
-        "description": "Preciso de limpeza num apê de 2 quartos em Santana. Quinta, 8h às 15h. Material no local."
-      },
-      "card5": {
-        "title": "Ajudante de obra",
-        "amount": "R$200/dia",
-        "description": "Preciso de ajuda para preparar massa numa obra em São Mateus. Sexta, 7h às 16h. 1h de almoço."
-      },
-      "card6": {
-        "title": "Auxiliar de cozinha",
-        "amount": "R$180",
-        "description": "Preciso de ajuda no preparo e na louça na Vila Mariana. Domingo, 10h às 18h. Almoço incluso."
+      "browse": {
+        "title": "Ver bicos",
+        "description": "Quer ver os bicos de agora? Só clicar aqui"
       }
-    }
-  },
-  "posterOnboarding": {
-    "sceneAccessibilityLabel": "Exemplo de um trabalho publicado e pessoas interessadas",
-    "jobCard": {
-      "postedTime": "Exemplo",
-      "currencyCode": "BRL"
+    },
+    "terms": {
+      "prefix": "Ao continuar você aceita nossos",
+      "link": "termos de uso"
     },
     "jobs": {
-      "movingHelper": {
-        "title": "Ajudar numa mudança",
-        "amount": "180",
-        "description": "Mudança na Mooca. Sábado, 8h às 13h. Carregar caixas e móveis. Prédio com elevador",
-        "interest": "Posso no sábado"
+      "job1": {
+        "postedTime": "2 horas atrás",
+        "title": "Ajudar em mudança",
+        "amount": "R$240/dia",
+        "description": "Preciso de ajuda para carregar móveis no Campo Limpo. Quarta, 8h às 16h. Almoço incluso."
       },
-      "storeAttendant": {
-        "title": "Atendente de loja",
-        "amount": "2300",
-        "description": "Loja em Itaquera. Terça a sábado, 10h às 18h. 1h de almoço. Carteira assinada",
-        "interest": "Moro em Itaquera"
+      "job2": {
+        "postedTime": "5 horas atrás",
+        "title": "Garçom pra evento",
+        "amount": "R$220",
+        "description": "Preciso de garçom para aniversário em Itaquera. Domingo, 18h às 23h. Jantar incluso"
       },
-      "kitchenHelper": {
-        "title": "Auxiliar de cozinha",
-        "amount": "190",
-        "description": "Buffet na Vila Mariana. Domingo, 10h às 18h, com 1h de almoço. Refeição inclusa",
-        "interest": "Já trabalhei em buffet"
+      "job3": {
+        "postedTime": "1 dia atrás",
+        "title": "Limpeza de balada",
+        "amount": "R$350",
+        "description": "Preciso de alguém pra limpeza de uma balada que vai acontecer das 22 até as 05 da manhã no sábado"
       },
-      "waiter": {
-        "title": "Garçom para casamento",
-        "amount": "240",
-        "description": "Casamento em Santana. Sábado, 16h às 23h, com 1h de intervalo. Transporte pago",
-        "interest": "Tenho experiência"
-      },
-      "postConstructionCleaner": {
-        "title": "Limpeza pós-obra",
-        "amount": "350",
-        "description": "Apê de 30 m² na Bela Vista, sem entulho. Quinta, 9h às 15h. Material e luvas no local",
-        "interest": "Já fiz pós-obra"
-      },
-      "dogWalker": {
-        "title": "Passear com 2 cachorros",
-        "amount": "80",
-        "description": "Dois cachorros de porte médio no Ipiranga. Terça a quinta, 8h às 9h",
-        "interest": "Já cuidei de cachorro"
-      },
-      "furnitureAssembler": {
-        "title": "Montar guarda-roupa",
-        "amount": "300",
-        "description": "Guarda-roupa de 6 portas e cômoda em Pirituba. Sábado, 9h às 14h. Levar ferramentas",
-        "interest": "Tenho as ferramentas"
-      },
-      "constructionHelper": {
+      "job4": {
+        "postedTime": "3 horas atrás",
         "title": "Ajudante de obra",
-        "amount": "200",
-        "description": "Campo Limpo. Sexta, 7h às 16h. Preparar massa. 1h de almoço. Capacete e luvas no local",
-        "interest": "Já trabalhei em obra"
+        "amount": "R$200/dia",
+        "description": "Preciso de ajuda para preparar massa numa obra. Sexta, 7h às 16h. 1h de almoço pago"
       },
-      "eventPhotographer": {
-        "title": "Fotógrafo para festa",
-        "amount": "650",
-        "description": "Festa infantil em São Mateus. Sábado, 14h às 18h. Levar câmera. 80 fotos editadas",
-        "interest": "Tenho câmera própria"
+      "job5": {
+        "postedTime": "1 dia atrás",
+        "title": "Lavar carro",
+        "amount": "R$50",
+        "description": "Preciso de alguém pra lavar meu carro na segunda, já tenho todos os produtos, só chegar e lavar"
       }
-    },
-    "headline": "Você posta.\nQuem se interessar,\nte chama"
+    }
   },
   "whatsappLoginButton": {
     "label": "Entrar com WhatsApp",

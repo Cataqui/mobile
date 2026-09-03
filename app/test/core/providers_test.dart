@@ -1,18 +1,26 @@
+import 'dart:async';
+
 import 'package:cataqui_app/app.dart';
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
+import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/network/geosearch/geosearch_access_token_interceptor.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
+import 'package:cataqui_app/views/feed/feed_view.dart';
+import 'package:cataqui_app/views/post/post_route.dart';
+import 'package:cataqui_app/views/post/post_view.dart';
+import 'package:cataqui_app/views/welcome/welcome_route.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
@@ -425,6 +433,8 @@ void main() {
   });
 
   group('goRouterProvider', () {
+    const routerMediaQueryData = MediaQueryData(size: Size(390, 844), disableAnimations: true);
+
     late MockSharedPreferencesAsync prefs;
     late MockFlutterSecureStorage secureStorage;
     late MockFeedRepository feedRepository;
@@ -439,12 +449,13 @@ void main() {
       when(() => feedRepository.getFeedJobs()).thenThrow(StateError('feed loading is not part of this test'));
     });
 
-    Future<ProviderContainer> buildContainer() async {
+    Future<ProviderContainer> buildContainer({List<Override> providerOverrides = const []}) async {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesAsyncProvider.overrideWithValue(prefs),
           secureStorageProvider.overrideWithValue(secureStorage),
           feedRepositoryProvider.overrideWithValue(feedRepository),
+          ...providerOverrides,
         ],
       );
       addTearDown(container.dispose);
@@ -452,13 +463,40 @@ void main() {
       return container;
     }
 
-    test('when onboarding is incomplete, it should open onboarding first', () async {
+    Future<(ProviderContainer, GoRouter)> pumpCompletedOnboardingRouter(
+      WidgetTester tester, {
+      List<Override> providerOverrides = const [],
+    }) async {
+      when(() => prefs.setBool('completed_onboarding', true)).thenAnswer((_) async {});
+      final providerContainer = await buildContainer(providerOverrides: providerOverrides);
+      await providerContainer.read(appStorageStateProvider.notifier).completeOnboarding();
+      final goRouter = providerContainer.read(goRouterProvider);
+      addTearDown(goRouter.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: providerContainer,
+          child: TestApp.router(routerConfig: goRouter, mediaQueryData: routerMediaQueryData),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      return (providerContainer, goRouter);
+    }
+
+    AuthSessionDto authenticatedSession() {
+      return AuthSessionDto.fixture().copyWith(
+        accessTokenExpiresAt: DateTime.utc(2100),
+        refreshTokenExpiresAt: DateTime.utc(2100),
+      );
+    }
+
+    test('when onboarding is incomplete, it should open welcome first', () async {
       final providerContainer = await buildContainer();
 
       final goRouter = providerContainer.read(goRouterProvider);
       addTearDown(goRouter.dispose);
 
-      expect(goRouter.routeInformationProvider.value.uri.path, const OnboardingRoute().location);
+      expect(goRouter.routeInformationProvider.value.uri.path, const WelcomeRoute().location);
     });
 
     test('when onboarding is complete, it should open the feed first', () async {
@@ -471,7 +509,24 @@ void main() {
       expect(goRouter.routeInformationProvider.value.uri.path, const FeedRoute().location);
     });
 
-    test('when building app routes, it should keep post without legacy create-job routes', () async {
+    test('when building app routes, it should register welcome without legacy onboarding routes', () async {
+      final providerContainer = await buildContainer();
+
+      final goRouter = providerContainer.read(goRouterProvider);
+      addTearDown(goRouter.dispose);
+      final routePaths = goRouter.configuration.routes.whereType<GoRoute>().map((route) => route.path).toSet();
+
+      expect(
+        (
+          hasWelcome: routePaths.contains(const WelcomeRoute().location),
+          hasOnboarding: routePaths.contains('/onboarding'),
+          hasPosterOnboarding: routePaths.contains('/poster-onboarding'),
+        ),
+        (hasWelcome: true, hasOnboarding: false, hasPosterOnboarding: false),
+      );
+    });
+
+    test('when building app routes, it should register post without legacy create-job routes', () async {
       final providerContainer = await buildContainer();
 
       final goRouter = providerContainer.read(goRouterProvider);
@@ -489,7 +544,7 @@ void main() {
       );
     });
 
-    testWidgets('when onboarding is complete, navigating to onboarding should redirect to the feed', (tester) async {
+    testWidgets('when onboarding is complete, navigating to welcome should redirect to the feed', (tester) async {
       when(() => prefs.getBool('completed_onboarding')).thenAnswer((_) async => true);
       final providerContainer = await buildContainer();
       final goRouter = providerContainer.read(goRouterProvider);
@@ -502,10 +557,165 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      goRouter.go(const OnboardingRoute().location);
+      goRouter.go(const WelcomeRoute().location);
       await tester.pumpAndSettle();
 
       expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
+    });
+
+    testWidgets('when unauthenticated, navigating to protected app route should present login', (tester) async {
+      final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
+
+      unawaited(
+        providerContainer
+            .read(appRouterProvider.notifier)
+            .push(tester.element(find.byType(FeedView)), const PostRoute()),
+      );
+      await tester.pumpAndSettle();
+      final loginSheetCount = find.byType(LoginSheet).evaluate().length;
+      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      await tester.pumpAndSettle();
+
+      expect(loginSheetCount, 1);
+    });
+
+    testWidgets('when the session is expired, navigating to protected app route should present login', (tester) async {
+      final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
+      await providerContainer
+          .read(appAuthStateProvider.notifier)
+          .setSession(
+            authenticatedSession().copyWith(
+              accessTokenExpiresAt: DateTime.utc(2000),
+              refreshTokenExpiresAt: DateTime.utc(2000),
+            ),
+          );
+
+      unawaited(
+        providerContainer
+            .read(appRouterProvider.notifier)
+            .push(tester.element(find.byType(FeedView)), const PostRoute()),
+      );
+      await tester.pumpAndSettle();
+      final loginSheetCount = find.byType(LoginSheet).evaluate().length;
+      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      await tester.pumpAndSettle();
+
+      expect(loginSheetCount, 1);
+    });
+
+    testWidgets('when login is dismissed, navigating to protected app route should keep the feed open', (tester) async {
+      final (providerContainer, goRouter) = await pumpCompletedOnboardingRouter(tester);
+
+      unawaited(
+        providerContainer
+            .read(appRouterProvider.notifier)
+            .push(tester.element(find.byType(FeedView)), const PostRoute()),
+      );
+      await tester.pumpAndSettle();
+      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      await tester.pumpAndSettle();
+
+      expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
+    });
+
+    testWidgets('when authenticated, going to protected app route should open the post flow', (tester) async {
+      final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
+      await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
+
+      await providerContainer
+          .read(appRouterProvider.notifier)
+          .go(tester.element(find.byType(FeedView)), const PostRoute());
+      await tester.pumpAndSettle();
+
+      expect(
+        (postCount: find.byType(PostView).evaluate().length, loginCount: find.byType(LoginSheet).evaluate().length),
+        (postCount: 1, loginCount: 0),
+      );
+    });
+
+    testWidgets('when login succeeds, navigating to protected app route should resume the post flow', (tester) async {
+      final loginSheetController = MockLoginSheetController();
+      late ProviderContainer providerContainer;
+      when(loginSheetController.show).thenAnswer((_) async {
+        await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
+        return true;
+      });
+      (providerContainer, _) = await pumpCompletedOnboardingRouter(
+        tester,
+        providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+      );
+
+      unawaited(
+        providerContainer
+            .read(appRouterProvider.notifier)
+            .push(tester.element(find.byType(FeedView)), const PostRoute()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PostView), findsOneWidget);
+    });
+
+    testWidgets('when authentication fails, navigating to protected app route should show the login error', (
+      tester,
+    ) async {
+      final loginSheetController = MockLoginSheetController();
+      when(loginSheetController.show).thenThrow(StateError('login unavailable'));
+      final (providerContainer, goRouter) = await pumpCompletedOnboardingRouter(
+        tester,
+        providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+      );
+
+      unawaited(
+        providerContainer
+            .read(appRouterProvider.notifier)
+            .push(tester.element(find.byType(FeedView)), const PostRoute()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        (
+          path: goRouter.routerDelegate.currentConfiguration.uri.path,
+          errorCount: find
+              .text(providerContainer.read(translationProvider).whatsappLoginButton.error)
+              .evaluate()
+              .length,
+        ),
+        (path: const FeedRoute().location, errorCount: 1),
+      );
+    });
+
+    testWidgets('when unauthenticated navigation is requested twice, it should open only one post route', (
+      tester,
+    ) async {
+      final loginSheetController = MockLoginSheetController();
+      final loginCompleter = Completer<bool>();
+      var loginRequestCount = 0;
+      late ProviderContainer providerContainer;
+      when(loginSheetController.show).thenAnswer((_) async {
+        loginRequestCount += 1;
+        final didLogin = await loginCompleter.future;
+        if (!didLogin) return false;
+
+        await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
+        return true;
+      });
+      (providerContainer, _) = await pumpCompletedOnboardingRouter(
+        tester,
+        providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+      );
+
+      final appRouter = providerContainer.read(appRouterProvider.notifier);
+      final context = tester.element(find.byType(FeedView));
+      unawaited(appRouter.push(context, const PostRoute()));
+      unawaited(appRouter.push(context, const PostRoute()));
+      await tester.pump();
+      loginCompleter.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(
+        (loginRequestCount: loginRequestCount, postCount: find.byType(PostView).evaluate().length),
+        (loginRequestCount: 1, postCount: 1),
+      );
     });
 
     testWidgets('when login is requested globally, it should present the sheet through the root navigator', (
@@ -544,32 +754,28 @@ void main() {
       expect(providerContainer.read(goRouterProvider), same(initialRouter));
     });
 
-    testWidgets(
-      'when onboarding completes after router creation, navigating to onboarding should redirect to the feed',
-      (tester) async {
-        when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
-        final providerContainer = await buildContainer();
-        final goRouter = providerContainer.read(goRouterProvider);
-        addTearDown(goRouter.dispose);
-        await tester.pumpWidget(
-          UncontrolledProviderScope(
-            container: providerContainer,
-            child: TestApp.router(
-              routerConfig: goRouter,
-              mediaQueryData: const MediaQueryData(disableAnimations: true),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await providerContainer.read(appStorageStateProvider.notifier).completeOnboarding();
-        goRouter.go(const FeedRoute().location);
-        await tester.pumpAndSettle();
+    testWidgets('when onboarding completes after router creation, navigating to welcome should redirect to the feed', (
+      tester,
+    ) async {
+      when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+      final providerContainer = await buildContainer();
+      final goRouter = providerContainer.read(goRouterProvider);
+      addTearDown(goRouter.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: providerContainer,
+          child: TestApp.router(routerConfig: goRouter, mediaQueryData: const MediaQueryData(disableAnimations: true)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await providerContainer.read(appStorageStateProvider.notifier).completeOnboarding();
+      goRouter.go(const FeedRoute().location);
+      await tester.pumpAndSettle();
 
-        goRouter.go(const OnboardingRoute().location);
-        await tester.pumpAndSettle();
+      goRouter.go(const WelcomeRoute().location);
+      await tester.pumpAndSettle();
 
-        expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
-      },
-    );
+      expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
+    });
   });
 }

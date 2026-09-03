@@ -39,7 +39,7 @@ void main() {
       );
       final button = tester.widget<MateoButton>(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
 
-      expect(button.label, i18n.whatsappLoginButton.label);
+      expect(button.presentation.label, i18n.whatsappLoginButton.label);
     });
 
     testWidgets('when WhatsApp opens and the person has not returned, it should keep the button loading', (

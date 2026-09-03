@@ -45,12 +45,14 @@ class OfflineErrorState extends StatelessWidget {
           if (retry != null) ...[
             const SizedBox(height: 20),
             MateoButton(
-              variant: MateoButtonVariant.secondary,
-              fit: MateoButtonFit.fit,
-              label: retry!.label,
-              leadingIconBuilder: (state) =>
-                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
-              leadingIconSpacing: 10,
+              presentation: MateoButtonPresentation(
+                variant: MateoButtonVariant.secondary,
+                fit: MateoButtonFit.fit,
+                label: retry!.label,
+                leadingIconBuilder: (state) =>
+                    MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
+                leadingIconSpacing: 10,
+              ),
               onPressed: retry!.onRetry,
             ),
           ],

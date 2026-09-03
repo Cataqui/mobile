@@ -1,9 +1,9 @@
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/post/enums/post_morph_tag.dart';
 import 'package:cataqui_app/views/post/post_details_input/post_details_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
@@ -30,7 +30,16 @@ class PostView extends ConsumerWidget {
           child: MateoFloatingActionButton(
             key: const ValueKey('post_close_button'),
             semanticLabel: i18n.post.closeButtonSemanticLabel,
-            onPressed: context.pop,
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+
+              if (navigator.canPop()) {
+                navigator.pop();
+                return;
+              }
+
+              await ref.read(appRouterProvider.notifier).go(context, const FeedRoute());
+            },
             iconSize: 16,
             size: 50,
             iconBuilder: (state) {
@@ -39,14 +48,16 @@ class PostView extends ConsumerWidget {
           ),
         ),
         trailing: MateoButton(
+          presentation: MateoButtonPresentation(
+            label: i18n.post.publishButtonTitle,
+            variant: MateoButtonVariant.primary,
+            fit: MateoButtonFit.fit,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            trailingIconBuilder: (state) {
+              return MateoIcon.paperPlaneUpRight(width: 14, height: 14, color: state.foregroundColor);
+            },
+          ),
           key: const ValueKey('post_publish_button'),
-          label: i18n.post.publishButtonTitle,
-          variant: MateoButtonVariant.primary,
-          fit: MateoButtonFit.fit,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          trailingIconBuilder: (state) {
-            return MateoIcon.paperPlaneUpRight(width: 14, height: 14, color: state.foregroundColor);
-          },
         ),
       ),
       body: const PostDetailsInput(),

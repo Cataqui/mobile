@@ -215,7 +215,7 @@ class JobViewGoldenTestHelpers {
   }
 
   static Widget routedScenario({String? fontFamily}) {
-    final goRouter = GoRouter(initialLocation: '/', routes: [$feedRoute, $jobRoute]);
+    final goRouter = GoRouter(initialLocation: const FeedRoute().location, routes: [$feedRoute, $jobRoute]);
     final goldenFeedJob = feedJob();
     final jobRepository = MockJobRepository();
 

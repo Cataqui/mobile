@@ -14,9 +14,8 @@ import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
-import 'package:cataqui_app/views/onboarding/onboarding_route.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
-import 'package:cataqui_app/views/poster_onboarding/poster_onboarding_route.dart';
+import 'package:cataqui_app/views/welcome/welcome_route.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
@@ -29,6 +28,8 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+export 'package:cataqui_app/core/app_router/app_router.dart';
 
 part 'providers.g.dart';
 
@@ -193,20 +194,21 @@ FeedRepository feedRepository(Ref ref) {
 @Riverpod(keepAlive: true)
 GoRouter goRouter(Ref ref) {
   final appStorage = ref.read(appStorageStateProvider).requireValue;
+  final rootNavigatorKey = ref.watch(rootNavigatorKeyProvider);
 
   return GoRouter(
-    navigatorKey: ref.watch(rootNavigatorKeyProvider),
+    navigatorKey: rootNavigatorKey,
     observers: [ref.watch(routeObserverProvider)],
-    initialLocation: appStorage.hasCompletedOnboarding ? const FeedRoute().location : const OnboardingRoute().location,
+    initialLocation: appStorage.hasCompletedOnboarding ? const FeedRoute().location : const WelcomeRoute().location,
     redirect: (context, state) {
-      if (state.matchedLocation != const OnboardingRoute().location) return null;
+      if (state.matchedLocation != const WelcomeRoute().location) return null;
 
       final hasCompletedOnboarding = ref.read(appStorageStateProvider).requireValue.hasCompletedOnboarding;
       if (!hasCompletedOnboarding) return null;
 
       return const FeedRoute().location;
     },
-    routes: [$onboardingRoute, $posterOnboardingRoute, $feedRoute, $postRoute, $jobRoute],
+    routes: [$welcomeRoute, $feedRoute, $postRoute, $jobRoute],
   );
 }
 

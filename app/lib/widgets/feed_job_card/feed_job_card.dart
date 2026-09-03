@@ -27,7 +27,7 @@ class FeedJobCard extends ConsumerWidget {
       fireHapticFeedback: true,
       onPressed: (animation) async {
         if (skeleton) return;
-        unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(context));
+        unawaited(ref.read(appRouterProvider.notifier).push(context, JobRoute(jobId: feedJob.jobId, $extra: feedJob)));
       },
       child: JobSurface(
         jobId: feedJob.jobId,

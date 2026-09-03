@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
@@ -191,7 +192,7 @@ class FeedViewTestHelpers {
     final rootNavigatorKey = GlobalKey<NavigatorState>();
     final goRouter = GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: '/',
+      initialLocation: const FeedRoute().location,
       routes: [$feedRoute, $postRoute, $jobRoute],
     );
     addTearDown(goRouter.dispose);
@@ -212,7 +213,16 @@ class FeedViewTestHelpers {
     );
     await tester.pumpAndSettle();
 
-    return ProviderScope.containerOf(tester.element(find.byType(FeedView)), listen: false);
+    final providerContainer = ProviderScope.containerOf(tester.element(find.byType(FeedView)), listen: false);
+    await providerContainer
+        .read(appAuthStateProvider.notifier)
+        .setSession(
+          AuthSessionDto.fixture().copyWith(
+            accessTokenExpiresAt: DateTime.utc(2100),
+            refreshTokenExpiresAt: DateTime.utc(2100),
+          ),
+        );
+    return providerContainer;
   }
 
   static Widget buildFeedViewApp({
@@ -233,13 +243,6 @@ class FeedViewTestHelpers {
   }
 
   static FeedData feedDataEmpty() => const FeedData(jobs: [], hasMore: false);
-
-  static AuthSessionDto authenticatedSession() {
-    return AuthSessionDto.fixture().copyWith(
-      accessTokenExpiresAt: DateTime.utc(2100),
-      refreshTokenExpiresAt: DateTime.utc(2100),
-    );
-  }
 
   static FeedData feedDataWithJobs({int count = 1, bool hasMore = true}) {
     return FeedData(
