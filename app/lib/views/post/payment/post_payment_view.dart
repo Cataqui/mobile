@@ -39,7 +39,11 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
   late final MateoTextController _paymentTextController;
   late final MateoToggleController _negotiableToggleController;
 
-  void _close() => Navigator.of(context).pop();
+  void _close() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pop();
+    });
+  }
 
   void _setNegotiable(bool isNegotiable) {
     if (!isNegotiable) {
@@ -65,9 +69,7 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
 
   void _confirmPayment() {
     ref.read(postStateProvider.notifier).setPayment(_paymentTextController.text);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _close();
-    });
+    if (mounted) _close();
   }
 
   @override
