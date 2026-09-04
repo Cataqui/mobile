@@ -1,0 +1,17 @@
+import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
+import 'package:dio/dio.dart';
+
+class UserRepository {
+  const UserRepository({required this.authenticatedDio});
+
+  final Dio authenticatedDio;
+
+  Future<ApiEnvelopeDto<List<SavedContactDto>>> getContacts() async {
+    final response = await authenticatedDio.get<Map<String, Object?>>('/users/me/contacts');
+
+    return ApiEnvelopeDto<List<SavedContactDto>>.fromJson(response.data!, (json) {
+      return (json! as List<Object?>).map((item) => SavedContactDto.fromJson(item! as Map<String, Object?>)).toList();
+    });
+  }
+}

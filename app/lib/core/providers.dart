@@ -11,6 +11,7 @@ import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.da
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
+import 'package:cataqui_app/core/repositories/user_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
@@ -225,6 +226,11 @@ GlobalKey<NavigatorState> rootNavigatorKey(Ref ref) {
 @Riverpod(keepAlive: true)
 JobRepository jobRepository(Ref ref) {
   return JobRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
+}
+
+@Riverpod(keepAlive: true)
+UserRepository userRepository(Ref ref) {
+  return UserRepository(authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)

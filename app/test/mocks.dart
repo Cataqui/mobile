@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.da
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
+import 'package:cataqui_app/core/repositories/user_repository.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -22,6 +23,8 @@ class MockFeedRepository extends Mock implements FeedRepository {}
 class MockGeosearchRepository extends Mock implements GeosearchRepository {}
 
 class MockJobRepository extends Mock implements JobRepository {}
+
+class MockUserRepository extends Mock implements UserRepository {}
 
 class MockLoginSheetController extends Mock implements LoginSheetController {}
 
