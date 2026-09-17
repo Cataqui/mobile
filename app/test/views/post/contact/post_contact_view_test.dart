@@ -59,6 +59,47 @@ void main() {
     );
   });
 
+  for (final (contactCount, screenHeight) in [(1, 844.0), (2, 844.0), (20, 844.0), (20, 700.0)]) {
+    testWidgets(
+      'when $contactCount contacts are saved on a $screenHeight tall screen, it should stay at half the screen height',
+      (tester) async {
+        PostContactTestHelpers.stubContacts(
+          userRepository,
+          contacts: List.generate(
+            contactCount,
+            (index) => PostContactTestHelpers.phoneContact.copyWith(contactId: 'contact_$index'),
+          ),
+        );
+        await PostContactTestHelpers.open(tester, userRepository: userRepository, screenSize: Size(390, screenHeight));
+        final surface = find.byKey(const ValueKey('post_contact_sheet_surface'));
+        final list = find.byKey(const ValueKey('post_contact_options'));
+        final scrollController = tester.widget<ListView>(list).controller!;
+
+        if (contactCount < 3) {
+          expect(tester.getSize(surface).height, screenHeight / 2);
+          expect(scrollController.position.maxScrollExtent, 0);
+          return;
+        }
+
+        expect(tester.getSize(surface).height, screenHeight / 2);
+        final add = find.byKey(const ValueKey('post_contact_add_button'));
+        final buttonPosition = tester.getTopLeft(add);
+        await tester.drag(list, const Offset(0, -250));
+        await tester.pumpAndSettle();
+        expect(scrollController.offset, greaterThan(0));
+        expect(tester.getTopLeft(add), buttonPosition);
+        await tester.scrollUntilVisible(
+          find.byKey(const ValueKey('post_contact_option_contact_19')),
+          200,
+          scrollable: find.descendant(of: list, matching: find.byType(Scrollable)),
+        );
+        await tester.tap(find.byKey(const ValueKey('post_contact_option_contact_19')));
+        await tester.pumpAndSettle();
+        expect(find.byType(PostContactView), findsNothing);
+      },
+    );
+  }
+
   testWidgets('when contacts are loading, it should show skeleton rows and localized semantics', (tester) async {
     when(userRepository.getContacts).thenAnswer((_) => Completer<ApiEnvelopeDto<List<SavedContactDto>>>().future);
 
@@ -72,6 +113,25 @@ void main() {
       ),
       (semantics: i18n.post.contact.loadingSemanticLabel, rows: 1),
     );
+  });
+
+  testWidgets('when loading finishes with one contact, it should keep the sheet and add button in place', (
+    tester,
+  ) async {
+    final contactsCompleter = Completer<ApiEnvelopeDto<List<SavedContactDto>>>();
+    when(userRepository.getContacts).thenAnswer((_) => contactsCompleter.future);
+    await PostContactTestHelpers.open(tester, userRepository: userRepository, settle: false);
+    final surface = find.byKey(const ValueKey('post_contact_sheet_surface'));
+    final add = find.byKey(const ValueKey('post_contact_add_button'));
+    final loadingSize = tester.getSize(surface);
+    final loadingButtonPosition = tester.getTopLeft(add);
+    expect(loadingSize.height, 422);
+
+    contactsCompleter.complete(ApiEnvelopeDto.fixture(data: [PostContactTestHelpers.phoneContact]));
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(surface), loadingSize);
+    expect(tester.getTopLeft(add), loadingButtonPosition);
   });
 
   testWidgets('when contacts finish loading, it should crossfade skeleton into formatted API-order rows', (
@@ -139,6 +199,7 @@ void main() {
     PostContactTestHelpers.stubContacts(userRepository, contacts: const []);
 
     await PostContactTestHelpers.open(tester, userRepository: userRepository);
+    expect(tester.getSize(find.byKey(const ValueKey('post_contact_sheet_surface'))).height, 422);
     final empty = find.text(i18n.post.contact.empty);
     final add = find.byKey(const ValueKey('post_contact_add_button'));
 
@@ -154,6 +215,7 @@ void main() {
     await PostContactTestHelpers.open(tester, userRepository: userRepository);
 
     expect(find.text(i18n.post.contact.error), findsOneWidget);
+    expect(tester.getSize(find.byKey(const ValueKey('post_contact_sheet_surface'))).height, 422);
   });
 
   testWidgets('when Novo contato is tapped, it should leave the sheet and post state unchanged', (tester) async {

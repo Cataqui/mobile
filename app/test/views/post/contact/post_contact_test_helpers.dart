@@ -30,6 +30,7 @@ abstract final class PostContactTestHelpers {
     WidgetTester tester, {
     required MockUserRepository userRepository,
     PostData initialPostData = const PostData(),
+    Size screenSize = const Size(390, 844),
     bool disableAnimations = true,
     bool settle = true,
   }) async {
@@ -38,6 +39,7 @@ abstract final class PostContactTestHelpers {
       userRepository: userRepository,
       initialPostData: initialPostData,
       disableAnimations: disableAnimations,
+      screenSize: screenSize,
     );
     await tester.tap(find.byKey(const ValueKey('post_contact_chip')));
     await tester.pump();
@@ -48,11 +50,12 @@ abstract final class PostContactTestHelpers {
     WidgetTester tester, {
     required MockUserRepository userRepository,
     PostData initialPostData = const PostData(),
+    Size screenSize = const Size(390, 844),
     bool disableAnimations = true,
   }) async {
     tester.view
       ..devicePixelRatio = 1
-      ..physicalSize = const Size(390, 844)
+      ..physicalSize = screenSize
       ..padding = const FakeViewPadding(top: 47, bottom: 34)
       ..viewPadding = const FakeViewPadding(top: 47, bottom: 34);
     addTearDown(tester.view.reset);
@@ -60,7 +63,7 @@ abstract final class PostContactTestHelpers {
     await tester.pumpWidget(
       TestApp.screen(
         mediaQueryData: MediaQueryData(
-          size: const Size(390, 844),
+          size: screenSize,
           devicePixelRatio: 1,
           padding: const EdgeInsets.only(top: 47, bottom: 34),
           viewPadding: const EdgeInsets.only(top: 47, bottom: 34),

@@ -16,6 +16,7 @@ class PostContactView extends ConsumerStatefulWidget {
 
     return showMateoSheet<void>(
       context: context,
+      maxExtent: 380,
       view: MateoSheetView(
         header: const MateoSheetViewHeader(presentation: .handle()),
         footer: MateoSheetViewFooter(
@@ -114,7 +115,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
     final i18n = ref.watch(translationProvider);
     final contacts = ref.watch(postContactStateProvider);
 
-    return SizedBox(
+    return SizedBox.expand(
       key: const ValueKey('post_contact_view'),
       child: AnimatedSwitcher(
         duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 600),
@@ -131,6 +132,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
             if (options.isEmpty) {
               return Center(
                 key: const ValueKey('post_contact_empty'),
+                heightFactor: 1,
                 child: Text(
                   i18n.post.contact.empty,
                   textAlign: TextAlign.center,
@@ -152,7 +154,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
               itemBuilder: (context, index) {
                 final option = options[index];
                 return MateoPress(
-                  animation: MateoPressAnimationType.scale,
+                  animation: MateoPressAnimationType.scaleFade,
                   onPressed: (_) => _selectContact(context, option),
                   child: _buildContactRow(
                     context,
@@ -166,6 +168,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
           },
           error: (_, _) => Center(
             key: const ValueKey('post_contact_error'),
+            heightFactor: 1,
             child: Text(
               i18n.post.contact.error,
               textAlign: TextAlign.center,
@@ -185,8 +188,9 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
               radius: const Radius.circular(999),
             ),
             child: Column(
+              mainAxisSize: .min,
               children: [
-                for (var index = 0; index < 3; index++)
+                for (var index = 0; index < 2; index++)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: _buildContactRow(
