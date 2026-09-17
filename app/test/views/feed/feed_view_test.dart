@@ -1,4 +1,5 @@
-import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'dart:async';
+
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -49,7 +50,16 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
 
-        expect(tester.getSize(find.byType(MateoTextButton)).height, greaterThanOrEqualTo(48));
+        expect(
+          tester
+              .getSize(
+                find.byWidgetPredicate(
+                  (widget) => widget is MateoButton && widget.presentation.variant == MateoButtonVariant.tertiary,
+                ),
+              )
+              .height,
+          greaterThanOrEqualTo(48),
+        );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -76,7 +86,7 @@ void main() {
         );
         await tester.tap(find.text(i18n.feed.locationAvailability.cityLabel));
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('mateo_bottom_sheet_close_button')));
+        await tester.tap(find.descendant(of: find.byType(MateoSheetViewHeader), matching: find.byType(MateoButton)));
         await tester.pumpAndSettle();
 
         expect(find.text(i18n.feed.locationAvailability.message), findsNothing);
@@ -100,7 +110,7 @@ void main() {
         );
         final tapTargetFinder = find.descendant(
           of: find.byKey(const ValueKey('feed_job_creation_button')),
-          matching: find.byKey(const Key('mateo_floating_action_button_tap_target')),
+          matching: find.byType(MateoPress),
         );
 
         expect(tester.getSize(tapTargetFinder).height, greaterThanOrEqualTo(48));
@@ -133,9 +143,7 @@ void main() {
 
       testWidgets('when tapped twice, the job creation button should open only one post route', (tester) async {
         await FeedViewTestHelpers.pumpFeedRoute(tester: tester);
-        final jobCreationButton = tester.widget<MateoFloatingActionButton>(
-          find.byKey(const ValueKey('feed_job_creation_button')),
-        );
+        final jobCreationButton = tester.widget<MateoButton>(find.byKey(const ValueKey('feed_job_creation_button')));
         jobCreationButton.onPressed?.call();
         jobCreationButton.onPressed?.call();
         await tester.pumpAndSettle();
@@ -173,9 +181,48 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         final view = find.descendant(of: find.byType(FeedView), matching: find.byType(MateoView));
-        final scaffold = tester.widget<Scaffold>(find.descendant(of: view, matching: find.byType(Scaffold)));
+        final originalRect = tester.getRect(view);
+        addTearDown(tester.view.resetViewInsets);
+        tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+        await tester.pumpAndSettle();
+        expect(tester.getRect(view), originalRect);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
 
-        expect(scaffold.resizeToAvoidBottomInset, isFalse);
+      testWidgets('when post covers an active feed snap, it should return with the feed settled', (tester) async {
+        await FeedViewTestHelpers.pumpFeedRoute(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
+          settle: false,
+        );
+        final controller = tester.widget<SnapList>(find.byType(SnapList)).controller!;
+        bool? completed;
+        unawaited(controller.next().then((value) => completed = value));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 40));
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+        await tester.pumpAndSettle();
+        addTearDown(tester.view.resetViewInsets);
+        tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('post_close_button')));
+        final returningPositions = <double?>[];
+        for (var frame = 0; frame < 25; frame++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          returningPositions.add(controller.position);
+        }
+        await tester.pump();
+
+        expect(
+          (
+            controller.position,
+            controller.index,
+            controller.isMoving,
+            completed,
+            returningPositions.every((position) => position == 1),
+          ),
+          (1, 1, false, true, true),
+        );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
@@ -193,7 +240,7 @@ void main() {
 
         expect(
           (skeleton.style.color, skeleton.style.effect.runtimeType, skeleton.style.radius),
-          (context.mateo.colorScheme.skeleton.bone, SkeletonFadeEffect, const Radius.circular(999)),
+          (MateoTheme.of(context).palette.neutral[4], SkeletonFadeEffect, const Radius.circular(999)),
         );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
@@ -364,7 +411,9 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
 
-        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+        final scrollableState = tester.state<ScrollableState>(
+          find.descendant(of: find.byType(SingleChildScrollView).last, matching: find.byType(Scrollable)),
+        );
 
         expect(scrollableState.position.maxScrollExtent, 0);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
@@ -399,7 +448,9 @@ void main() {
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
 
-        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+        final scrollableState = tester.state<ScrollableState>(
+          find.descendant(of: find.byType(SingleChildScrollView).last, matching: find.byType(Scrollable)),
+        );
 
         expect(scrollableState.position.maxScrollExtent, greaterThan(0));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
@@ -414,14 +465,16 @@ void main() {
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
-        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+        final scrollableState = tester.state<ScrollableState>(
+          find.descendant(of: find.byType(SingleChildScrollView).last, matching: find.byType(Scrollable)),
+        );
 
         scrollableState.position.jumpTo(scrollableState.position.maxScrollExtent);
         await tester.pumpAndSettle();
 
         final viewportBottom = tester.getBottomRight(find.byType(MateoView)).dy;
         final buttonBottom = tester.getBottomRight(find.byKey(const ValueKey('feed_empty_adjust_area_button'))).dy;
-        expect(viewportBottom - buttonBottom, closeTo(MateoSearchBarButton.searchBarHeight, 0.01));
+        expect(viewportBottom - buttonBottom, closeTo(60, 0.01));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -470,19 +523,19 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when feedData is empty, it should not render MateoYSnapList', (tester) async {
+      testWidgets('when feedData is empty, it should not render SnapList', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.byWidgetPredicate((w) => w is MateoYSnapList), findsNothing);
+        expect(find.byWidgetPredicate((w) => w is SnapList), findsNothing);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
 
     group('data — with jobs', () {
-      testWidgets('when feedData has jobs, it should render MateoYSnapList', (tester) async {
+      testWidgets('when feedData has jobs, it should render SnapList', (tester) async {
         final prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         await FeedViewTestHelpers.pumpFeedView(
@@ -491,7 +544,7 @@ void main() {
           prefs: prefs,
         );
         await tester.pump();
-        expect(find.byWidgetPredicate((w) => w is MateoYSnapList), findsOneWidget);
+        expect(find.byWidgetPredicate((w) => w is SnapList), findsOneWidget);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -506,10 +559,12 @@ void main() {
           prefs: prefs,
         );
 
-        final listFinder = find.byType(MateoYSnapList<FeedJobDto>);
-        final cityButtonFinder = find.byType(MateoTextButton);
+        final listFinder = find.byType(SnapList);
+        final cityButtonFinder = find.byWidgetPredicate(
+          (widget) => widget is MateoButton && widget.presentation.variant == MateoButtonVariant.tertiary,
+        );
         final restingTop = tester.getTopLeft(listFinder).dy;
-        expect(restingTop, tester.getBottomLeft(cityButtonFinder).dy + 10);
+        expect(restingTop, tester.getBottomLeft(cityButtonFinder).dy + 30);
 
         final gesture = await tester.startGesture(tester.getCenter(listFinder));
         await gesture.moveBy(const Offset(0, -100));
@@ -534,7 +589,11 @@ void main() {
       });
 
       testWidgets('when the visible job card tap action runs, it should navigate to that job detail', (tester) async {
-        final goRouter = GoRouter(initialLocation: const FeedRoute().location, routes: [$feedRoute, $jobRoute]);
+        final goRouter = GoRouter(
+          observers: [MateoNavigatorObserver()],
+          initialLocation: const FeedRoute().location,
+          routes: [$feedRoute, $jobRoute],
+        );
         final prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         FeedViewTestHelpers.mockHapticFeedback(tester);
@@ -556,7 +615,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 900));
         await tester.pump();
         final feedJobCard = find.byType(FeedJobCard).first;
-        final tapAnimation = tester.widget<MateoTap>(find.descendant(of: feedJobCard, matching: find.byType(MateoTap)));
+        final tapAnimation = tester.widget<MateoPress>(
+          find.descendant(of: feedJobCard, matching: find.byType(MateoPress)),
+        );
         await tapAnimation.onPressed!(Future<void>.value());
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
@@ -577,31 +638,70 @@ void main() {
         );
         await tester.pump();
 
-        final feed = tester.widget<MateoYSnapList<FeedJobDto>>(find.byType(MateoYSnapList<FeedJobDto>));
-        expect(feed.items.keyBuilder?.call(feedData.jobs.first, 0), feedData.jobs.first.jobId);
+        final feed = tester.widget<SnapList>(find.byType(SnapList));
+        expect(feed.itemBuilder!(tester.element(find.byType(SnapList)), 0).key, ValueKey(feedData.jobs.first.jobId));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets(
-        'when loading more jobs fails after the last card, it should center the retry state below the feed header',
-        (tester) async {
-          await FeedViewTestHelpers.pumpFeedView(
-            tester: tester,
-            feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationError),
-          );
+      testWidgets('when loading more jobs fails, it should center the retry state in the reveal below the last card', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(390, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationError),
+        );
 
-          await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
 
-          final contentFinder = find.ancestor(
-            of: find.text(i18n.feed.loadingMore.error.title),
-            matching: find.byType(Column),
-          );
-          final feedFinder = find.byType(MateoYSnapList<FeedJobDto>);
-          final feedRect = tester.getRect(feedFinder);
-          expect(tester.getCenter(contentFinder).dy, closeTo(feedRect.center.dy, 0.01));
-          await FeedViewTestHelpers.pumpAndCleanUp(tester);
-        },
-      );
+        final contentFinder = find.ancestor(
+          of: find.text(i18n.feed.loadingMore.error.title),
+          matching: find.byType(Column),
+        );
+        final feedFinder = find.byType(SnapList);
+        final feedRect = tester.getRect(feedFinder);
+        final lastCardBottom = tester
+            .getBottomLeft(
+              find.byKey(ValueKey(FeedViewTestHelpers.feedDataWithPaginationError().jobs.single.jobId)).last,
+            )
+            .dy;
+        expect(lastCardBottom, greaterThan(feedRect.top));
+        expect(tester.getTopLeft(contentFinder).dy - lastCardBottom, closeTo(80, 0.01));
+        expect(tester.getCenter(contentFinder).dy, closeTo((lastCardBottom + feedRect.bottom) / 2 + 10, 0.01));
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      for (final loading in [false, true]) {
+        testWidgets(
+          'when revealing the ${loading ? 'loading' : 'end'} state, it should center within the reveal below the last card',
+          (tester) async {
+            tester.view.physicalSize = const Size(390, 1000);
+            tester.view.devicePixelRatio = 1;
+            addTearDown(tester.view.resetPhysicalSize);
+            addTearDown(tester.view.resetDevicePixelRatio);
+            final data = loading
+                ? FeedViewTestHelpers.feedDataWithLoadingMore()
+                : FeedViewTestHelpers.feedDataWithPaginationEnd();
+            await FeedViewTestHelpers.pumpFeedView(
+              tester: tester,
+              feedState: FakeFeedState(buildResult: () => data),
+            );
+            await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+            final viewport = tester.getRect(find.byType(SnapList));
+            final lastCardBottom = tester.getBottomLeft(find.byKey(ValueKey(data.jobs.single.jobId)).last).dy;
+            final content = loading
+                ? find.descendant(of: find.byType(SnapList), matching: find.byType(MateoLoadingIndicator)).first
+                : find.ancestor(of: find.text(i18n.feed.empty.title), matching: find.byType(Column));
+            expect(lastCardBottom, greaterThan(viewport.top));
+            expect(tester.getTopLeft(content).dy - lastCardBottom, closeTo(80, 0.01));
+            expect(tester.getCenter(content).dy, closeTo((lastCardBottom + viewport.bottom) / 2 + 10, 0.01));
+            await FeedViewTestHelpers.pumpAndCleanUp(tester);
+          },
+        );
+      }
 
       testWidgets('when dragging down from a compact end state, it should return to the previous job', (tester) async {
         tester.view.physicalSize = const Size(390, 400);
@@ -615,7 +715,7 @@ void main() {
         final settledJobTop = tester.getTopLeft(find.byType(FeedJobCard)).dy;
         await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
 
-        await tester.drag(find.byType(SingleChildScrollView), const Offset(0, 300));
+        await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, 300));
         await tester.pumpAndSettle();
 
         expect(tester.getTopLeft(find.byType(FeedJobCard)).dy, closeTo(settledJobTop, 0.01));
@@ -633,8 +733,8 @@ void main() {
         );
         await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
 
-        final feedRect = tester.getRect(find.byType(MateoYSnapList<FeedJobDto>));
-        final terminalScrollRect = tester.getRect(find.byType(SingleChildScrollView));
+        final feedRect = tester.getRect(find.byType(SnapList));
+        final terminalScrollRect = tester.getRect(find.byType(SingleChildScrollView).last);
 
         expect(feedRect.left, 0);
         expect(feedRect.right, 390);
@@ -657,7 +757,9 @@ void main() {
         await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
         final titleFinder = find.text(i18n.feed.empty.title);
         final titleTop = tester.getTopLeft(titleFinder).dy;
-        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+        final scrollableState = tester.state<ScrollableState>(
+          find.descendant(of: find.byType(SingleChildScrollView).last, matching: find.byType(Scrollable)),
+        );
         final gesture = await tester.startGesture(tester.getCenter(titleFinder));
 
         expect(scrollableState.position.maxScrollExtent, scrollableState.position.minScrollExtent);
@@ -681,7 +783,9 @@ void main() {
           scrollBehavior: const _AlwaysBouncingScrollBehavior(),
         );
         await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
-        final scrollableState = tester.state<ScrollableState>(find.byType(Scrollable));
+        final scrollableState = tester.state<ScrollableState>(
+          find.descendant(of: find.byType(SingleChildScrollView).last, matching: find.byType(Scrollable)),
+        );
 
         expect(scrollableState.position.maxScrollExtent, scrollableState.position.minScrollExtent);
         await tester.drag(find.text(i18n.feed.empty.title), const Offset(0, 300));
@@ -706,7 +810,7 @@ void main() {
         final settledJobTop = tester.getTopLeft(find.byType(FeedJobCard)).dy;
         await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
 
-        await tester.drag(find.byType(SingleChildScrollView), const Offset(0, 300));
+        await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, 300));
         await tester.pumpAndSettle();
 
         expect(tester.getTopLeft(find.byType(FeedJobCard)).dy, closeTo(settledJobTop, 0.01));
@@ -841,6 +945,37 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
+      testWidgets('when the only job is swiped, it should dismiss the hint and remember it after reopening', (
+        tester,
+      ) async {
+        var hasSeenHint = false;
+        when(() => prefs.getBool(any())).thenAnswer(
+          (invocation) async => invocation.positionalArguments.single == 'seen_swipe_feed_hint' && hasSeenHint,
+        );
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 1, hasMore: false)),
+          prefs: prefs,
+        );
+        when(() => prefs.setBool('seen_swipe_feed_hint', true)).thenAnswer((_) async => hasSeenHint = true);
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsOneWidget);
+
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+        expect(hasSeenHint, isTrue);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 1, hasMore: false)),
+          prefs: prefs,
+        );
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
       testWidgets(
         'when the user swipes up past the first job, the overlay should disappear and the seen flag should be persisted',
         (tester) async {
@@ -885,7 +1020,7 @@ void main() {
         // Let the hint appear animation start (post frame callback)
         await tester.pump();
 
-        expect(find.byType(GoogleMap), findsNWidgets(2));
+        expect(find.byType(GoogleMap, skipOffstage: false), findsNWidgets(2));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -911,7 +1046,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 900));
 
         // The current and next maps should now mount.
-        expect(find.byType(GoogleMap), findsNWidgets(2));
+        expect(find.byType(GoogleMap, skipOffstage: false), findsNWidgets(2));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -935,7 +1070,7 @@ void main() {
           await tester.pump();
 
           // Map should mount immediately (gate released by notification)
-          expect(find.byType(GoogleMap), findsAtLeastNWidgets(1));
+          expect(find.byType(GoogleMap, skipOffstage: false), findsAtLeastNWidgets(1));
           await FeedViewTestHelpers.pumpAndCleanUp(tester);
         },
       );

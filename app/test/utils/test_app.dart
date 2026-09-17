@@ -1,7 +1,10 @@
 import 'package:cataqui_app/core/providers.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
@@ -42,7 +45,18 @@ class TestApp extends StatelessWidget {
        navigatorKey = null,
        _wrapInScaffold = false;
 
-  static final _theme = MateoTheme.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
+  static Future<void> pumpGolden(WidgetTester tester, Widget widget) {
+    return withClock(
+      Clock.fixed(DateTime(2025, 6, 15, 20)),
+      () => tester.pumpWidget(MateoTheme(data: _theme, child: widget)),
+    );
+  }
+
+  static Future<void> settleGolden(WidgetTester tester) async {
+    await withClock(Clock.fixed(DateTime(2025, 6, 15, 20)), tester.pumpAndSettle);
+  }
+
+  static final _theme = MateoThemeData.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
   static final _secureStorageOverride = secureStorageProvider.overrideWith((ref) {
     final secureStorage = MockFlutterSecureStorage();
     when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
@@ -78,14 +92,18 @@ class TestApp extends StatelessWidget {
         overrides: _resolvedProviderOverrides(),
         child: MateoApp.router(
           title: 'Test App',
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: _theme,
           routerConfig: routerConfig,
           builder: (context, child) {
-            final mediaQueryContent = _withMediaQuery(child ?? const SizedBox.shrink());
+            final mediaQueryContent = Material(
+              type: MaterialType.transparency,
+              child: _withMediaQuery(context, child ?? const SizedBox.shrink()),
+            );
             final content = targetPlatform == null
                 ? mediaQueryContent
                 : Theme(
-                    data: _theme.lightTheme.copyWith(platform: targetPlatform),
+                    data: Theme.of(context).copyWith(platform: targetPlatform),
                     child: mediaQueryContent,
                   );
             final fontFamily = this.fontFamily;
@@ -109,6 +127,7 @@ class TestApp extends StatelessWidget {
       overrides: _resolvedProviderOverrides(),
       child: MateoApp(
         title: 'Test App',
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         theme: _theme,
         navigatorKey: navigatorKey,
         builder: targetPlatform == null
@@ -117,16 +136,24 @@ class TestApp extends StatelessWidget {
                 data: Theme.of(context).copyWith(platform: targetPlatform),
                 child: child ?? const SizedBox.shrink(),
               ),
-        home: _withMediaQuery(_wrapInScaffold ? Scaffold(body: Center(child: child)) : child),
+        home: Material(
+          type: MaterialType.transparency,
+          child: _withMediaQuery(context, _wrapInScaffold ? Scaffold(body: Center(child: child)) : child),
+        ),
       ),
     );
   }
 
-  Widget _withMediaQuery(Widget child) {
+  Widget _withMediaQuery(BuildContext context, Widget child) {
     final mediaQueryData = this.mediaQueryData;
     if (mediaQueryData == null) return child;
 
-    return MediaQuery(data: mediaQueryData, child: child);
+    return MediaQuery(
+      data: mediaQueryData.size == Size.zero
+          ? mediaQueryData.copyWith(size: MediaQuery.sizeOf(context))
+          : mediaQueryData,
+      child: child,
+    );
   }
 
   List<Override> _resolvedProviderOverrides() {

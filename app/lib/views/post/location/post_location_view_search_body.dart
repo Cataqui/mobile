@@ -27,73 +27,77 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
 
     final addressSearch = ref.watch(postLocationStateProvider.select((locationData) => locationData.addressSearch));
 
-    return Padding(
-      key: const ValueKey('post_location_search_content'),
-      padding: const EdgeInsets.only(top: 20, bottom: 20),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 600),
-        reverseDuration: const Duration(milliseconds: 30),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeOutCubic,
-        layoutBuilder: (currentChild, previousChildren) {
-          if (previousChildren.isNotEmpty) return previousChildren.last;
-          return currentChild ?? const SizedBox.shrink();
-        },
-        transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-        child: addressSearch.when(
-          data: (response) {
-            if (response == null || response.suggestions.isEmpty) {
-              return _buildEmptySearchMessage(context, message: i18n.post.location.search.empty);
-            }
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      reverseDuration: const Duration(milliseconds: 30),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeOutCubic,
+      layoutBuilder: (currentChild, previousChildren) {
+        if (previousChildren.isNotEmpty) return previousChildren.last;
+        return currentChild ?? const SizedBox.shrink();
+      },
+      transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+      child: addressSearch.when(
+        data: (response) {
+          if (response == null || response.suggestions.isEmpty) {
+            return _buildEmptySearchMessage(context, message: i18n.post.location.search.empty);
+          }
 
-            return Column(
-              key: const ValueKey('post_location_search_suggestions'),
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final suggestion in response.suggestions)
-                  MateoTap(
-                    animation: MateoTapAnimationType.scale,
-                    onPressed: (_) async => onAddressSelected(suggestion),
-                    child: _buildSuggestionRow(
-                      context,
-                      key: ValueKey('post_location_suggestion_${suggestion.addressId}'),
-                      iconBackgroundColor: suggestion.category.color(palette: context.mateo.palette),
-                      icon: suggestion.category.icon(size: 20, color: context.mateo.palette.neutral[1]),
-                      primaryText: suggestion.primaryText,
-                      secondaryText: suggestion.secondaryText,
-                    ),
-                  ),
-              ],
-            );
-          },
-          error: (error, _) {
-            if (error.isOfflineConnectionDioException) {
-              return _buildOfflineSearchMessage(context, message: i18n.post.location.search.offlineError);
-            }
-
-            return _buildErrorSearchMessage(context, message: i18n.post.location.search.error);
-          },
-          loading: () => Skeleton(
-            key: const ValueKey('post_location_search_skeleton'),
-            semanticsLabel: i18n.post.location.search.loadingSemanticLabel,
-            style: SkeletonStyle(
-              color: context.mateo.colorScheme.skeleton.bone,
-              effect: const SkeletonFadeEffect(),
-              radius: const Radius.circular(999),
-            ),
-            child: Column(
-              children: [
-                for (var index = 0; index < 4; ++index)
-                  _buildSuggestionRow(
+          return Column(
+            key: const ValueKey('post_location_search_suggestions'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final suggestion in response.suggestions)
+                MateoPress(
+                  animation: MateoPressAnimationType.scale,
+                  onPressed: (_) async => onAddressSelected(suggestion),
+                  child: _buildSuggestionRow(
                     context,
-                    key: ValueKey('post_location_search_skeleton_row_$index'),
-                    iconBackgroundColor: context.mateo.palette.neutral[12],
-                    icon: MateoIcon.mapPin(width: 22, height: 22, color: context.mateo.palette.neutral[1]),
-                    primaryText: index.isEven ? 'Avenida Paulista' : 'Parque Ibirapuera',
-                    secondaryText: index.isEven ? 'Bela Vista, São Paulo' : 'Vila Mariana, São Paulo',
+                    key: ValueKey('post_location_suggestion_${suggestion.addressId}'),
+                    icon: suggestion.category.icon(
+                      size: 46,
+                      color: MateoTheme.of(context).palette.neutral[1],
+                      backgroundColor: suggestion.category.color(palette: MateoTheme.of(context).palette),
+                      opticalCenter: false,
+                    ),
+                    primaryText: suggestion.primaryText,
+                    secondaryText: suggestion.secondaryText,
                   ),
-              ],
-            ),
+                ),
+            ],
+          );
+        },
+        error: (error, _) {
+          if (error.isOfflineConnectionDioException) {
+            return _buildOfflineSearchMessage(context, message: i18n.post.location.search.offlineError);
+          }
+
+          return _buildErrorSearchMessage(context, message: i18n.post.location.search.error);
+        },
+        loading: () => Skeleton(
+          key: const ValueKey('post_location_search_skeleton'),
+          semanticsLabel: i18n.post.location.search.loadingSemanticLabel,
+          style: SkeletonStyle(
+            color: MateoTheme.of(context).palette.neutral[4],
+            effect: const SkeletonFadeEffect(),
+            radius: const Radius.circular(999),
+          ),
+          child: Column(
+            children: [
+              for (var index = 0; index < 4; ++index)
+                _buildSuggestionRow(
+                  context,
+                  key: ValueKey('post_location_search_skeleton_row_$index'),
+                  icon: MateoIcon(
+                    .mapPin,
+                    size: 46,
+                    color: MateoTheme.of(context).palette.neutral[1],
+                    backgroundColor: MateoTheme.of(context).palette.neutral[12],
+                  ),
+                  primaryText: index.isEven ? 'Avenida Paulista' : 'Parque Ibirapuera',
+                  secondaryText: index.isEven ? 'Bela Vista, São Paulo' : 'Vila Mariana, São Paulo',
+                ),
+            ],
           ),
         ),
       ),
@@ -103,7 +107,6 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
   Widget _buildSuggestionRow(
     BuildContext context, {
     required Key key,
-    required Color iconBackgroundColor,
     required Widget icon,
     required String primaryText,
     required String? secondaryText,
@@ -113,13 +116,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 11),
       child: Row(
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(color: iconBackgroundColor, shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: icon,
-          ),
+          icon,
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -131,7 +128,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: context.mateo.colorScheme.text.primary,
+                    color: MateoTheme.of(context).colorScheme.text.primary,
                     fontSize: 16.5,
                     fontWeight: FontWeight.w600,
                   ),
@@ -142,7 +139,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: context.mateo.colorScheme.text.tertiary,
+                      color: MateoTheme.of(context).colorScheme.text.tertiary,
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
                     ),
@@ -157,7 +154,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
 
   Widget _buildErrorSearchMessage(BuildContext context, {required String message}) {
     final animationColor = switch (Theme.brightnessOf(context)) {
-      Brightness.light => context.mateo.palette.neutral[7],
+      Brightness.light => MateoTheme.of(context).palette.neutral[7],
       Brightness.dark => throw UnimplementedError('Dark mode not implemented'),
     };
 
@@ -201,12 +198,12 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ExcludeSemantics(
-              child: MateoIcon.magnifyingGlassSadFace(
+              child: MateoIcon(
+                .magnifyingGlassSadFace,
                 key: const ValueKey('post_location_search_empty_icon'),
-                width: 46,
-                height: 46,
+                size: 46,
                 color: switch (Theme.brightnessOf(context)) {
-                  Brightness.light => context.mateo.palette.neutral[7],
+                  Brightness.light => MateoTheme.of(context).palette.neutral[7],
                   Brightness.dark => throw UnsupportedError('PostLocationView does not support dark mode.'),
                 },
               ),
@@ -221,7 +218,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
 
   Widget _buildOfflineSearchMessage(BuildContext context, {required String message}) {
     final animationColor = switch (Theme.brightnessOf(context)) {
-      Brightness.light => context.mateo.palette.neutral[7],
+      Brightness.light => MateoTheme.of(context).palette.neutral[7],
       Brightness.dark => throw UnimplementedError('Dark mode not implemented'),
     };
 
@@ -269,7 +266,11 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
       child: Text(
         message,
         textAlign: TextAlign.center,
-        style: TextStyle(color: context.mateo.colorScheme.text.tertiary, fontSize: 16, fontWeight: FontWeight.w500),
+        style: TextStyle(
+          color: MateoTheme.of(context).colorScheme.text.tertiary,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

@@ -24,9 +24,9 @@ class JobContactState extends _$JobContactState {
   Future<void> _dispatch({required JobContactDto contact}) async {
     switch (contact.contactMethod) {
       case JobContactMethod.whatsapp:
-        await ref.read(whatsappProvider).launchChat(number: contact.identifier);
+        await ref.read(whatsappProvider(identifier: contact.identifier)).chat();
       case JobContactMethod.phoneCall:
-        await ref.read(telephonyProvider).call(number: contact.identifier);
+        await ref.read(phoneNumberProvider(value: contact.identifier)).call();
       case JobContactMethod.unknown:
         break;
     }

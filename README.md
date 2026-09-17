@@ -34,7 +34,7 @@ open the full job, then contact the poster through WhatsApp or a phone call.
 | Tool                                                              | Version used by the project            | Notes                                                                                                                                                                    |
 | ----------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [FVM](https://fvm.app/documentation/getting-started/installation) | latest                                 | Installs and runs the pinned Flutter SDK.                                                                                                                                |
-| Flutter                                                           | `3.44.8`                               | Declared in [`.fvmrc`](.fvmrc); do not use an untracked global SDK.                                                                                                      |
+| Flutter                                                           | `3.48.0-0.5.pre` (beta)                | Declared in [`.fvmrc`](.fvmrc); do not use an untracked global SDK.                                                                                                      |
 | Dart                                                              | Bundled with Flutter                   | Run it through `fvm dart`.                                                                                                                                               |
 | [Melos](https://melos.invertase.dev/getting-started)              | `8.2.2`                                | Orchestrates the Dart workspace from the repository root.                                                                                                                |
 | Android or iOS tooling                                            | Flutter-managed Android SDK or iOS 15+ | Android uses Flutter's configured minimum and compile SDK versions. Follow Flutter's [platform setup](https://docs.flutter.dev/install). iOS development requires macOS. |
@@ -169,7 +169,7 @@ The main technical boundaries are:
 - [go_router](https://pub.dev/packages/go_router) with generated typed routes.
 - Freezed and JSON serialization for API models.
 - [slang](https://pub.dev/packages/slang) in `app/lib/i18n` for app-owned translations.
-- [Mateo Mobile](https://github.com/Ventairy/mateo/tree/main/mobile/packages/mateo_mobile_flutter) for the design system.
+- [Mateo Mobile](https://github.com/Ventairy/mateo/tree/main/packages/flutter/mateo-mobile) for the design system.
 - [Alchemist](https://pub.dev/packages/alchemist) for golden testing
 
 ### Everyday commands

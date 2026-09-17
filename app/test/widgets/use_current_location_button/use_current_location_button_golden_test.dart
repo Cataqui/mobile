@@ -22,6 +22,7 @@ void main() {
       goldenTest(
         'when the current-location button is resting, it should match the approved appearance',
         fileName: 'use_current_location_button_resting',
+        pumpWidget: TestApp.pumpGolden,
         constraints: const BoxConstraints.tightFor(width: 390, height: 120),
         builder: () => _UseCurrentLocationButtonGoldenTestData.buildComponent(
           deviceLocation: _UseCurrentLocationButtonGoldenTestData.deniedDeviceLocation(),
@@ -31,6 +32,7 @@ void main() {
       goldenTest(
         'when the current-location button is pressed, it should match the approved touch feedback',
         fileName: 'use_current_location_button_pressed',
+        pumpWidget: TestApp.pumpGolden,
         constraints: const BoxConstraints.tightFor(width: 390, height: 120),
         whilePerforming: press(find.byType(UseCurrentLocationButton), holdFor: const Duration(milliseconds: 150)),
         builder: () => _UseCurrentLocationButtonGoldenTestData.buildComponent(
@@ -41,6 +43,7 @@ void main() {
       goldenTest(
         'when the current address is loading, it should match the approved appearance',
         fileName: 'use_current_location_button_loading',
+        pumpWidget: TestApp.pumpGolden,
         constraints: const BoxConstraints.tightFor(width: 390, height: 120),
         whilePerforming: (tester) async {
           final container = ProviderScope.containerOf(tester.element(find.byType(UseCurrentLocationButton)));
@@ -61,6 +64,7 @@ void main() {
       goldenTest(
         'when the current address is resolved, it should match the approved appearance',
         fileName: 'use_current_location_button_resolved',
+        pumpWidget: TestApp.pumpGolden,
         constraints: const BoxConstraints.tightFor(width: 390, height: 120),
         builder: () => _UseCurrentLocationButtonGoldenTestData.buildComponent(
           deviceLocation: FakeDeviceLocation(
@@ -73,6 +77,7 @@ void main() {
       goldenTest(
         'when a preferred current address label is unavailable, it should match the approved appearance',
         fileName: 'use_current_location_button_unavailable',
+        pumpWidget: TestApp.pumpGolden,
         constraints: const BoxConstraints.tightFor(width: 390, height: 120),
         builder: () => _UseCurrentLocationButtonGoldenTestData.buildComponent(
           deviceLocation: FakeDeviceLocation(
@@ -88,6 +93,7 @@ void main() {
       goldenTest(
         'when permission is permanently denied, it should match the approved recovery sheet',
         fileName: 'use_current_location_button_permission_sheet',
+        pumpWidget: TestApp.pumpGolden,
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
         whilePerforming: (tester) async {
           await tester.tap(find.byType(UseCurrentLocationButton));

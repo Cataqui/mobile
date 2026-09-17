@@ -275,35 +275,31 @@ void main() {
     });
 
     testWidgets('when the active light theme changes, it should preserve the native map identity', (tester) async {
-      final mateoTheme = MateoTheme.light(
-        accentColor: const Color(0xFFFF4A4B),
-        onAccent: const Color(0xFFFFFFFF),
-      ).lightTheme;
-      final theme = ValueNotifier<ThemeData>(mateoTheme);
+      final mateoTheme = MateoThemeData.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
+      final theme = ValueNotifier<MateoThemeData>(mateoTheme);
       addTearDown(theme.dispose);
       await tester.pumpWidget(
-        ValueListenableBuilder<ThemeData>(
+        ValueListenableBuilder<MateoThemeData>(
           valueListenable: theme,
-          builder: (context, value, child) => MaterialApp(theme: value, home: child),
+          builder: (context, value, child) => MaterialApp(
+            home: MateoTheme(data: value, child: child!),
+          ),
           child: _JobLocationMapTestHelpers.buildBareMap(),
         ),
       );
       await tester.pumpAndSettle();
-      theme.value = mateoTheme.copyWith(scaffoldBackgroundColor: const Color(0xFFF0F0F0));
+      theme.value = mateoTheme.copyWith(accentColor: const Color(0xFFF0F0F0));
       await tester.pumpAndSettle();
 
       expect(renderer.createdIds.toSet(), hasLength(1));
     });
 
     testWidgets('when the active theme is dark, it should reject the unsupported map appearance', (tester) async {
-      final lightTheme = MateoTheme.light(
-        accentColor: const Color(0xFFFF4A4B),
-        onAccent: const Color(0xFFFFFFFF),
-      ).lightTheme;
+      final lightTheme = MateoThemeData.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
       await tester.pumpWidget(
         MaterialApp(
-          theme: lightTheme.copyWith(colorScheme: lightTheme.colorScheme.copyWith(brightness: Brightness.dark)),
-          home: _JobLocationMapTestHelpers.buildBareMap(),
+          theme: ThemeData.dark(),
+          home: MateoTheme(data: lightTheme, child: _JobLocationMapTestHelpers.buildBareMap()),
         ),
       );
 

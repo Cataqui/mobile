@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
+import '../../utils/test_app.dart';
+
 class _AnimatedSplashGoldenHarness extends StatelessWidget {
   const _AnimatedSplashGoldenHarness({this.freezeAnimation = false});
 
@@ -29,7 +31,7 @@ class _AnimatedSplashGoldenHarness extends StatelessWidget {
                 child: Text(
                   'Oportunidades perto de você',
                   style: TextStyle(
-                    color: context.mateo.colorScheme.text.primary,
+                    color: MateoTheme.of(context).colorScheme.text.primary,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
@@ -61,12 +63,14 @@ void main() {
     goldenTest(
       'when the native splash hands off, it should show the centered white logo on the brand background',
       fileName: 'animated_splash_waiting',
+      pumpWidget: TestApp.pumpGolden,
       builder: () => const _AnimatedSplashGoldenHarness(freezeAnimation: true),
     );
 
     goldenTest(
       'when the reveal is waiting to begin, it should keep the native-scale logo on the brand background',
       fileName: 'animated_splash_anticipation',
+      pumpWidget: TestApp.pumpGolden,
       pumpBeforeTest: pumpOnce,
       whilePerforming: (tester) async {
         await _AnimatedSplashGoldenPump.settleStartupFrames(tester);
@@ -79,6 +83,7 @@ void main() {
     goldenTest(
       'when the logo zooms forward, it should show the app only through the expanding centered opening',
       fileName: 'animated_splash_reveal',
+      pumpWidget: TestApp.pumpGolden,
       pumpBeforeTest: pumpOnce,
       whilePerforming: (tester) async {
         await _AnimatedSplashGoldenPump.settleStartupFrames(tester);

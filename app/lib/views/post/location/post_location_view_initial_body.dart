@@ -30,7 +30,7 @@ class _PostLocationViewInitialBody extends ConsumerWidget {
                     duration: const Duration(milliseconds: 5000),
                     overrides: BendingLocationPinOverrides(
                       rigidPinPivotedAtTipColor: switch (Theme.brightnessOf(context)) {
-                        Brightness.light => context.mateo.palette.neutral[4],
+                        Brightness.light => MateoTheme.of(context).palette.neutral[4],
                         Brightness.dark => throw UnsupportedError('LocationChip does not support dark mode.'),
                       },
                     ),
@@ -41,7 +41,7 @@ class _PostLocationViewInitialBody extends ConsumerWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: switch (Theme.brightnessOf(context)) {
-                        Brightness.light => context.mateo.colorScheme.text.tertiary,
+                        Brightness.light => MateoTheme.of(context).colorScheme.text.tertiary,
                         Brightness.dark => throw UnsupportedError('LocationChip does not support dark mode.'),
                       },
                       fontSize: 15,

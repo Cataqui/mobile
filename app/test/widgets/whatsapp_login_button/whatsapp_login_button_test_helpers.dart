@@ -40,7 +40,7 @@ abstract final class WhatsappLoginButtonTestHelpers {
         providerOverrides: [
           translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
           authRepositoryProvider.overrideWithValue(authRepository),
-          whatsappProvider.overrideWithValue(whatsapp),
+          whatsappProvider(identifier: codeReceiver).overrideWithValue(whatsapp),
         ],
         child: SizedBox(width: 342, child: WhatsappLoginButton(onSuccess: onSuccess)),
       ),
@@ -57,7 +57,7 @@ abstract final class WhatsappLoginButtonTestHelpers {
         providerOverrides: [
           translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
           authRepositoryProvider.overrideWithValue(authRepository),
-          whatsappProvider.overrideWithValue(whatsapp),
+          whatsappProvider(identifier: codeReceiver).overrideWithValue(whatsapp),
         ],
         child: const SizedBox(width: 342, child: WhatsappLoginButton(onSuccess: _ignoreSession)),
       ),
@@ -68,7 +68,7 @@ abstract final class WhatsappLoginButtonTestHelpers {
     when(
       () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
     ).thenAnswer((_) async => createdNotpIntentEnvelope);
-    when(() => whatsapp.launchChat(number: codeReceiver, message: message)).thenAnswer((_) async => true);
+    when(() => whatsapp.chat(message: message)).thenAnswer((_) async => true);
   }
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {

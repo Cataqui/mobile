@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:alchemist/alchemist.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -12,13 +13,15 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   (binding as dynamic).defaultTestTimeout = const test_package.Timeout(Duration(seconds: 10));
 
   final isRunningInCi = Platform.environment['CI'] == 'true';
-  final mateoTheme = MateoTheme.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
   await _loadMateoFonts();
 
   return AlchemistConfig.runWithConfig(
     config: AlchemistConfig(
-      theme: mateoTheme.lightTheme,
-      platformGoldensConfig: PlatformGoldensConfig(enabled: !isRunningInCi, theme: mateoTheme.lightTheme),
+      theme: ThemeData(fontFamily: MateoTypography.fontFamily),
+      platformGoldensConfig: PlatformGoldensConfig(
+        enabled: !isRunningInCi,
+        theme: ThemeData(fontFamily: MateoTypography.fontFamily),
+      ),
       ciGoldensConfig: CiGoldensConfig(diffThreshold: isRunningInCi ? 0.03 : 0),
     ),
     run: testMain,

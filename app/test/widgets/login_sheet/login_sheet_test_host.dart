@@ -12,7 +12,7 @@ class LoginSheetTestHost extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MateoButton(
-      presentation: const MateoButtonPresentation(label: 'Open login', variant: MateoButtonVariant.primary),
+      presentation: const MateoButtonPresentation.label(label: 'Open login', variant: MateoButtonVariant.primary),
       key: openButtonKey,
       onPressed: () => onShown(LoginSheet.show(context: context)),
     );

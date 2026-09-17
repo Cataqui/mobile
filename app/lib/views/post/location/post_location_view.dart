@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
+part 'post_location_slide_animation.dart';
 part 'post_location_view_initial_body.dart';
 part 'post_location_view_search_body.dart';
 
@@ -23,22 +24,29 @@ class PostLocationView extends ConsumerStatefulWidget {
 
   static Future<void> push({required BuildContext context}) {
     final animationsDisabled = MediaQuery.disableAnimationsOf(context);
+    _PostLocationSlideAnimation? slideAnimation;
 
-    return Navigator.of(context).push<void>(
-      PageRouteBuilder<void>(
-        opaque: false,
-        barrierDismissible: true,
-        barrierLabel: ProviderScope.containerOf(
-          context,
-          listen: false,
-        ).read(translationProvider).post.location.closeButtonSemanticLabel,
-        barrierColor: Colors.black.withValues(alpha: 0.05),
-        transitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 320),
-        reverseTransitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 270),
-        pageBuilder: (routeContext, _, _) => const PostLocationView(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+    final route = PageRouteBuilder<void>(
+      opaque: false,
+      barrierDismissible: true,
+      barrierLabel: ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).read(translationProvider).post.location.closeButtonSemanticLabel,
+      barrierColor: Colors.transparent,
+      transitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 600),
+      reverseTransitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 260),
+      pageBuilder: (routeContext, _, _) => const PostLocationView(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 1),
+          end: .zero,
+        ).animate(slideAnimation ??= _PostLocationSlideAnimation(parent: animation)),
+        child: child,
       ),
     );
+    unawaited(route.completed.whenComplete(() => slideAnimation?.dispose()));
+    return Navigator.of(context).push<void>(route);
   }
 
   @override
@@ -46,8 +54,7 @@ class PostLocationView extends ConsumerStatefulWidget {
 }
 
 class _PostLocationViewState extends ConsumerState<PostLocationView> {
-  final MateoTextController _searchTextController = MateoTextController();
-  bool _isMorphSettled = false;
+  final TextEditingController _searchTextController = TextEditingController();
 
   bool _hasAddressSearchStarted(PostLocationData locationData) {
     final addressSearch = locationData.addressSearch;
@@ -89,74 +96,33 @@ class _PostLocationViewState extends ConsumerState<PostLocationView> {
     final i18n = ref.watch(translationProvider);
     final locationState = ref.watch(postLocationStateProvider.notifier);
     final hasAddressSearchStarted = ref.watch(postLocationStateProvider.select(_hasAddressSearchStarted));
-    final surfaceColor = context.mateo.colorScheme.background;
-    final surfaceBorderRadius = MediaQuery.disableAnimationsOf(context) || _isMorphSettled
-        ? BorderRadius.zero
-        : BorderRadius.circular(43);
-
-    return MateoScrollableView(
+    return MateoView(
       key: const ValueKey('post_location_view'),
-      keyboardViewportBehavior: MateoViewKeyboardViewportBehavior.resize,
-      edgeFade: (top: MateoEdgeFadeStyle(color: surfaceColor), bottom: null),
-      backgroundBuilder: (context, content) => Morph(
-        tag: PostLocationMorphTag.surface,
-        duration: Duration.zero,
-        curve: Curves.fastLinearToSlowEaseIn,
-        watchDestination: true,
-        switchThreshold: 0.1,
-        onReceived: () {
-          if (_isMorphSettled) return;
-          setState(() => _isMorphSettled = true);
-        },
-        child: Container(
-          key: const ValueKey('post_location_view_surface'),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(color: surfaceColor, borderRadius: surfaceBorderRadius),
-          child: content,
+      header: MateoViewHeader(
+        principal: MateoTextInput(
+          key: const ValueKey('post_location_search_field'),
+          controller: _searchTextController,
+          autofocus: true,
+          placeholder: i18n.post.location.searchPlaceholder,
+          presentation: const .search(variant: .filled, size: .small),
+          onChanged: (query) {
+            unawaited(locationState.searchAddresses(query: query));
+          },
         ),
-      ),
-      header: MorphSibling(
-        tag: PostLocationMorphTag.surface,
-        paintAboveMorph: true,
-        transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: CurvedAnimation(parent: animation, curve: const Interval(0.9, 1)),
-            child: child,
-          );
-        },
-        child: MateoViewHeader(
-          title: MateoTextField(
-            key: const ValueKey('post_location_search_field'),
-            controller: _searchTextController,
-            autofocus: true,
-            placeholder: i18n.post.location.searchPlaceholder,
-            variant: MateoTextFieldVariant.search,
-            textInputAction: TextInputAction.search,
-            unfocusOnTapOutside: false,
-            onChanged: (query) {
-              unawaited(locationState.searchAddresses(query: query));
-            },
-          ),
-          trailing: MateoFloatingActionButton(
-            key: const ValueKey('post_location_close_button'),
-            onPressed: _close,
+        trailing: MateoButton(
+          key: const ValueKey('post_location_close_button'),
+          onPressed: _close,
+          presentation: .icon(
+            variant: .primary.base,
+            elevation: 1,
             semanticLabel: i18n.post.location.closeButtonSemanticLabel,
-            size: 54,
-            iconSize: 17,
-            iconBuilder: (state) {
-              return MateoIcon.cross(width: state.iconSize, height: state.iconSize, color: state.foregroundColor);
-            },
+
+            icon: const MateoIcon(.cross),
           ),
         ),
       ),
-      footer: MorphSibling(
-        tag: PostLocationMorphTag.surface,
-        paintAboveMorph: true,
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: CurvedAnimation(parent: animation, curve: const Interval(0.9, 1)),
-          child: child,
-        ),
-        child: Align(
+      footer: MateoViewFooter(
+        principal: Align(
           key: const ValueKey('post_location_search_footer'),
           alignment: Alignment.centerRight,
           child: Padding(
@@ -166,17 +132,20 @@ class _PostLocationViewState extends ConsumerState<PostLocationView> {
               height: 14,
               color1: switch (Theme.brightnessOf(context)) {
                 Brightness.dark => throw UnimplementedError('Dark mode not implemented yet'),
-                Brightness.light => context.mateo.palette.neutral[8],
+                Brightness.light => MateoTheme.of(context).palette.neutral[8],
               },
             ),
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 22, right: 16),
+      surface: .scrollable(
+        key: const ValueKey('post_location_view_surface'),
+        color: MateoTheme.of(context).colorScheme.background,
+        shape: const .rounded(radius: 0),
+        edgeEffect: .fade(at: [.top]),
+        animation: const MateoSurfaceAnimation.transform(id: PostLocationMorphTag.surface),
         child: Column(
           children: [
-            if (!hasAddressSearchStarted) const SizedBox(height: 20),
             Expanded(
               child: hasAddressSearchStarted
                   ? _PostLocationViewSearchBody(onAddressSelected: _selectSearchedAddress)

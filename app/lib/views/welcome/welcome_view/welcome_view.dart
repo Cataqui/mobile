@@ -17,9 +17,9 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-part 'welcome_job.dart';
 part 'welcome_artwork_background_box_painter.dart';
 part 'welcome_artwork_background_decoration.dart';
+part 'welcome_job.dart';
 part 'welcome_job_card.dart';
 part 'welcome_job_scene.dart';
 part 'welcome_jobs.dart';
@@ -87,41 +87,45 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1,
       child: MateoView(
-        backgroundColor: context.mateo.colorScheme.background,
-        edgeFade: null,
-        footer: ValueListenableBuilder<bool>(
-          valueListenable: _termsVisible,
-          builder: (_, visible, child) => ExcludeSemantics(excluding: !visible, child: child),
-          child: RepaintBoundary(
-            child: Motion.list(
-              key: const ValueKey('welcome_terms_entrance'),
-              effects: [
-                const MoveMotionEffect(
-                  begin: WelcomeView._controlsEntranceOffset,
-                  end: Offset.zero,
-                  delay: WelcomeView._controlsEntranceDelay,
-                  duration: WelcomeView._controlsEntranceDuration,
-                  curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.only(bottom: 20),
+        footer: MateoViewFooter(
+          principal: ValueListenableBuilder<bool>(
+            valueListenable: _termsVisible,
+            builder: (_, visible, child) => ExcludeSemantics(excluding: !visible, child: child),
+            child: RepaintBoundary(
+              child: Motion.list(
+                key: const ValueKey('welcome_terms_entrance'),
+                effects: [
+                  const MoveMotionEffect(
+                    begin: WelcomeView._controlsEntranceOffset,
+                    end: Offset.zero,
+                    delay: WelcomeView._controlsEntranceDelay,
+                    duration: WelcomeView._controlsEntranceDuration,
+                    curve: Curves.easeOutCubic,
+                  ),
+                  FadeInMotionEffect(
+                    delay: WelcomeView._controlsEntranceDelay,
+                    duration: WelcomeView._controlsEntranceDuration,
+                    curve: Curves.easeOutCubic,
+                    onEnd: _showTerms,
+                  ),
+                ],
+                child: RepaintBoundary(
+                  child: _buildTerms(context: context, i18n: i18n),
                 ),
-                FadeInMotionEffect(
-                  delay: WelcomeView._controlsEntranceDelay,
-                  duration: WelcomeView._controlsEntranceDuration,
-                  curve: Curves.easeOutCubic,
-                  onEnd: _showTerms,
-                ),
-              ],
-              child: RepaintBoundary(
-                child: _buildTerms(context: context, i18n: i18n),
               ),
             ),
           ),
         ),
-        body: SafeArea(
-          bottom: false,
-          minimum: const EdgeInsets.only(top: WelcomeView._minimumTopInset),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 32),
-            child: _buildContent(context: context, i18n: i18n),
+        surface: MateoViewSurface(
+          color: MateoTheme.of(context).colorScheme.background,
+          child: SafeArea(
+            bottom: false,
+            minimum: const EdgeInsets.only(top: WelcomeView._minimumTopInset),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: _buildContent(context: context, i18n: i18n),
+            ),
           ),
         ),
       ),
@@ -227,7 +231,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                                           key: const ValueKey('welcome_headline'),
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            color: context.mateo.colorScheme.text.primary,
+                                            color: MateoTheme.of(context).colorScheme.text.primary,
                                             fontSize: 28,
                                             height: 1.12,
                                             fontWeight: FontWeight.w600,
@@ -244,10 +248,10 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                                               const WidgetSpan(child: SizedBox(width: 5)),
                                               WidgetSpan(
                                                 alignment: PlaceholderAlignment.middle,
-                                                child: MateoIcon.buildings(
-                                                  width: 18,
-                                                  height: 18,
-                                                  color: context.mateo.colorScheme.text.tertiary,
+                                                child: MateoIcon(
+                                                  .buildings,
+                                                  size: 18,
+                                                  color: MateoTheme.of(context).colorScheme.text.tertiary,
                                                 ),
                                               ),
                                             ],
@@ -255,7 +259,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                                           key: const ValueKey('welcome_subtitle'),
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            color: context.mateo.colorScheme.text.tertiary,
+                                            color: MateoTheme.of(context).colorScheme.text.tertiary,
                                             fontSize: 17,
                                             height: 1.2,
                                             fontWeight: FontWeight.w500,
@@ -302,57 +306,62 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                   child: RepaintBoundary(
                     child: MateoMenuButton(
                       key: const ValueKey('welcome_start_button'),
-                      menuTone: MateoMenuButtonMenuTone.dark,
-                      buttonPresentation: MateoButtonPresentation(
+                      animation: const .transform(),
+                      buttonPresentation: .label(
                         label: i18n.welcome.startButton,
-                        variant: MateoButtonVariant.primary,
-                        tone: MateoButtonTone.neutral,
-                        fit: MateoButtonFit.expand,
+                        variant: .primary.neutral,
+                        width: .fill,
                       ),
-                      actions: [
-                        MateoMenuButtonAction(
-                          title: i18n.welcome.actions.post.title,
-                          description: i18n.welcome.actions.post.description,
-                          leadingIconBuilder: (state) => CircleAvatar(
-                            radius: 24,
-                            backgroundColor: context.mateo.palette.blue,
-                            child: MateoIcon.boxPencil(height: 22, color: state.iconColor),
+                      menuPresentation: .options(
+                        density: .standard,
+                        items: [
+                          .new(
+                            principal: Text(
+                              i18n.welcome.actions.post.title,
+                              key: const ValueKey('welcome_post_action'),
+                            ),
+                            supporting: Text(i18n.welcome.actions.post.description),
+                            leading: MateoIcon(
+                              .boxPencil,
+                              backgroundColor: MateoTheme.of(context).palette.accent[9],
+                              color: MateoTheme.of(context).palette.white,
+                            ),
                           ),
-                          onPressed: (animation) async {
-                            await animation;
-                            if (context.mounted) {
-                              await ref.read(appRouterProvider.notifier).go(context, const PostRoute());
-                            }
-                          },
-                        ),
-                        MateoMenuButtonAction(
-                          title: i18n.welcome.actions.browse.title,
-                          description: i18n.welcome.actions.browse.description,
-                          leadingIconBuilder: (state) => CircleAvatar(
-                            backgroundColor: context.mateo.palette.green,
-                            radius: 24,
-                            child: MateoIcon.rectangleStack(height: 22, color: state.iconColor),
+                          .new(
+                            principal: Text(
+                              i18n.welcome.actions.browse.title,
+                              key: const ValueKey('welcome_browse_action'),
+                            ),
+                            supporting: Text(i18n.welcome.actions.browse.description),
+                            leading: MateoIcon(
+                              .rectangleStack,
+                              backgroundColor: MateoTheme.of(context).palette.blue[9],
+                              color: MateoTheme.of(context).palette.white,
+                            ),
                           ),
-                          onPressed: (animation) async {
-                            await animation;
-                            try {
-                              await ref.read(appStorageStateProvider.notifier).completeOnboarding();
-                            } catch (error, stackTrace) {
-                              FlutterError.reportError(
-                                FlutterErrorDetails(
-                                  exception: error,
-                                  stack: stackTrace,
-                                  library: 'cataqui_app',
-                                  context: ErrorDescription('while saving onboarding completion'),
-                                ),
-                              );
-                            }
+                        ],
+                      ),
+                      onItemPressed: (item) async {
+                        if (item.principal?.key == const ValueKey('welcome_post_action')) {
+                          await ref.read(appRouterProvider.notifier).go(context, const PostRoute());
+                          return;
+                        }
+                        try {
+                          await ref.read(appStorageStateProvider.notifier).completeOnboarding();
+                        } catch (error, stackTrace) {
+                          FlutterError.reportError(
+                            FlutterErrorDetails(
+                              exception: error,
+                              stack: stackTrace,
+                              library: 'cataqui_app',
+                              context: ErrorDescription('while saving onboarding completion'),
+                            ),
+                          );
+                        }
 
-                            if (!context.mounted) return;
-                            await ref.read(appRouterProvider.notifier).go(context, const FeedRoute());
-                          },
-                        ),
-                      ],
+                        if (!context.mounted) return;
+                        await ref.read(appRouterProvider.notifier).go(context, const FeedRoute());
+                      },
                     ),
                   ),
                 ),
@@ -365,7 +374,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
   }
 
   Widget _buildTerms({required BuildContext context, required Translations i18n}) {
-    return MateoTap(
+    return MateoPress(
       key: const ValueKey('welcome_terms_button'),
       semanticLabel: '${i18n.welcome.terms.prefix} ${i18n.welcome.terms.link}',
       onPressed: (_) async => launchUrl(Uri.parse('https://cataqui.com/terms'), mode: LaunchMode.externalApplication),
@@ -383,8 +392,8 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
           ),
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: context.mateo.colorScheme.text.tertiary,
-            decorationColor: context.mateo.colorScheme.text.tertiary,
+            color: MateoTheme.of(context).colorScheme.text.tertiary,
+            decorationColor: MateoTheme.of(context).colorScheme.text.tertiary,
             fontSize: 13,
             height: 1.25,
             fontWeight: FontWeight.w500,

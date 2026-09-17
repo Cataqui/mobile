@@ -72,41 +72,6 @@ void main() {
     );
 
     goldenTest(
-      'when deep-linked and loading, it should show header skeletons and description skeleton',
-      fileName: 'job_view_deep_link_loading',
-      builder: () => JobViewGoldenTestHelpers.scenario(
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.loadingState(),
-      ),
-      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
-    );
-
-    goldenTest(
-      'when deep-linked and loaded, it should show the fetched header and description',
-      fileName: 'job_view_deep_link_loaded',
-      builder: () => JobViewGoldenTestHelpers.scenario(
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.loadedState(job: JobViewGoldenTestHelpers.job()),
-      ),
-      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
-      pumpBeforeTest: JobViewGoldenTestHelpers.settle,
-    );
-
-    goldenTest(
-      'when deep-linked and error, it should show header skeletons and retry action',
-      fileName: 'job_view_deep_link_error',
-      builder: () => JobViewGoldenTestHelpers.scenario(
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.errorState(),
-      ),
-      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
-      pumpBeforeTest: JobViewGoldenTestHelpers.settle,
-    );
-
-    goldenTest(
       'when scrolled to the bottom of a very long description, it should show bottom padding before the edge fade',
       fileName: 'job_view_long_description',
       builder: () => JobViewGoldenTestHelpers.scenario(
@@ -181,7 +146,7 @@ class JobViewGoldenTestHelpers {
   static Future<void> scrollToBottom(WidgetTester tester) async {
     await withClock(fixedClock(), () async {
       await tester.pump();
-      await tester.drag(find.byType(MateoScrollableView), const Offset(0, -10000));
+      await tester.drag(find.byKey(const ValueKey('job_surface')), const Offset(0, -10000));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
     });
@@ -202,8 +167,8 @@ class JobViewGoldenTestHelpers {
     return JobViewTestHelpers.job(description: description, createdAt: fixedNow.subtract(const Duration(hours: 3)));
   }
 
-  static Widget scenario({required FakeJobState jobState, FeedJobDto? feedJob, String? jobId}) {
-    final resolvedJobId = jobId ?? feedJob!.jobId;
+  static Widget scenario({required FakeJobState jobState, required FeedJobDto feedJob}) {
+    final resolvedJobId = feedJob.jobId;
     return SizedBox(
       width: 390,
       height: 844,
@@ -215,7 +180,11 @@ class JobViewGoldenTestHelpers {
   }
 
   static Widget routedScenario({String? fontFamily}) {
-    final goRouter = GoRouter(initialLocation: const FeedRoute().location, routes: [$feedRoute, $jobRoute]);
+    final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
+      initialLocation: const FeedRoute().location,
+      routes: [$feedRoute, $jobRoute],
+    );
     final goldenFeedJob = feedJob();
     final jobRepository = MockJobRepository();
 
@@ -261,7 +230,7 @@ class JobViewGoldenTestHelpers {
       await tester.pumpAndSettle();
       await tester.pump(const Duration(milliseconds: 225));
 
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(MateoScrollableView)));
+      final gesture = await tester.startGesture(tester.getCenter(find.byKey(const ValueKey('job_surface'))));
       await gesture.moveBy(const Offset(0, 140));
       await tester.pump();
 

@@ -136,13 +136,13 @@ void main() {
     await tester.tap(find.byType(UseCurrentLocationButton));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
-    final loadingIndicatorState = tester.state(find.byType(MateoCircularLoadingIndicator));
+    final loadingIndicatorState = tester.state(find.byType(MateoLoadingIndicator));
 
     addressCompleter.complete(neighborhoodAddress);
     await tester.pump();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 175));
-    final transitioningLoadingIndicatorStates = tester.stateList(find.byType(MateoCircularLoadingIndicator)).toList();
+    final transitioningLoadingIndicatorStates = tester.stateList(find.byType(MateoLoadingIndicator)).toList();
 
     expect(
       (
@@ -390,7 +390,7 @@ void main() {
     await tester.pump();
     await pumpRetryDelays(tester);
 
-    await tester.tap(find.byKey(const Key('mateo_bottom_sheet_close_button')));
+    await tester.tap(find.descendant(of: find.byType(MateoSheetViewHeader), matching: find.byType(MateoButton)));
     await tester.pumpAndSettle();
 
     expect(service.openLocationSettingsRequestCount, 0);
@@ -419,7 +419,7 @@ void main() {
         .evaluate()
         .length;
     final settingsCountWhileClosing = service.openLocationSettingsRequestCount;
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 1));
     await tester.pump();
 
     expect(

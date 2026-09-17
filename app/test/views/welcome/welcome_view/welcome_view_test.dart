@@ -17,14 +17,20 @@ void main() {
   });
 
   group('WelcomeView content', () {
-    testWidgets('when welcome opens, it should show the complete localized product message', (tester) async {
+    testWidgets('when welcome opens, it should show the localized message and name the start action', (tester) async {
       await WelcomeViewTestHelpers.pumpView(tester: tester);
 
       expect(
         (
           headline: find.text(i18n.welcome.headline).evaluate().length,
           subtitle: find.textContaining(i18n.welcome.subtitle).evaluate().length,
-          start: find.text(i18n.welcome.startButton).evaluate().length,
+          start: find
+              .descendant(
+                of: find.byKey(const ValueKey('welcome_start_button')),
+                matching: find.text(i18n.welcome.startButton),
+              )
+              .evaluate()
+              .length,
           termsPrefix: find.textContaining(i18n.welcome.terms.prefix).evaluate().length,
           termsLink: find.textContaining(i18n.welcome.terms.link).evaluate().length,
         ),
@@ -432,7 +438,7 @@ void main() {
       await WelcomeViewTestHelpers.pumpView(tester: tester, disableAnimations: false);
       await WelcomeViewTestHelpers.finishInitialReveal(tester);
       final circleFinder = find.byKey(const ValueKey('welcome_artwork_circle_top'));
-      final palette = tester.element(circleFinder).mateo.palette;
+      final palette = MateoTheme.of(tester.element(circleFinder)).palette;
       final initialColor = WelcomeViewTestHelpers.artworkCircleColor(tester, 'top');
       await WelcomeViewTestHelpers.beginNextReturn(tester);
       await WelcomeViewTestHelpers.finishNextReturn(tester);
@@ -633,7 +639,7 @@ void main() {
       tester,
     ) async {
       await WelcomeViewTestHelpers.pumpView(tester: tester);
-      final palette = tester.element(find.byKey(const ValueKey('welcome_artwork_circle_top'))).mateo.palette;
+      final palette = MateoTheme.of(tester.element(find.byKey(const ValueKey('welcome_artwork_circle_top')))).palette;
       await tester.pump(const Duration(milliseconds: 2999));
       final titleBeforeBoundary = tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data;
       await tester.pump(const Duration(milliseconds: 1));
@@ -1075,14 +1081,14 @@ void main() {
 
       expect(
         (
-          startCallback: tester.widget<MateoMenuButton>(startFinder).actions.any((action) => action.onPressed != null),
+          startCallback: tester.widget<MateoMenuButton>(startFinder).onItemPressed != null,
           startSemantics: (
             startData.flagsCollection.isButton,
             startData.flagsCollection.isEnabled,
             startData.hasAction(SemanticsAction.tap),
           ),
           startHeight: tester.getSize(startFinder).height >= 48,
-          termsCallback: tester.widget<MateoTap>(termsFinder).onPressed != null,
+          termsCallback: tester.widget<MateoPress>(termsFinder).onPressed != null,
           termsSemantics: (
             termsData.flagsCollection.isButton,
             termsData.flagsCollection.isEnabled,

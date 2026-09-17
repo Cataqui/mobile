@@ -84,6 +84,15 @@ dependencies:
 
 Write explicit, boring, readable production code. Avoid speculative abstractions, magic numbers, and hyper-condensed naming conventions.
 
+### Always Use Dart Dot Shorthands Where Supported
+
+- Always use Dart's dot shorthand syntax when the surrounding context allows Dart to infer the required type.
+- Apply this consistently to enum values, static members, and constructors wherever the language supports it. Omit
+  the redundant type name to keep code concise and easy to scan; this rule applies throughout the codebase, not only
+  to widgets or design-system APIs.
+- Use the fully qualified form only when dot shorthand cannot resolve the intended member or is unsupported by the
+  package's Dart language version.
+
 ### Keep Complexity Proportional
 
 - Do not add state, branching, synchronization, cancellation, or abstractions solely to defend against highly unlikely
@@ -242,9 +251,9 @@ widget or model that produces or consumes the data.
 
 ### MediaQuery Aspect Dependencies
 
-- Do not use `MediaQuery.of(context)` or `MediaQuery.maybeOf(context)` merely to read individual fields. Use the aspect-specific accessor that matches the required value, such as `MediaQuery.sizeOf`, `paddingOf`, `viewPaddingOf`, `viewInsetsOf`, `textScalerOf`, or `platformBrightnessOf`. This prevents unrelated `MediaQueryData` changes from rebuilding the dependent widget.
+- Never use `MediaQuery.of(context)` or `MediaQuery.maybeOf(context)` in application code. Use the aspect-specific accessor that matches the required value, such as `MediaQuery.sizeOf`, `paddingOf`, `viewPaddingOf`, `viewInsetsOf`, `textScalerOf`, or `platformBrightnessOf`. This prevents unrelated `MediaQueryData` changes from rebuilding the dependent widget.
 - Keep each MediaQuery dependency at the narrowest widget subtree that consumes it. In particular, read keyboard `viewInsets` inside the keyboard-responsive subtree instead of subscribing an entire screen when only a bottom control moves.
-- A full `MediaQuery.of(context)` lookup is allowed only when the complete inherited `MediaQueryData` object is intentionally required, such as when deriving a modified `MediaQuery` for descendants.
+- Do not bypass this rule to derive a modified `MediaQuery` for descendants. Prefer targeted accessors and adjust the owning layout directly; do not copy or reconstruct the complete `MediaQueryData` for a single-field layout fix.
 
 ### Method Ordering Within Classes
 

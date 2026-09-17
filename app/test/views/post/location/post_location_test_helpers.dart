@@ -51,6 +51,9 @@ abstract final class PostLocationTestHelpers {
   static Future<void> enterAddressQuery(WidgetTester tester, {required String query, bool settle = true}) async {
     await tester.enterText(find.byKey(const ValueKey('post_location_search_field')), query);
     await tester.pump(const Duration(milliseconds: 301));
+    // Flush a zero-duration replacement flight when motion is disabled.
+    await tester.pump();
+    await tester.pump();
     if (settle) await tester.pumpAndSettle();
   }
 
@@ -77,6 +80,9 @@ abstract final class PostLocationTestHelpers {
     await tester.tap(find.byKey(const ValueKey('post_location_chip')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
+    // The independent surface flight is installed after the route frame.
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump();
   }
 
   static Future<void> pumpPost(

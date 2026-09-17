@@ -25,6 +25,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -68,7 +69,7 @@ class DeviceCornerRadii extends _$DeviceCornerRadii {
 
   Future<void> _load(BuildContext context) async {
     try {
-      state = await ref.read(deviceProvider).display.cornerRadii(context, estimate: true);
+      state = await ref.read(deviceProvider).display.cornerRadii(context);
     } on Object {
       state = null;
     }
@@ -199,7 +200,7 @@ GoRouter goRouter(Ref ref) {
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    observers: [ref.watch(routeObserverProvider)],
+    observers: [ref.watch(routeObserverProvider), MateoNavigatorObserver()],
     initialLocation: appStorage.hasCompletedOnboarding ? const FeedRoute().location : const WelcomeRoute().location,
     redirect: (context, state) {
       if (state.matchedLocation != const WelcomeRoute().location) return null;
@@ -239,11 +240,11 @@ GeosearchRepository geosearchRepository(Ref ref) {
 }
 
 @riverpod
-Whatsapp whatsapp(Ref ref) {
-  return Whatsapp();
+Whatsapp whatsapp(Ref ref, {required String identifier}) {
+  return Whatsapp(identifier);
 }
 
 @riverpod
-Telephony telephony(Ref ref) {
-  return Telephony();
+PhoneNumber phoneNumber(Ref ref, {required String value}) {
+  return PhoneNumber(value);
 }

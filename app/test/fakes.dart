@@ -10,12 +10,10 @@ final class FakeDeviceDisplay implements DeviceDisplay {
   final BorderRadius? value;
   final Error? error;
   int requestCount = 0;
-  bool? requestedEstimate;
 
   @override
-  Future<BorderRadius?> cornerRadii(BuildContext context, {bool estimate = false}) async {
+  Future<BorderRadius?> cornerRadii(BuildContext context) async {
     requestCount += 1;
-    requestedEstimate = estimate;
     if (error case final error?) throw error;
     return value;
   }

@@ -19,9 +19,9 @@ class PostRoute extends AppRouteData with $PostRoute {
       allowSnapshotting: false,
       key: state.pageKey,
       child: const PostView(),
-      transition: MateoPageTransition.wash(
+      transition: const MateoPageTransition.wash(
         direction: MateoPageTransitionDirection.up,
-        duration: const Duration(milliseconds: 400),
+        duration: Duration(milliseconds: 400),
       ),
     );
   }

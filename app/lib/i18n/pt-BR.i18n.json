@@ -71,7 +71,12 @@
       "inputSemanticLabel": "Descrição do trampo"
     },
     "contact": {
-      "chipTitle": "Contato"
+      "chipTitle": "Contato",
+      "title": "Onde os interessados vão chamar?",
+      "addButtonTitle": "Novo contato",
+      "loadingSemanticLabel": "Carregando seus contatos",
+      "empty": "Nenhum contato salvo ainda",
+      "error": "Não conseguimos carregar seus contatos"
     },
     "location": {
       "chipTitle": "Localização",
@@ -152,11 +157,11 @@
     "actions": {
       "post": {
         "title": "Postar um bico",
-        "description": "Tá precisando de alguém pra fazer algo? Cria um post"
+        "description": "Tá precisando de alguém pra algo?"
       },
       "browse": {
         "title": "Ver bicos",
-        "description": "Quer ver os bicos de agora? Só clicar aqui"
+        "description": "Quer ver os bicos agora?"
       }
     },
     "terms": {

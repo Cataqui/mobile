@@ -3,6 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PostData', () {
+    test('when post creation starts, it should not contain a contact', () {
+      const data = PostData();
+
+      expect(data.contact, isNull);
+    });
+
     test('when description creation starts, it should not contain description text', () {
       const data = PostData();
 

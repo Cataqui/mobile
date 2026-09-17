@@ -20,6 +20,8 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
@@ -147,6 +149,7 @@ class FeedViewTestHelpers {
     MockSharedPreferencesAsync? prefs,
     bool? hasSeenSwipeFeedHint,
   }) {
+    if (prefs != null) when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
     return [
       feedStateProvider.overrideWith(() => feedState),
       if (goRouter != null) goRouterProvider.overrideWithValue(goRouter),
@@ -187,10 +190,13 @@ class FeedViewTestHelpers {
 
   static Future<ProviderContainer> pumpFeedRoute({
     required WidgetTester tester,
+    FakeFeedState? feedState,
+    bool settle = true,
     List<Override> providerOverrides = const [],
   }) async {
     final rootNavigatorKey = GlobalKey<NavigatorState>();
     final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
       navigatorKey: rootNavigatorKey,
       initialLocation: const FeedRoute().location,
       routes: [$feedRoute, $postRoute, $jobRoute],
@@ -203,7 +209,7 @@ class FeedViewTestHelpers {
       TestApp.router(
         routerConfig: goRouter,
         providerOverrides: [
-          feedStateProvider.overrideWith(() => FakeFeedState(buildResult: feedDataEmpty)),
+          feedStateProvider.overrideWith(() => feedState ?? FakeFeedState(buildResult: feedDataEmpty)),
           goRouterProvider.overrideWithValue(goRouter),
           rootNavigatorKeyProvider.overrideWithValue(rootNavigatorKey),
           appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
@@ -211,7 +217,13 @@ class FeedViewTestHelpers {
         ],
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pump();
+    }
 
     final providerContainer = ProviderScope.containerOf(tester.element(find.byType(FeedView)), listen: false);
     await providerContainer
@@ -250,6 +262,7 @@ class FeedViewTestHelpers {
         count,
         (i) => FeedJobDto.fixture().copyWith(
           jobId: 'job_$i',
+          createdAt: DateTime(2025, 6, 15, 17),
           title: i == 0 ? 'Descarregar Caminhão' : 'Garçom para Fim de Semana $i',
         ),
       ),

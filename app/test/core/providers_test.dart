@@ -23,6 +23,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
@@ -130,6 +131,7 @@ void main() {
     testWidgets('when the app root builds, it should start preloading display corner radii', (tester) async {
       final display = FakeDeviceDisplay(value: BorderRadius.zero);
       final router = GoRouter(
+        observers: [MateoNavigatorObserver()],
         routes: [GoRoute(path: '/', builder: (_, _) => const SizedBox.shrink())],
       );
       final container = ProviderContainer(

@@ -2,60 +2,73 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
+import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
-import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
-class FeedJobCard extends ConsumerWidget {
+class FeedJobCard extends ConsumerStatefulWidget {
   const FeedJobCard({required this.feedJob, super.key, this.skeleton = false});
 
   final FeedJobDto feedJob;
   final bool skeleton;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = context.mateo.colorScheme;
-    final i18n = ref.watch(translationProvider);
-    final headerMorphTag = JobViewMorphTag.header.valueFor(jobId: feedJob.jobId);
+  ConsumerState<FeedJobCard> createState() => _FeedJobCardState();
+}
 
-    return MateoTap(
-      animation: MateoTapAnimationType.none,
+class _FeedJobCardState extends ConsumerState<FeedJobCard> {
+  late MorphTarget _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.feedJob.jobId));
+
+  @override
+  void didUpdateWidget(FeedJobCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.feedJob.jobId == widget.feedJob.jobId) return;
+    _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.feedJob.jobId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = MateoTheme.of(context).colorScheme;
+    final i18n = ref.watch(translationProvider);
+    final headerMorphTag = JobViewTransformTag.header.valueFor(jobId: widget.feedJob.jobId);
+
+    return MateoPress(
+      animation: MateoPressAnimationType.scale,
       fireHapticFeedback: true,
       onPressed: (animation) async {
-        if (skeleton) return;
-        unawaited(ref.read(appRouterProvider.notifier).push(context, JobRoute(jobId: feedJob.jobId, $extra: feedJob)));
+        if (widget.skeleton) return;
+        unawaited(
+          ref
+              .read(appRouterProvider.notifier)
+              .push(context, JobRoute(jobId: widget.feedJob.jobId, $extra: widget.feedJob)),
+        );
       },
-      child: JobSurface(
-        jobId: feedJob.jobId,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: colorScheme.background,
-          borderRadius: BorderRadius.circular(44),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.colors.neutral.solid.withValues(alpha: 0.07),
-              blurRadius: 42,
-              offset: Offset.zero,
-            ),
-          ],
-        ),
+      child: MateoSurface(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+
+        color: colorScheme.background,
+        shape: const .rounded(radius: 42),
+        elevation: MateoElevation(level: 0.6),
+        animation: .transform(
+          id: JobViewTransformTag.surface.valueFor(jobId: widget.feedJob.jobId),
+          duration: JobRoute.pushDuration,
+          curve: Curves.fastOutSlowIn,
+          contentEffects: [const .crossfade()],
+        ),
         child: Skeleton(
-          enabled: skeleton,
+          enabled: widget.skeleton,
           style: SkeletonStyle(
-            color: colorScheme.skeleton.bone,
+            color: MateoTheme.of(context).colorScheme.skeleton.bone,
             effect: const SkeletonFadeEffect(),
             radius: const Radius.circular(999),
           ),
           child: Morph(
-            tag: headerMorphTag,
-            curve: JobSurface.morphCurve,
-            switchThreshold: 0,
-
+            target: _headerTarget,
+            curve: Curves.fastOutSlowIn,
+            flightConfig: const .auto(childSwitchAt: 0.01),
             child: Column(
               key: ValueKey(headerMorphTag),
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +76,7 @@ class FeedJobCard extends ConsumerWidget {
               children: [
                 Text(
                   key: const ValueKey('job_time'),
-                  feedJob.createdAt.timeAgo(
+                  widget.feedJob.createdAt.timeAgo(
                     onNow: () => i18n.feedJob.timeAgo.now,
                     onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
                     onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
@@ -71,12 +84,17 @@ class FeedJobCard extends ConsumerWidget {
                     onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
                     fallback: TimeAgoFallback.finer,
                   ),
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colorScheme.text.tertiary),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.text.tertiary,
+                    height: 1.3,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    feedJob.title,
+                    widget.feedJob.title,
                     key: const ValueKey('job_title'),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -84,26 +102,34 @@ class FeedJobCard extends ConsumerWidget {
                       color: colorScheme.text.primary,
                       fontWeight: FontWeight.w600,
                       fontSize: 22,
-                      height: 1.2, // arrumar height + sapcing
+                      height: 1.2,
                     ),
                   ),
                 ),
                 Text(
                   key: const ValueKey('job_payment'),
-                  feedJob.payment.formatPayment(i18n),
+                  widget.feedJob.payment.formatPayment(i18n),
                   style: TextStyle(
                     fontSize: 26,
                     color: colorScheme.text.profit,
                     fontWeight: FontWeight.w600,
-                    height: 1.3,
+                    height: 1.15,
                   ),
                 ),
-                Text(
-                  key: const ValueKey('job_description'),
-                  feedJob.descriptionSummary,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15, color: colorScheme.text.secondary, fontWeight: FontWeight.w500),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    key: const ValueKey('job_description'),
+                    widget.feedJob.descriptionSummary,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: colorScheme.text.secondary,
+                      fontWeight: FontWeight.w500,
+                      height: 1.3,
+                    ),
+                  ),
                 ),
               ],
             ),

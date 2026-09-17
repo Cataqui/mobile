@@ -19,11 +19,14 @@ class _WelcomeJobCard extends StatelessWidget {
               key: const ValueKey('welcome_card_surface'),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: context.mateo.colorScheme.background,
+                  color: MateoTheme.of(context).colorScheme.background,
                   borderRadius: BorderRadius.circular(40),
                   boxShadow: [
                     BoxShadow(
-                      color: context.mateo.colorScheme.colors.neutral.solid.withValues(alpha: 0.07),
+                      color: switch (Theme.of(context).brightness) {
+                        Brightness.light => MateoTheme.of(context).palette.neutral[12].withValues(alpha: 0.07),
+                        Brightness.dark => throw UnsupportedError('Job cards do not support dark mode.'),
+                      },
                       blurRadius: 42,
                     ),
                   ],
@@ -41,7 +44,7 @@ class _WelcomeJobCard extends StatelessWidget {
                   job.postedTime,
                   key: const ValueKey('welcome_job_posted_time'),
                   style: TextStyle(
-                    color: context.mateo.colorScheme.text.tertiary,
+                    color: MateoTheme.of(context).colorScheme.text.tertiary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -53,7 +56,7 @@ class _WelcomeJobCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: context.mateo.colorScheme.text.primary,
+                    color: MateoTheme.of(context).colorScheme.text.primary,
                     fontSize: 22,
                     height: 1.15,
                     fontWeight: FontWeight.w600,
@@ -64,7 +67,7 @@ class _WelcomeJobCard extends StatelessWidget {
                   job.amount,
                   key: const ValueKey('welcome_job_amount'),
                   style: TextStyle(
-                    color: context.mateo.colorScheme.text.profit,
+                    color: MateoTheme.of(context).colorScheme.text.profit,
                     fontSize: 26,
                     height: 1.2,
                     fontWeight: FontWeight.w600,
@@ -77,7 +80,7 @@ class _WelcomeJobCard extends StatelessWidget {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: context.mateo.colorScheme.text.secondary,
+                    color: MateoTheme.of(context).colorScheme.text.secondary,
                     fontSize: 15,
                     height: 1.25,
                     fontWeight: FontWeight.w500,

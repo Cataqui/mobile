@@ -33,12 +33,12 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
       Brightness.light => switch (currentLocation.value) {
         ResolvedCurrentLocationData(:final address)
             when address.neighborhood != null || address.city != null || address.street != null =>
-          context.mateo.palette.green[9],
+          MateoTheme.of(context).palette.green[9],
 
         CurrentLocationPermissionData() ||
         ResolvedCurrentLocationData() ||
         FailedCurrentLocationData() ||
-        null => context.mateo.palette.red[9],
+        null => MateoTheme.of(context).palette.red[9],
       },
 
       Brightness.dark => throw UnsupportedError('CurrentLocationButton does not support dark mode.'),
@@ -215,8 +215,8 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
       value: description,
       liveRegion: true,
       excludeSemantics: true,
-      child: MateoTap(
-        animation: MateoTapAnimationType.scale,
+      child: MateoPress(
+        animation: MateoPressAnimationType.scale,
         onPressed: _isUseRequestPending ? (_) async {} : (animation) => _handleRequestedToUse(),
         child: Container(
           key: const ValueKey('current_location'),
@@ -238,11 +238,9 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
                       key: const ValueKey('current_location_loading_transition'),
                       visible: currentLocation.isLoading,
                       duration: transitionDuration,
-                      child: MateoCircularLoadingIndicator(
+                      child: MateoLoadingIndicator(
                         key: const ValueKey((isLoading: true, isResolved: false)),
-                        size: 28,
-                        color: context.mateo.palette.blue[9],
-                        trackColor: context.mateo.palette.blue[4],
+                        presentation: .circular(size: 28, color: MateoTheme.of(context).palette.blue[9]),
                       ),
                     ),
                     _buildIndicatorTransition(
@@ -274,7 +272,7 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
                     Text(
                       i18n.useCurrentLocationButton.title,
                       style: TextStyle(
-                        color: context.mateo.colorScheme.text.primary,
+                        color: MateoTheme.of(context).colorScheme.text.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -297,7 +295,7 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: context.mateo.colorScheme.text.tertiary,
+                          color: MateoTheme.of(context).colorScheme.text.tertiary,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),

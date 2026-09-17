@@ -25,6 +25,8 @@ abstract final class PostPaymentViewTestHelpers {
     await tester.tap(find.byKey(const ValueKey('post_payment_chip')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
   }
 
   static Future<void> pumpPost(

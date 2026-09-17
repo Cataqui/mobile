@@ -5,33 +5,32 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 class AppToast {
   const AppToast();
 
-  void maybeShowError(
-    BuildContext context, {
-    required Object? error,
-    required String message,
-    MateoToastIconBuilder? iconBuilder,
-  }) {
+  void maybeShowError(BuildContext context, {required Object? error, required String message, Widget? icon}) {
     if (error is AuthenticationDismissedDioException) return;
 
-    MateoToast.show(context, message: message, type: MateoToastType.error, iconBuilder: iconBuilder);
+    showMateoToast(
+      context: context,
+      toast: MateoToast(message: message, status: .error, icon: icon),
+    );
   }
 
   void showSuccess(BuildContext context, {required String message}) {
-    MateoToast.show(context, message: message, type: MateoToastType.success);
+    showMateoToast(
+      context: context,
+      toast: MateoToast(message: message, status: .success),
+    );
   }
 
   void showInfo(
     BuildContext context, {
     required String message,
-    MateoToastIconBuilder? iconBuilder,
+    Widget? icon,
     Duration? duration,
     bool dismissible = true,
   }) {
-    MateoToast.show(
-      context,
-      message: message,
-      type: MateoToastType.info,
-      iconBuilder: iconBuilder,
+    showMateoToast(
+      context: context,
+      toast: MateoToast(message: message, status: .info, icon: icon),
       duration: duration,
       dismissible: dismissible,
     );

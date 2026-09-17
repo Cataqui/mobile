@@ -69,12 +69,39 @@ void main() {
       );
 
       goldenTest(
+        'when location is halfway closed, it should return the surface to its chip',
+        fileName: 'post_location_overlay_close_midpoint',
+        constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+        whilePerforming: (tester) async {
+          await _PostLocationViewGoldenTestHelpers.openLocation(tester);
+          await tester.tap(find.byKey(const ValueKey('post_location_close_button')));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 135));
+          expect(tester.takeException(), isNull);
+
+          return () async {
+            await tester.pump(const Duration(milliseconds: 135));
+            await tester.pump();
+          };
+        },
+        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
+          geosearchRepository: geosearchRepository,
+          disableAnimations: false,
+        ),
+      );
+
+      goldenTest(
         'when the blank search is focused, it should show its focused control state',
         fileName: 'post_location_search_focused',
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
         whilePerforming: (tester) async {
           await _PostLocationViewGoldenTestHelpers.openLocation(tester);
-          tester.widget<MateoTextField>(find.byKey(const ValueKey('post_location_search_field'))).controller!.focus();
+          tester
+              .widget<EditableText>(
+                find.descendant(of: find.byType(MateoTextInput), matching: find.byType(EditableText)),
+              )
+              .focusNode
+              .requestFocus();
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 400));
           return null;
@@ -189,6 +216,7 @@ abstract final class _PostLocationViewGoldenTestHelpers {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('post_location_chip')));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
     await tester.pump(const Duration(milliseconds: 350));
     await tester.pump();
   }

@@ -15,14 +15,14 @@ final class _JobContactStateTestHelpers {
   static ProviderContainer container({
     required MockJobRepository repository,
     MockWhatsapp? whatsapp,
-    MockTelephony? telephony,
+    MockPhoneNumber? phoneNumber,
   }) {
     final overrides = [jobRepositoryProvider.overrideWithValue(repository)];
     if (whatsapp != null) {
-      overrides.add(whatsappProvider.overrideWithValue(whatsapp));
+      overrides.add(whatsappProvider(identifier: '+5511999999999').overrideWithValue(whatsapp));
     }
-    if (telephony != null) {
-      overrides.add(telephonyProvider.overrideWithValue(telephony));
+    if (phoneNumber != null) {
+      overrides.add(phoneNumberProvider(value: '+5511888888888').overrideWithValue(phoneNumber));
     }
     final container = ProviderContainer(overrides: overrides);
     addTearDown(container.dispose);
@@ -75,11 +75,11 @@ void main() {
     group('when contact is called', () {
       test('it should fetch the job contact with the correct job id and contact id', () async {
         final whatsapp = MockWhatsapp();
-        final telephony = MockTelephony();
+        final phoneNumber = MockPhoneNumber();
         final container = _JobContactStateTestHelpers.container(
           repository: repository,
           whatsapp: whatsapp,
-          telephony: telephony,
+          phoneNumber: phoneNumber,
         );
         final provider = jobContactStateProvider(jobId: 'job-call', contactId: 'contact-call');
         await container.read(provider.future);
@@ -91,14 +91,14 @@ void main() {
 
       test('when the contact fetch succeeds with a whatsapp method, it should launch WhatsApp', () async {
         final whatsapp = MockWhatsapp();
-        when(() => whatsapp.launchChat(number: any(named: 'number'))).thenAnswer((_) async => true);
+        when(whatsapp.chat).thenAnswer((_) async => true);
 
         final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
 
         final notifier = container.read(jobContactStateProvider(jobId: 'job-wpp', contactId: 'contact-wpp').notifier);
         await notifier.contact();
 
-        verify(() => whatsapp.launchChat(number: '+5511999999999')).called(1);
+        verify(whatsapp.chat).called(1);
       });
 
       test('when the contact fetch succeeds with a phone call method, it should launch a phone call', () async {
@@ -116,17 +116,17 @@ void main() {
           ),
         );
 
-        final telephony = MockTelephony();
-        when(() => telephony.call(number: any(named: 'number'))).thenAnswer((_) async => true);
+        final phoneNumber = MockPhoneNumber();
+        when(phoneNumber.call).thenAnswer((_) async => true);
 
-        final container = _JobContactStateTestHelpers.container(repository: repository, telephony: telephony);
+        final container = _JobContactStateTestHelpers.container(repository: repository, phoneNumber: phoneNumber);
 
         final notifier = container.read(
           jobContactStateProvider(jobId: 'job-phone', contactId: 'contact-phone').notifier,
         );
         await notifier.contact();
 
-        verify(() => telephony.call(number: '+5511888888888')).called(1);
+        verify(phoneNumber.call).called(1);
       });
 
       test('when the contact method is unknown, it should not launch WhatsApp or telephony', () async {
@@ -142,11 +142,11 @@ void main() {
         );
 
         final whatsapp = MockWhatsapp();
-        final telephony = MockTelephony();
+        final phoneNumber = MockPhoneNumber();
         final container = _JobContactStateTestHelpers.container(
           repository: repository,
           whatsapp: whatsapp,
-          telephony: telephony,
+          phoneNumber: phoneNumber,
         );
 
         final notifier = container.read(
@@ -154,8 +154,8 @@ void main() {
         );
         await notifier.contact();
 
-        verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
-        verifyNever(() => telephony.call(number: any(named: 'number')));
+        verifyNever(whatsapp.chat);
+        verifyNever(phoneNumber.call);
       });
 
       test('when the fetch fails, it should expose an AsyncError', () async {
@@ -183,11 +183,11 @@ void main() {
         ).thenThrow(StateError('fetch failed'));
 
         final whatsapp = MockWhatsapp();
-        final telephony = MockTelephony();
+        final phoneNumber = MockPhoneNumber();
         final container = _JobContactStateTestHelpers.container(
           repository: repository,
           whatsapp: whatsapp,
-          telephony: telephony,
+          phoneNumber: phoneNumber,
         );
 
         final notifier = container.read(
@@ -195,13 +195,13 @@ void main() {
         );
         await notifier.contact();
 
-        verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
-        verifyNever(() => telephony.call(number: any(named: 'number')));
+        verifyNever(whatsapp.chat);
+        verifyNever(phoneNumber.call);
       });
 
       test('when the dispatch itself fails, it should expose an AsyncError', () async {
         final whatsapp = MockWhatsapp();
-        when(() => whatsapp.launchChat(number: any(named: 'number'))).thenThrow(StateError('launch failed'));
+        when(whatsapp.chat).thenThrow(StateError('launch failed'));
 
         final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
 

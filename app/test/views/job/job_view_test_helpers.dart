@@ -115,11 +115,11 @@ class JobViewTestHelpers {
 
   static Widget buildApp({
     required FakeJobState jobState,
+    required FeedJobDto feedJob,
     String? jobId,
-    FeedJobDto? feedJob,
     bool disableAnimations = true,
   }) {
-    final resolvedJobId = jobId ?? feedJob!.jobId;
+    final resolvedJobId = jobId ?? feedJob.jobId;
     final mediaQueryData = const MediaQueryData(
       size: Size(390, 844),
       devicePixelRatio: 3,
@@ -162,11 +162,11 @@ class JobViewTestHelpers {
   static Future<void> pumpJobView({
     required WidgetTester tester,
     required FakeJobState jobState,
-    FeedJobDto? feedJob,
+    required FeedJobDto feedJob,
     String? jobId,
     bool disableAnimations = true,
   }) async {
-    final resolvedJobId = jobId ?? feedJob!.jobId;
+    final resolvedJobId = jobId ?? feedJob.jobId;
     await tester.pumpWidget(
       buildApp(jobId: resolvedJobId, feedJob: feedJob, jobState: jobState, disableAnimations: disableAnimations),
     );

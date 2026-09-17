@@ -52,43 +52,48 @@ class FeedView extends ConsumerStatefulWidget {
 }
 
 class _FeedViewState extends ConsumerState<FeedView> {
-  final MateoYSnapListController _feedController = MateoYSnapListController();
-  final _cardBorderRadius = BorderRadius.circular(48);
-  final _feedInCurve = CurveTween(curve: Curves.easeOutCubic);
+  final SnapListController _feedController = SnapListController();
   late final ValueNotifier<bool> _isHintActiveNotifier;
 
   void _showLocationAvailabilitySheet() {
     final i18n = ref.read(translationProvider);
-    final colorScheme = context.mateo.colorScheme;
+    final colorScheme = MateoTheme.of(context).colorScheme;
 
     unawaited(
-      MateoBottomSheet.show<void>(
-        context,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 20),
-            ExcludeSemantics(
-              child: $Illustrations.comingSoonPlatePortuguese(
-                fit: BoxFit.contain,
-                height: FeedView._comingSoonIllustrationHeight,
-              ),
+      showMateoSheet<void>(
+        context: context,
+        view: MateoSheetView(
+          reserveHeaderSpace: false,
+          header: const MateoSheetViewHeader(presentation: .closeButton()),
+          surface: MateoSheetViewSurface(
+            key: const ValueKey('feed_location_sheet_surface'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                ExcludeSemantics(
+                  child: $Illustrations.comingSoonPlatePortuguese(
+                    fit: BoxFit.contain,
+                    height: FeedView._comingSoonIllustrationHeight,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'Só em São Paulo',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colorScheme.text.primary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  i18n.feed.locationAvailability.message,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.text.secondary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
-            const SizedBox(height: 18),
-            Text(
-              'Só em São Paulo',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colorScheme.text.primary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              i18n.feed.locationAvailability.message,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.text.secondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     );
@@ -103,46 +108,33 @@ class _FeedViewState extends ConsumerState<FeedView> {
 
   @override
   void dispose() {
+    _feedController.dispose();
     _isHintActiveNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.mateo.colorScheme;
+    final colorScheme = MateoTheme.of(context).colorScheme;
     final i18n = ref.watch(translationProvider);
     final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
 
     return MateoView(
-      backgroundColor: colorScheme.background,
-      extendBodyBehindFooter: true,
-      edgeFade: (top: const MateoEdgeFadeStyle(), bottom: const MateoEdgeFadeStyle(mainAxisExtent: 160)),
-      header: RepaintBoundary(
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(start: 12, end: 20, bottom: 10),
-          child: Align(
-            alignment: AlignmentGeometry.topStart,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48),
-              child: MateoTextButton(
-                text: i18n.feed.locationAvailability.cityLabel,
-                leadingIconBuilder: (state) {
-                  return MateoIcon.mapPin(height: 17, width: 17, color: context.mateo.palette.accent[9]);
-                },
-                leadingIconSpacing: 10,
-                trailingIconSpacing: 10,
-                trailingIconBuilder: (state) {
-                  return MateoIcon.chevronDown(height: 14, width: 14, color: state.recommendedIconColor);
-                },
-                onPressed: _showLocationAvailabilitySheet,
-              ),
-            ),
+      avoidBottomInset: false,
+      padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 20),
+      header: MateoViewHeader(
+        leading: MateoButton(
+          presentation: .label(
+            width: .fit,
+            variant: .tertiary,
+            size: .small,
+            label: i18n.feed.locationAvailability.cityLabel,
+            elevation: 0,
+            leadingIcon: MateoIcon(.mapPin, color: MateoTheme.of(context).palette.accent[9]),
+            trailingIcon: MateoIcon(.chevronDown, color: MateoTheme.of(context).colorScheme.text.primary),
           ),
+          onPressed: _showLocationAvailabilitySheet,
         ),
-      ),
-      footer: Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Align(alignment: AlignmentGeometry.bottomRight, child: _buildJobCreationButton(i18n)),
       ),
       overlay: hasJobs
           ? IgnorePointer(
@@ -152,32 +144,31 @@ class _FeedViewState extends ConsumerState<FeedView> {
               ),
             )
           : null,
-      body: RepaintBoundary(
-        child: _FeedViewBody(
-          controller: _feedController,
-          cardBorderRadius: _cardBorderRadius,
-          feedInCurve: _feedInCurve,
-          onAdjustAreaPressed: _showLocationAvailabilitySheet,
+      footer: .new(
+        trailing: _buildJobCreationButton(i18n),
+        leading: const CircleAvatar(radius: 28),
+        padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
+      ),
+      surface: MateoViewSurface(
+        padding: const EdgeInsets.symmetric(horizontal: 12).copyWith(bottom: 20, top: 10),
+        color: colorScheme.background,
+        edgeEffect: .fade(),
+        child: RepaintBoundary(
+          child: _FeedViewBody(controller: _feedController, onAdjustAreaPressed: _showLocationAvailabilitySheet),
         ),
       ),
     );
   }
 
   Widget _buildJobCreationButton(Translations i18n) {
-    return MateoFloatingActionButton(
+    return MateoButton(
       key: const ValueKey('feed_job_creation_button'),
-      size: 62,
-      backgroundColor: context.mateo.colorScheme.inverse.background,
-      foregroundColor: context.mateo.colorScheme.inverse.onBackground,
-      semanticLabel: i18n.feed.jobCreationButtonSemanticLabel,
-      onPressed: () {
-        unawaited(ref.read(appRouterProvider.notifier).push(context, const PostRoute()));
-      },
-      iconBuilder: (state) => MateoIcon.plusSignal(
-        key: const ValueKey('feed_job_creation_plus_icon'),
-        width: state.iconSize,
-        height: state.iconSize,
-        color: state.foregroundColor,
+      onPressed: () => unawaited(ref.read(appRouterProvider.notifier).push(context, const PostRoute())),
+      presentation: .icon(
+        variant: .primary.neutral,
+        elevation: 1,
+        semanticLabel: i18n.feed.jobCreationButtonSemanticLabel,
+        icon: const MateoIcon(.plusSignal, key: ValueKey('feed_job_creation_plus_icon')),
       ),
     );
   }

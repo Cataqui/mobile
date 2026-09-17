@@ -3,7 +3,7 @@ part of 'feed_view.dart';
 class _FeedSwipeUpHintOverlay extends ConsumerStatefulWidget {
   const _FeedSwipeUpHintOverlay({required this.feedController, required this.isHintActiveNotifier});
 
-  final MateoYSnapListController feedController;
+  final SnapListController feedController;
   final ValueNotifier<bool> isHintActiveNotifier;
 
   @override
@@ -20,7 +20,7 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
     final hasSeenHint = ref.read(appStorageStateProvider.select((s) => s.value?.hasSeenSwipeFeedHint));
     if (hasSeenHint ?? false) return;
 
-    widget.feedController.addNotificationListener(_onFeedNotification);
+    widget.feedController.addListener(_onFeedNotification);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _visibilityController.show();
@@ -29,16 +29,16 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
 
   @override
   void dispose() {
-    widget.feedController.removeNotificationListener(_onFeedNotification);
+    widget.feedController.removeListener(_onFeedNotification);
     super.dispose();
   }
 
-  void _onFeedNotification(MateoYSnapListNotification notification) {
-    if (notification == MateoYSnapListNotification.nextItem) {
+  void _onFeedNotification() {
+    if ((widget.feedController.position ?? 0) > 0) {
       widget.isHintActiveNotifier.value = false;
 
       _visibilityController.hide();
-      widget.feedController.removeNotificationListener(_onFeedNotification);
+      widget.feedController.removeListener(_onFeedNotification);
     }
   }
 
@@ -47,7 +47,7 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
     final hasSeenHint = ref.watch(appStorageStateProvider.select((s) => s.value?.hasSeenSwipeFeedHint));
     if (hasSeenHint ?? false) return const SizedBox.shrink();
 
-    final colorScheme = context.mateo.colorScheme;
+    final colorScheme = MateoTheme.of(context).colorScheme;
     final i18n = ref.watch(translationProvider);
 
     return ControlledVisibility(
@@ -68,7 +68,7 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
         unawaited(ref.read(appStorageStateProvider.notifier).setSeenSwipeFeedHint(value: true));
       },
       child: ColoredBox(
-        color: colorScheme.overlay.scrim,
+        color: colorScheme.sheet.scrim,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -79,9 +79,9 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
                   child: $Lotties.swipeUpPhoneAnimation(
                     height: 120,
                     overrides: SwipeUpPhoneAnimationOverrides(
-                      phoneColor: context.mateo.palette.neutral[11],
-                      upArrowColor: context.mateo.palette.accent[1],
-                      pointerHandColor: context.mateo.palette.accent[1],
+                      phoneColor: MateoTheme.of(context).palette.neutral[11],
+                      upArrowColor: MateoTheme.of(context).palette.accent[1],
+                      pointerHandColor: MateoTheme.of(context).palette.accent[1],
                     ),
                     progress: MediaQuery.disableAnimationsOf(context) ? .3 : null,
                   ),
@@ -93,7 +93,11 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
                 child: Text(
                   i18n.feed.swipeUpHint.caption,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.mateo.palette.neutral[1]),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: MateoTheme.of(context).palette.neutral[1],
+                  ),
                 ),
               ),
             ],

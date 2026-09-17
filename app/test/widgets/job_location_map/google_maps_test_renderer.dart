@@ -89,7 +89,7 @@ class GoogleMapsTestRenderer extends GoogleMapsFlutterPlatform {
           rules: rules,
           featureType: 'all',
           elementType: 'geometry',
-          fallback: context.mateo.palette.neutral[2],
+          fallback: MateoTheme.of(context).palette.neutral[2],
         );
         if (!renderMapSurface) return ColoredBox(color: backgroundColor);
 
@@ -99,25 +99,25 @@ class GoogleMapsTestRenderer extends GoogleMapsFlutterPlatform {
           rules: rules,
           featureType: 'poi.park',
           elementType: 'geometry',
-          fallback: context.mateo.palette.green[4],
+          fallback: MateoTheme.of(context).palette.green[4],
         );
         final waterColor = _styleColor(
           rules: rules,
           featureType: 'water',
           elementType: 'geometry',
-          fallback: context.mateo.palette.cyan[2],
+          fallback: MateoTheme.of(context).palette.cyan[2],
         );
         final businessColor = _styleColor(
           rules: rules,
           featureType: 'poi.business',
           elementType: 'geometry',
-          fallback: context.mateo.palette.neutral[1],
+          fallback: MateoTheme.of(context).palette.neutral[1],
         );
         final attractionColor = _styleColor(
           rules: rules,
           featureType: 'poi.attraction',
           elementType: 'geometry',
-          fallback: context.mateo.palette.neutral[1],
+          fallback: MateoTheme.of(context).palette.neutral[1],
         );
         final roadColor = _styleColor(
           rules: rules,
@@ -129,13 +129,13 @@ class GoogleMapsTestRenderer extends GoogleMapsFlutterPlatform {
           rules: rules,
           featureType: 'road',
           elementType: 'geometry.stroke',
-          fallback: context.mateo.palette.neutral[1],
+          fallback: MateoTheme.of(context).palette.neutral[1],
         );
         final transitColor = _styleColor(
           rules: rules,
           featureType: 'transit.line',
           elementType: 'geometry',
-          fallback: context.mateo.palette.blue[1],
+          fallback: MateoTheme.of(context).palette.blue[1],
         );
         return ColoredBox(
           key: ValueKey<String>('google_maps_test_renderer_$creationId'),

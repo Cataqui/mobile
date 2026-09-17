@@ -33,7 +33,7 @@ abstract class FeedJobDto with _$FeedJobDto {
       currency: 'USD',
       note: '',
     ),
-    location: const FeedJobLocationDto(latitude: -23.556391, longitude: -46.844076, areaRadius: 2000),
+    location: const FeedJobLocationDto(latitude: -23.5505, longitude: -46.6333, areaRadius: 2000),
     descriptionSummary: 'Experiente em atendimento ao cliente, disponibilidade para finais de semana e feriados.',
   );
 }

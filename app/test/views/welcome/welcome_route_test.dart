@@ -25,6 +25,7 @@ abstract final class WelcomeRouteTestHelpers {
     when(() => resolvedSharedPreferences.getBool(any())).thenAnswer((_) async => null);
     when(() => resolvedSharedPreferences.setBool(any(), any())).thenAnswer((_) async {});
     final router = GoRouter(
+      observers: [MateoNavigatorObserver()],
       initialLocation: const WelcomeRoute().location,
       routes: [
         $welcomeRoute,
@@ -87,9 +88,9 @@ void main() {
           ),
         );
 
-    await tester.widget<MateoMenuButton>(find.byKey(const ValueKey('welcome_start_button'))).actions.first.onPressed!(
-      Future<void>.value(),
-    );
+    await tester.tap(find.byKey(const ValueKey('welcome_start_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('welcome_post_action')));
     await tester.pumpAndSettle();
 
     expect(router.routeInformationProvider.value.uri.path, '/post');
@@ -98,9 +99,9 @@ void main() {
   testWidgets('when choosing browse, it should complete onboarding and open the feed', (tester) async {
     final (:container, :router) = await WelcomeRouteTestHelpers.pumpRoute(tester: tester);
 
-    await tester.widget<MateoMenuButton>(find.byKey(const ValueKey('welcome_start_button'))).actions.last.onPressed!(
-      Future<void>.value(),
-    );
+    await tester.tap(find.byKey(const ValueKey('welcome_start_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('welcome_browse_action')));
     await tester.pumpAndSettle();
 
     expect(

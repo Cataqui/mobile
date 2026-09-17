@@ -25,22 +25,25 @@ class LoginSheet extends ConsumerWidget {
     unawaited(precacheImages(context));
     final providerContainer = ProviderScope.containerOf(context, listen: false);
 
-    final didLogin = await MateoBottomSheet.show<bool>(
-      context,
-      avoidKeyboardInset: false,
+    final didLogin = await showMateoSheet<bool>(
+      context: context,
       shouldDismiss: (source) {
         final isLoginInProgress = providerContainer.read(loginStateProvider).isLoading;
         if (!isLoginInProgress) return true;
 
         return switch (source) {
-          MateoBottomSheetDismissSource.closeButton => true,
-          MateoBottomSheetDismissSource.drag => false,
-          MateoBottomSheetDismissSource.tapOutside => false,
-          MateoBottomSheetDismissSource.systemBack => true,
-          MateoBottomSheetDismissSource.accessibilityAction => false,
+          MateoSheetDismissSource.drag => false,
+          MateoSheetDismissSource.tapOutside => false,
+          MateoSheetDismissSource.systemBack => true,
+          MateoSheetDismissSource.closeButton => true,
+          MateoSheetDismissSource.accessibilityAction => false,
         };
       },
-      child: const LoginSheet(),
+      view: const MateoSheetView(
+        reserveHeaderSpace: false,
+        header: MateoSheetViewHeader(presentation: .closeButton()),
+        surface: MateoSheetViewSurface(key: ValueKey('login_sheet_surface'), child: LoginSheet()),
+      ),
     );
 
     return didLogin ?? false;
@@ -49,7 +52,7 @@ class LoginSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final i18n = ref.watch(translationProvider);
-    final colorScheme = context.mateo.colorScheme;
+    final colorScheme = MateoTheme.of(context).colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

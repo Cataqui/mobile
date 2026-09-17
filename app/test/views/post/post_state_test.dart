@@ -1,9 +1,23 @@
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PostState', () {
+    test('when selecting a contact, it should preserve the original method and identifier', () {
+      final container = _PostStateTestHelpers.createContainer();
+
+      container
+          .read(postStateProvider.notifier)
+          .selectContact(contactMethod: JobContactMethod.whatsapp, identifier: 'Ventairy.Dev');
+
+      expect(container.read(postStateProvider).contact, (
+        contactMethod: JobContactMethod.whatsapp,
+        identifier: 'Ventairy.Dev',
+      ));
+    });
+
     test('when setting a non-empty description, it should preserve the raw text in post state', () {
       final container = _PostStateTestHelpers.createContainer();
 

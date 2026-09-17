@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
@@ -18,7 +19,11 @@ import '../../utils/test_app.dart';
 
 void main() {
   testWidgets('when navigating to a public route, it should navigate immediately', (tester) async {
-    final goRouter = GoRouter(initialLocation: '/post', routes: [$feedRoute, $postRoute]);
+    final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
+      initialLocation: '/post',
+      routes: [$feedRoute, $postRoute],
+    );
     addTearDown(goRouter.dispose);
     await tester.pumpWidget(TestApp.router(routerConfig: goRouter));
     await tester.pumpAndSettle();
@@ -51,6 +56,7 @@ void main() {
       return true;
     });
     final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
       initialLocation: const FeedRoute().location,
       routes: [
         $feedRoute,

@@ -5,6 +5,7 @@ import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
 import 'package:cataqui_app/widgets/whatsapp_login_button/whatsapp_login_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
@@ -34,7 +35,7 @@ void main() {
         providerOverrides: [
           translationProvider.overrideWithValue(i18n),
           authRepositoryProvider.overrideWithValue(authRepository),
-          whatsappProvider.overrideWithValue(whatsapp),
+          whatsappProvider(identifier: WhatsappLoginButtonTestHelpers.codeReceiver).overrideWithValue(whatsapp),
         ],
         child: LoginSheetTestHost(onShown: (result) => sheetResult = result),
       ),
@@ -48,7 +49,7 @@ void main() {
   }
 
   group('LoginSheet', () {
-    testWidgets('when opened, it should show the localized account message, keys, and WhatsApp login action', (
+    testWidgets('when opened, it should show the localized account message, padlock, and WhatsApp login action', (
       tester,
     ) async {
       await pumpHost(tester);
@@ -63,16 +64,10 @@ void main() {
       expect(
         (
           title: tester.widget<Text>(find.byKey(LoginSheet.titleKey)).data,
-          subtitle: tester.widget<Text>(find.byKey(LoginSheet.subtitleKey)).data,
           keysAssetName: (keysAssetImage as AssetImage).assetName,
           loginButtonCount: find.byType(WhatsappLoginButton).evaluate().length,
         ),
-        (
-          title: i18n.loginSheet.title,
-          subtitle: i18n.loginSheet.subtitle,
-          keysAssetName: 'assets/illustrations/keys.webp',
-          loginButtonCount: 1,
-        ),
+        (title: i18n.loginSheet.title, keysAssetName: 'assets/icons/padlock.webp', loginButtonCount: 1),
       );
     });
 
@@ -88,33 +83,17 @@ void main() {
       expect(await sheetResult, isFalse);
     });
 
-    testWidgets(
-      'when login is active, tapping outside and dragging should keep the sheet open until the close button is tapped',
-      (tester) async {
-        await pumpHost(tester);
-        await openSheet(tester);
-        await tester.tap(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
-        await tester.pump();
+    testWidgets('when login is active, the close button should dismiss the sheet', (tester) async {
+      await pumpHost(tester);
+      await openSheet(tester);
+      await tester.tap(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
+      await tester.pump();
 
-        await tester.tapAt(const Offset(4, 4));
-        await tester.pump();
-        final isVisibleAfterOutsideTap = find.byType(LoginSheet).evaluate().isNotEmpty;
-        await tester.drag(find.byKey(const Key('mateo_bottom_sheet_surface')), const Offset(0, 500));
-        await tester.pump(const Duration(seconds: 1));
-        final isVisibleAfterDrag = find.byType(LoginSheet).evaluate().isNotEmpty;
-        await tester.tap(find.byKey(const Key('mateo_bottom_sheet_close_button')));
-        await tester.pumpAndSettle();
+      await tester.tap(find.descendant(of: find.byType(MateoSheetViewHeader), matching: find.byType(MateoButton)));
+      await tester.pumpAndSettle();
 
-        expect(
-          (
-            isVisibleAfterOutsideTap: isVisibleAfterOutsideTap,
-            isVisibleAfterDrag: isVisibleAfterDrag,
-            result: await sheetResult,
-          ),
-          (isVisibleAfterOutsideTap: true, isVisibleAfterDrag: true, result: false),
-        );
-      },
-    );
+      expect(await sheetResult, isFalse);
+    });
 
     testWidgets('when the phone back action is used during login, it should close and complete with false', (
       tester,
@@ -161,7 +140,7 @@ void main() {
             providerOverrides: [
               translationProvider.overrideWithValue(i18n),
               authRepositoryProvider.overrideWithValue(authRepository),
-              whatsappProvider.overrideWithValue(whatsapp),
+              whatsappProvider(identifier: WhatsappLoginButtonTestHelpers.codeReceiver).overrideWithValue(whatsapp),
             ],
             child: TextField(focusNode: focusNode, autofocus: true),
           ),
@@ -172,7 +151,7 @@ void main() {
         final presentation = controller.show();
         await tester.pumpAndSettle();
         final fieldHasFocusWhileSheetIsOpen = focusNode.hasFocus;
-        final sheetRectWhileInsetIsPresent = tester.getRect(find.byKey(const Key('mateo_bottom_sheet_surface')));
+        final sheetRectWhileInsetIsPresent = tester.getRect(find.byKey(const Key('login_sheet_surface')));
         final drag = await tester.startGesture(tester.getCenter(find.byType(LoginSheet)));
         await drag.moveBy(const Offset(0, 40));
         await tester.pump();

@@ -40,7 +40,7 @@ class _ButtonTestHelpers {
     required Translations i18n,
     required MockJobRepository repository,
     required MockWhatsapp whatsapp,
-    required MockTelephony telephony,
+    required MockPhoneNumber phoneNumber,
   }) {
     final fakeJobState = FakeJobState(initialAsyncValue: jobStateValue);
 
@@ -48,8 +48,8 @@ class _ButtonTestHelpers {
       overrides: [
         jobStateProvider('test-job').overrideWith(() => fakeJobState),
         jobRepositoryProvider.overrideWithValue(repository),
-        whatsappProvider.overrideWithValue(whatsapp),
-        telephonyProvider.overrideWithValue(telephony),
+        whatsappProvider(identifier: '+5511999999999').overrideWithValue(whatsapp),
+        phoneNumberProvider(value: '+5511888888888').overrideWithValue(phoneNumber),
         translationProvider.overrideWithValue(i18n),
       ],
       child: const TestApp(child: JobContactButton(jobId: 'test-job')),
@@ -68,7 +68,7 @@ void main() {
   group('JobContactButton', () {
     late MockJobRepository repository;
     late MockWhatsapp whatsapp;
-    late MockTelephony telephony;
+    late MockPhoneNumber phoneNumber;
 
     setUp(() {
       repository = MockJobRepository();
@@ -87,10 +87,10 @@ void main() {
       );
 
       whatsapp = MockWhatsapp();
-      when(() => whatsapp.launchChat(number: any(named: 'number'))).thenAnswer((_) async => true);
+      when(whatsapp.chat).thenAnswer((_) async => true);
 
-      telephony = MockTelephony();
-      when(() => telephony.call(number: any(named: 'number'))).thenAnswer((_) async => true);
+      phoneNumber = MockPhoneNumber();
+      when(phoneNumber.call).thenAnswer((_) async => true);
     });
 
     group('when the job is loading', () {
@@ -101,7 +101,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -120,7 +120,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -136,7 +136,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -152,7 +152,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -161,7 +161,7 @@ void main() {
         await tester.tap(find.text(i18n.job.contactButton.whatsapp));
         await tester.pumpAndSettle();
 
-        verify(() => whatsapp.launchChat(number: '+5511999999999')).called(1);
+        verify(whatsapp.chat).called(1);
       });
     });
 
@@ -173,7 +173,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -203,7 +203,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -212,7 +212,7 @@ void main() {
         await tester.tap(find.text(i18n.job.contactButton.phoneCall));
         await tester.pumpAndSettle();
 
-        verify(() => telephony.call(number: '+5511888888888')).called(1);
+        verify(phoneNumber.call).called(1);
       });
     });
 
@@ -224,7 +224,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -240,7 +240,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -249,8 +249,8 @@ void main() {
         await tester.tap(find.text(i18n.job.contactButton.unknown));
         await tester.pumpAndSettle();
 
-        verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
-        verifyNever(() => telephony.call(number: any(named: 'number')));
+        verifyNever(whatsapp.chat);
+        verifyNever(phoneNumber.call);
       });
     });
 
@@ -269,7 +269,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -296,7 +296,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -306,8 +306,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
 
-        verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
-        verifyNever(() => telephony.call(number: any(named: 'number')));
+        verifyNever(whatsapp.chat);
+        verifyNever(phoneNumber.call);
       });
     });
 
@@ -331,7 +331,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -363,7 +363,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
 
@@ -373,8 +373,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
 
-        verifyNever(() => whatsapp.launchChat(number: any(named: 'number')));
-        verifyNever(() => telephony.call(number: any(named: 'number')));
+        verifyNever(whatsapp.chat);
+        verifyNever(phoneNumber.call);
       });
     });
 
@@ -398,7 +398,7 @@ void main() {
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
-            telephony: telephony,
+            phoneNumber: phoneNumber,
           ),
         );
         await tester.pumpAndSettle();

@@ -3,11 +3,14 @@ import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../utils/test_app.dart';
+
 void main() {
   group('OfflineErrorState Golden Tests', () {
     goldenTest(
       'when rendering visual states, it should match the approved goldens',
       fileName: 'offline_error_state_states',
+      pumpWidget: TestApp.pumpGolden,
       builder: () => GoldenTestGroup(
         scenarioConstraints: const BoxConstraints.tightFor(width: 400, height: 400),
         children: [

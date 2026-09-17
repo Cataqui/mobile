@@ -141,145 +141,145 @@ enum AddressCategory {
     }
   }
 
-  Widget icon({double? size, Color? color, bool opticalCenter = true}) {
+  Widget icon({double? size, Color? color, Color? backgroundColor, bool opticalCenter = true}) {
     switch (this) {
       case AddressCategory.street:
       case AddressCategory.neighborhood:
       case AddressCategory.city:
       case AddressCategory.other:
-        return MateoIcon.mapPin(width: size, height: size, color: color);
+        return MateoIcon(.mapPin, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.restaurant:
-        return MateoIcon.forkKnife(width: size, height: size, color: color);
+        return MateoIcon(.forkKnife, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.cafe:
-        return MateoIcon.hotCoffeeCup(width: size, height: size, color: color);
+        return MateoIcon(.hotCoffeeCup, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.bar:
-        final beerIcon = MateoIcon.beerMug(width: size, height: size, color: color);
+        final beerIcon = MateoIcon(.beerMug, size: size, color: color, backgroundColor: backgroundColor);
         if (!opticalCenter) return beerIcon;
         return Transform.translate(offset: Offset((size ?? _defaultIconSize) * 0.05, 0), child: beerIcon);
 
       case AddressCategory.cocktailBar:
-        return MateoIcon.matiniGlass(width: size, height: size, color: color);
+        return MateoIcon(.matiniGlass, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.wineBar:
-        return MateoIcon.wineGlass(width: size, height: size, color: color);
+        return MateoIcon(.wineGlass, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.hookahBar:
-        final hookahIcon = MateoIcon.hookah(width: size, height: size, color: color);
+        final hookahIcon = MateoIcon(.hookah, size: size, color: color, backgroundColor: backgroundColor);
 
         if (!opticalCenter) return hookahIcon;
         return Transform.translate(offset: Offset(-((size ?? _defaultIconSize) * 0.075), 0), child: hookahIcon);
 
       case AddressCategory.nightClub:
-        return MateoIcon.discoBall(width: size, height: size, color: color);
+        return MateoIcon(.discoBall, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.park:
-        return MateoIcon.tree(width: size, height: size, color: color);
+        return MateoIcon(.tree, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.amusementPark:
-        return MateoIcon.ferrisWheel(width: size, height: size, color: color);
+        return MateoIcon(.ferrisWheel, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.shoppingMall:
       case AddressCategory.store:
-        return MateoIcon.shoppingBag(width: size, height: size, color: color);
+        return MateoIcon(.shoppingBag, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.hairCare:
-        return MateoIcon.scissors(width: size, height: size, color: color);
+        return MateoIcon(.scissors, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.automotiveShop:
-        return MateoIcon.tire(width: size, height: size, color: color);
+        return MateoIcon(.tire, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.bicycleShop:
-        return MateoIcon.bicycle(width: size, height: size, color: color);
+        return MateoIcon(.bicycle, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.vehicleDealer:
-        return MateoIcon.shoppingBag(width: size, height: size, color: color);
+        return MateoIcon(.shoppingBag, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.vehicleRepair:
-        return MateoIcon.wrench(width: size, height: size, color: color);
+        return MateoIcon(.wrench, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.vehicleWash:
-        return MateoIcon.dropFoam(width: size, height: size, color: color);
+        return MateoIcon(.dropFoam, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.supermarket:
-        return MateoIcon.shoppingCart(width: size, height: size, color: color);
+        return MateoIcon(.shoppingCart, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.lodging:
-        return MateoIcon.sleepingFigure(width: size, height: size, color: color);
+        return MateoIcon(.sleepingFigure, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.school:
       case AddressCategory.university:
-        return MateoIcon.graduateCap(width: size, height: size, color: color);
+        return MateoIcon(.graduateCap, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.library:
-        return MateoIcon.book(width: size, height: size, color: color);
+        return MateoIcon(.book, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.hospital:
-        return MateoIcon.medicalCross(width: size, height: size, color: color);
+        return MateoIcon(.medicalCross, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.pharmacy:
-        return MateoIcon.pills(width: size, height: size, color: color);
+        return MateoIcon(.pills, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.gym:
-        return MateoIcon.dumbbell(width: size, height: size, color: color);
+        return MateoIcon(.dumbbell, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.stadium:
-        return MateoIcon.stadium(width: size, height: size, color: color);
+        return MateoIcon(.stadium, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.racingVenue:
-        return MateoIcon.checkeredFlag(width: size, height: size, color: color);
+        return MateoIcon(.checkeredFlag, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.sportsVenue:
-        return MateoIcon.runningFigure(width: size, height: size, color: color);
+        return MateoIcon(.runningFigure, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.museum:
-        return MateoIcon.classicBuilding(width: size, height: size, color: color);
+        return MateoIcon(.classicBuilding, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.theater:
-        return MateoIcon.sadMaskHappyMask(width: size, height: size, color: color);
+        return MateoIcon(.sadMaskHappyMask, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.movieTheater:
-        return MateoIcon.popcorn(width: size, height: size, color: color);
+        return MateoIcon(.popcorn, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.busStation:
-        return MateoIcon.busFront(width: size, height: size, color: color);
+        return MateoIcon(.busFront, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.trainStation:
-        return MateoIcon.trainFront(width: size, height: size, color: color);
+        return MateoIcon(.trainFront, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.airport:
-        return MateoIcon.planeUpRight(width: size, height: size, color: color);
+        return MateoIcon(.planeUpRight, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.heliport:
-        return MateoIcon.helicopterFront(width: size, height: size, color: color);
+        return MateoIcon(.helicopterFront, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.parking:
-        final parkingIcon = MateoIcon.parkingSign(width: size, height: size, color: color);
+        final parkingIcon = MateoIcon(.parkingSign, size: size, color: color, backgroundColor: backgroundColor);
         if (!opticalCenter) return parkingIcon;
         return Transform.translate(offset: Offset((size ?? _defaultIconSize) * 0.05, 0), child: parkingIcon);
 
       case AddressCategory.chargingStation:
-        return MateoIcon.evPlug(width: size, height: size, color: color);
+        return MateoIcon(.evPlug, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.gasStation:
-        return MateoIcon.gasStation(width: size, height: size, color: color);
+        return MateoIcon(.gasStation, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.bank:
-        return MateoIcon.bankBuilding(width: size, height: size, color: color);
+        return MateoIcon(.bankBuilding, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.policeStation:
-        return MateoIcon.policeBadge(width: size, height: size, color: color);
+        return MateoIcon(.policeBadge, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.fireStation:
-        return MateoIcon.flame(width: size, height: size, color: color);
+        return MateoIcon(.flame, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.placeOfWorship:
-        return MateoIcon.prayingFigure(width: size, height: size, color: color);
+        return MateoIcon(.prayingFigure, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.governmentOffice:
-        return MateoIcon.governmentBuilding(width: size, height: size, color: color);
+        return MateoIcon(.governmentBuilding, size: size, color: color, backgroundColor: backgroundColor);
     }
   }
 }

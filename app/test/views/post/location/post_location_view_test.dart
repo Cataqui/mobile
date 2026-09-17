@@ -53,7 +53,7 @@ void main() {
     final semantics = tester.ensureSemantics();
     await PostLocationTestHelpers.pumpPost(tester);
 
-    final tap = find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(MateoTap));
+    final tap = find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(MateoPress));
     final data = tester.getSemantics(tap).getSemanticsData();
     final matchingLabels = find.bySemanticsLabel(i18n.post.location.chipTitle).evaluate().length;
     semantics.dispose();
@@ -68,7 +68,7 @@ void main() {
     await PostLocationTestHelpers.pumpPost(tester);
 
     final node = tester.getSemantics(
-      find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(MateoTap)),
+      find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(MateoPress)),
     );
     node.owner!.performAction(node.id, SemanticsAction.tap);
     await tester.pump();
@@ -98,8 +98,68 @@ void main() {
 
     expect(
       (opening: locationRoute.transitionDuration, closing: locationRoute.reverseTransitionDuration),
-      (opening: const Duration(milliseconds: 320), closing: const Duration(milliseconds: 270)),
+      (opening: const Duration(milliseconds: 550), closing: const Duration(milliseconds: 450)),
     );
+  });
+
+  testWidgets('when location closes behind the keyboard, it should keep moving through the exit', (tester) async {
+    await PostLocationTestHelpers.pumpPost(tester, disableAnimations: false, keyboardInset: 300);
+
+    await tester.tap(find.byKey(const ValueKey('post_location_chip')));
+    await tester.pump();
+
+    final slideTransition = tester.widget<SlideTransition>(
+      find.ancestor(of: find.byType(PostLocationView), matching: find.byType(SlideTransition)).first,
+    );
+    expect(slideTransition.position.value, const Offset(0, 1));
+
+    await tester.pump(const Duration(milliseconds: 440));
+    expect(slideTransition.position.value.dx, 0);
+    expect(slideTransition.position.value.dy, inExclusiveRange(0, 0.002));
+
+    await tester.pump(const Duration(milliseconds: 110));
+    expect(slideTransition.position.value, Offset.zero);
+
+    // The independent surface flight is installed after the route settles.
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('post_location_close_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(slideTransition.position.value.dy, inExclusiveRange(0.07, 0.15));
+
+    await tester.pump(const Duration(milliseconds: 389));
+    expect(slideTransition.position.value.dx, 0);
+    final beforeFinalFrames = slideTransition.position.value.dy;
+    await tester.pump(const Duration(milliseconds: 29));
+    expect(slideTransition.position.value.dy - beforeFinalFrames, greaterThan(0.03));
+
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pumpAndSettle();
+    expect(find.byType(PostLocationView), findsNothing);
+  });
+
+  testWidgets('when closed during the entrance settling phase, location should move immediately without jumping', (
+    tester,
+  ) async {
+    await PostLocationTestHelpers.pumpPost(tester, disableAnimations: false);
+    await tester.tap(find.byKey(const ValueKey('post_location_chip')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final slideTransition = tester.widget<SlideTransition>(
+      find.ancestor(of: find.byType(PostLocationView), matching: find.byType(SlideTransition)).first,
+    );
+    final beforeClose = slideTransition.position.value.dy;
+    await tester.tap(find.byKey(const ValueKey('post_location_close_button')));
+    await tester.pump();
+    expect(slideTransition.position.value.dy, closeTo(beforeClose, 0.001));
+
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(slideTransition.position.value.dy - beforeClose, inExclusiveRange(0.08, 0.25));
+    await tester.pumpAndSettle();
+    expect(find.byType(PostLocationView), findsNothing);
   });
 
   testWidgets('when the location overlay opens, it should keep the keyboard visible', (tester) async {
@@ -126,13 +186,21 @@ void main() {
 
   testWidgets('when the location content is tapped, it should keep the search focused', (tester) async {
     await PostLocationTestHelpers.openLocation(tester);
-    final searchController = tester
-        .widget<MateoTextField>(find.byKey(const ValueKey('post_location_search_field')))
-        .controller!;
     await tester.tap(find.byKey(const ValueKey('post_location_empty_guidance')));
     await tester.pump();
 
-    expect(searchController.hasFocus, isTrue);
+    expect(
+      tester
+          .widget<EditableText>(
+            find.descendant(
+              of: find.byKey(const ValueKey('post_location_search_field')),
+              matching: find.byType(EditableText),
+            ),
+          )
+          .focusNode
+          .hasFocus,
+      isTrue,
+    );
   });
 
   testWidgets('when the location overlay opens, it should keep one surface Morph endpoint on each route', (
@@ -141,7 +209,15 @@ void main() {
     await PostLocationTestHelpers.openLocation(tester);
 
     final endpoints = find
-        .byWidgetPredicate((widget) => widget is Morph && widget.tag == PostLocationMorphTag.surface)
+        .byWidgetPredicate(
+          (widget) =>
+              (widget is MateoSurface &&
+                  widget.animation is MateoSurfaceAnimationTransform &&
+                  (widget.animation! as MateoSurfaceAnimationTransform).id == PostLocationMorphTag.surface) ||
+              (widget is MateoViewSurface &&
+                  widget.animation is MateoSurfaceAnimationTransform &&
+                  (widget.animation! as MateoSurfaceAnimationTransform).id == PostLocationMorphTag.surface),
+        )
         .evaluate();
 
     expect(
@@ -162,9 +238,15 @@ void main() {
   testWidgets('when location opens, it should use only the top Mateo edge fade', (tester) async {
     await PostLocationTestHelpers.openLocation(tester);
 
-    final view = tester.widget<MateoScrollableView>(find.byKey(const ValueKey('post_location_view')));
+    final surface = tester.widget<MateoViewSurface>(find.byKey(const ValueKey('post_location_view_surface')));
 
-    expect((top: view.edgeFade?.top != null, bottom: view.edgeFade?.bottom != null), (top: true, bottom: false));
+    expect(
+      (
+        top: surface.edgeEffect.at.contains(MateoEdgeEffectSide.top),
+        bottom: surface.edgeEffect.at.contains(MateoEdgeEffectSide.bottom),
+      ),
+      (top: true, bottom: false),
+    );
   });
   testWidgets('when the overlay close action is tapped, it should dismiss the location overlay', (tester) async {
     await PostLocationTestHelpers.openLocation(tester);
@@ -187,7 +269,7 @@ void main() {
   testWidgets('when location opens, it should use the lightweight modal scrim', (tester) async {
     await PostLocationTestHelpers.openLocation(tester, disableAnimations: false);
 
-    expect(tester.widget<AnimatedModalBarrier>(find.byType(AnimatedModalBarrier)).color.value?.a, 0.1);
+    expect(tester.widget<AnimatedModalBarrier>(find.byType(AnimatedModalBarrier)).color.value?.a, 0.05);
   });
 
   testWidgets('when location opens with reduced motion, it should settle in the custom overlay', (tester) async {
@@ -241,7 +323,7 @@ void main() {
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua', settle: false);
 
-    expect(find.byKey(const ValueKey('post_current_location_button')), findsNothing);
+    expect(find.byKey(const ValueKey('post_current_location_button')).hitTestable(), findsNothing);
   });
 
   testWidgets('when an address search finishes, it should keep the current location button hidden', (tester) async {

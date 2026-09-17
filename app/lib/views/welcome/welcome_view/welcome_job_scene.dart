@@ -372,8 +372,8 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
         child: DecoratedBox(
           key: ValueKey('welcome_artwork_circle_${slot.name}'),
           decoration: _WelcomeArtworkBackgroundDecoration(
-            beginColor: previousIllustration.backgroundColor(context.mateo.palette),
-            endColor: illustration.backgroundColor(context.mateo.palette),
+            beginColor: previousIllustration.backgroundColor(MateoTheme.of(context).palette),
+            endColor: illustration.backgroundColor(MateoTheme.of(context).palette),
             colorAnimation: _artworkColorController,
           ),
           child: Center(
@@ -382,7 +382,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
               child: illustration.builder(
                 width: illustration.width,
                 height: illustration.height,
-                color: illustration.illustrationColor?.call(context.mateo.palette),
+                color: illustration.illustrationColor?.call(MateoTheme.of(context).palette),
               ),
             ),
           ),

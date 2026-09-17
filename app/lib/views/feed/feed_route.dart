@@ -17,12 +17,12 @@ class FeedRoute extends AppRouteData with $FeedRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     unawaited(FeedView.precacheImages(context));
 
-    return MateoPage(
+    return const MateoPage(
       transition: MateoPageTransition.push(
-        duration: const Duration(milliseconds: 550),
+        duration: Duration(milliseconds: 550),
         direction: MateoPageTransitionDirection.up,
       ),
-      child: const FeedView(),
+      child: FeedView(),
     );
   }
 }

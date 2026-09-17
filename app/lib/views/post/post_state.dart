@@ -1,3 +1,4 @@
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,6 +14,13 @@ class PostState extends _$PostState {
     if (state.descriptionText == normalizedDescriptionText) return;
 
     state = state.copyWith(descriptionText: normalizedDescriptionText);
+  }
+
+  void selectContact({required JobContactMethod contactMethod, required String identifier}) {
+    final contact = (contactMethod: contactMethod, identifier: identifier);
+    if (state.contact == contact) return;
+
+    state = state.copyWith(contact: contact);
   }
 
   void selectAddress({required String addressId, required String sessionToken, required String locationTitle}) {

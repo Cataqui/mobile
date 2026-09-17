@@ -37,9 +37,13 @@ void main() {
         whatsapp: whatsapp,
         onSuccess: (_) {},
       );
-      final button = tester.widget<MateoButton>(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
-
-      expect(button.presentation.label, i18n.whatsappLoginButton.label);
+      expect(
+        find.descendant(
+          of: find.byKey(WhatsappLoginButtonTestHelpers.buttonKey),
+          matching: find.text(i18n.whatsappLoginButton.label),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('when WhatsApp opens and the person has not returned, it should keep the button loading', (
@@ -58,7 +62,7 @@ void main() {
     });
 
     testWidgets(
-      'when login remains incomplete after returning from WhatsApp, it should wait three seconds before showing that it is being checked',
+      'when login remains incomplete after returning from WhatsApp, it should wait three seconds then keep the checking message visible beyond five seconds',
       (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
@@ -79,6 +83,9 @@ void main() {
         await tester.pump(WhatsappLoginButton.checkingToastDelay - const Duration(milliseconds: 1));
         final checkingToastCountBeforeDelay = find.text(i18n.whatsappLoginButton.checking).evaluate().length;
         await tester.pump(const Duration(milliseconds: 1));
+
+        await tester.pump(const Duration(seconds: 10));
+        await tester.pump();
 
         expect(
           (
@@ -112,12 +119,61 @@ void main() {
         await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);
         await tester.pump(WhatsappLoginButton.checkingToastDelay);
 
-        await tester.tap(find.byKey(const Key('mateo_toast_surface')));
-        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.tap(find.text(i18n.whatsappLoginButton.checking));
+        await tester.pump(const Duration(seconds: 1));
 
         expect(find.text(i18n.whatsappLoginButton.checking), findsOneWidget);
       },
     );
+
+    for (final succeeds in [true, false]) {
+      testWidgets(
+        'when login ${succeeds ? 'succeeds' : 'fails'} after the checking message appears, it should replace it with the result',
+        (tester) async {
+          final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
+          when(
+            () => authRepository.exchangeNotpIntent(
+              intentToken: WhatsappLoginButtonTestHelpers.intentToken,
+              timeoutStart: any(named: 'timeoutStart'),
+            ),
+          ).thenAnswer((_) => exchangeCompleter.future);
+          await WhatsappLoginButtonTestHelpers.pumpButton(
+            tester: tester,
+            authRepository: authRepository,
+            whatsapp: whatsapp,
+            onSuccess: (_) {
+              unawaited(
+                tester
+                    .state<NavigatorState>(find.byType(Navigator).first)
+                    .pushReplacement(MaterialPageRoute<void>(builder: (_) => const SizedBox.shrink())),
+              );
+            },
+          );
+          await WhatsappLoginButtonTestHelpers.startLogin(tester: tester);
+          await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);
+          await tester.pump(const Duration(seconds: 3));
+
+          if (succeeds) {
+            exchangeCompleter.complete(WhatsappLoginButtonTestHelpers.issuedSessionEnvelope);
+          } else {
+            exchangeCompleter.completeError(StateError('exchange failed'));
+          }
+          await tester.pumpAndSettle();
+
+          expect(
+            (
+              checking: find.text(i18n.whatsappLoginButton.checking).evaluate().length,
+              result: find
+                  .text(succeeds ? i18n.whatsappLoginButton.success : i18n.whatsappLoginButton.error)
+                  .evaluate()
+                  .length,
+            ),
+            (checking: 0, result: 1),
+          );
+        },
+      );
+    }
 
     testWidgets('when login preparation fails, it should show an error and enable another attempt', (tester) async {
       when(
@@ -248,7 +304,11 @@ void main() {
       await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);
       await tester.pump(WhatsappLoginButton.checkingToastDelay);
 
-      await tester.pumpWidget(const SizedBox.shrink());
+      unawaited(
+        tester
+            .state<NavigatorState>(find.byType(Navigator).first)
+            .pushReplacement(MaterialPageRoute<void>(builder: (_) => const SizedBox.shrink())),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text(i18n.whatsappLoginButton.checking), findsNothing);

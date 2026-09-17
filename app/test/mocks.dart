@@ -30,7 +30,7 @@ class MockLoginSheetController extends Mock implements LoginSheetController {}
 
 class MockWhatsapp extends Mock implements Whatsapp {}
 
-class MockTelephony extends Mock implements Telephony {}
+class MockPhoneNumber extends Mock implements PhoneNumber {}
 
 class MockSharedPreferencesAsync extends Mock implements SharedPreferencesAsync {}
 

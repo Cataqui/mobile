@@ -2,7 +2,7 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
+import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
@@ -27,7 +27,11 @@ void main() {
   });
 
   setUp(() {
-    goRouter = GoRouter(initialLocation: const FeedRoute().location, routes: [$feedRoute, $jobRoute]);
+    goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
+      initialLocation: const FeedRoute().location,
+      routes: [$feedRoute, $jobRoute],
+    );
     jobRepository = MockJobRepository();
     when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
       (_) async => ApiEnvelopeDto<JobDto>(
@@ -177,7 +181,7 @@ void main() {
             )
             .first,
       );
-      expect(headerMorph.tag, equals(JobViewMorphTag.header.valueFor(jobId: feedJob.jobId)));
+      expect(headerMorph.target.tag, equals(JobViewTransformTag.header.valueFor(jobId: feedJob.jobId)));
     });
 
     testWidgets('when dragging the surface down, it should preview dismissal without scrubbing the route animation', (
@@ -191,7 +195,7 @@ void main() {
         feedJob: feedJob,
         jobRepository: jobRepository,
       );
-      final surface = find.byType(MateoScrollableView);
+      final surface = find.byKey(const ValueKey('job_surface'));
       final initialTopLeft = tester.getTopLeft(surface);
       final gesture = await tester.startGesture(tester.getCenter(surface));
       await gesture.moveBy(const Offset(0, 220));
@@ -215,7 +219,7 @@ void main() {
         feedJob: feedJob,
         jobRepository: jobRepository,
       );
-      await tester.drag(find.byType(MateoScrollableView), const Offset(0, 260));
+      await tester.drag(find.byKey(const ValueKey('job_surface')), const Offset(0, 260));
       await tester.pumpAndSettle();
 
       expect(find.byType(JobView), findsNothing);
@@ -230,7 +234,7 @@ void main() {
         feedJob: feedJob,
         jobRepository: jobRepository,
       );
-      await tester.drag(find.byType(MateoScrollableView), const Offset(0, 120));
+      await tester.drag(find.byKey(const ValueKey('job_surface')), const Offset(0, 120));
       await tester.pump(const Duration(milliseconds: 430));
       await tester.pump();
 
@@ -257,9 +261,9 @@ void main() {
           feedJob: feedJob,
           jobRepository: jobRepository,
         );
-        await tester.drag(find.byType(MateoScrollableView), const Offset(0, -500));
+        await tester.drag(find.byKey(const ValueKey('job_surface')), const Offset(0, -500));
         await tester.pump();
-        await tester.drag(find.byType(MateoScrollableView), const Offset(0, 150));
+        await tester.drag(find.byKey(const ValueKey('job_surface')), const Offset(0, 150));
         await tester.pump();
 
         final route = ModalRoute.of(tester.element(find.byType(JobView)));
@@ -287,7 +291,7 @@ void main() {
           feedJob: feedJob,
           jobRepository: jobRepository,
         );
-        await tester.drag(find.byType(MateoScrollableView), const Offset(0, -500));
+        await tester.drag(find.byKey(const ValueKey('job_surface')), const Offset(0, -500));
         await tester.pump();
         final header = find.byKey(const ValueKey('job_dismiss_handle'));
         final gesture = await tester.startGesture(tester.getCenter(header));
@@ -323,10 +327,10 @@ void main() {
         final body = find.byKey(const ValueKey('job_title')).last;
         final footer = find.descendant(of: find.byType(JobContactButton), matching: find.byType(MateoButton)).last;
         final scrollPosition = Scrollable.of(tester.element(body)).position;
-        await tester.drag(find.byType(MateoScrollableView), const Offset(0, -500));
+        await tester.drag(find.byKey(const ValueKey('job_surface')), const Offset(0, -500));
         await tester.pump();
         Offset positionInView(Finder finder) {
-          final view = tester.renderObject<RenderBox>(find.byType(MateoScrollableView));
+          final view = tester.renderObject<RenderBox>(find.byKey(const ValueKey('job_surface')));
           final child = tester.renderObject<RenderBox>(finder);
           return view.globalToLocal(child.localToGlobal(Offset.zero));
         }
@@ -360,93 +364,5 @@ void main() {
         await tester.pumpAndSettle();
       },
     );
-  });
-
-  group('when opened from a deep link without a feed job', () {
-    testWidgets('when loading, it should not show the title', (tester) async {
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.loadingState(),
-      );
-
-      expect(find.text(JobViewTestHelpers.feedJob().title), findsNothing);
-    });
-
-    testWidgets('when loaded, it should show the job title from the fetched data', (tester) async {
-      const title = 'Carregar caminhão';
-
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.loadedState(job: JobViewTestHelpers.job(title: title)),
-      );
-
-      expect(find.text(title), findsOneWidget);
-    });
-
-    testWidgets('when loaded, it should show the payment from the fetched data', (tester) async {
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.loadedState(),
-      );
-
-      expect(find.textContaining(r'R$150'), findsOneWidget);
-    });
-
-    testWidgets('when loaded with a job posted 20 hours ago, it should show the time-ago from the fetched data', (
-      tester,
-    ) async {
-      final fixedNow = DateTime(2026, 6, 30, 11);
-      final createdAt = fixedNow.subtract(const Duration(hours: 20));
-
-      await withClock(Clock(() => fixedNow), () async {
-        await JobViewTestHelpers.pumpJobView(
-          tester: tester,
-          feedJob: null,
-          jobId: 'job_deep_link',
-          jobState: JobViewTestHelpers.loadedState(job: JobViewTestHelpers.job(createdAt: createdAt)),
-        );
-      });
-
-      expect(find.text(i18n.feedJob.timeAgo.hours(count: 20)), findsOneWidget);
-    });
-
-    testWidgets('when the full job fails, it should show the retry button', (tester) async {
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.errorState(),
-      );
-
-      expect(find.text(i18n.feed.error.retryButtonTitle), findsOneWidget);
-    });
-
-    testWidgets('when the full job fails and retry is tapped, it should retry loading the full job', (tester) async {
-      var retryCount = 0;
-
-      await JobViewTestHelpers.pumpJobView(
-        tester: tester,
-        feedJob: null,
-        jobId: 'job_deep_link',
-        jobState: JobViewTestHelpers.errorState(
-          retryResult: () async {
-            retryCount += 1;
-          },
-        ),
-      );
-      final retryButton = find.text(i18n.feed.error.retryButtonTitle);
-      await tester.ensureVisible(retryButton);
-      await tester.pump();
-      await tester.tap(retryButton);
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(retryCount, equals(1));
-    });
   });
 }

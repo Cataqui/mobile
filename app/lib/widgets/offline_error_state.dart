@@ -17,7 +17,7 @@ class OfflineErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.mateo.colorScheme;
+    final colorScheme = MateoTheme.of(context).colorScheme;
 
     return Center(
       child: Column(
@@ -45,13 +45,11 @@ class OfflineErrorState extends StatelessWidget {
           if (retry != null) ...[
             const SizedBox(height: 20),
             MateoButton(
-              presentation: MateoButtonPresentation(
+              presentation: MateoButtonPresentation.label(
                 variant: MateoButtonVariant.secondary,
-                fit: MateoButtonFit.fit,
+                width: .fit,
                 label: retry!.label,
-                leadingIconBuilder: (state) =>
-                    MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
-                leadingIconSpacing: 10,
+                leadingIcon: const MateoIcon(.arrowRotateClockwise),
               ),
               onPressed: retry!.onRetry,
             ),

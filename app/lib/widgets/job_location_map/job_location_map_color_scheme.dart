@@ -1,7 +1,6 @@
 import 'package:cataqui_app/core/enums/address_category.dart';
 import 'package:flutter/material.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
-import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 @immutable
 final class JobLocationMapFeatureColorScheme {
@@ -86,9 +85,9 @@ final class JobLocationMapColorScheme {
       administrativeLocality: const JobLocationMapFeatureColorScheme(),
       administrativeNeighborhood: const JobLocationMapFeatureColorScheme(),
       administrativeProvince: const JobLocationMapFeatureColorScheme(),
-      landscape: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2].lighten(0.2)),
-      landscapeManMade: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2].lighten(0.2)),
-      landscapeNatural: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2].lighten(0.2)),
+      landscape: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2]),
+      landscapeManMade: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2]),
+      landscapeNatural: JobLocationMapFeatureColorScheme(geometry: palette.neutral[2]),
       landscapeNaturalLandcover: const JobLocationMapFeatureColorScheme(),
       landscapeNaturalTerrain: const JobLocationMapFeatureColorScheme(),
       pointOfInterest: const JobLocationMapFeatureColorScheme(),
@@ -117,10 +116,10 @@ final class JobLocationMapColorScheme {
       ),
       roadHighwayControlledAccess: const JobLocationMapFeatureColorScheme(),
       roadLocal: JobLocationMapFeatureColorScheme(
-        geometry: palette.neutral[2].darken(0.06),
+        geometry: palette.neutral[3],
         // geometryStroke: Colors.red,
         // geometryStroke: Colors.white,
-        geometryWeight: 1,
+        geometryWeight: 2,
       ),
       transit: const JobLocationMapFeatureColorScheme(),
       transitLine: const JobLocationMapFeatureColorScheme(),

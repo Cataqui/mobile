@@ -23,7 +23,6 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
   Timer? _checkingToastTimer;
   Completer<void>? _appReturnCompleter;
   VoidCallback? _dismissCheckingToast;
-  bool _isCheckingToastVisible = false;
 
   void _startLogin() {
     final appReturn = Completer<void>();
@@ -47,17 +46,19 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
       final loginState = ref.read(loginStateProvider.notifier);
       if (!loginState.isExchangingNotpIntent) return;
 
-      _isCheckingToastVisible = true;
+      final toastContext = Navigator.of(context, rootNavigator: true).context;
+
+      _dismissCheckingToast = () {
+        if (toastContext.mounted) dismissMateoToast(context: toastContext);
+      };
+
       ref
           .read(appToastProvider)
           .showInfo(
             context,
             message: ref.read(translationProvider).whatsappLoginButton.checking,
-            iconBuilder: (state) => Center(
-              child: MateoCircularLoadingIndicator(
-                color: context.mateo.palette.blue[9],
-                trackColor: context.mateo.palette.blue[6],
-              ),
+            icon: Center(
+              child: MateoLoadingIndicator(presentation: .circular(color: MateoTheme.of(context).palette.blue[9])),
             ),
             duration: const Duration(days: 365),
             dismissible: false,
@@ -72,7 +73,8 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
 
         _cancelCheckingToastTimer();
         _appReturnCompleter = null;
-        _isCheckingToastVisible = false;
+        _dismissCheckingToast?.call();
+        _dismissCheckingToast = null;
 
         ref
             .read(appToastProvider)
@@ -83,7 +85,8 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
       error: (error, _) {
         _cancelCheckingToastTimer();
         _appReturnCompleter = null;
-        _isCheckingToastVisible = false;
+        _dismissCheckingToast?.call();
+        _dismissCheckingToast = null;
         final i18n = ref.read(translationProvider);
         ref
             .read(appToastProvider)
@@ -106,17 +109,13 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _dismissCheckingToast = MateoToastMessenger.maybeOf(context)?.dismissActive;
-  }
-
-  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _cancelCheckingToastTimer();
-
-    if (_isCheckingToastVisible) _dismissCheckingToast?.call();
+    final dismissCheckingToast = _dismissCheckingToast;
+    if (dismissCheckingToast != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => dismissCheckingToast());
+    }
 
     super.dispose();
   }
@@ -141,16 +140,21 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
     ref.listen(loginStateProvider, _handleStateChange);
 
     return MateoButton(
-      presentation: MateoButtonPresentation(
-        variant: MateoButtonVariant.primary,
-        fit: MateoButtonFit.expand,
+      presentation: .label(
+        variant: .primary,
+        width: .fill,
         label: i18n.whatsappLoginButton.label,
-        colorScheme: context.mateo.colorScheme.buttons.whatsapp.tertiary,
-        leadingIconSpacing: 6,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-        leadingIconBuilder: (state) {
-          return MateoIcon.whatsapp(width: 22, height: 22, color: state.foregroundColor);
+        colorScheme: switch (Theme.of(context).brightness) {
+          Brightness.light => MateoButtonColorScheme(
+            background: const Color(0xFF002002),
+
+            foreground: const Color(0xFF25D366),
+            backgroundDisabled: MateoTheme.of(context).palette.neutral[4],
+            foregroundDisabled: MateoTheme.of(context).palette.neutral[9],
+          ),
+          Brightness.dark => throw UnsupportedError('Dark contact-action colors are not supported.'),
         },
+        leadingIcon: const MateoIcon(.whatsapp),
       ),
       key: const ValueKey('whatsapp_login_button_action'),
       isLoading: isLoading,

@@ -6,18 +6,18 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/job/enums/job_view_morph_tag.dart';
+import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
+import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
-import 'package:cataqui_app/views/job/widgets/job_surface/job_surface.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
-class JobView extends ConsumerWidget {
-  const JobView({required this.jobId, this.feedJob, super.key});
+class JobView extends ConsumerStatefulWidget {
+  const JobView({required this.jobId, required this.feedJob, super.key});
 
   static Future<void> precacheImages(BuildContext context) async {
     await Future.wait([
@@ -26,52 +26,57 @@ class JobView extends ConsumerWidget {
     ]);
   }
 
-  static const _errorIllustrationHeight = 140.0;
+  static const _errorIllustrationHeight = 120.0;
   final String jobId;
-  final FeedJobDto? feedJob;
+  final FeedJobDto feedJob;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = context.mateo.colorScheme;
+  ConsumerState<JobView> createState() => _JobViewState();
+}
+
+class _JobViewState extends ConsumerState<JobView> {
+  late MorphTarget _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.jobId));
+
+  @override
+  void didUpdateWidget(JobView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.jobId == widget.jobId) return;
+    _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.jobId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = MateoTheme.of(context).colorScheme;
     final i18n = ref.watch(translationProvider);
-    final jobState = ref.watch(jobStateProvider(jobId));
+    final jobState = ref.watch(jobStateProvider(widget.jobId));
     final jobData = jobState.asData?.value;
-    final headerMorphTag = JobViewMorphTag.header.valueFor(jobId: jobId);
+    final headerMorphTag = JobViewTransformTag.header.valueFor(jobId: widget.jobId);
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: InteractiveSwipeDismiss(
           direction: InteractiveSwipeDismissDirection.down,
-          dragConfig: const InteractiveSwipeDismissDragConfig(
-            freeDrag: true,
-            sensitivity: 0.37,
-            dismissThreshold: 0.25,
-          ),
+          dragConfig: const InteractiveSwipeDismissDragConfig(freeDrag: true, sensitivity: 0.37, dismissFraction: 0.25),
           onDismiss: () {
             unawaited(ref.read(appRouterProvider.notifier).go(context, const FeedRoute()));
             return true;
           },
-          child: MateoScrollableView(
-            edgeFade: null,
-            header: InteractiveSwipeDismissHandle(
-              key: const ValueKey('job_dismiss_handle'),
-              child: MorphSibling(
-                tag: JobViewMorphTag.edgeFade.valueFor(jobId: jobId),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: CurvedAnimation(parent: animation, curve: const Interval(0.8, 1)),
-                  child: child,
-                ),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(top: 8),
+          child: MateoView(
+            padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 28),
+            header: MateoViewHeader(
+              principal: InteractiveSwipeDismissHandle(
+                key: const ValueKey('job_dismiss_handle'),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 28, top: 12),
+                  child: Center(
                     child: DecoratedBox(
                       decoration: ShapeDecoration(
                         color: switch (Theme.of(context).brightness) {
-                          Brightness.light => context.mateo.palette.neutral[6],
+                          Brightness.light => MateoTheme.of(context).palette.neutral[6],
                           Brightness.dark => throw UnimplementedError('Dark mode color not implemented'),
                         },
-                        shape: const StadiumBorder(),
+                        shape: const MateoRoundedShapeBorder.capsule(),
                       ),
                       child: const SizedBox(key: ValueKey('job_dismiss_handle_visual'), width: 50, height: 7),
                     ),
@@ -80,154 +85,112 @@ class JobView extends ConsumerWidget {
               ),
             ),
             footer: jobState.isLoading || jobData != null
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: MorphSibling(
-                        tag: JobViewMorphTag.edgeFade.valueFor(jobId: jobId),
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                            opacity: CurvedAnimation(
-                              parent: animation,
-                              curve: const Interval(0.95, 1),
-                              reverseCurve: const Interval(0.99, 1),
-                            ),
-                            child: child,
-                          );
-                        },
-                        child: JobContactButton(jobId: jobId),
-                      ),
-                    ),
-                  )
+                ? MateoViewFooter(principal: JobContactButton(jobId: widget.jobId))
                 : null,
-            backgroundBuilder: (context, scrollable) => JobSurface(
-              jobId: jobId,
-              decoration: BoxDecoration(color: colorScheme.background, borderRadius: BorderRadius.circular(42)),
-              edgeFadeStyle: MateoEdgeFadeStyle(color: colorScheme.background),
-              fadeTop: true,
-              fadeBottom: true,
-              child: scrollable,
-            ),
-            body: Padding(
-              padding: const EdgeInsets.fromLTRB(28, 32, 28, 40),
-              child: feedJob == null && jobData == null
-                  ? SizedBox(
-                      height: 0,
-                      child: jobState.when(
-                        loading: () => Center(
-                          child: MateoDotMatrix(
-                            width: 60,
-                            height: 60,
-                            radius: 30,
-                            dotSize: 6,
-                            color: context.mateo.palette.accent[9],
-                          ),
-                        ),
-                        error: (error, _) => _buildError(context, ref, i18n, error),
-                        data: (_) => const SizedBox.shrink(),
-                      ),
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
+            surface: .scrollable(
+              key: const ValueKey('job_surface'),
+              color: colorScheme.background,
+              shape: const .rounded(radius: 52),
+              edgeEffect: .fade(),
+              padding: const EdgeInsets.symmetric(horizontal: 32).copyWith(top: 20),
+              animation: .transform(
+                id: JobViewTransformTag.surface.valueFor(jobId: widget.jobId),
+                duration: JobRoute.popDuration,
+                curve: Curves.fastOutSlowIn,
+                contentEffects: [const .crossfade()],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Morph(
+                    target: _headerTarget,
+                    curve: Curves.fastOutSlowIn,
+                    flightConfig: const .auto(childSwitchAt: 0.9),
+                    child: Column(
+                      key: ValueKey(headerMorphTag),
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Morph(
-                          tag: headerMorphTag,
-                          curve: JobSurface.morphCurve,
-                          switchThreshold: 0.1,
-                          child: Column(
-                            key: ValueKey(headerMorphTag),
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                (feedJob?.createdAt ?? jobData!.job.createdAt).timeAgo(
-                                  onNow: () => i18n.feedJob.timeAgo.now,
-                                  onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
-                                  onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
-                                  onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
-                                  onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
-                                  fallback: TimeAgoFallback.finer,
-                                ),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: colorScheme.text.secondary,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  feedJob?.title ?? jobData!.job.title,
-                                  key: const ValueKey('job_title'),
-                                  maxLines: 4,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.text.primary,
-                                    height: 1.2, // arrumar height + sapcing
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                key: const ValueKey('job_payment'),
-                                (feedJob?.payment ?? jobData!.job.payment).formatPayment(i18n),
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  color: colorScheme.text.profit,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.3,
-                                ),
-                              ),
-                              if (jobData != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 12),
-                                  child: Motion(
-                                    effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
-                                    child: Text(
-                                      jobData.job.description,
-                                      key: const ValueKey('job_description'),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: colorScheme.text.secondary,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
+                        Text(
+                          widget.feedJob.createdAt.timeAgo(
+                            onNow: () => i18n.feedJob.timeAgo.now,
+                            onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
+                            onHoursAgo: (count) => i18n.feedJob.timeAgo.hours(count: count),
+                            onDaysAgo: (count) => i18n.feedJob.timeAgo.days(count: count),
+                            onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
+                            fallback: TimeAgoFallback.finer,
+                          ),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.text.tertiary),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            widget.feedJob.title,
+                            key: const ValueKey('job_title'),
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.text.primary,
+                              height: 1.2,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        if (feedJob != null)
-                          jobState.when(
-                            data: (_) => const SizedBox.shrink(),
-                            error: (error, _) {
-                              return _buildWhenRouteSettled(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 40),
-                                  child: _buildError(context, ref, i18n, error),
-                                ),
-                              );
-                            },
-                            loading: () => Skeleton(
-                              style: SkeletonStyle(
-                                color: colorScheme.skeleton.bone,
-                                effect: const SkeletonFadeEffect(),
-                                radius: const Radius.circular(999),
-                              ),
+                        Text(
+                          key: const ValueKey('job_payment'),
+                          widget.feedJob.payment.formatPayment(i18n),
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: colorScheme.text.profit,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                        ),
+                        if (jobData != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Motion(
+                              effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
                               child: Text(
-                                JobDto.fixture().description,
+                                jobData.job.description,
+                                key: const ValueKey('job_description'),
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   color: colorScheme.text.secondary,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
                           ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                  jobState.when(
+                    data: (_) => const SizedBox.shrink(),
+                    error: (error, _) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 60),
+                        child: _buildError(context, ref, i18n, error),
+                      );
+                    },
+                    loading: () => Skeleton(
+                      style: SkeletonStyle(
+                        color: MateoTheme.of(context).palette.neutral[4],
+                        effect: const SkeletonFadeEffect(),
+                        radius: const Radius.circular(999),
+                      ),
+                      child: Text(
+                        JobDto.fixture().description,
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 18, color: colorScheme.text.secondary, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -242,7 +205,7 @@ class JobView extends ConsumerWidget {
         description: i18n.feed.offline.description,
         retry: (
           label: i18n.feed.offline.retryButtonTitle,
-          onRetry: () => ref.read(jobStateProvider(jobId).notifier).retry(),
+          onRetry: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),
         ),
       );
     }
@@ -256,7 +219,11 @@ class JobView extends ConsumerWidget {
           const SizedBox(height: 20),
           Text(
             i18n.job.error.title,
-            style: TextStyle(fontSize: 20, color: context.mateo.colorScheme.text.primary, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              color: MateoTheme.of(context).colorScheme.text.primary,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -265,34 +232,25 @@ class JobView extends ConsumerWidget {
             child: Text(
               i18n.job.error.description,
               style: TextStyle(
-                fontSize: 17,
-                color: context.mateo.colorScheme.text.secondary,
+                fontSize: 16,
+                color: MateoTheme.of(context).colorScheme.text.secondary,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           MateoButton(
-            presentation: MateoButtonPresentation(
-              variant: MateoButtonVariant.secondary,
+            presentation: .label(
+              width: .fit,
+              variant: .secondary,
               label: i18n.job.error.retryButtonTitle,
-              leadingIconBuilder: (state) =>
-                  MateoIcon.arrowRotateClockwise(height: 15, width: 15, color: state.foregroundColor),
-              leadingIconSpacing: 10,
+              leadingIcon: const MateoIcon(.arrowRotateClockwise),
             ),
-            onPressed: () => ref.read(jobStateProvider(jobId).notifier).retry(),
+            onPressed: () => ref.read(jobStateProvider(widget.jobId).notifier).retry(),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildWhenRouteSettled({required Widget child}) {
-    return RouteSettled(
-      showTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
-      hideTransition: (child, animation) => FadeTransition(opacity: animation, child: child),
-      child: child,
     );
   }
 }

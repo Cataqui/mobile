@@ -36,7 +36,7 @@ void main() {
       overrides: [
         authRepositoryProvider.overrideWithValue(authRepository),
         secureStorageProvider.overrideWithValue(secureStorage),
-        whatsappProvider.overrideWithValue(whatsapp),
+        whatsappProvider(identifier: _LoginStateTestData.codeReceiver).overrideWithValue(whatsapp),
       ],
     );
     subscription = container.listen(loginStateProvider, (_, __) {}, fireImmediately: true);
@@ -60,9 +60,7 @@ void main() {
     test('when a NOTP intent is created, it should open its receiver with instructions containing the code', () async {
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
-      verify(
-        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.message),
-      ).called(1);
+      verify(() => whatsapp.chat(message: _LoginStateTestData.message)).called(1);
     });
 
     test('when WhatsApp opens, it should immediately exchange the exact intent with the deferred deadline', () async {
@@ -113,9 +111,7 @@ void main() {
     });
 
     test('when WhatsApp cannot open, it should expose a retryable error', () async {
-      when(
-        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.message),
-      ).thenAnswer((_) async => false);
+      when(() => whatsapp.chat(message: _LoginStateTestData.message)).thenAnswer((_) async => false);
 
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
@@ -123,9 +119,7 @@ void main() {
     });
 
     test('when WhatsApp cannot open, it should not start exchanging the intent', () async {
-      when(
-        () => whatsapp.launchChat(number: _LoginStateTestData.codeReceiver, message: _LoginStateTestData.message),
-      ).thenAnswer((_) async => false);
+      when(() => whatsapp.chat(message: _LoginStateTestData.message)).thenAnswer((_) async => false);
 
       await container.read(loginStateProvider.notifier).loginWithWhatsapp(appReturn: appReturn.future);
 
@@ -193,7 +187,7 @@ abstract final class _LoginStateTestData {
     when(
       () => authRepository.createNotpIntent(channel: AuthChannel.whatsapp),
     ).thenAnswer((_) async => createdNotpIntentEnvelope);
-    when(() => whatsapp.launchChat(number: codeReceiver, message: message)).thenAnswer((_) async => true);
+    when(() => whatsapp.chat(message: message)).thenAnswer((_) async => true);
   }
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {

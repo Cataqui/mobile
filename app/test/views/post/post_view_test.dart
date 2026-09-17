@@ -30,7 +30,11 @@ void main() {
   });
 
   testWidgets('when opening the post route, it should use a Mateo page', (tester) async {
-    final goRouter = GoRouter(initialLocation: const PostRoute().location, routes: [$postRoute]);
+    final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
+      initialLocation: const PostRoute().location,
+      routes: [$postRoute],
+    );
     addTearDown(goRouter.dispose);
 
     await tester.pumpWidget(TestApp.router(routerConfig: goRouter));
@@ -40,7 +44,11 @@ void main() {
   });
 
   testWidgets('when opening the post route, it should use an explicit Mateo transition', (tester) async {
-    final goRouter = GoRouter(initialLocation: const PostRoute().location, routes: [$postRoute]);
+    final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
+      initialLocation: const PostRoute().location,
+      routes: [$postRoute],
+    );
     addTearDown(goRouter.dispose);
 
     await tester.pumpWidget(TestApp.router(routerConfig: goRouter));
@@ -94,7 +102,11 @@ void main() {
   });
 
   testWidgets('when tapping location, it should open location without changing the post route', (tester) async {
-    final goRouter = GoRouter(initialLocation: const PostRoute().location, routes: [$postRoute]);
+    final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
+      initialLocation: const PostRoute().location,
+      routes: [$postRoute],
+    );
     addTearDown(goRouter.dispose);
     await tester.pumpWidget(
       TestApp.router(
@@ -597,22 +609,11 @@ void main() {
     );
   });
 
-  testWidgets('when tapping the passive contact chip, it should leave post state unchanged', (tester) async {
-    const initialPostData = PostData(descriptionText: 'Preciso de uma pessoa');
-    await PostViewTestHelpers.pump(tester, i18n: i18n, initialPostData: initialPostData);
-    final container = ProviderScope.containerOf(tester.element(find.byType(PostView)));
-
-    await tester.tap(find.byKey(const ValueKey('post_contact_chip')));
-    await tester.pumpAndSettle();
-
-    expect(container.read(postStateProvider), initialPostData);
-  });
-
   testWidgets('when the contact chip renders, it should expose one labeled button', (tester) async {
     final semantics = tester.ensureSemantics();
     await PostViewTestHelpers.pump(tester, i18n: i18n);
 
-    final tap = find.ancestor(of: find.byKey(const ValueKey('post_contact_chip')), matching: find.byType(MateoTap));
+    final tap = find.ancestor(of: find.byKey(const ValueKey('post_contact_chip')), matching: find.byType(MateoPress));
     final data = tester.getSemantics(tap).getSemanticsData();
     final matchingLabels = find.bySemanticsLabel(i18n.post.contact.chipTitle).evaluate().length;
     semantics.dispose();
@@ -622,6 +623,7 @@ void main() {
 
   testWidgets('when tapping close, it should leave the post composer', (tester) async {
     final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
       routes: [
         GoRoute(path: '/', builder: (context, state) => const SizedBox.shrink()),
         $postRoute,
@@ -646,6 +648,7 @@ void main() {
 
   testWidgets('when post is the root route, tapping close should open the feed', (tester) async {
     final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
       initialLocation: const PostRoute().location,
       routes: [
         GoRoute(path: '/feed', builder: (context, state) => const SizedBox.shrink()),

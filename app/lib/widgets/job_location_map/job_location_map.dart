@@ -36,7 +36,7 @@ class JobLocationMap extends StatelessWidget {
   static const _tileSize = 256.0;
 
   /// Insets that keep Google attribution clear of overlapping feed content.
-  static const mapPadding = EdgeInsets.only(bottom: 100);
+  static const mapPadding = EdgeInsets.only(bottom: 20);
 
   /// The approximate job location rendered by the map.
   final ({double latitude, double longitude}) location;
@@ -58,7 +58,7 @@ class JobLocationMap extends StatelessWidget {
         colorScheme ??
         JobLocationMapColorScheme.fromBrightness(
           brightness: Theme.of(context).brightness,
-          palette: context.mateo.palette,
+          palette: MateoTheme.of(context).palette,
         );
     final mapKey = (location, areaDiameterInMeters, zoom, offset, mapPadding);
 

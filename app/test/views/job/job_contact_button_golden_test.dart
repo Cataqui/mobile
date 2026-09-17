@@ -15,6 +15,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
+import '../../utils/test_app.dart';
 import 'job_view_test_helpers.dart';
 
 void main() {
@@ -28,24 +29,28 @@ void main() {
     goldenTest(
       'when the contact method is whatsapp, it should render the WhatsApp button with green accent on dark background',
       fileName: 'job_contact_button_whatsapp',
+      pumpWidget: TestApp.pumpGolden,
       builder: () => _buildContactButton(contactMethod: JobContactMethod.whatsapp, i18n: i18n),
     );
 
     goldenTest(
       'when the contact method is phone call, it should render the phone call button with green background and dark text',
       fileName: 'job_contact_button_phone_call',
+      pumpWidget: TestApp.pumpGolden,
       builder: () => _buildContactButton(contactMethod: JobContactMethod.phoneCall, i18n: i18n),
     );
 
     goldenTest(
       'when the contact method is unknown, it should render the disabled unavailable button with circle block icon',
       fileName: 'job_contact_button_unknown',
+      pumpWidget: TestApp.pumpGolden,
       builder: () => _buildContactButton(contactMethod: JobContactMethod.unknown, i18n: i18n),
     );
 
     goldenTest(
       'when the contact fetch fails with a general error, it should show the error toast',
       fileName: 'job_contact_button_general_error_toast',
+      pumpWidget: TestApp.pumpGolden,
       builder: () {
         final repository = MockJobRepository();
         when(
@@ -68,6 +73,7 @@ void main() {
     goldenTest(
       'when the contact fetch fails with an offline connection error, it should show the offline toast with wifi exclamation icon',
       fileName: 'job_contact_button_offline_toast',
+      pumpWidget: TestApp.pumpGolden,
       builder: () {
         final repository = MockJobRepository();
         when(
@@ -130,8 +136,8 @@ Widget _buildContactButtonWithRepository({required MockJobRepository repository,
   return SizedBox(
     width: 390,
     height: 500,
-    child: ProviderScope(
-      overrides: [
+    child: TestApp.screen(
+      providerOverrides: [
         jobStateProvider('test-job').overrideWith(() => fakeJobState),
         jobRepositoryProvider.overrideWithValue(repository),
         translationProvider.overrideWithValue(i18n),
