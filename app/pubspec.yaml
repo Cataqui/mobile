@@ -68,6 +68,7 @@ dotdart:
   svg:
     - assets/svg/
     - assets/logos/
+    - assets/stickers/
 
 flutter_gen:
   output: lib/gen/
