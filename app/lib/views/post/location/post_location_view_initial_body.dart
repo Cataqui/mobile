@@ -29,7 +29,7 @@ class _PostLocationViewInitialBody extends ConsumerWidget {
                     playback: LottiePlayback.loop,
                     duration: const Duration(milliseconds: 5000),
                     overrides: BendingLocationPinOverrides(
-                      rigidPinPivotedAtTipColor: switch (Theme.brightnessOf(context)) {
+                      rigidPinPivotedAtTipColor: switch (MateoTheme.of(context).brightness) {
                         Brightness.light => MateoTheme.of(context).palette.neutral[4],
                         Brightness.dark => throw UnsupportedError('LocationChip does not support dark mode.'),
                       },
@@ -40,7 +40,7 @@ class _PostLocationViewInitialBody extends ConsumerWidget {
                     ref.watch(translationProvider).post.location.emptyGuidance,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: switch (Theme.brightnessOf(context)) {
+                      color: switch (MateoTheme.of(context).brightness) {
                         Brightness.light => MateoTheme.of(context).colorScheme.text.tertiary,
                         Brightness.dark => throw UnsupportedError('LocationChip does not support dark mode.'),
                       },

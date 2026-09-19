@@ -218,20 +218,6 @@ void main() {
     expect(tester.getSize(find.byKey(const ValueKey('post_contact_sheet_surface'))).height, 422);
   });
 
-  testWidgets('when Novo contato is tapped, it should leave the sheet and post state unchanged', (tester) async {
-    await PostContactTestHelpers.open(tester, userRepository: userRepository);
-    final container = ProviderScope.containerOf(tester.element(find.byType(PostContactView)));
-    final stateBeforeTap = container.read(postStateProvider);
-
-    await tester.tap(find.byKey(const ValueKey('post_contact_add_button')));
-    await tester.pump();
-
-    expect(
-      (state: container.read(postStateProvider), sheetCount: find.byType(PostContactView).evaluate().length),
-      (state: stateBeforeTap, sheetCount: 1),
-    );
-  });
-
   testWidgets('when the header handle is dragged, it should dismiss the contact sheet', (tester) async {
     await PostContactTestHelpers.open(tester, userRepository: userRepository);
 

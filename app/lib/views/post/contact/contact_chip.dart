@@ -10,7 +10,7 @@ class ContactChip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = switch (Theme.brightnessOf(context)) {
+    final colors = switch (MateoTheme.of(context).brightness) {
       Brightness.light => (
         background: MateoTheme.of(context).palette.violet[2],
         foreground: MateoTheme.of(context).palette.violet[9],

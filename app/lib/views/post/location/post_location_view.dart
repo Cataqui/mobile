@@ -130,7 +130,7 @@ class _PostLocationViewState extends ConsumerState<PostLocationView> {
             child: $Logos.googleMaps(
               key: const ValueKey('post_location_google_maps_attribution'),
               height: 14,
-              color1: switch (Theme.brightnessOf(context)) {
+              color1: switch (MateoTheme.of(context).brightness) {
                 Brightness.dark => throw UnimplementedError('Dark mode not implemented yet'),
                 Brightness.light => MateoTheme.of(context).palette.neutral[8],
               },

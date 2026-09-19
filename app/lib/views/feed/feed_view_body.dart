@@ -51,7 +51,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
     if (feedData.isEmpty) return _buildEnd(context);
 
     final mapColorScheme = JobLocationMapColorScheme.fromBrightness(
-      brightness: Theme.of(context).brightness,
+      brightness: MateoTheme.of(context).brightness,
       palette: MateoTheme.of(context).palette,
     );
 
@@ -272,7 +272,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
 
   Widget _buildInitialLoading(BuildContext context) {
     final mapColorScheme = JobLocationMapColorScheme.fromBrightness(
-      brightness: Theme.of(context).brightness,
+      brightness: MateoTheme.of(context).brightness,
       palette: MateoTheme.of(context).palette,
     );
 

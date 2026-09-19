@@ -23,7 +23,7 @@ class _WelcomeJobCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(40),
                   boxShadow: [
                     BoxShadow(
-                      color: switch (Theme.of(context).brightness) {
+                      color: switch (MateoTheme.of(context).brightness) {
                         Brightness.light => MateoTheme.of(context).palette.neutral[12].withValues(alpha: 0.07),
                         Brightness.dark => throw UnsupportedError('Job cards do not support dark mode.'),
                       },

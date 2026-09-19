@@ -54,7 +54,7 @@ class JobContactButton extends ConsumerWidget {
         size: .standard,
         width: .fill,
         colorScheme: switch (contactMethod) {
-          .whatsapp => switch (Theme.of(context).brightness) {
+          .whatsapp => switch (MateoTheme.of(context).brightness) {
             .light => MateoButtonColorScheme(
               background: const Color(0xFF002002),
               foreground: const Color(0xFF25D366),
@@ -63,7 +63,7 @@ class JobContactButton extends ConsumerWidget {
             ),
             .dark => throw UnsupportedError('Dark contact-action colors are not supported.'),
           },
-          .phoneCall => switch (Theme.of(context).brightness) {
+          .phoneCall => switch (MateoTheme.of(context).brightness) {
             .light => MateoButtonColorScheme(
               background: const Color(0xFF00C950),
               foreground: const Color(0xFF001F06),

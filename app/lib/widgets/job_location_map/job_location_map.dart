@@ -57,7 +57,7 @@ class JobLocationMap extends StatelessWidget {
     final resolvedColorScheme =
         colorScheme ??
         JobLocationMapColorScheme.fromBrightness(
-          brightness: Theme.of(context).brightness,
+          brightness: MateoTheme.of(context).brightness,
           palette: MateoTheme.of(context).palette,
         );
     final mapKey = (location, areaDiameterInMeters, zoom, offset, mapPadding);
@@ -70,6 +70,7 @@ class JobLocationMap extends StatelessWidget {
             key: ValueKey<Object>(mapKey),
             initialCameraPosition: CameraPosition(target: _cameraTarget(), zoom: zoom),
             style: JobLocationMapStyle.fromColorScheme(colorScheme: resolvedColorScheme).googleMapsJson,
+            backgroundColor: resolvedColorScheme.background,
             mapType: MapType.normal,
             minMaxZoomPreference: MinMaxZoomPreference(zoom, zoom),
             padding: mapPadding,

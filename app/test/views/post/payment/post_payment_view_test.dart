@@ -414,7 +414,7 @@ void main() {
     final surface = tester.widget<MateoViewSurface>(find.byKey(const ValueKey('post_payment_view_surface')));
 
     final chip = tester.widget<MateoSurface>(find.byKey(const ValueKey('post_payment_chip')));
-    expect((surface.animation! as MateoSurfaceAnimationTransform).id, PostPaymentMorphTag.surface);
-    expect((chip.animation! as MateoSurfaceAnimationTransform).id, PostPaymentMorphTag.surface);
+    expect((surface.animation! as MateoSurfaceAnimationTransform).target, PostPaymentMorphTag.surfaceTarget);
+    expect((chip.animation! as MateoSurfaceAnimationTransform).target, PostPaymentMorphTag.surfaceTarget);
   });
 }

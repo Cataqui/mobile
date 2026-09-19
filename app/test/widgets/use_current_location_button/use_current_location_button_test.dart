@@ -635,9 +635,7 @@ void main() {
     );
   });
 
-  testWidgets('when the current-location button is shown in dark mode, it should report the unsupported theme', (
-    tester,
-  ) async {
+  testWidgets('when Material is dark, the current-location button should use the light Mateo theme', (tester) async {
     final service = buildService();
     await tester.pumpWidget(
       TestApp(
@@ -651,13 +649,7 @@ void main() {
       ),
     );
 
-    expect(
-      tester.takeException(),
-      isA<UnsupportedError>().having(
-        (error) => error.message,
-        'message',
-        'CurrentLocationButton does not support dark mode.',
-      ),
-    );
+    expect(tester.takeException(), isNull);
+    expect(find.byType(UseCurrentLocationButton), findsOneWidget);
   });
 }

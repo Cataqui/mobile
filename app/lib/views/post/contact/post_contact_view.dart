@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/views/add_contact/add_contact_route.dart';
 import 'package:cataqui_app/views/post/contact/post_contact_option.dart';
 import 'package:cataqui_app/views/post/contact/post_contact_state.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
@@ -88,7 +89,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
   }
 
   ({Color background, Color foreground}) _contactIconColors(BuildContext context, JobContactMethod contactMethod) {
-    return switch (Theme.brightnessOf(context)) {
+    return switch (MateoTheme.of(context).brightness) {
       Brightness.light => switch (contactMethod) {
         JobContactMethod.whatsapp => (
           background: const Color(0xFF25D366),

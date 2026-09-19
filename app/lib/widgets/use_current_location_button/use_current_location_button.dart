@@ -29,7 +29,7 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
   bool _shouldUseAfterSettings = false;
 
   Color _indicatorColor(AsyncValue<CurrentLocationData> currentLocation) {
-    return switch (Theme.of(context).brightness) {
+    return switch (MateoTheme.of(context).brightness) {
       Brightness.light => switch (currentLocation.value) {
         ResolvedCurrentLocationData(:final address)
             when address.neighborhood != null || address.city != null || address.street != null =>

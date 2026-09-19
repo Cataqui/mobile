@@ -72,7 +72,7 @@ class _JobViewState extends ConsumerState<JobView> {
                   child: Center(
                     child: DecoratedBox(
                       decoration: ShapeDecoration(
-                        color: switch (Theme.of(context).brightness) {
+                        color: switch (MateoTheme.of(context).brightness) {
                           Brightness.light => MateoTheme.of(context).palette.neutral[6],
                           Brightness.dark => throw UnimplementedError('Dark mode color not implemented'),
                         },

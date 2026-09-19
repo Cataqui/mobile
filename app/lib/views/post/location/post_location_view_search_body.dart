@@ -153,7 +153,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
   }
 
   Widget _buildErrorSearchMessage(BuildContext context, {required String message}) {
-    final animationColor = switch (Theme.brightnessOf(context)) {
+    final animationColor = switch (MateoTheme.of(context).brightness) {
       Brightness.light => MateoTheme.of(context).palette.neutral[7],
       Brightness.dark => throw UnimplementedError('Dark mode not implemented'),
     };
@@ -202,7 +202,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
                 .magnifyingGlassSadFace,
                 key: const ValueKey('post_location_search_empty_icon'),
                 size: 46,
-                color: switch (Theme.brightnessOf(context)) {
+                color: switch (MateoTheme.of(context).brightness) {
                   Brightness.light => MateoTheme.of(context).palette.neutral[7],
                   Brightness.dark => throw UnsupportedError('PostLocationView does not support dark mode.'),
                 },
@@ -217,7 +217,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
   }
 
   Widget _buildOfflineSearchMessage(BuildContext context, {required String message}) {
-    final animationColor = switch (Theme.brightnessOf(context)) {
+    final animationColor = switch (MateoTheme.of(context).brightness) {
       Brightness.light => MateoTheme.of(context).palette.neutral[7],
       Brightness.dark => throw UnimplementedError('Dark mode not implemented'),
     };

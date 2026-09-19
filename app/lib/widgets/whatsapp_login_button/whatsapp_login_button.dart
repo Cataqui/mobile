@@ -144,7 +144,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
         variant: .primary,
         width: .fill,
         label: i18n.whatsappLoginButton.label,
-        colorScheme: switch (Theme.of(context).brightness) {
+        colorScheme: switch (MateoTheme.of(context).brightness) {
           Brightness.light => MateoButtonColorScheme(
             background: const Color(0xFF002002),
 

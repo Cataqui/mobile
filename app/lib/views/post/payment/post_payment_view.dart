@@ -89,7 +89,7 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
-    final colors = switch (Theme.brightnessOf(context)) {
+    final colors = switch (MateoTheme.of(context).brightness) {
       Brightness.light => (
         surface: MateoTheme.of(context).palette.green[9],
         surfaceText: MateoTheme.of(context).palette.neutral[12].withValues(alpha: 0.5),
@@ -185,7 +185,7 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
         key: const ValueKey('post_payment_view_surface'),
         color: colors.surface,
         shape: const .none(),
-        animation: const .transform(id: PostPaymentMorphTag.surface, shape: .rounded(radius: 42)),
+        animation: .transform(target: PostPaymentMorphTag.surfaceTarget, shape: const .rounded(radius: 42)),
         child: Material(
           type: MaterialType.transparency,
           child: TextField(
