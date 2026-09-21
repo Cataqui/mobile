@@ -247,5 +247,5 @@ Whatsapp whatsapp(Ref ref, {required String identifier}) {
 
 @riverpod
 PhoneNumber phoneNumber(Ref ref, {required String value}) {
-  return PhoneNumber(value);
+  return PhoneNumber.parse(value);
 }
