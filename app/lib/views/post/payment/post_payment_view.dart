@@ -186,10 +186,12 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
       surface: MateoViewSurface(
         key: const ValueKey('post_payment_view_surface'),
         color: colors.surface,
+        edgeEffect: .fade(),
         shape: const .none(),
         child: Material(
           type: MaterialType.transparency,
           child: TextField(
+            clipBehavior: .none,
             key: const ValueKey('post_payment_input'),
             controller: _paymentTextController,
             focusNode: _paymentFocusNode,

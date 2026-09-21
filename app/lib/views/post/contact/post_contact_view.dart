@@ -29,7 +29,7 @@ class PostContactView extends ConsumerStatefulWidget {
               width: .fill,
               trailingIcon: const MateoIcon(.plusSignal, size: 18),
             ),
-            onPressed: () {},
+            onPressed: () => const AddContactRoute().push<void>(context),
           ),
         ),
         surface: MateoSheetViewSurface(
@@ -85,6 +85,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
     ref
         .read(postStateProvider.notifier)
         .selectContact(contactMethod: option.contact.contactMethod, identifier: option.contact.identifier);
+    // WidgetsBinding.instance.addPostFrameCallback(())
     Navigator.of(context).pop();
   }
 

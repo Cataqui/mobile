@@ -9,8 +9,7 @@ class JobRepository {
   final Dio unauthenticatedDio;
 
   Future<ApiEnvelopeDto<JobDto>> getJob({required String jobId}) async {
-    // await Future.delayed(const Duration(seconds: 5));
-    // return ApiEnvelopeDto.fixture(data: JobDto.fixture());
+    // return ApiEnvelopeDto.fixture(data: .fixture());
     final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId');
 
     return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));

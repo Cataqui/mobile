@@ -6,7 +6,7 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 final jobViewTransformTargetsProvider = Provider.autoDispose
     .family<({MateoTransformTarget surface, MorphTarget header}), String>(
       (ref, jobId) => (
-        surface: MateoTransformTarget(duration: null, curve: Curves.fastOutSlowIn),
+        surface: MateoTransformTarget(curve: Curves.fastOutSlowIn),
         header: MorphTarget(tag: (jobId: jobId, element: #header), curve: Curves.fastOutSlowIn),
       ),
     );

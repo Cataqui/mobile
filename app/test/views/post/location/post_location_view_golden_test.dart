@@ -35,54 +35,12 @@ void main() {
     config: goldenConfig.copyWith(ciGoldensConfig: goldenConfig.ciGoldensConfig.copyWith(obscureText: false)),
     run: () {
       goldenTest(
-        'when location is halfway open, it should show the surface morph and scrim transition',
-        fileName: 'post_location_overlay_open_midpoint',
-        constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-        whilePerforming: (tester) async {
-          await tester.pumpAndSettle();
-          await tester.tap(find.byKey(const ValueKey('post_location_chip')));
-          await tester.pump();
-          await tester.pump(const Duration(milliseconds: 175));
-
-          return () async {
-            await tester.pump(const Duration(milliseconds: 175));
-          };
-        },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
-      );
-
-      goldenTest(
-        'when location settles, it should show the custom overlay controls',
+        'when location settles, it should show the page controls',
         fileName: 'post_location_settled',
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
         whilePerforming: (tester) async {
           await _PostLocationViewGoldenTestHelpers.openLocation(tester);
           return null;
-        },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
-      );
-
-      goldenTest(
-        'when location is halfway closed, it should return the surface to its chip',
-        fileName: 'post_location_overlay_close_midpoint',
-        constraints: const BoxConstraints.tightFor(width: 390, height: 844),
-        whilePerforming: (tester) async {
-          await _PostLocationViewGoldenTestHelpers.openLocation(tester);
-          await tester.tap(find.byKey(const ValueKey('post_location_close_button')));
-          await tester.pump();
-          await tester.pump(const Duration(milliseconds: 135));
-          expect(tester.takeException(), isNull);
-
-          return () async {
-            await tester.pump(const Duration(milliseconds: 135));
-            await tester.pump();
-          };
         },
         builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
           geosearchRepository: geosearchRepository,

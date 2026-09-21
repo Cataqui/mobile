@@ -135,6 +135,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('post_location_chip')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
+    // Give route-settled work its own frame before checking the imperative page.
+    await tester.pump(const Duration(milliseconds: 350));
 
     expect(
       (location: goRouter.state.matchedLocation, locationViewCount: find.byType(PostLocationView).evaluate().length),

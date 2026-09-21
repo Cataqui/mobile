@@ -14,7 +14,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
-part 'post_location_slide_animation.dart';
 part 'post_location_view_initial_body.dart';
 part 'post_location_view_search_body.dart';
 
@@ -22,30 +21,13 @@ class PostLocationView extends ConsumerStatefulWidget {
   const PostLocationView({super.key});
 
   static Future<void> push({required BuildContext context}) {
-    final animationsDisabled = MediaQuery.disableAnimationsOf(context);
-    _PostLocationSlideAnimation? slideAnimation;
-
-    final route = PageRouteBuilder<void>(
-      opaque: false,
-      barrierDismissible: true,
-      barrierLabel: ProviderScope.containerOf(
-        context,
-        listen: false,
-      ).read(translationProvider).post.location.closeButtonSemanticLabel,
-      barrierColor: Colors.transparent,
-      transitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 600),
-      reverseTransitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 260),
-      pageBuilder: (routeContext, _, _) => const PostLocationView(),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 1),
-          end: .zero,
-        ).animate(slideAnimation ??= _PostLocationSlideAnimation(parent: animation)),
-        child: child,
-      ),
+    return Navigator.of(context).push<void>(
+      const MateoPage<void>(
+        allowSnapshotting: false,
+        transition: .slide(direction: .up),
+        child: PostLocationView(),
+      ).createRoute(context),
     );
-    unawaited(route.completed.whenComplete(() => slideAnimation?.dispose()));
-    return Navigator.of(context).push<void>(route);
   }
 
   @override

@@ -129,6 +129,12 @@
     "paymentPeriodYearly": "/ano",
     "paymentOther": "Outro pagamento"
   },
+  "addContact": {
+    "title": "Adicionar WhatsApp",
+    "phonePlaceholder": "Número",
+    "saveButtonTitle": "Continuar",
+    "closeButtonSemanticLabel": "Fechar adicionar contato"
+  },
   "navigation": {
     "back": "Voltar"
   },
@@ -157,15 +163,15 @@
     "actions": {
       "post": {
         "title": "Postar um bico",
-        "description": "Tá precisando de alguém pra algo?"
+        "description": "Tá precisando de alguém?"
       },
       "browse": {
         "title": "Ver bicos",
-        "description": "Quer ver os bicos agora?"
+        "description": "Quer ver o que já postaram?"
       }
     },
     "terms": {
-      "prefix": "Ao continuar você aceita nossos",
+      "prefix": "Ao usar esse app, você concorda em aceitar nossos",
       "link": "termos de uso"
     },
     "jobs": {
