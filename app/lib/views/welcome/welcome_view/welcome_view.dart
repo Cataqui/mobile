@@ -87,7 +87,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1,
       child: MateoView(
-        padding: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.only(bottom: 20, top: 20),
         footer: MateoViewFooter(
           principal: ValueListenableBuilder<bool>(
             valueListenable: _termsVisible,
@@ -314,6 +314,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                       ),
                       menuPresentation: .options(
                         density: .standard,
+                        width: .fill,
                         items: [
                           .new(
                             principal: Text(
@@ -323,7 +324,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                             supporting: Text(i18n.welcome.actions.post.description),
                             leading: MateoIcon(
                               .boxPencil,
-                              backgroundColor: MateoTheme.of(context).palette.accent[9],
+                              backgroundColor: MateoTheme.of(context).palette.green[9],
                               color: MateoTheme.of(context).palette.white,
                             ),
                           ),
