@@ -8,8 +8,8 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
-import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
+import 'package:cataqui_app/views/job/job_view_transform_targets.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,17 +35,9 @@ class JobView extends ConsumerStatefulWidget {
 }
 
 class _JobViewState extends ConsumerState<JobView> {
-  late MorphTarget _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.jobId));
-
-  @override
-  void didUpdateWidget(JobView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.jobId == widget.jobId) return;
-    _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.jobId));
-  }
-
   @override
   Widget build(BuildContext context) {
+    final transformTargets = ref.watch(jobViewTransformTargetsProvider(widget.jobId));
     final colorScheme = MateoTheme.of(context).colorScheme;
     final i18n = ref.watch(translationProvider);
     final jobState = ref.watch(jobStateProvider(widget.jobId));
@@ -63,6 +55,7 @@ class _JobViewState extends ConsumerState<JobView> {
             return true;
           },
           child: MateoView(
+            animation: .transform(target: transformTargets.surface, contentEffects: [const .crossfade()]),
             padding: const EdgeInsets.symmetric(horizontal: 28).copyWith(bottom: 28),
             header: MateoViewHeader(
               principal: InteractiveSwipeDismissHandle(
@@ -93,19 +86,12 @@ class _JobViewState extends ConsumerState<JobView> {
               shape: const .rounded(radius: 52),
               edgeEffect: .fade(),
               padding: const EdgeInsets.symmetric(horizontal: 32).copyWith(top: 20),
-              animation: .transform(
-                id: JobViewTransformTag.surface.valueFor(jobId: widget.jobId),
-                duration: JobRoute.popDuration,
-                curve: Curves.fastOutSlowIn,
-                contentEffects: [const .crossfade()],
-              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Morph(
-                    target: _headerTarget,
-                    curve: Curves.fastOutSlowIn,
+                    targets: [transformTargets.header],
                     flightConfig: const .auto(childSwitchAt: 0.9),
                     child: Column(
                       key: ValueKey(headerMorphTag),

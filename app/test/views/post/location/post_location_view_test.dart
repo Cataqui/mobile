@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/address_search_response_dto.dart';
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/post/location/enums/post_location_morph_tag.dart';
 import 'package:cataqui_app/views/post/location/post_location_view.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:cataqui_app/views/post/post_view.dart';
@@ -200,29 +199,6 @@ void main() {
           .focusNode
           .hasFocus,
       isTrue,
-    );
-  });
-
-  testWidgets('when the location overlay opens, it should keep one surface Morph endpoint on each route', (
-    tester,
-  ) async {
-    await PostLocationTestHelpers.openLocation(tester);
-
-    final endpoints = find
-        .byWidgetPredicate(
-          (widget) =>
-              (widget is MateoSurface &&
-                  widget.animation is MateoSurfaceAnimationTransform &&
-                  (widget.animation! as MateoSurfaceAnimationTransform).id == PostLocationMorphTag.surface) ||
-              (widget is MateoViewSurface &&
-                  widget.animation is MateoSurfaceAnimationTransform &&
-                  (widget.animation! as MateoSurfaceAnimationTransform).id == PostLocationMorphTag.surface),
-        )
-        .evaluate();
-
-    expect(
-      (endpointCount: endpoints.length, routeCount: endpoints.map(ModalRoute.of).toSet().length),
-      (endpointCount: 2, routeCount: 2),
     );
   });
 

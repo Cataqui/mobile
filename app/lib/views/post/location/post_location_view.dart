@@ -5,7 +5,6 @@ import 'package:cataqui_app/core/extensions/device_location_address_extension.da
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/logos.g.dart';
 import 'package:cataqui_app/gen/lotties.g.dart';
-import 'package:cataqui_app/views/post/location/enums/post_location_morph_tag.dart';
 import 'package:cataqui_app/views/post/location/post_location_data.dart';
 import 'package:cataqui_app/views/post/location/post_location_state.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
@@ -143,7 +142,6 @@ class _PostLocationViewState extends ConsumerState<PostLocationView> {
         color: MateoTheme.of(context).colorScheme.background,
         shape: const .rounded(radius: 0),
         edgeEffect: .fade(at: [.top]),
-        animation: const MateoSurfaceAnimation.transform(id: PostLocationMorphTag.surface),
         child: Column(
           children: [
             Expanded(

@@ -30,7 +30,7 @@ class PaymentChip extends ConsumerWidget {
           key: const ValueKey('post_payment_chip'),
           color: colors.background,
           shape: const .rounded(radius: 32),
-          animation: const .transform(id: PostPaymentMorphTag.surface),
+          animation: .transform(target: PostPaymentMorphTag.surfaceTarget),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             child: Row(

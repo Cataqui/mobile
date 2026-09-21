@@ -86,6 +86,22 @@ void main() {
     );
   });
 
+  testWidgets('when the system is dark, the light Mateo post composer should render its detail chips', (tester) async {
+    await tester.pumpWidget(
+      TestApp.screen(
+        mediaQueryData: const MediaQueryData(platformBrightness: .dark),
+        providerOverrides: PostViewTestHelpers.providerOverrides(i18n: i18n),
+        child: const PostView(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(i18n.post.location.chipTitle), findsOneWidget);
+    expect(find.text(i18n.post.payment.chipTitle), findsOneWidget);
+    expect(find.text(i18n.post.contact.chipTitle), findsOneWidget);
+  });
+
   testWidgets('when the post details rest above the keyboard, they should use their requested insets', (tester) async {
     await PostViewTestHelpers.pump(tester, i18n: i18n);
     final postViewContext = tester.element(find.byType(PostView));

@@ -11,7 +11,7 @@ class _FeedViewBody extends ConsumerStatefulWidget {
 }
 
 class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
-  static const MateoSurfaceShape _mapSurfaceShape = .rounded(radius: 48);
+  static const MateoShape _mapSurfaceShape = .rounded(radius: 48);
 
   final ValueNotifier<int> _currentMapIndexNotifier = ValueNotifier<int>(0);
 

@@ -4,7 +4,8 @@ import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
-import 'package:cataqui_app/views/job/job_route.dart';
+import 'package:cataqui_app/views/job/job_state.dart';
+import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
@@ -270,91 +271,65 @@ void main() {
         expect(
           surface.animation,
           isA<MateoSurfaceAnimationTransform>()
-              .having((animation) => animation.id, 'id', JobViewTransformTag.surface.valueFor(jobId: feedJob.jobId))
-              .having((animation) => animation.duration, 'duration', JobRoute.pushDuration)
+              .having((animation) => animation.duration, 'duration', isNull)
               .having((animation) => animation.curve, 'curve', Curves.fastOutSlowIn),
         );
       });
 
-      testWidgets('when the same job appears in the feed and detail view, it should connect both shared transitions', (
+      testWidgets('when a card and detail share an owner, it should retain the same targets across rebuilds', (
         tester,
       ) async {
-        const jobId = 'job_123';
-
-        await tester.pumpWidget(
-          _FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture().copyWith(jobId: jobId))),
-        );
-
-        await tester.pumpAndSettle();
-        final cardSurface = tester.widget<MateoSurface>(find.byType(MateoSurface));
-        final cardHeader = tester.widget<Morph>(
-          find.byWidgetPredicate(
-            (widget) => widget is Morph && widget.target.tag == JobViewTransformTag.header.valueFor(jobId: jobId),
+        final feedJob = _FeedJobCardTestHelpers.fixture();
+        final jobState = JobViewTestHelpers.loadingState();
+        Widget host() => ProviderScope(
+          overrides: [jobStateProvider(feedJob.jobId).overrideWith(() => jobState)],
+          child: TestApp.screen(
+            mediaQueryData: const MediaQueryData(size: Size(390, 844), disableAnimations: true),
+            child: Stack(
+              children: [
+                JobView(jobId: feedJob.jobId, feedJob: feedJob),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(width: 350, child: FeedJobCard(feedJob: feedJob)),
+                ),
+              ],
+            ),
           ),
         );
-
-        await tester.pumpWidget(const SizedBox());
-        await tester.pumpAndSettle();
-
-        await JobViewTestHelpers.pumpJobView(
-          tester: tester,
-          feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
-          jobState: JobViewTestHelpers.loadingState(),
+        await tester.pumpWidget(host());
+        await tester.pump();
+        final card = tester.widget<MateoSurface>(
+          find.descendant(of: find.byType(FeedJobCard), matching: find.byType(MateoSurface)),
         );
-        final viewSurface = tester.widget<MateoViewSurface>(find.byKey(const ValueKey('job_surface')));
-        final viewHeader = tester.widget<Morph>(
-          find.byWidgetPredicate(
-            (widget) => widget is Morph && widget.target.tag == JobViewTransformTag.header.valueFor(jobId: jobId),
-          ),
-        );
-
-        expect((
-          (viewSurface.animation! as MateoSurfaceAnimationTransform).id,
-          viewHeader.target.tag,
-        ), equals(((cardSurface.animation! as MateoSurfaceAnimationTransform).id, cardHeader.target.tag)));
-      });
-
-      testWidgets('when the feed card and detail view rebuild, it should keep stable shared-transition identities', (
-        tester,
-      ) async {
-        const jobId = 'job_123';
-        final surfaceTag = JobViewTransformTag.surface.valueFor(jobId: jobId);
-        final headerTag = JobViewTransformTag.header.valueFor(jobId: jobId);
-
-        await tester.pumpWidget(
-          _FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture().copyWith(jobId: jobId))),
-        );
-
-        await tester.pumpAndSettle();
-        final cardIdentities = (
-          (tester.widget<MateoSurface>(find.byType(MateoSurface)).animation! as MateoSurfaceAnimationTransform).id,
-          tester
-              .widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.target.tag == headerTag))
-              .child
-              .key,
-        );
-
-        await tester.pumpWidget(const SizedBox());
-        await tester.pumpAndSettle();
-        await JobViewTestHelpers.pumpJobView(
-          tester: tester,
-          feedJob: JobViewTestHelpers.feedJob(jobId: jobId),
-          jobState: JobViewTestHelpers.loadingState(),
-        );
-        final viewIdentities = (
-          (tester.widget<MateoViewSurface>(find.byKey(const ValueKey('job_surface'))).animation!
+        final detailSurface = find.byKey(const ValueKey('job_surface'));
+        final detail = tester.widget<MateoView>(find.ancestor(of: detailSurface, matching: find.byType(MateoView)));
+        final target = (card.animation! as MateoSurfaceAnimationTransform).target;
+        expect(detail.animation!.target, same(target));
+        final headers = tester
+            .widgetList<Morph>(
+              find.byWidgetPredicate(
+                (widget) =>
+                    widget is Morph &&
+                    widget.targets.any(
+                      (target) => target.tag == JobViewTransformTag.header.valueFor(jobId: feedJob.jobId),
+                    ),
+              ),
+            )
+            .toList();
+        expect(headers, hasLength(2));
+        expect(headers.first.targets.single, same(headers.last.targets.single));
+        await tester.pumpWidget(host());
+        await tester.pump();
+        expect(
+          (tester
+                      .widget<MateoSurface>(
+                        find.descendant(of: find.byType(FeedJobCard), matching: find.byType(MateoSurface)),
+                      )
+                      .animation!
                   as MateoSurfaceAnimationTransform)
-              .id,
-          tester
-              .widget<Morph>(find.byWidgetPredicate((widget) => widget is Morph && widget.target.tag == headerTag))
-              .child
-              .key,
+              .target,
+          same(target),
         );
-
-        expect((
-          cardIdentities,
-          viewIdentities,
-        ), equals(((surfaceTag, ValueKey(headerTag)), (surfaceTag, ValueKey(headerTag)))));
       });
     });
   });

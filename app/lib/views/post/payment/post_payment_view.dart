@@ -102,6 +102,7 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
     };
 
     return MateoView(
+      animation: .transform(target: PostPaymentMorphTag.surfaceTarget, shape: const .rounded(radius: 42)),
       key: const ValueKey('post_payment_view'),
       header: MateoViewHeader(
         principal: Row(
@@ -185,7 +186,6 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
         key: const ValueKey('post_payment_view_surface'),
         color: colors.surface,
         shape: const .none(),
-        animation: .transform(target: PostPaymentMorphTag.surfaceTarget, shape: const .rounded(radius: 42)),
         child: Material(
           type: MaterialType.transparency,
           child: TextField(

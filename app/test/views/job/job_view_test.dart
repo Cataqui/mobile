@@ -181,7 +181,7 @@ void main() {
             )
             .first,
       );
-      expect(headerMorph.target.tag, equals(JobViewTransformTag.header.valueFor(jobId: feedJob.jobId)));
+      expect(headerMorph.targets.single.tag, equals(JobViewTransformTag.header.valueFor(jobId: feedJob.jobId)));
     });
 
     testWidgets('when dragging the surface down, it should preview dismissal without scrubbing the route animation', (

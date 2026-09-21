@@ -146,17 +146,17 @@ void main() {
     await PostPaymentViewTestHelpers.openPayment(tester, disableAnimations: false, keyboardInset: 300);
     final surfaceFinder = find.byKey(const ValueKey('post_payment_view_surface'));
     final route = ModalRoute.of(tester.element(find.byType(PostPaymentView)))!;
-    expect(tester.widget<MateoViewSurface>(surfaceFinder).shape, const MateoViewSurfaceShape.none());
+    expect(tester.widget<MateoViewSurface>(surfaceFinder).shape, const MateoShape.none());
     expect(
-      (tester.widget<MateoViewSurface>(surfaceFinder).animation! as MateoSurfaceAnimationTransform).shape,
-      const MateoSurfaceShape.rounded(radius: 42),
+      tester.widget<MateoView>(find.ancestor(of: surfaceFinder, matching: find.byType(MateoView))).animation!.shape,
+      const MateoShape.rounded(radius: 42),
     );
 
     await tester.binding.handlePopRoute();
     expect(route.animation!.status, AnimationStatus.reverse);
     await tester.pump();
     await tester.pump();
-    expect(tester.widget<MateoViewSurface>(surfaceFinder).shape, const MateoViewSurfaceShape.none());
+    expect(tester.widget<MateoViewSurface>(surfaceFinder).shape, const MateoShape.none());
     final flight = tester
         .widgetList<DecoratedBox>(find.byType(DecoratedBox))
         .map((box) => box.decoration)
@@ -411,10 +411,11 @@ void main() {
 
   testWidgets('when payment opens, its chip and view should share a surface transform', (tester) async {
     await PostPaymentViewTestHelpers.openPayment(tester, disableAnimations: false);
-    final surface = tester.widget<MateoViewSurface>(find.byKey(const ValueKey('post_payment_view_surface')));
+    final surface = find.byKey(const ValueKey('post_payment_view_surface'));
+    final view = tester.widget<MateoView>(find.ancestor(of: surface, matching: find.byType(MateoView)));
 
     final chip = tester.widget<MateoSurface>(find.byKey(const ValueKey('post_payment_chip')));
-    expect((surface.animation! as MateoSurfaceAnimationTransform).target, PostPaymentMorphTag.surfaceTarget);
+    expect(view.animation!.target, PostPaymentMorphTag.surfaceTarget);
     expect((chip.animation! as MateoSurfaceAnimationTransform).target, PostPaymentMorphTag.surfaceTarget);
   });
 }

@@ -4,6 +4,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
+import 'package:cataqui_app/views/job/job_view_transform_targets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -20,17 +21,9 @@ class FeedJobCard extends ConsumerStatefulWidget {
 }
 
 class _FeedJobCardState extends ConsumerState<FeedJobCard> {
-  late MorphTarget _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.feedJob.jobId));
-
-  @override
-  void didUpdateWidget(FeedJobCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.feedJob.jobId == widget.feedJob.jobId) return;
-    _headerTarget = MorphTarget(tag: JobViewTransformTag.header.valueFor(jobId: widget.feedJob.jobId));
-  }
-
   @override
   Widget build(BuildContext context) {
+    final transformTargets = ref.watch(jobViewTransformTargetsProvider(widget.feedJob.jobId));
     final colorScheme = MateoTheme.of(context).colorScheme;
     final i18n = ref.watch(translationProvider);
     final headerMorphTag = JobViewTransformTag.header.valueFor(jobId: widget.feedJob.jobId);
@@ -52,12 +45,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
         color: colorScheme.background,
         shape: const .rounded(radius: 42),
         elevation: MateoElevation(level: 0.6),
-        animation: .transform(
-          id: JobViewTransformTag.surface.valueFor(jobId: widget.feedJob.jobId),
-          duration: JobRoute.pushDuration,
-          curve: Curves.fastOutSlowIn,
-          contentEffects: [const .crossfade()],
-        ),
+        animation: .transform(target: transformTargets.surface, contentEffects: [const .crossfade()]),
         child: Skeleton(
           enabled: widget.skeleton,
           style: SkeletonStyle(
@@ -66,8 +54,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
             radius: const Radius.circular(999),
           ),
           child: Morph(
-            target: _headerTarget,
-            curve: Curves.fastOutSlowIn,
+            targets: [transformTargets.header],
             flightConfig: const .auto(childSwitchAt: 0.01),
             child: Column(
               key: ValueKey(headerMorphTag),
