@@ -29,6 +29,7 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
   static const Curve _motionCurve = Curves.easeOutCubic;
 
   final _descriptionFocusNode = FocusNode();
+  final _paymentSurfaceTransformTarget = MateoTransformTarget();
 
   late final TextEditingController _descriptionController;
 
@@ -118,10 +119,16 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
           ),
         ),
         const SizedBox(height: 20),
-        const Column(
+        Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [LocationChip(), SizedBox(height: 8), PaymentChip(), SizedBox(height: 8), ContactChip()],
+          children: [
+            const LocationChip(),
+            const SizedBox(height: 8),
+            PaymentChip(surfaceTransformTarget: _paymentSurfaceTransformTarget),
+            const SizedBox(height: 8),
+            const ContactChip(),
+          ],
         ),
       ],
     );

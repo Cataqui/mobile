@@ -3,7 +3,6 @@ import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
@@ -42,8 +41,8 @@ class _FeedJobCardTestHelpers {
     );
   }
 
-  static MorphColumnProperties captureHeader(WidgetTester tester, String jobId) {
-    final finder = find.byKey(ValueKey(JobViewTransformTag.header.valueFor(jobId: jobId)));
+  static MorphColumnProperties captureHeader(WidgetTester tester) {
+    final finder = find.ancestor(of: find.byKey(const ValueKey('job_title')), matching: find.byType(Column)).first;
     return MorphColumnFlightDelegate.captureColumn(
       context: tester.element(finder),
       column: tester.widget<Column>(finder),
@@ -70,11 +69,11 @@ void main() {
       final feedJob = _FeedJobCardTestHelpers.fixture(descriptionSummary: 'Summary of the job available nearby.');
       await JobViewTestHelpers.pumpJobView(tester: tester, jobState: FakeJobState(), feedJob: feedJob);
       await tester.pumpAndSettle();
-      final source = _FeedJobCardTestHelpers.captureHeader(tester, feedJob.jobId);
+      final source = _FeedJobCardTestHelpers.captureHeader(tester);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: feedJob)));
       await tester.pumpAndSettle();
-      final destination = _FeedJobCardTestHelpers.captureHeader(tester, feedJob.jobId);
+      final destination = _FeedJobCardTestHelpers.captureHeader(tester);
       final descriptionWidth = tester.getSize(find.byKey(const ValueKey('job_description'))).width;
       final minimumWidth = source.children[3].rect.width < descriptionWidth
           ? source.children[3].rect.width
@@ -305,19 +304,23 @@ void main() {
         final detail = tester.widget<MateoView>(find.ancestor(of: detailSurface, matching: find.byType(MateoView)));
         final target = (card.animation! as MateoSurfaceAnimationTransform).target;
         expect(detail.animation!.target, same(target));
-        final headers = tester
-            .widgetList<Morph>(
-              find.byWidgetPredicate(
-                (widget) =>
-                    widget is Morph &&
-                    widget.targets.any(
-                      (target) => target.tag == JobViewTransformTag.header.valueFor(jobId: feedJob.jobId),
-                    ),
-              ),
-            )
-            .toList();
-        expect(headers, hasLength(2));
-        expect(headers.first.targets.single, same(headers.last.targets.single));
+        final cardHeader = tester.widget<Morph>(
+          find
+              .ancestor(
+                of: find.descendant(of: find.byType(FeedJobCard), matching: find.byKey(const ValueKey('job_title'))),
+                matching: find.byType(Morph),
+              )
+              .first,
+        );
+        final detailHeader = tester.widget<Morph>(
+          find
+              .ancestor(
+                of: find.descendant(of: find.byType(JobView), matching: find.byKey(const ValueKey('job_title'))),
+                matching: find.byType(Morph),
+              )
+              .first,
+        );
+        expect(cardHeader.targets.single, same(detailHeader.targets.single));
         await tester.pumpWidget(host());
         await tester.pump();
         expect(

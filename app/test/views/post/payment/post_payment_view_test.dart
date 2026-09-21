@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/post/payment/enums/post_payment_morph_tag.dart';
 import 'package:cataqui_app/views/post/payment/post_payment_view.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
@@ -415,7 +414,6 @@ void main() {
     final view = tester.widget<MateoView>(find.ancestor(of: surface, matching: find.byType(MateoView)));
 
     final chip = tester.widget<MateoSurface>(find.byKey(const ValueKey('post_payment_chip')));
-    expect(view.animation!.target, PostPaymentMorphTag.surfaceTarget);
-    expect((chip.animation! as MateoSurfaceAnimationTransform).target, PostPaymentMorphTag.surfaceTarget);
+    expect(view.animation!.target, same((chip.animation! as MateoSurfaceAnimationTransform).target));
   });
 }

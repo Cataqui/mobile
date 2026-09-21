@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view_transform_targets.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +25,6 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
     final transformTargets = ref.watch(jobViewTransformTargetsProvider(widget.feedJob.jobId));
     final colorScheme = MateoTheme.of(context).colorScheme;
     final i18n = ref.watch(translationProvider);
-    final headerMorphTag = JobViewTransformTag.header.valueFor(jobId: widget.feedJob.jobId);
 
     return MateoPress(
       animation: MateoPressAnimationType.scale,
@@ -57,7 +55,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
             targets: [transformTargets.header],
             flightConfig: const .auto(childSwitchAt: 0.01),
             child: Column(
-              key: ValueKey(headerMorphTag),
+              key: ValueKey(transformTargets.header),
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -1,16 +1,15 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/views/post/payment/enums/post_payment_morph_tag.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 class PostPaymentView extends ConsumerStatefulWidget {
-  const PostPaymentView({super.key});
+  const PostPaymentView({required this.surfaceTransformTarget, super.key});
 
-  static Future<void> push({required BuildContext context}) {
+  static Future<void> push({required BuildContext context, required MateoTransformTarget surfaceTransformTarget}) {
     final animationsDisabled = MediaQuery.disableAnimationsOf(context);
 
     return Navigator.of(context).push<void>(
@@ -24,10 +23,12 @@ class PostPaymentView extends ConsumerStatefulWidget {
         barrierColor: Colors.transparent,
         transitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 270),
         reverseTransitionDuration: animationsDisabled ? Duration.zero : const Duration(milliseconds: 200),
-        pageBuilder: (_, _, _) => const PostPaymentView(),
+        pageBuilder: (_, _, _) => PostPaymentView(surfaceTransformTarget: surfaceTransformTarget),
       ),
     );
   }
+
+  final MateoTransformTarget surfaceTransformTarget;
 
   @override
   ConsumerState<PostPaymentView> createState() => _PostPaymentViewState();
@@ -102,7 +103,7 @@ class _PostPaymentViewState extends ConsumerState<PostPaymentView> {
     };
 
     return MateoView(
-      animation: .transform(target: PostPaymentMorphTag.surfaceTarget, shape: const .rounded(radius: 42)),
+      animation: .transform(target: widget.surfaceTransformTarget, shape: const .rounded(radius: 42)),
       key: const ValueKey('post_payment_view'),
       header: MateoViewHeader(
         principal: Row(

@@ -2,7 +2,6 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
@@ -181,7 +180,7 @@ void main() {
             )
             .first,
       );
-      expect(headerMorph.targets.single.tag, equals(JobViewTransformTag.header.valueFor(jobId: feedJob.jobId)));
+      expect(headerMorph.targets, hasLength(1));
     });
 
     testWidgets('when dragging the surface down, it should preview dismissal without scrubbing the route animation', (

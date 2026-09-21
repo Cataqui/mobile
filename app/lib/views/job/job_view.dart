@@ -6,7 +6,6 @@ import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/job/enums/job_view_transform_tag.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:cataqui_app/views/job/job_view_transform_targets.dart';
@@ -42,7 +41,6 @@ class _JobViewState extends ConsumerState<JobView> {
     final i18n = ref.watch(translationProvider);
     final jobState = ref.watch(jobStateProvider(widget.jobId));
     final jobData = jobState.asData?.value;
-    final headerMorphTag = JobViewTransformTag.header.valueFor(jobId: widget.jobId);
 
     return SafeArea(
       child: Padding(
@@ -94,7 +92,7 @@ class _JobViewState extends ConsumerState<JobView> {
                     targets: [transformTargets.header],
                     flightConfig: const .auto(childSwitchAt: 0.9),
                     child: Column(
-                      key: ValueKey(headerMorphTag),
+                      key: ValueKey(transformTargets.header),
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
