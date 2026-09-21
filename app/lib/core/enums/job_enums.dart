@@ -47,7 +47,7 @@ enum JobContactMethod {
   String displayIdentifier(String identifier) {
     return switch (this) {
       JobContactMethod.whatsapp => Whatsapp(identifier).toDisplayString(),
-      JobContactMethod.phoneCall => PhoneNumber(identifier).toDisplayString(),
+      JobContactMethod.phoneCall => PhoneNumber.parse(identifier).toDisplayString(),
       JobContactMethod.unknown => throw UnsupportedError('Unknown job contact method.'),
     };
   }
