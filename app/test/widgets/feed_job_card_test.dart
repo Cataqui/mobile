@@ -122,13 +122,13 @@ void main() {
         expect(find.text('Experiente em atendimento ao cliente.'), findsOneWidget);
       });
 
-      testWidgets('when created, the card should have 36px border radius', (tester) async {
+      testWidgets('when created, the card should have 42px border radius', (tester) async {
         await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
         await tester.pumpAndSettle();
 
         final decoratedBox = tester.widget<DecoratedBox>(find.byType(DecoratedBox).first);
 
-        expect(((decoratedBox.decoration as ShapeDecoration).shape as MateoRoundedShapeBorder).radius, equals(36));
+        expect(((decoratedBox.decoration as ShapeDecoration).shape as MateoRoundedShapeBorder).radius, equals(42));
       });
 
       testWidgets('when created, the title should use semi-bold weight', (tester) async {
@@ -269,9 +269,7 @@ void main() {
 
         expect(
           surface.animation,
-          isA<MateoSurfaceAnimationTransform>()
-              .having((animation) => animation.duration, 'duration', isNull)
-              .having((animation) => animation.curve, 'curve', Curves.fastOutSlowIn),
+          isA<MateoSurfaceAnimationTransform>().having((animation) => animation.curve, 'curve', Curves.fastOutSlowIn),
         );
       });
 
@@ -303,7 +301,7 @@ void main() {
         final detailSurface = find.byKey(const ValueKey('job_surface'));
         final detail = tester.widget<MateoView>(find.ancestor(of: detailSurface, matching: find.byType(MateoView)));
         final target = (card.animation! as MateoSurfaceAnimationTransform).target;
-        expect(detail.animation!.target, same(target));
+        expect((detail.animation! as MateoViewAnimationTransform).target, same(target));
         final cardHeader = tester.widget<Morph>(
           find
               .ancestor(

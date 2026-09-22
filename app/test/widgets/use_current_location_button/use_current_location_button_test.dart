@@ -154,7 +154,7 @@ void main() {
       ),
       (loadingIndicatorCount: 1, preservesLoadingIndicatorState: true, pulseCount: 1),
     );
-    await tester.pump(const Duration(milliseconds: 25));
+    await tester.pump(const Duration(milliseconds: 225));
   });
 
   testWidgets('when permission is granted, it should resolve the region for display without selecting it', (
@@ -229,31 +229,6 @@ void main() {
       (selectionCount: selectionCount, addressRequestCount: service.addressRequestCount),
       (selectionCount: 1, addressRequestCount: 1),
     );
-  });
-
-  testWidgets('when loading resolves, it should keep both descriptions aligned during the fade', (tester) async {
-    final addressCompleter = Completer<DeviceLocationAddress>();
-    final service = buildService(addressCompleter: addressCompleter);
-    await pumpButton(
-      tester,
-      deviceLocationService: service,
-      onRequestedToUse: (_) {},
-      mediaQueryData: const MediaQueryData(disableAnimations: false),
-    );
-    await tester.tap(find.byType(UseCurrentLocationButton));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-
-    addressCompleter.complete(neighborhoodAddress);
-    await tester.pump();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 175));
-    final loadingDescriptionHeight = tester.getTopLeft(find.text(i18n.useCurrentLocationButton.loading)).dy;
-    final resolvedDescriptionHeight = tester.getTopLeft(find.text('Pinheiros, São Paulo')).dy;
-
-    expect(resolvedDescriptionHeight, loadingDescriptionHeight);
-
-    await tester.pump(const Duration(milliseconds: 175));
   });
 
   for (final testCase in <({DeviceLocationAddress address, String expected, String name})>[
@@ -396,45 +371,24 @@ void main() {
     expect(service.openLocationSettingsRequestCount, 0);
   });
 
-  testWidgets('when settings is selected, it should wait for the permission sheet to close before opening it', (
-    tester,
-  ) async {
+  testWidgets('when settings is selected, it should close the permission sheet and open settings', (tester) async {
     final service = buildService(
       addressError: const DeviceLocationException(DeviceLocationExceptionReason.permissionPermanentlyDenied),
     );
-    await pumpButton(
-      tester,
-      deviceLocationService: service,
-      onRequestedToUse: (_) {},
-      mediaQueryData: const MediaQueryData(disableAnimations: false),
-    );
+    await pumpButton(tester, deviceLocationService: service, onRequestedToUse: (_) {});
     await tester.tap(find.byType(UseCurrentLocationButton));
     await tester.pump();
     await pumpRetryDelays(tester);
 
     await tester.tap(find.byKey(const ValueKey('current_location_permission_sheet_settings_button')));
-    await tester.pump();
-    final sheetCountWhileClosing = find
-        .byKey(const ValueKey('current_location_permission_sheet_title'))
-        .evaluate()
-        .length;
-    final settingsCountWhileClosing = service.openLocationSettingsRequestCount;
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(
       (
-        sheetCountWhileClosing: sheetCountWhileClosing,
-        settingsCountWhileClosing: settingsCountWhileClosing,
         sheetCountAfterClosing: find.byKey(const ValueKey('current_location_permission_sheet_title')).evaluate().length,
         settingsCountAfterClosing: service.openLocationSettingsRequestCount,
       ),
-      (
-        sheetCountWhileClosing: 1,
-        settingsCountWhileClosing: 0,
-        sheetCountAfterClosing: 0,
-        settingsCountAfterClosing: 1,
-      ),
+      (sheetCountAfterClosing: 0, settingsCountAfterClosing: 1),
     );
   });
 

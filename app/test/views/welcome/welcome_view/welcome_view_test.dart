@@ -849,7 +849,7 @@ void main() {
           titleMove: (
             Offset(
               0,
-              422 -
+              442 -
                   (tester.getBottomRight(find.byKey(const ValueKey('welcome_scene_size'))).dy +
                           tester.getTopLeft(find.byKey(const ValueKey('welcome_start_button'))).dy -
                           20) /
@@ -893,7 +893,7 @@ void main() {
       );
       final initialTranslation = Offset(
         0,
-        422 -
+        442 -
             (tester.getBottomRight(find.byKey(const ValueKey('welcome_scene_size'))).dy +
                     tester.getTopLeft(find.byKey(const ValueKey('welcome_start_button'))).dy -
                     20) /
@@ -930,7 +930,7 @@ void main() {
           initialOpacity: 0.0,
           initialScale: true,
           initialTranslation: true,
-          initialTitleCenter: 422.0,
+          initialTitleCenter: 442.0,
           heldFor599ms: true,
           revealedOpacity: true,
           revealedScale: true,

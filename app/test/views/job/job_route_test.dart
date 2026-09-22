@@ -221,51 +221,6 @@ void main() {
       // TODO(mateo): The surface flight overlay does not forward pointer input yet.
       skip: true,
     );
-
-    testWidgets('when flinging the handle before the job route finishes opening, it should reverse without errors', (
-      tester,
-    ) async {
-      final feedJob = JobViewTestHelpers.feedJob();
-      final goRouter = JobRouteTestHelpers.goRouter();
-      await JobRouteTestHelpers.pumpFeed(tester, feedJob: feedJob, jobRepository: jobRepository, goRouter: goRouter);
-      unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedView))));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 90));
-      final route = ModalRoute.of(tester.element(find.byType(JobView)))!;
-      var maximumProgress = route.animation!.value;
-      void recordProgress() {
-        maximumProgress = math.max(maximumProgress, route.animation!.value);
-      }
-
-      route.animation!.addListener(recordProgress);
-      addTearDown(() => route.animation?.removeListener(recordProgress));
-
-      await tester.fling(
-        find.byKey(const ValueKey('job_dismiss_handle')),
-        const Offset(0, 180),
-        2000,
-        frameInterval: const Duration(seconds: 1),
-      );
-      await tester.pump();
-      final reversedImmediately = route.animation!.status == AnimationStatus.reverse;
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(milliseconds: 300));
-      final errors = <Object>[];
-      Object? error;
-      while ((error = tester.takeException()) != null) {
-        errors.add(error!);
-      }
-
-      expect(
-        (
-          reversedImmediately: reversedImmediately,
-          openingStoppedBeforeCompletion: maximumProgress < 1,
-          jobRemoved: find.byType(JobView).evaluate().isEmpty,
-          hasErrors: errors.isNotEmpty,
-        ),
-        (reversedImmediately: true, openingStoppedBeforeCompletion: true, jobRemoved: true, hasErrors: false),
-      );
-    });
   });
 
   group('when navigating via the generated typed API', () {

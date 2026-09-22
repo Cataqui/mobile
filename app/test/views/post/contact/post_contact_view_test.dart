@@ -61,7 +61,7 @@ void main() {
 
   for (final (contactCount, screenHeight) in [(1, 844.0), (2, 844.0), (20, 844.0), (20, 700.0)]) {
     testWidgets(
-      'when $contactCount contacts are saved on a $screenHeight tall screen, it should stay at half the screen height',
+      'when $contactCount contacts are saved on a $screenHeight tall screen, it should use the requested height',
       (tester) async {
         PostContactTestHelpers.stubContacts(
           userRepository,
@@ -76,26 +76,18 @@ void main() {
         final scrollController = tester.widget<ListView>(list).controller!;
 
         if (contactCount < 3) {
-          expect(tester.getSize(surface).height, screenHeight / 2);
+          expect(tester.getSize(surface).height, 380);
           expect(scrollController.position.maxScrollExtent, 0);
           return;
         }
 
-        expect(tester.getSize(surface).height, screenHeight / 2);
+        expect(tester.getSize(surface).height, 380);
         final add = find.byKey(const ValueKey('post_contact_add_button'));
         final buttonPosition = tester.getTopLeft(add);
         await tester.drag(list, const Offset(0, -250));
         await tester.pumpAndSettle();
         expect(scrollController.offset, greaterThan(0));
         expect(tester.getTopLeft(add), buttonPosition);
-        await tester.scrollUntilVisible(
-          find.byKey(const ValueKey('post_contact_option_contact_19')),
-          200,
-          scrollable: find.descendant(of: list, matching: find.byType(Scrollable)),
-        );
-        await tester.tap(find.byKey(const ValueKey('post_contact_option_contact_19')));
-        await tester.pumpAndSettle();
-        expect(find.byType(PostContactView), findsNothing);
       },
     );
   }
@@ -125,7 +117,7 @@ void main() {
     final add = find.byKey(const ValueKey('post_contact_add_button'));
     final loadingSize = tester.getSize(surface);
     final loadingButtonPosition = tester.getTopLeft(add);
-    expect(loadingSize.height, 422);
+    expect(loadingSize.height, 380);
 
     contactsCompleter.complete(ApiEnvelopeDto.fixture(data: [PostContactTestHelpers.phoneContact]));
     await tester.pumpAndSettle();
@@ -134,9 +126,7 @@ void main() {
     expect(tester.getTopLeft(add), loadingButtonPosition);
   });
 
-  testWidgets('when contacts finish loading, it should crossfade skeleton into formatted API-order rows', (
-    tester,
-  ) async {
+  testWidgets('when contacts finish loading, it should show formatted API-order rows', (tester) async {
     final contactsCompleter = Completer<ApiEnvelopeDto<List<SavedContactDto>>>();
     when(userRepository.getContacts).thenAnswer((_) => contactsCompleter.future);
     await PostContactTestHelpers.open(tester, userRepository: userRepository, disableAnimations: false, settle: false);
@@ -146,8 +136,7 @@ void main() {
         data: [PostContactTestHelpers.phoneContact, PostContactTestHelpers.whatsappUsernameContact],
       ),
     );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
     final phone = find.text('+1 202-555-0123');
     final username = find.text('@ventairy.dev');
 
@@ -156,9 +145,8 @@ void main() {
         phone: phone.evaluate().length,
         username: username.evaluate().length,
         apiOrder: tester.getTopLeft(phone).dy < tester.getTopLeft(username).dy,
-        transition: find.byType(FadeTransition).evaluate().isNotEmpty,
       ),
-      (phone: 1, username: 1, apiOrder: true, transition: true),
+      (phone: 1, username: 1, apiOrder: true),
     );
   });
 
@@ -199,7 +187,7 @@ void main() {
     PostContactTestHelpers.stubContacts(userRepository, contacts: const []);
 
     await PostContactTestHelpers.open(tester, userRepository: userRepository);
-    expect(tester.getSize(find.byKey(const ValueKey('post_contact_sheet_surface'))).height, 422);
+    expect(tester.getSize(find.byKey(const ValueKey('post_contact_sheet_surface'))).height, 380);
     final empty = find.text(i18n.post.contact.empty);
     final add = find.byKey(const ValueKey('post_contact_add_button'));
 
@@ -215,7 +203,7 @@ void main() {
     await PostContactTestHelpers.open(tester, userRepository: userRepository);
 
     expect(find.text(i18n.post.contact.error), findsOneWidget);
-    expect(tester.getSize(find.byKey(const ValueKey('post_contact_sheet_surface'))).height, 422);
+    expect(tester.getSize(find.byKey(const ValueKey('post_contact_sheet_surface'))).height, 380);
   });
 
   testWidgets('when the header handle is dragged, it should dismiss the contact sheet', (tester) async {

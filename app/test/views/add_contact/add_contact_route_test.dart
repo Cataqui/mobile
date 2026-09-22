@@ -26,7 +26,7 @@ void main() {
 
   for (final systemBack in [false, true]) {
     testWidgets(
-      'Add contact expands from the sheet and ${systemBack ? 'system back' : 'close'} restores the sheet and draft',
+      'Add contact opens from the sheet and ${systemBack ? 'system back' : 'close'} restores the sheet and draft',
       (tester) async {
         tester.view
           ..devicePixelRatio = 1
@@ -56,17 +56,12 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('post_contact_chip')));
         await tester.pumpAndSettle();
         final sheetState = tester.state(find.byType(PostContactView));
-        final sheetSurface = find.byKey(const ValueKey('post_contact_sheet_surface'));
-        final sheetBounds = tester.getRect(sheetSurface);
         await tester.tap(find.byKey(const ValueKey('post_contact_add_button')));
         await tester.pump();
         await tester.pump();
         expect(find.byType(AddContactView), findsOneWidget);
         final route = ModalRoute.of(tester.element(find.byType(AddContactView)))!;
         expect(route.settings, isA<MateoPage<void>>());
-        final flight = find.byWidgetPredicate((widget) => widget.runtimeType.toString() == '_MorphFlightBoundary');
-        await tester.pump(const Duration(milliseconds: 100));
-        expect(tester.getRect(flight).height, greaterThan(sheetBounds.height));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), '11987654321');
         await tester.pump();

@@ -149,7 +149,7 @@ void main() {
       await _JobLocationMapTestHelpers.pumpMap(tester: tester);
       final googleMap = tester.widget<GoogleMap>(find.byType(GoogleMap));
 
-      expect(googleMap.backgroundColor, isNull);
+      expect(googleMap.backgroundColor, JobLocationMapColorScheme.light(palette: MateoPalette()).background);
     });
 
     testWidgets('when no visual offset is supplied, it should account for attribution padding at the default zoom', (
@@ -162,7 +162,7 @@ void main() {
         (
           targetMatches: _JobLocationMapTestHelpers.cameraTargetMatchesOffset(
             target: cameraPosition.target,
-            offset: const Offset(0, 50),
+            offset: const Offset(0, 10),
             zoom: 14,
           ),
           zoom: cameraPosition.zoom,
@@ -180,7 +180,7 @@ void main() {
       final target = renderer.lastWidgetConfiguration.initialCameraPosition.target;
 
       expect(
-        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(30, 30), zoom: zoom),
+        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(30, -10), zoom: zoom),
         isTrue,
       );
     });
@@ -200,7 +200,7 @@ void main() {
       final target = renderer.lastWidgetConfiguration.initialCameraPosition.target;
 
       expect(
-        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(0, 68), zoom: 14),
+        _JobLocationMapTestHelpers.cameraTargetMatchesOffset(target: target, offset: const Offset(0, 28), zoom: 14),
         isTrue,
       );
     });
@@ -294,7 +294,7 @@ void main() {
       expect(renderer.createdIds.toSet(), hasLength(1));
     });
 
-    testWidgets('when the active theme is dark, it should reject the unsupported map appearance', (tester) async {
+    testWidgets('when Material is dark, it should use the active light Mateo map appearance', (tester) async {
       final lightTheme = MateoThemeData.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
       await tester.pumpWidget(
         MaterialApp(
@@ -303,7 +303,10 @@ void main() {
         ),
       );
 
-      expect(tester.takeException(), isA<UnsupportedError>());
+      await tester.pumpAndSettle();
+      final googleMap = tester.widget<GoogleMap>(find.byType(GoogleMap));
+
+      expect(googleMap.backgroundColor, JobLocationMapColorScheme.light(palette: lightTheme.palette).background);
     });
 
     testWidgets('when rendering the decorative map, it should ignore pointer input', (tester) async {

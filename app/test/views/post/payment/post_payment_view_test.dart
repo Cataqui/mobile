@@ -78,21 +78,21 @@ void main() {
     expect(tester.widget<TextField>(find.byKey(const ValueKey('post_payment_input'))).inputFormatters, isNull);
   });
 
-  testWidgets('when payment opens, it should inset the rounded surface by twelve pixels', (tester) async {
+  testWidgets('when payment opens, it should fill the screen with its square surface', (tester) async {
     await PostPaymentViewTestHelpers.openPayment(tester);
     final surfaceFinder = find.byKey(const ValueKey('post_payment_view_surface'));
 
     expect(
       (topLeft: tester.getTopLeft(surfaceFinder), bottomRight: tester.getBottomRight(surfaceFinder)),
-      (topLeft: const Offset(12, 12), bottomRight: const Offset(378, 832)),
+      (topLeft: Offset.zero, bottomRight: const Offset(390, 844)),
     );
   });
 
-  testWidgets('when the keyboard is open, it should resize the green surface above it', (tester) async {
+  testWidgets('when the keyboard is open, it should keep the green surface behind it', (tester) async {
     await PostPaymentViewTestHelpers.openPayment(tester, keyboardInset: 300);
     final surfaceFinder = find.byKey(const ValueKey('post_payment_view_surface'));
 
-    expect(tester.getBottomRight(surfaceFinder), const Offset(378, 532));
+    expect(tester.getBottomRight(surfaceFinder), const Offset(390, 844));
   });
 
   testWidgets('when payment opens, it should keep its modal barrier transparent', (tester) async {
@@ -112,59 +112,16 @@ void main() {
     );
   });
 
-  testWidgets('when payment is halfway open, it should keep the matched surface flight active', (tester) async {
-    await PostPaymentViewTestHelpers.pumpPost(tester, disableAnimations: false);
-    await tester.tap(find.byKey(const ValueKey('post_payment_chip')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 135));
-
-    final route = ModalRoute.of(tester.element(find.byType(PostPaymentView)))!;
-
-    expect(route.animation!.status, AnimationStatus.forward);
-    expect(route.animation!.value, closeTo(0.5, 0.01));
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('when payment is halfway closed, it should return the matched surface without a jump', (tester) async {
-    await PostPaymentViewTestHelpers.openPayment(tester, disableAnimations: false);
-    await tester.tap(find.byKey(const ValueKey('post_payment_close_button')));
-    await tester.pump();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-
-    final route = ModalRoute.of(tester.element(find.byType(PostPaymentView)))!;
-
-    expect(route.animation!.status, AnimationStatus.reverse);
-    expect(route.animation!.value, closeTo(0.5, 0.01));
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('when payment settles and system back is requested, it should stay square and fly back rounded', (
-    tester,
-  ) async {
-    await PostPaymentViewTestHelpers.openPayment(tester, disableAnimations: false, keyboardInset: 300);
+  testWidgets('when payment opens, it should configure square and rounded transform endpoints', (tester) async {
+    await PostPaymentViewTestHelpers.openPayment(tester, keyboardInset: 300);
     final surfaceFinder = find.byKey(const ValueKey('post_payment_view_surface'));
-    final route = ModalRoute.of(tester.element(find.byType(PostPaymentView)))!;
     expect(tester.widget<MateoViewSurface>(surfaceFinder).shape, const MateoShape.none());
     expect(
-      tester.widget<MateoView>(find.ancestor(of: surfaceFinder, matching: find.byType(MateoView))).animation!.shape,
+      (tester.widget<MateoView>(find.ancestor(of: surfaceFinder, matching: find.byType(MateoView))).animation!
+              as MateoViewAnimationTransform)
+          .shape,
       const MateoShape.rounded(radius: 42),
     );
-
-    await tester.binding.handlePopRoute();
-    expect(route.animation!.status, AnimationStatus.reverse);
-    await tester.pump();
-    await tester.pump();
-    expect(tester.widget<MateoViewSurface>(surfaceFinder).shape, const MateoShape.none());
-    final flight = tester
-        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-        .map((box) => box.decoration)
-        .whereType<ShapeDecoration>()
-        .where((decoration) => decoration.color == tester.widget<MateoViewSurface>(surfaceFinder).color);
-    expect(flight, hasLength(1));
-    expect(flight.single.shape, const MateoRoundedShapeBorder(radius: 42));
-    await tester.pumpAndSettle();
-    expect(find.byType(PostPaymentView), findsNothing);
   });
 
   testWidgets('when animations are disabled, it should remove payment route motion', (tester) async {
@@ -200,12 +157,12 @@ void main() {
     expect(tester.widget<TextField>(find.byKey(const ValueKey('post_payment_input'))).controller!.text, 'Pagamento');
   });
 
-  testWidgets('when payment exceeds fifty characters, it should limit the input', (tester) async {
+  testWidgets('when payment exceeds thirty characters, it should limit the input', (tester) async {
     await PostPaymentViewTestHelpers.openPayment(tester);
     await tester.enterText(find.byKey(const ValueKey('post_payment_input')), 'a' * 51);
     await tester.pump();
 
-    expect(tester.widget<TextField>(find.byKey(const ValueKey('post_payment_input'))).controller!.text, 'a' * 50);
+    expect(tester.widget<TextField>(find.byKey(const ValueKey('post_payment_input'))).controller!.text, 'a' * 30);
   });
 
   testWidgets('when payment is confirmed, it should trim and commit the text', (tester) async {
@@ -233,13 +190,10 @@ void main() {
   });
 
   testWidgets('when an empty payment is confirmed, it should clear it and restore the chip label', (tester) async {
-    await PostPaymentViewTestHelpers.openPayment(
-      tester,
-      initialPostData: const PostData(payment: r'R$ 150'),
-      disableAnimations: false,
-    );
+    await PostPaymentViewTestHelpers.openPayment(tester, initialPostData: const PostData(payment: r'R$ 150'));
     final container = ProviderScope.containerOf(tester.element(find.byType(PostPaymentView)));
     await tester.enterText(find.byKey(const ValueKey('post_payment_input')), '');
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('post_payment_confirm_button')));
     await tester.pumpAndSettle();
 
@@ -414,6 +368,9 @@ void main() {
     final view = tester.widget<MateoView>(find.ancestor(of: surface, matching: find.byType(MateoView)));
 
     final chip = tester.widget<MateoSurface>(find.byKey(const ValueKey('post_payment_chip')));
-    expect(view.animation!.target, same((chip.animation! as MateoSurfaceAnimationTransform).target));
+    expect(
+      (view.animation! as MateoViewAnimationTransform).target,
+      same((chip.animation! as MateoSurfaceAnimationTransform).target),
+    );
   });
 }

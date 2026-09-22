@@ -113,7 +113,7 @@ void main() {
         chipLeft: tester.getTopLeft(find.byKey(const ValueKey('post_location_chip'))).dx,
         chipBottom: keyboardTop - tester.getBottomLeft(find.byKey(const ValueKey('post_contact_chip'))).dy,
       ),
-      (descriptionLeft: 20, chipLeft: 16, chipBottom: 16),
+      (descriptionLeft: 20, chipLeft: 20, chipBottom: 12),
     );
   });
 
@@ -317,7 +317,7 @@ void main() {
       devicePixelRatio: 3,
     );
     final descriptionInput = find.byKey(const ValueKey('post_description_input'));
-    final initialDescription = List.generate(24, (index) => 'Linha ${index + 1} do trampo').join('\n');
+    final initialDescription = List.generate(32, (index) => 'Linha ${index + 1} do trampo').join('\n');
     await tester.enterText(descriptionInput, initialDescription);
     await tester.pumpAndSettle();
     final outerScrollPosition = Scrollable.of(tester.element(descriptionInput)).position;

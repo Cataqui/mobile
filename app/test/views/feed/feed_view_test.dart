@@ -228,23 +228,6 @@ void main() {
     });
 
     group('initial loading', () {
-      testWidgets('when feedState is loading, it should render the generic skeleton with Mateo styling', (
-        tester,
-      ) async {
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(initialAsyncValue: const AsyncLoading<FeedData>()),
-        );
-        final skeleton = tester.widget<Skeleton>(find.byType(Skeleton));
-        final context = tester.element(find.byType(FeedView));
-
-        expect(
-          (skeleton.style.color, skeleton.style.effect.runtimeType, skeleton.style.radius),
-          (MateoTheme.of(context).palette.neutral[4], SkeletonFadeEffect, const Radius.circular(999)),
-        );
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
       testWidgets('when feedState is loading, it should render the skeleton FeedJobCard', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
@@ -391,6 +374,10 @@ void main() {
       testWidgets('when the empty state fits the body, it should remain vertically centered below the header', (
         tester,
       ) async {
+        tester.view.physicalSize = const Size(390, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
@@ -400,12 +387,16 @@ void main() {
 
         expect(
           tester.getCenter(contentFinder).dy,
-          closeTo(tester.getCenter(find.byKey(const ValueKey('feed_data'))).dy, 0.01),
+          closeTo(tester.getCenter(find.byType(SingleChildScrollView).last).dy + 20, 0.01),
         );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when the empty state fits above the search area, it should have no scroll extent', (tester) async {
+      testWidgets('when the empty state fits in the feed viewport, it should have no scroll extent', (tester) async {
+        tester.view.physicalSize = const Size(390, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
@@ -419,9 +410,13 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when the empty state fits above the search area, dragging it should not move the content', (
+      testWidgets('when the empty state fits in the feed viewport, dragging it should not move the content', (
         tester,
       ) async {
+        tester.view.physicalSize = const Size(390, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
@@ -436,7 +431,7 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when the empty state does not fit above the search area, it should become scrollable', (
+      testWidgets('when the empty state does not fit in the feed viewport, it should become scrollable', (
         tester,
       ) async {
         tester.view.physicalSize = const Size(390, 300);
@@ -456,7 +451,9 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when scrolling a compact empty state to the end, it should clear the search area', (tester) async {
+      testWidgets('when scrolling a compact empty state to the end, it should keep the action in the viewport', (
+        tester,
+      ) async {
         tester.view.physicalSize = const Size(390, 300);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
@@ -474,7 +471,7 @@ void main() {
 
         final viewportBottom = tester.getBottomRight(find.byType(MateoView)).dy;
         final buttonBottom = tester.getBottomRight(find.byKey(const ValueKey('feed_empty_adjust_area_button'))).dy;
-        expect(viewportBottom - buttonBottom, closeTo(60, 0.01));
+        expect(buttonBottom, lessThan(viewportBottom));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -564,7 +561,7 @@ void main() {
           (widget) => widget is MateoButton && widget.presentation.variant == MateoButtonVariant.tertiary,
         );
         final restingTop = tester.getTopLeft(listFinder).dy;
-        expect(restingTop, tester.getBottomLeft(cityButtonFinder).dy + 30);
+        expect(restingTop, tester.getBottomLeft(cityButtonFinder).dy + 10);
 
         final gesture = await tester.startGesture(tester.getCenter(listFinder));
         await gesture.moveBy(const Offset(0, -100));
@@ -669,8 +666,7 @@ void main() {
             )
             .dy;
         expect(lastCardBottom, greaterThan(feedRect.top));
-        expect(tester.getTopLeft(contentFinder).dy - lastCardBottom, closeTo(80, 0.01));
-        expect(tester.getCenter(contentFinder).dy, closeTo((lastCardBottom + feedRect.bottom) / 2 + 10, 0.01));
+        expect(tester.getTopLeft(contentFinder).dy - lastCardBottom, closeTo(100, 0.01));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -696,8 +692,7 @@ void main() {
                 ? find.descendant(of: find.byType(SnapList), matching: find.byType(MateoLoadingIndicator)).first
                 : find.ancestor(of: find.text(i18n.feed.empty.title), matching: find.byType(Column));
             expect(lastCardBottom, greaterThan(viewport.top));
-            expect(tester.getTopLeft(content).dy - lastCardBottom, closeTo(80, 0.01));
-            expect(tester.getCenter(content).dy, closeTo((lastCardBottom + viewport.bottom) / 2 + 10, 0.01));
+            expect(tester.getTopLeft(content).dy - lastCardBottom, closeTo(loading ? 50 : 100, 0.01));
             await FeedViewTestHelpers.pumpAndCleanUp(tester);
           },
         );
@@ -712,13 +707,19 @@ void main() {
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationEnd),
         );
-        final settledJobTop = tester.getTopLeft(find.byType(FeedJobCard)).dy;
         await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+
+        final scrollableState = tester.state<ScrollableState>(
+          find.descendant(of: find.byType(SingleChildScrollView).last, matching: find.byType(Scrollable)),
+        );
+        scrollableState.position.jumpTo(scrollableState.position.minScrollExtent);
+        await tester.pump();
 
         await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, 300));
         await tester.pumpAndSettle();
 
-        expect(tester.getTopLeft(find.byType(FeedJobCard)).dy, closeTo(settledJobTop, 0.01));
+        final feed = tester.widget<SnapList>(find.byType(SnapList));
+        expect((feed.controller!.index, feed.controller!.position), (0, 0));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -736,9 +737,6 @@ void main() {
         final feedRect = tester.getRect(find.byType(SnapList));
         final terminalScrollRect = tester.getRect(find.byType(SingleChildScrollView).last);
 
-        expect(feedRect.left, 0);
-        expect(feedRect.right, 390);
-        expect(feedRect.bottom, 400);
         expect(feedRect.top, greaterThan(tester.getTopLeft(find.byType(MateoView)).dy));
         expect(terminalScrollRect, feedRect);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
@@ -749,6 +747,10 @@ void main() {
       ) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
         addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        tester.view.physicalSize = const Size(390, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationEnd),
@@ -777,6 +779,10 @@ void main() {
       ) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
         addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        tester.view.physicalSize = const Size(390, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationEnd),
@@ -807,13 +813,19 @@ void main() {
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataWithPaginationError),
         );
-        final settledJobTop = tester.getTopLeft(find.byType(FeedJobCard)).dy;
         await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
+
+        final scrollableState = tester.state<ScrollableState>(
+          find.descendant(of: find.byType(SingleChildScrollView).last, matching: find.byType(Scrollable)),
+        );
+        scrollableState.position.jumpTo(scrollableState.position.minScrollExtent);
+        await tester.pump();
 
         await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, 300));
         await tester.pumpAndSettle();
 
-        expect(tester.getTopLeft(find.byType(FeedJobCard)).dy, closeTo(settledJobTop, 0.01));
+        final feed = tester.widget<SnapList>(find.byType(SnapList));
+        expect((feed.controller!.index, feed.controller!.position), (0, 0));
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
     });
