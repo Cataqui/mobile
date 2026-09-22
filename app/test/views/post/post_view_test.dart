@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/post/location/post_location_view.dart';
@@ -158,6 +159,44 @@ void main() {
     await PostViewTestHelpers.pump(tester, i18n: i18n);
 
     expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNull);
+  });
+
+  testWidgets('when every field is filled using a selected address, it should enable publishing', (tester) async {
+    await PostViewTestHelpers.pump(
+      tester,
+      i18n: i18n,
+      initialPostData: const PostData(
+        addressSelection: (addressId: 'address-id', sessionToken: 'session-token'),
+        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        descriptionText: 'Preciso de ajuda hoje',
+        locationTitle: 'Avenida Paulista',
+        payment: r'R$ 150',
+      ),
+    );
+
+    expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
+  });
+
+  testWidgets('when the last field is filled using current location, it should enable publishing immediately', (
+    tester,
+  ) async {
+    await PostViewTestHelpers.pump(
+      tester,
+      i18n: i18n,
+      initialPostData: const PostData(
+        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        location: (latitude: -23.561684, longitude: -46.655981),
+        locationTitle: 'Pinheiros, São Paulo',
+        payment: r'R$ 150',
+      ),
+    );
+
+    expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNull);
+
+    await tester.enterText(find.byKey(const ValueKey('post_description_input')), 'Preciso de ajuda hoje');
+    await tester.pump();
+
+    expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
   });
 
   testWidgets('when entering a description, it should preserve the text in post state', (tester) async {

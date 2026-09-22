@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/post/post_details_input/post_details_input.dart';
+import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -16,6 +17,7 @@ class _PostViewState extends ConsumerState<PostView> {
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
+    final canPublish = ref.watch(postStateProvider.select((postData) => postData.canPublish));
 
     return MateoView(
       // avoidBottomInset: true,
@@ -46,12 +48,13 @@ class _PostViewState extends ConsumerState<PostView> {
         trailing: MateoButton(
           presentation: .label(
             label: i18n.post.publishButtonTitle,
-            variant: .primary,
+            variant: .primary.accent,
             size: .mini,
             width: .fit,
             leadingIcon: const MateoIcon(.paperPlaneUpRight),
           ),
           key: const ValueKey('post_publish_button'),
+          onPressed: canPublish ? () {} : null,
         ),
       ),
       surface: .scrollable(

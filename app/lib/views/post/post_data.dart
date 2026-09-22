@@ -13,4 +13,14 @@ abstract class PostData with _$PostData {
     String? locationTitle,
     String? payment,
   }) = _PostData;
+
+  const PostData._();
+
+  bool get canPublish {
+    if (descriptionText?.trim().isEmpty ?? true) return false;
+    if (payment?.trim().isEmpty ?? true) return false;
+    if (contact == null) return false;
+
+    return addressSelection != null || location != null;
+  }
 }
