@@ -34,7 +34,7 @@ class PostContactView extends ConsumerStatefulWidget {
         ),
         surface: MateoSheetViewSurface(
           key: const ValueKey('post_contact_sheet_surface'),
-          edgeEffect: .fade(at: const [.bottom]),
+          edgeEffect: .fade(),
           child: const PostContactView(),
         ),
       ),
@@ -85,7 +85,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
     ref
         .read(postStateProvider.notifier)
         .selectContact(contactMethod: option.contact.contactMethod, identifier: option.contact.identifier);
-    // WidgetsBinding.instance.addPostFrameCallback(())
+
     Navigator.of(context).pop();
   }
 
@@ -151,6 +151,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
               key: const ValueKey('post_contact_options'),
               controller: _contactsScrollController,
               padding: EdgeInsets.zero,
+              clipBehavior: .none,
               itemCount: options.length,
               separatorBuilder: (_, _) => const SizedBox(height: 4),
               itemBuilder: (context, index) {
