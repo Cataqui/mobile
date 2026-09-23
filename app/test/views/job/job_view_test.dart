@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
@@ -94,6 +95,19 @@ void main() {
       );
 
       expect(find.text(description), findsOneWidget);
+    });
+
+    testWidgets('when an archived job loads, it shows details without a contact action', (tester) async {
+      final archivedJob = JobViewTestHelpers.job().copyWith(status: JobStatus.archived);
+
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: JobViewTestHelpers.feedJob(),
+        jobState: JobViewTestHelpers.loadedState(job: archivedJob),
+      );
+
+      expect(find.byType(JobView), findsOneWidget);
+      expect(find.byType(JobContactButton), findsNothing);
     });
 
     testWidgets('when the full job fails, it should show the retry button', (tester) async {

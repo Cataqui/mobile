@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -75,7 +76,7 @@ class _JobViewState extends ConsumerState<JobView> {
                 ),
               ),
             ),
-            footer: jobState.isLoading || jobData != null
+            footer: jobState.isLoading || (jobData != null && jobData.job.status == JobStatus.active)
                 ? MateoViewFooter(principal: JobContactButton(jobId: widget.jobId))
                 : null,
             surface: .scrollable(

@@ -6,7 +6,7 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 @JsonEnum(valueField: 'jsonValue')
 enum JobStatus {
   active('ACTIVE'),
-  closed('CLOSED'),
+  archived('ARCHIVED'),
   unknown('unknown');
 
   const JobStatus(this.jsonValue);

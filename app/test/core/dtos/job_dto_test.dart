@@ -32,6 +32,12 @@ void main() {
       expect(job.status, JobStatus.active);
     });
 
+    test('when parsing an archived detailed job, it should map the archived status', () {
+      final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'status': 'ARCHIVED'});
+
+      expect(job.status, JobStatus.archived);
+    });
+
     test('when parsing a detailed job, it should map the job type', () {
       final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'type': 'INDIVIDUAL'});
 
