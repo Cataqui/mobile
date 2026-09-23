@@ -8,7 +8,7 @@ part 'saved_contact_dto.g.dart';
 abstract class SavedContactDto with _$SavedContactDto {
   const factory SavedContactDto({
     required String contactId,
-    @JsonKey(unknownEnumValue: JobContactMethod.unknown) required JobContactMethod contactMethod,
+    @JsonKey(name: 'method', unknownEnumValue: JobContactMethod.unknown) required JobContactMethod contactMethod,
     required String identifier,
   }) = _SavedContactDto;
 

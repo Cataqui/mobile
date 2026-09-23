@@ -81,7 +81,7 @@ abstract final class _UserRepositoryTestData {
 
   static final envelopeJson = <String, Object?>{
     'data': <Object?>[
-      <String, Object?>{'contactId': contactId, 'contactMethod': 'WHATSAPP', 'identifier': '+5511888888888'},
+      <String, Object?>{'contactId': contactId, 'method': 'WHATSAPP', 'identifier': '+5511888888888'},
     ],
     'requestId': 'saved-contacts-request-001',
     'timestamp': '2026-09-04T12:00:00.000Z',

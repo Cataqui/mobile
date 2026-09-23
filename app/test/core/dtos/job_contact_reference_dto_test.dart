@@ -7,7 +7,7 @@ void main() {
     test('when parsing a contact reference, it should map the contact id', () {
       final ref = JobContactReferenceDto.fromJson(const <String, Object?>{
         'contactId': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        'contactMethod': 'WHATSAPP',
+        'method': 'WHATSAPP',
       });
 
       expect(ref.contactId, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
@@ -16,7 +16,7 @@ void main() {
     test('when parsing a contact reference, it should map the contact method', () {
       final ref = JobContactReferenceDto.fromJson(const <String, Object?>{
         'contactId': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        'contactMethod': 'WHATSAPP',
+        'method': 'WHATSAPP',
       });
 
       expect(ref.contactMethod, JobContactMethod.whatsapp);
@@ -25,16 +25,16 @@ void main() {
     test('when parsing an unknown contact method, it should use unknown', () {
       final ref = JobContactReferenceDto.fromJson(const <String, Object?>{
         'contactId': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        'contactMethod': 'SMS',
+        'method': 'SMS',
       });
 
       expect(ref.contactMethod, JobContactMethod.unknown);
     });
 
-    test('when serializing a contact reference, it should use camelCase keys', () {
+    test('when serializing a contact reference, it should use the method wire key', () {
       final json = JobContactReferenceDto.fixture().toJson();
 
-      expect(json.keys, containsAll(<String>['contactId', 'contactMethod']));
+      expect(json.keys, containsAll(<String>['contactId', 'method']));
     });
   });
 }

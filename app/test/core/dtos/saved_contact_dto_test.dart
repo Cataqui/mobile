@@ -23,10 +23,7 @@ void main() {
     });
 
     test('when parsing an unknown contact method, it should use unknown', () {
-      final contact = SavedContactDto.fromJson(<String, Object?>{
-        ..._SavedContactDtoTestData.json,
-        'contactMethod': 'SMS',
-      });
+      final contact = SavedContactDto.fromJson(<String, Object?>{..._SavedContactDtoTestData.json, 'method': 'SMS'});
 
       expect(contact.contactMethod, JobContactMethod.unknown);
     });
@@ -36,7 +33,7 @@ void main() {
 abstract final class _SavedContactDtoTestData {
   static const json = <String, Object?>{
     'contactId': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    'contactMethod': 'WHATSAPP',
+    'method': 'WHATSAPP',
     'identifier': '+5511888888888',
   };
 }

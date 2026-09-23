@@ -7,17 +7,14 @@ void main() {
     test('when parsing a job contact, it should map the contact method', () {
       final contact = JobContactDto.fromJson(const <String, Object?>{
         'identifier': '+5511999999999',
-        'contactMethod': 'WHATSAPP',
+        'method': 'WHATSAPP',
       });
 
       expect(contact.contactMethod, JobContactMethod.whatsapp);
     });
 
     test('when parsing an unknown contact method, it should use unknown', () {
-      final contact = JobContactDto.fromJson(const <String, Object?>{
-        'identifier': '+5511999999999',
-        'contactMethod': 'SMS',
-      });
+      final contact = JobContactDto.fromJson(const <String, Object?>{'identifier': '+5511999999999', 'method': 'SMS'});
 
       expect(contact.contactMethod, JobContactMethod.unknown);
     });
@@ -25,16 +22,16 @@ void main() {
     test('when parsing a job contact, it should map the identifier', () {
       final contact = JobContactDto.fromJson(const <String, Object?>{
         'identifier': '+5511888888888',
-        'contactMethod': 'WHATSAPP',
+        'method': 'WHATSAPP',
       });
 
       expect(contact.identifier, '+5511888888888');
     });
 
-    test('when serializing a job contact, it should use camelCase keys', () {
+    test('when serializing a job contact, it should use the method wire key', () {
       final json = JobContactDto.fixture().toJson();
 
-      expect(json, containsPair('contactMethod', 'WHATSAPP'));
+      expect(json, containsPair('method', 'WHATSAPP'));
     });
   });
 }

@@ -8,7 +8,7 @@ part 'job_contact_reference_dto.g.dart';
 abstract class JobContactReferenceDto with _$JobContactReferenceDto {
   const factory JobContactReferenceDto({
     required String contactId,
-    @JsonKey(unknownEnumValue: JobContactMethod.unknown) required JobContactMethod contactMethod,
+    @JsonKey(name: 'method', unknownEnumValue: JobContactMethod.unknown) required JobContactMethod contactMethod,
   }) = _JobContactReferenceDto;
 
   factory JobContactReferenceDto.fromJson(Map<String, Object?> json) => _$JobContactReferenceDtoFromJson(json);
