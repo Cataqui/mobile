@@ -22,19 +22,12 @@ void main() {
       expect(data.copyWith(descriptionText: '  descrição original  ').descriptionText, '  descrição original  ');
     });
 
-    test('when post creation starts, it should not contain a payment', () {
-      const data = PostData();
-
-      expect(data.payment, isNull);
-    });
-
     test('when every field and a selected address are present, it should be publishable', () {
       const data = PostData(
         addressSelection: (addressId: 'address-id', sessionToken: 'session-token'),
         contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda hoje',
         locationTitle: 'Avenida Paulista',
-        payment: r'R$ 150',
       );
 
       expect(data.canPublish, isTrue);
@@ -46,7 +39,6 @@ void main() {
         descriptionText: 'Preciso de ajuda hoje',
         location: (latitude: -23.561684, longitude: -46.655981),
         locationTitle: 'Pinheiros, São Paulo',
-        payment: r'R$ 150',
       );
 
       expect(data.canPublish, isTrue);
@@ -58,26 +50,16 @@ void main() {
         contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda hoje',
         locationTitle: 'Avenida Paulista',
-        payment: r'R$ 150',
       );
 
       expect(
         (
           missingDescription: completeData.copyWith(descriptionText: null).canPublish,
           blankDescription: completeData.copyWith(descriptionText: '   ').canPublish,
-          missingPayment: completeData.copyWith(payment: null).canPublish,
-          blankPayment: completeData.copyWith(payment: '   ').canPublish,
           missingContact: completeData.copyWith(contact: null).canPublish,
           missingLocation: completeData.copyWith(addressSelection: null).canPublish,
         ),
-        (
-          missingDescription: false,
-          blankDescription: false,
-          missingPayment: false,
-          blankPayment: false,
-          missingContact: false,
-          missingLocation: false,
-        ),
+        (missingDescription: false, blankDescription: false, missingContact: false, missingLocation: false),
       );
     });
   });

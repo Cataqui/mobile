@@ -74,16 +74,15 @@ void main() {
     expect(find.text(i18n.post.description.placeholder), findsOneWidget);
   });
 
-  testWidgets('when the post composer opens, it should show all post detail chips', (tester) async {
+  testWidgets('when the post composer opens, it should show location and contact chips', (tester) async {
     await PostViewTestHelpers.pump(tester, i18n: i18n);
 
     expect(
       (
         location: find.text(i18n.post.location.chipTitle).evaluate().length,
-        payment: find.text(i18n.post.payment.chipTitle).evaluate().length,
         contact: find.text(i18n.post.contact.chipTitle).evaluate().length,
       ),
-      (location: 1, payment: 1, contact: 1),
+      (location: 1, contact: 1),
     );
   });
 
@@ -99,7 +98,6 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text(i18n.post.location.chipTitle), findsOneWidget);
-    expect(find.text(i18n.post.payment.chipTitle), findsOneWidget);
     expect(find.text(i18n.post.contact.chipTitle), findsOneWidget);
   });
 
@@ -161,7 +159,7 @@ void main() {
     expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNull);
   });
 
-  testWidgets('when every field is filled using a selected address, it should enable publishing', (tester) async {
+  testWidgets('when description, contact, and address are present, it should enable publishing', (tester) async {
     await PostViewTestHelpers.pump(
       tester,
       i18n: i18n,
@@ -170,7 +168,6 @@ void main() {
         contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda hoje',
         locationTitle: 'Avenida Paulista',
-        payment: r'R$ 150',
       ),
     );
 
@@ -187,7 +184,6 @@ void main() {
         contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
         location: (latitude: -23.561684, longitude: -46.655981),
         locationTitle: 'Pinheiros, São Paulo',
-        payment: r'R$ 150',
       ),
     );
 
@@ -421,17 +417,21 @@ void main() {
     final outerScrollPosition = Scrollable.of(tester.element(descriptionInput)).position;
     outerScrollPosition.jumpTo(outerScrollPosition.maxScrollExtent);
     await tester.pump();
-    final paymentChip = find.byKey(const ValueKey('post_payment_chip'));
+    final locationChip = find.byKey(const ValueKey('post_location_chip'));
     final scrollOffsetBeforeNavigation = outerScrollPosition.pixels;
-    final chipTopBeforeNavigation = tester.getTopLeft(paymentChip).dy;
+    final chipTopBeforeNavigation = tester.getTopLeft(locationChip).dy;
 
-    await tester.tap(paymentChip);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('post_payment_close_button')));
-    await tester.pumpAndSettle();
+    await tester.tap(locationChip);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.tap(find.byKey(const ValueKey('post_location_close_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump();
 
     expect(
-      (scrollOffset: outerScrollPosition.pixels, chipTop: tester.getTopLeft(paymentChip).dy),
+      (scrollOffset: outerScrollPosition.pixels, chipTop: tester.getTopLeft(locationChip).dy),
       (scrollOffset: scrollOffsetBeforeNavigation, chipTop: chipTopBeforeNavigation),
     );
   });
@@ -568,13 +568,13 @@ void main() {
   ) async {
     await PostViewTestHelpers.pump(tester, i18n: i18n, disableAnimations: false);
     final descriptionInput = find.byKey(const ValueKey('post_description_input'));
-    final initialDescription = List.generate(11, (index) => 'Linha ${index + 1} do trampo').join('\n');
+    final initialDescription = List.generate(15, (index) => 'Linha ${index + 1} do trampo').join('\n');
     await tester.enterText(descriptionInput, initialDescription);
     await tester.pumpAndSettle();
     final descriptionLayout = find.byKey(const ValueKey('post_description_layout'));
     final initialDescriptionHeight = tester.getSize(descriptionInput).height;
 
-    await tester.enterText(descriptionInput, List.generate(10, (index) => 'Linha ${index + 1} do trampo').join('\n'));
+    await tester.enterText(descriptionInput, List.generate(14, (index) => 'Linha ${index + 1} do trampo').join('\n'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     final animatedDescriptionHeight = tester.getSize(descriptionLayout).height;

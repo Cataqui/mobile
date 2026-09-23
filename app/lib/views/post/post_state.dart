@@ -52,12 +52,4 @@ class PostState extends _$PostState {
 
     state = state.copyWith(location: null, locationTitle: state.addressSelection == null ? null : state.locationTitle);
   }
-
-  void setPayment(String payment) {
-    final trimmedPayment = payment.trim();
-    final normalizedPayment = trimmedPayment.isEmpty ? null : trimmedPayment;
-    if (state.payment == normalizedPayment) return;
-
-    state = state.copyWith(payment: normalizedPayment);
-  }
 }

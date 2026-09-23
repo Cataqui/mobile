@@ -90,17 +90,6 @@
         "offlineError": "Tá sem internet parece"
       },
       "closeButtonSemanticLabel": "Fechar"
-    },
-    "payment": {
-      "chipTitle": "Pagamento",
-      "inputPlaceholder": "Quanto ou como vai pagar?",
-      "negotiable": {
-        "toggleTitle": "A Combinar",
-        "inputText": "A Combinar",
-        "toggleSemanticLabel": "Definir pagamento como a combinar"
-      },
-      "closeButtonSemanticLabel": "Fechar pagamento",
-      "confirmButtonSemanticLabel": "Confirmar pagamento digitado"
     }
   },
   "feedJob": {

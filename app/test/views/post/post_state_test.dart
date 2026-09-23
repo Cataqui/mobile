@@ -35,29 +35,6 @@ void main() {
       expect(container.read(postStateProvider).descriptionText, isNull);
     });
 
-    test('when post creation starts, it should not contain a payment', () {
-      final container = _PostStateTestHelpers.createContainer();
-
-      expect(container.read(postStateProvider).payment, isNull);
-    });
-
-    test('when setting payment, it should trim its outer whitespace', () {
-      final container = _PostStateTestHelpers.createContainer();
-
-      container.read(postStateProvider.notifier).setPayment(r'  R$ 200 por dia  ');
-
-      expect(container.read(postStateProvider).payment, r'R$ 200 por dia');
-    });
-
-    test('when setting an empty payment, it should clear it', () {
-      final container = _PostStateTestHelpers.createContainer();
-      container.read(postStateProvider.notifier)
-        ..setPayment(r'R$ 200 por dia')
-        ..setPayment('   ');
-
-      expect(container.read(postStateProvider).payment, isNull);
-    });
-
     test('when selecting an address, it should preserve the deferred details identifiers', () {
       final container = _PostStateTestHelpers.createContainer();
 

@@ -1,7 +1,6 @@
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/post/contact/contact_chip.dart';
 import 'package:cataqui_app/views/post/location/location_chip.dart';
-import 'package:cataqui_app/views/post/payment/payment_chip.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -29,7 +28,6 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
   static const Curve _motionCurve = Curves.easeOutCubic;
 
   final _descriptionFocusNode = FocusNode();
-  final _paymentSurfaceTransformTarget = MateoTransformTarget();
 
   late final TextEditingController _descriptionController;
 
@@ -119,16 +117,10 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
           ),
         ),
         const SizedBox(height: 20),
-        Column(
+        const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const LocationChip(),
-            const SizedBox(height: 8),
-            PaymentChip(surfaceTransformTarget: _paymentSurfaceTransformTarget),
-            const SizedBox(height: 8),
-            const ContactChip(),
-          ],
+          children: [LocationChip(), SizedBox(height: 8), ContactChip()],
         ),
       ],
     );
