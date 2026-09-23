@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_router/app_route_data.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
@@ -41,10 +43,17 @@ class AppRouter extends _$AppRouter {
   }
 
   Future<void> _authenticateAndNavigate(BuildContext context, Future<void> Function() navigate) async {
+    final appAuthState = ref.read(appAuthStateProvider.notifier);
+    if (appAuthState.hasUsableLocalCredentials) {
+      if (!appAuthState.hasValidSession) unawaited(appAuthState.refreshSessionInBackground());
+      await navigate();
+      return;
+    }
+
     late final AuthSessionDto? session;
 
     try {
-      session = await ref.read(appAuthStateProvider.notifier).getOrAuthenticateSession();
+      session = await appAuthState.getOrAuthenticateSession();
     } on Object catch (error) {
       final overlayContext = ref.read(rootNavigatorKeyProvider).currentState?.overlay?.context;
       if (overlayContext == null || !overlayContext.mounted) return;

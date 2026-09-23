@@ -21,6 +21,13 @@ class AppAuthState extends _$AppAuthState {
     return currentSession != null && currentSession.accessTokenExpiresAt.isAfter(clock.now());
   }
 
+  bool get hasUsableLocalCredentials {
+    if (hasValidSession) return true;
+
+    final credentials = ref.read(appStorageStateProvider).value?.authCredentials;
+    return credentials != null && credentials.refreshTokenExpiresAt.isAfter(clock.now());
+  }
+
   // setSession is an authentication command rather than a property-style setter.
   // ignore: use_setters_to_change_properties
   Future<void> setSession(AuthSessionDto session) async {

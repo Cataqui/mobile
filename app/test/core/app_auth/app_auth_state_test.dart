@@ -76,6 +76,56 @@ void main() {
       expect(container.read(appAuthStateProvider), session);
     });
 
+    test('when no usable local credentials exist, protected navigation should require login', () async {
+      final currentTime = DateTime.utc(2026, 8, 11, 15);
+      final appAuthState = container.read(appAuthStateProvider.notifier);
+      expect(withClock(Clock.fixed(currentTime), () => appAuthState.hasUsableLocalCredentials), isFalse);
+
+      await container
+          .read(appStorageStateProvider.notifier)
+          .setAuthCredentials(credentials: AuthCredentialsDto.fixture().copyWith(refreshTokenExpiresAt: currentTime));
+
+      expect(withClock(Clock.fixed(currentTime), () => appAuthState.hasUsableLocalCredentials), isFalse);
+    });
+
+    test('when a refresh credential is saved, protected navigation can proceed without a request', () async {
+      final currentTime = DateTime.utc(2026, 8, 11, 15);
+      await container
+          .read(appStorageStateProvider.notifier)
+          .setAuthCredentials(
+            credentials: AuthCredentialsDto.fixture().copyWith(
+              refreshTokenExpiresAt: currentTime.add(const Duration(days: 1)),
+            ),
+          );
+
+      expect(
+        withClock(
+          Clock.fixed(currentTime),
+          () => container.read(appAuthStateProvider.notifier).hasUsableLocalCredentials,
+        ),
+        isTrue,
+      );
+      verifyNever(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken')));
+    });
+
+    test('when the access token is valid, protected navigation can proceed without saved credentials', () async {
+      final currentTime = DateTime.utc(2026, 8, 11, 15);
+      await container
+          .read(appAuthStateProvider.notifier)
+          .setSession(
+            AuthSessionDto.fixture().copyWith(accessTokenExpiresAt: currentTime.add(const Duration(minutes: 5))),
+          );
+      await container.read(appStorageStateProvider.notifier).clearAuthCredentials();
+
+      expect(
+        withClock(
+          Clock.fixed(currentTime),
+          () => container.read(appAuthStateProvider.notifier).hasUsableLocalCredentials,
+        ),
+        isTrue,
+      );
+    });
+
     test('when secure persistence fails, it should keep the authenticated session in memory', () async {
       final session = AuthSessionDto.fixture();
       when(
