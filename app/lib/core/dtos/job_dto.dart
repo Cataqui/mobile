@@ -1,6 +1,5 @@
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
 import 'package:cataqui_app/core/dtos/job_location_dto.dart';
-import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -16,9 +15,8 @@ abstract class JobDto with _$JobDto {
     required String descriptionSummary,
     required JobContactReferenceDto contactReference,
     required JobLocationDto location,
-    required JobPaymentDto payment,
+    required String? payment,
     @JsonKey(unknownEnumValue: JobStatus.unknown) required JobStatus status,
-    @JsonKey(unknownEnumValue: JobType.unknown) required JobType type,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _JobDto;
@@ -37,25 +35,9 @@ abstract class JobDto with _$JobDto {
       contactId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       contactMethod: JobContactMethod.whatsapp,
     ),
-    location: const JobLocationDto(
-      neighborhood: 'Centro',
-      city: 'São Paulo',
-      state: 'SP',
-      country: 'BR',
-      latitude: -23.556391,
-      longitude: -46.844076,
-      areaRadius: 2000,
-    ),
-    payment: const JobPaymentDto(
-      type: JobPaymentType.fixed,
-      minAmount: 120,
-      maxAmount: 200,
-      amountPeriod: JobPaymentAmountPeriod.single,
-      currency: 'BRL',
-      note: '',
-    ),
+    location: const JobLocationDto(latitude: -23.556391, longitude: -46.844076, areaRadius: 2000),
+    payment: r'R$120',
     status: JobStatus.active,
-    type: JobType.individual,
     createdAt: DateTime.parse('2026-06-06T00:36:46.623Z'),
     updatedAt: DateTime.parse('2026-06-06T00:36:46.623Z'),
   );

@@ -29,6 +29,25 @@ void main() {
     );
 
     goldenTest(
+      'when payment is null, it should show A Combinar',
+      fileName: 'feed_job_card_null_payment',
+      pumpWidget: TestApp.pumpGolden,
+      constraints: const BoxConstraints.tightFor(width: 360, height: 300),
+      pumpBeforeTest: TestApp.settleGolden,
+      builder: () => withClock(
+        _fixedClock,
+        () => TestApp.screen(
+          child: SizedBox(
+            width: 360,
+            child: FeedJobCard(
+              feedJob: FeedJobDto.fixture().copyWith(createdAt: DateTime(2025, 6, 15, 17), payment: null),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    goldenTest(
       'when rendering a long title, it should clamp to 2 lines with ellipsis',
       fileName: 'feed_job_card_long_title',
       pumpWidget: TestApp.pumpGolden,

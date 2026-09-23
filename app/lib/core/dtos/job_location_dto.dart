@@ -5,25 +5,11 @@ part 'job_location_dto.g.dart';
 
 @freezed
 abstract class JobLocationDto with _$JobLocationDto {
-  const factory JobLocationDto({
-    required String neighborhood,
-    required String city,
-    required String state,
-    required String country,
-    required double latitude,
-    required double longitude,
-    required num areaRadius,
-  }) = _JobLocationDto;
+  const factory JobLocationDto({required double latitude, required double longitude, required num areaRadius}) =
+      _JobLocationDto;
 
   factory JobLocationDto.fromJson(Map<String, Object?> json) => _$JobLocationDtoFromJson(json);
 
-  factory JobLocationDto.fixture() => const JobLocationDto(
-    neighborhood: 'Centro',
-    city: 'São Paulo',
-    state: 'SP',
-    country: 'BR',
-    latitude: -23.556391,
-    longitude: -46.844076,
-    areaRadius: 2000,
-  );
+  factory JobLocationDto.fixture() =>
+      const JobLocationDto(latitude: -23.556391, longitude: -46.844076, areaRadius: 2000);
 }

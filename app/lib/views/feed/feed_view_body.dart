@@ -294,7 +294,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
                     title: 'Loading your next job',
                     createdAt: clock.now(),
                     descriptionSummary: 'Your next job is coming, wait a bit and it will appear...',
-                    payment: JobPaymentDto.fixture().copyWith(minAmount: 1200, type: JobPaymentType.fixed),
+                    payment: r'R$1200',
                   ),
                   skeleton: true,
                 ),

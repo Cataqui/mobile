@@ -83,6 +83,38 @@ void main() {
       expect(envelope.data.single.jobId, FeedJobDto.fixture().jobId);
     });
 
+    test('when receiving payment text, it should preserve the backend text', () async {
+      final dio = MockDio();
+      _stubFeedJobsRequest(
+        dio: dio,
+        responseJson: {
+          ..._feedEnvelopeJson,
+          'data': [FeedJobDto.fixture().copyWith(payment: r'R$150 ou R$140').toJson()],
+        },
+      );
+      final repository = FeedRepository(unauthenticatedDio: dio);
+
+      final envelope = await repository.getFeedJobs();
+
+      expect(envelope.data.single.payment, r'R$150 ou R$140');
+    });
+
+    test('when receiving null payment, it should preserve null', () async {
+      final dio = MockDio();
+      _stubFeedJobsRequest(
+        dio: dio,
+        responseJson: {
+          ..._feedEnvelopeJson,
+          'data': [FeedJobDto.fixture().copyWith(payment: null).toJson()],
+        },
+      );
+      final repository = FeedRepository(unauthenticatedDio: dio);
+
+      final envelope = await repository.getFeedJobs();
+
+      expect(envelope.data.single.payment, isNull);
+    });
+
     test('when receiving feed jobs, it should map pagination', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);

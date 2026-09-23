@@ -35,6 +35,34 @@ void main() {
         expect(envelope.data.jobId, JobDto.fixture().jobId);
       });
 
+      test('when receiving payment text, it should preserve the backend text', () async {
+        _JobRepositoryTestHelpers.stubJobRequest(
+          dio: unauthenticatedDio,
+          responseJson: {
+            ..._JobRepositoryTestData.jobEnvelopeJson,
+            'data': JobDto.fixture().copyWith(payment: r'R$150 ou R$140').toJson(),
+          },
+        );
+
+        final envelope = await repository.getJob(jobId: _JobRepositoryTestData.jobId);
+
+        expect(envelope.data.payment, r'R$150 ou R$140');
+      });
+
+      test('when receiving null payment, it should preserve null', () async {
+        _JobRepositoryTestHelpers.stubJobRequest(
+          dio: unauthenticatedDio,
+          responseJson: {
+            ..._JobRepositoryTestData.jobEnvelopeJson,
+            'data': JobDto.fixture().copyWith(payment: null).toJson(),
+          },
+        );
+
+        final envelope = await repository.getJob(jobId: _JobRepositoryTestData.jobId);
+
+        expect(envelope.data.payment, isNull);
+      });
+
       test('when receiving a job, it should map the request id', () async {
         final envelope = await repository.getJob(jobId: _JobRepositoryTestData.jobId);
 
@@ -129,10 +157,10 @@ abstract final class _JobRepositoryTestHelpers {
     return container;
   }
 
-  static void stubJobRequest({required MockDio dio}) {
+  static void stubJobRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
     when(() => dio.get<Map<String, Object?>>(any())).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
-        data: _JobRepositoryTestData.jobEnvelopeJson,
+        data: responseJson ?? _JobRepositoryTestData.jobEnvelopeJson,
         requestOptions: RequestOptions(path: '/jobs/${_JobRepositoryTestData.jobId}'),
       ),
     );

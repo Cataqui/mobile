@@ -93,7 +93,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
                 ),
                 Text(
                   key: const ValueKey('job_payment'),
-                  widget.feedJob.payment.formatPayment(i18n),
+                  widget.feedJob.payment ?? i18n.jobPayment.paymentFlexible,
                   style: TextStyle(
                     fontSize: 26,
                     color: colorScheme.text.profit,

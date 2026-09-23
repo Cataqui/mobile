@@ -1,7 +1,5 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
-import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
@@ -21,21 +19,12 @@ import '../views/job/job_view_test_helpers.dart';
 class _FeedJobCardTestHelpers {
   _FeedJobCardTestHelpers._();
 
-  static FeedJobDto fixture({JobPaymentDto? payment, String? title, String? descriptionSummary}) {
+  static FeedJobDto fixture({String? title, String? descriptionSummary}) {
     return FeedJobDto(
       jobId: 'job_123',
       title: title ?? 'Garçom para Fim de Semana',
       createdAt: DateTime(2025, 6, 15),
-      payment:
-          payment ??
-          const JobPaymentDto(
-            type: JobPaymentType.fixed,
-            minAmount: 120,
-            maxAmount: 200,
-            amountPeriod: JobPaymentAmountPeriod.daily,
-            currency: 'BRL',
-            note: '',
-          ),
+      payment: r'R$120/dia',
       location: const FeedJobLocationDto(latitude: -23.556391, longitude: -46.844076, areaRadius: 2000),
       descriptionSummary: descriptionSummary ?? 'Experiente em atendimento ao cliente.',
     );
@@ -102,17 +91,27 @@ void main() {
       });
 
       testWidgets('when created with a job, it should display the payment', (tester) async {
-        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture())));
+        final feedJob = _FeedJobCardTestHelpers.fixture().copyWith(payment: r'R$150 ou R$140');
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: feedJob)));
         await tester.pumpAndSettle();
 
-        expect(
-          (
-            find.textContaining(r'R$').evaluate().length,
-            find.textContaining('120').evaluate().length,
-            find.textContaining(i18n.jobPayment.paymentPeriodDaily).evaluate().length,
-          ),
-          (1, 1, 1),
-        );
+        expect(find.text(r'R$150 ou R$140'), findsOneWidget);
+      });
+
+      testWidgets('when payment is null, it should display A Combinar', (tester) async {
+        final feedJob = _FeedJobCardTestHelpers.fixture().copyWith(payment: null);
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: feedJob)));
+        await tester.pumpAndSettle();
+
+        expect(find.text(i18n.jobPayment.paymentFlexible), findsOneWidget);
+      });
+
+      testWidgets('when payment is empty, it should display the empty string', (tester) async {
+        final feedJob = _FeedJobCardTestHelpers.fixture().copyWith(payment: '');
+        await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: feedJob)));
+        await tester.pumpAndSettle();
+
+        expect(tester.widget<Text>(find.byKey(const ValueKey('job_payment'))).data, '');
       });
 
       testWidgets('when created with a job, it should display the description', (tester) async {

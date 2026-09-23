@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_payment_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -68,12 +66,7 @@ class JobViewTestHelpers {
       jobId: jobId,
       title: title,
       createdAt: createdAt ?? DateTime(2026, 6, 30, 8),
-      payment: const JobPaymentDto(
-        type: JobPaymentType.fixed,
-        minAmount: 150,
-        amountPeriod: JobPaymentAmountPeriod.daily,
-        currency: 'BRL',
-      ),
+      payment: r'R$150/dia',
     );
   }
 
@@ -85,12 +78,7 @@ class JobViewTestHelpers {
       description:
           description ??
           'Precisamos de uma pessoa para descarregar um caminhão pequeno no centro. O trabalho deve durar algumas horas e o pagamento será feito no fim do dia.',
-      payment: const JobPaymentDto(
-        type: JobPaymentType.fixed,
-        minAmount: 150,
-        amountPeriod: JobPaymentAmountPeriod.daily,
-        currency: 'BRL',
-      ),
+      payment: r'R$150/dia',
     );
   }
 

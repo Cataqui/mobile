@@ -34,6 +34,16 @@ void main() {
     );
 
     goldenTest(
+      'when feed payment is null, it should show A Combinar while job details load',
+      fileName: 'job_view_null_payment',
+      builder: () => JobViewGoldenTestHelpers.scenario(
+        feedJob: JobViewGoldenTestHelpers.feedJob().copyWith(payment: null),
+        jobState: JobViewTestHelpers.loadingState(),
+      ),
+      pumpWidget: JobViewGoldenTestHelpers.pumpWidget,
+    );
+
+    goldenTest(
       'when the full job has loaded, it should show the immediate header and full description',
       fileName: 'job_view_loaded_description',
       builder: () => JobViewGoldenTestHelpers.scenario(

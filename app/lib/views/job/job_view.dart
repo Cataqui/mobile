@@ -124,7 +124,7 @@ class _JobViewState extends ConsumerState<JobView> {
                         ),
                         Text(
                           key: const ValueKey('job_payment'),
-                          widget.feedJob.payment.formatPayment(i18n),
+                          widget.feedJob.payment ?? i18n.jobPayment.paymentFlexible,
                           style: TextStyle(
                             fontSize: 30,
                             color: colorScheme.text.profit,

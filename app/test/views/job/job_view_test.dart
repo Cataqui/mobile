@@ -57,7 +57,7 @@ void main() {
     });
 
     testWidgets('when opened from a feed job, it should show the feed payment immediately', (tester) async {
-      final feedJob = JobViewTestHelpers.feedJob();
+      final feedJob = JobViewTestHelpers.feedJob().copyWith(payment: 'Cesta básica');
 
       await JobViewTestHelpers.pumpJobView(
         tester: tester,
@@ -65,7 +65,19 @@ void main() {
         jobState: JobViewTestHelpers.loadingState(),
       );
 
-      expect(find.textContaining(r'R$150'), findsOneWidget);
+      expect(find.text('Cesta básica'), findsOneWidget);
+    });
+
+    testWidgets('when feed payment is null, it should show A Combinar before job details load', (tester) async {
+      final feedJob = JobViewTestHelpers.feedJob().copyWith(payment: null);
+
+      await JobViewTestHelpers.pumpJobView(
+        tester: tester,
+        feedJob: feedJob,
+        jobState: JobViewTestHelpers.loadingState(),
+      );
+
+      expect(find.text(i18n.jobPayment.paymentFlexible), findsOneWidget);
     });
 
     testWidgets('when opened from a feed job posted 20 hours ago, it should show the feed time immediately', (

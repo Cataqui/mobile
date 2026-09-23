@@ -38,12 +38,6 @@ void main() {
       expect(job.status, JobStatus.archived);
     });
 
-    test('when parsing a detailed job, it should map the job type', () {
-      final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'type': 'INDIVIDUAL'});
-
-      expect(job.type, JobType.individual);
-    });
-
     test('when parsing a detailed job, it should map the created timestamp', () {
       final job = JobDto.fromJson({...JobDto.fixture().toJson(), 'createdAt': '2026-06-06T00:36:46.623Z'});
 
