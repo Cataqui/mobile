@@ -54,6 +54,22 @@ void main() {
   });
 
   group('FeedJobCard', () {
+    testWidgets('when short content has wider bounds, it should fill the available width', (tester) async {
+      await tester.pumpWidget(
+        _FeedJobCardTestHelpers.wrap(
+          SizedBox(
+            width: 320,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: FeedJobCard(feedJob: _FeedJobCardTestHelpers.fixture(title: 'Ajudante')),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(MateoSurface).first).width, 320);
+    });
+
     testWidgets('closing description morph retains width while the card has room', (tester) async {
       final feedJob = _FeedJobCardTestHelpers.fixture(descriptionSummary: 'Summary of the job available nearby.');
       await JobViewTestHelpers.pumpJobView(tester: tester, jobState: FakeJobState(), feedJob: feedJob);
