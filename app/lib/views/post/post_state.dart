@@ -1,13 +1,45 @@
 import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'post_state.g.dart';
 
 @riverpod
 class PostState extends _$PostState {
+  String? _idempotencyKey;
+
   @override
   PostData build() => const PostData();
+
+  Future<void> publish() async {
+    final postData = state;
+    if (!postData.canPublish) return;
+
+    final idempotencyKey = _idempotencyKey ??= const Uuid().v4();
+    final jobRepository = ref.read(jobRepositoryProvider);
+    final selectedLocation = postData.location;
+    final ({double latitude, double longitude}) location;
+    if (selectedLocation != null) {
+      location = selectedLocation;
+    } else {
+      final addressSelection = postData.addressSelection!;
+      final addressDetails = await ref
+          .read(geosearchRepositoryProvider)
+          .getAddressDetails(addressId: addressSelection.addressId, sessionToken: addressSelection.sessionToken);
+      location = (latitude: addressDetails.latitude, longitude: addressDetails.longitude);
+    }
+
+    await jobRepository.createJob(
+      description: postData.descriptionText!,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      contactMethod: postData.contact!.contactMethod,
+      contactIdentifier: postData.contact!.identifier,
+      idempotencyKey: idempotencyKey,
+    );
+  }
 
   void setDescription(String descriptionText) {
     final normalizedDescriptionText = descriptionText.isEmpty ? null : descriptionText;

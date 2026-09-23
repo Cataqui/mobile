@@ -14,6 +14,14 @@ class PostView extends ConsumerStatefulWidget {
 }
 
 class _PostViewState extends ConsumerState<PostView> {
+  Future<void> _publish() async {
+    try {
+      await ref.read(postStateProvider.notifier).publish();
+    } on Object {
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
@@ -54,7 +62,7 @@ class _PostViewState extends ConsumerState<PostView> {
             leadingIcon: const MateoIcon(.paperPlaneUpRight),
           ),
           key: const ValueKey('post_publish_button'),
-          onPressed: canPublish ? () {} : null,
+          onPressed: canPublish ? _publish : null,
         ),
       ),
       surface: .scrollable(

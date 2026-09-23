@@ -54,12 +54,9 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
 
       ref
           .read(appToastProvider)
-          .showInfo(
+          .showLoading(
             context,
             message: ref.read(translationProvider).whatsappLoginButton.checking,
-            icon: Center(
-              child: MateoLoadingIndicator(presentation: .circular(color: MateoTheme.of(context).palette.blue[9])),
-            ),
             duration: const Duration(days: 365),
             dismissible: false,
           );

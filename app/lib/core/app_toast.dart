@@ -35,4 +35,13 @@ class AppToast {
       dismissible: dismissible,
     );
   }
+
+  void showLoading(BuildContext context, {required String message, Duration? duration, bool dismissible = true}) {
+    showMateoToast(
+      context: context,
+      toast: MateoToast(message: message, status: .loading),
+      duration: duration,
+      dismissible: dismissible,
+    );
+  }
 }

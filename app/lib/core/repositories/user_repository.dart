@@ -10,6 +10,18 @@ class UserRepository {
   Future<ApiEnvelopeDto<List<SavedContactDto>>> getContacts() async {
     final response = await authenticatedDio.get<Map<String, Object?>>('/users/me/contacts');
 
+    // return ApiEnvelopeDto.fixture(
+    //   data: [
+    //     SavedContactDto.fixture(),
+    //     SavedContactDto.fixture(),
+    //     SavedContactDto.fixture(),
+    //     SavedContactDto.fixture(),
+    //     SavedContactDto.fixture(),
+    //     SavedContactDto.fixture(),
+    //     SavedContactDto.fixture(),
+    //     SavedContactDto.fixture(),
+    //   ],
+    // );
     return ApiEnvelopeDto<List<SavedContactDto>>.fromJson(response.data!, (json) {
       return (json! as List<Object?>).map((item) => SavedContactDto.fromJson(item! as Map<String, Object?>)).toList();
     });
