@@ -11,17 +11,86 @@ import 'package:mocktail/mocktail.dart';
 import '../../mocks.dart';
 
 void main() {
+  late MockDio authenticatedDio;
   late MockDio unauthenticatedDio;
   late JobRepository repository;
 
   setUp(() {
+    authenticatedDio = MockDio();
     unauthenticatedDio = MockDio();
-    repository = JobRepository(unauthenticatedDio: unauthenticatedDio);
+    repository = JobRepository(authenticatedDio: authenticatedDio, unauthenticatedDio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobRequest(dio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobContactRequest(dio: unauthenticatedDio);
+    _JobRepositoryTestHelpers.stubCreateJobRequest(dio: authenticatedDio);
   });
 
   group('JobRepository', () {
+    group('createJob', () {
+      test('sends the complete post and idempotency key through authenticated dio', () async {
+        await repository.createJob(
+          description: _JobRepositoryTestData.description,
+          latitude: -23.556391,
+          longitude: -46.844076,
+          contactMethod: .phoneCall,
+          contactIdentifier: '+5511999999999',
+          idempotencyKey: _JobRepositoryTestData.idempotencyKey,
+        );
+
+        final request = verify(
+          () => authenticatedDio.post<Map<String, Object?>>(
+            '/jobs',
+            data: captureAny(named: 'data'),
+            options: captureAny(named: 'options'),
+          ),
+        ).captured;
+        expect(request[0], {
+          'description': _JobRepositoryTestData.description,
+          'location': {'latitude': -23.556391, 'longitude': -46.844076},
+          'contact': {'method': 'PHONE_CALL', 'identifier': '+5511999999999'},
+        });
+        expect((request[1] as Options).headers, {'Idempotency-Key': _JobRepositoryTestData.idempotencyKey});
+        verifyNever(() => unauthenticatedDio.post<Map<String, Object?>>(any()));
+      });
+
+      test('maps the created job and response envelope', () async {
+        final envelope = await repository.createJob(
+          description: _JobRepositoryTestData.description,
+          latitude: -23.556391,
+          longitude: -46.844076,
+          contactMethod: .whatsapp,
+          contactIdentifier: '+5511999999999',
+          idempotencyKey: _JobRepositoryTestData.idempotencyKey,
+        );
+
+        expect(envelope.data.jobId, _JobRepositoryTestData.jobId);
+        expect(envelope.data.payment, r'R$120');
+        expect(envelope.requestId, 'create-req-001');
+      });
+
+      test('propagates a failed posting request', () async {
+        final error = DioException(requestOptions: RequestOptions(path: '/jobs'));
+        when(
+          () => authenticatedDio.post<Map<String, Object?>>(
+            '/jobs',
+            data: any(named: 'data'),
+            options: any(named: 'options'),
+          ),
+        ).thenThrow(error);
+
+        expect(
+          repository.createJob(
+            description: _JobRepositoryTestData.description,
+            latitude: -23.556391,
+            longitude: -46.844076,
+            contactMethod: .whatsapp,
+            contactIdentifier: '+5511999999999',
+            idempotencyKey: _JobRepositoryTestData.idempotencyKey,
+          ),
+          throwsA(same(error)),
+        );
+      });
+    });
+
     group('getJob', () {
       test('when requesting a job, it should call the job detail endpoint with the job id', () async {
         await repository.getJob(jobId: _JobRepositoryTestData.jobId);
@@ -114,11 +183,15 @@ void main() {
   });
 
   group('jobRepositoryProvider', () {
-    test('when reading the provider, it should inject the unauthenticated dio for public job endpoints', () {
-      final container = _JobRepositoryTestHelpers.createProviderContainer(unauthenticatedDio: unauthenticatedDio);
+    test('injects authenticated dio for posting and unauthenticated dio for public reads', () {
+      final container = _JobRepositoryTestHelpers.createProviderContainer(
+        authenticatedDio: authenticatedDio,
+        unauthenticatedDio: unauthenticatedDio,
+      );
 
       final result = container.read(jobRepositoryProvider);
 
+      expect(result.authenticatedDio, same(authenticatedDio));
       expect(result.unauthenticatedDio, same(unauthenticatedDio));
     });
   });
@@ -127,6 +200,8 @@ void main() {
 abstract final class _JobRepositoryTestData {
   static const jobId = 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502';
   static const contactId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  static const idempotencyKey = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  static const description = 'Preciso de ajuda para descarregar caixas.';
 
   static final contact = JobContactDto.fixture().copyWith(
     contactMethod: JobContactMethod.whatsapp,
@@ -146,15 +221,40 @@ abstract final class _JobRepositoryTestData {
     'timestamp': '2026-06-06T00:37:46.623Z',
     'endpoint': '/v1/jobs/$jobId/contact/$contactId',
   };
+
+  static final createdJobEnvelopeJson = <String, Object?>{
+    'data': JobDto.fixture().toJson(),
+    'requestId': 'create-req-001',
+    'timestamp': '2026-06-06T00:37:46.623Z',
+    'endpoint': '/v1/jobs',
+  };
 }
 
 abstract final class _JobRepositoryTestHelpers {
-  static ProviderContainer createProviderContainer({required Dio unauthenticatedDio}) {
+  static ProviderContainer createProviderContainer({required Dio authenticatedDio, required Dio unauthenticatedDio}) {
     final container = ProviderContainer(
-      overrides: [unauthenticatedCataquiApiV1DioProvider.overrideWithValue(unauthenticatedDio)],
+      overrides: [
+        authenticatedCataquiApiV1DioProvider.overrideWithValue(authenticatedDio),
+        unauthenticatedCataquiApiV1DioProvider.overrideWithValue(unauthenticatedDio),
+      ],
     );
     addTearDown(container.dispose);
     return container;
+  }
+
+  static void stubCreateJobRequest({required MockDio dio}) {
+    when(
+      () => dio.post<Map<String, Object?>>(
+        '/jobs',
+        data: any(named: 'data'),
+        options: any(named: 'options'),
+      ),
+    ).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
+        data: _JobRepositoryTestData.createdJobEnvelopeJson,
+        requestOptions: RequestOptions(path: '/jobs'),
+      ),
+    );
   }
 
   static void stubJobRequest({required MockDio dio, Map<String, Object?>? responseJson}) {

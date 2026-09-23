@@ -1,12 +1,35 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:dio/dio.dart';
 
 class JobRepository {
-  const JobRepository({required this.unauthenticatedDio});
+  const JobRepository({required this.authenticatedDio, required this.unauthenticatedDio});
 
+  final Dio authenticatedDio;
   final Dio unauthenticatedDio;
+
+  Future<ApiEnvelopeDto<JobDto>> createJob({
+    required String description,
+    required double latitude,
+    required double longitude,
+    required JobContactMethod contactMethod,
+    required String contactIdentifier,
+    required String idempotencyKey,
+  }) async {
+    final response = await authenticatedDio.post<Map<String, Object?>>(
+      '/jobs',
+      data: <String, Object?>{
+        'description': description,
+        'location': <String, Object?>{'latitude': latitude, 'longitude': longitude},
+        'contact': <String, Object?>{'method': contactMethod.jsonValue, 'identifier': contactIdentifier},
+      },
+      options: Options(headers: <String, String>{'Idempotency-Key': idempotencyKey}),
+    );
+
+    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+  }
 
   Future<ApiEnvelopeDto<JobDto>> getJob({required String jobId}) async {
     // return ApiEnvelopeDto.fixture(data: .fixture());
