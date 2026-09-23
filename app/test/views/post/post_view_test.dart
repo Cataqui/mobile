@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/post/location/post_location_view.dart';
@@ -10,6 +13,7 @@ import 'package:cataqui_app/views/post/post_data.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:cataqui_app/views/post/post_view.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -118,6 +122,21 @@ void main() {
       ),
       (descriptionLeft: 20, chipLeft: 20, chipBottom: 12),
     );
+  });
+
+  testWidgets('when the keyboard is closed, the chips stay above the bottom safe area', (tester) async {
+    await PostViewTestHelpers.pump(
+      tester,
+      i18n: i18n,
+      viewInsets: EdgeInsets.zero,
+      padding: const EdgeInsets.only(bottom: 34),
+    );
+
+    final postViewContext = tester.element(find.byType(PostView));
+    final screenBottom = MediaQuery.sizeOf(postViewContext).height;
+    final chipBottom = tester.getBottomLeft(find.byKey(const ValueKey('post_contact_chip'))).dy;
+
+    expect(screenBottom - chipBottom, 46);
   });
 
   testWidgets('when tapping location, it should open location without changing the post route', (tester) async {
@@ -245,7 +264,7 @@ void main() {
     expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
   });
 
-  testWidgets('when posting fails, it should leave the composer usable without surfacing an exception', (tester) async {
+  testWidgets('when posting fails, it should leave the composer usable and show an error', (tester) async {
     final jobRepository = MockJobRepository();
     when(
       () => jobRepository.createJob(
@@ -274,7 +293,373 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(PostView), findsOneWidget);
+    expect(find.text(i18n.post.publishing.error), findsOneWidget);
     expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
+  });
+
+  group('publishing toast across navigation', () {
+    late MockJobRepository jobRepository;
+    late Completer<ApiEnvelopeDto<JobDto>> pendingPost;
+
+    setUp(() {
+      jobRepository = MockJobRepository();
+      pendingPost = Completer<ApiEnvelopeDto<JobDto>>();
+      when(
+        () => jobRepository.createJob(
+          description: 'Preciso de ajuda para descarregar caixas.',
+          latitude: -23.561684,
+          longitude: -46.655981,
+          contactMethod: .whatsapp,
+          contactIdentifier: '+5511999999999',
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenAnswer((_) => pendingPost.future);
+    });
+
+    testWidgets('tapping loading reopens the filled and locked Post page', (tester) async {
+      final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).readOnly, isTrue);
+      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).isLoading, isTrue);
+      expect(tester.widget<GestureDetector>(find.byKey(const ValueKey('post_description_focus_area'))).onTap, isNull);
+      expect(
+        tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).style!.color,
+        MateoTheme.of(tester.element(find.byType(PostView))).colorScheme.text.secondary,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('post_close_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      await tester.tap(find.text(i18n.post.publishing.loading));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+
+      expect(goRouter.state.matchedLocation, const PostRoute().location);
+      expect(
+        tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).controller!.text,
+        'Preciso de ajuda para descarregar caixas.',
+      );
+      expect(tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).readOnly, isTrue);
+      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).isLoading, isTrue);
+      expect(find.text('Pinheiros'), findsOneWidget);
+      expect(find.text(JobContactMethod.whatsapp.displayIdentifier('+5511999999999')), findsOneWidget);
+      expect(
+        tester
+            .widget<MateoPress>(
+              find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(MateoPress)),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<MateoPress>(
+              find.ancestor(of: find.byKey(const ValueKey('post_contact_chip')), matching: find.byType(MateoPress)),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<Opacity>(
+              find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(Opacity)),
+            )
+            .opacity,
+        0.5,
+      );
+      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_close_button'))).onPressed, isNotNull);
+
+      await tester.tap(find.byKey(const ValueKey('post_close_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      await tester.runAsync(() async {
+        await pendingPost.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(i18n.post.publishing.success), findsOneWidget);
+    });
+
+    testWidgets('publishing success unlocks the reopened Post without a success toast', (tester) async {
+      await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('post_close_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 750));
+      await tester.pump();
+      await tester.tap(find.text(i18n.post.publishing.loading));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      await tester.runAsync(() async {
+        await pendingPost.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(find.byType(PostView), findsOneWidget);
+      expect(find.byType(MateoToast), findsNothing);
+      expect(tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).readOnly, isFalse);
+      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).isLoading, isFalse);
+      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
+      expect(
+        tester.widget<GestureDetector>(find.byKey(const ValueKey('post_description_focus_area'))).onTap,
+        isNotNull,
+      );
+      expect(
+        tester
+            .widget<MateoPress>(
+              find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(MateoPress)),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      expect(
+        tester
+            .widget<MateoPress>(
+              find.ancestor(of: find.byKey(const ValueKey('post_contact_chip')), matching: find.byType(MateoPress)),
+            )
+            .onPressed,
+        isNotNull,
+      );
+    });
+
+    testWidgets('loading toast opens Post above a page covering the first Post', (tester) async {
+      final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      unawaited(goRouter.push<void>('/other'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      await tester.tap(find.text(i18n.post.publishing.loading));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+
+      expect(goRouter.state.matchedLocation, const PostRoute().location);
+      expect(
+        tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).controller!.text,
+        'Preciso de ajuda para descarregar caixas.',
+      );
+      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).isLoading, isTrue);
+
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      await tester.runAsync(() async {
+        await pendingPost.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(i18n.post.publishing.success), findsNothing);
+    });
+
+    testWidgets('when closing Post during publishing, loading is replaced by success', (tester) async {
+      await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.loading), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('post_close_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(find.byType(PostView), findsNothing);
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      await tester.pump(const Duration(minutes: 1));
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      await tester.runAsync(() async {
+        await pendingPost.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(i18n.post.publishing.loading), findsNothing);
+      expect(find.text(i18n.post.publishing.success), findsOneWidget);
+    });
+
+    testWidgets('when loading is dismissed outside Post, success still appears', (tester) async {
+      final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      unawaited(goRouter.push<void>('/other'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      await tester.drag(find.text(i18n.post.publishing.loading), const Offset(0, -200));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byType(MateoToast), findsNothing);
+
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      await tester.runAsync(() async {
+        await pendingPost.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.success), findsOneWidget);
+    });
+
+    testWidgets('when returning to Post before success, it should clear loading without a success toast', (
+      tester,
+    ) async {
+      final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      unawaited(goRouter.push<void>('/other'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      goRouter.pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(PostView), findsOneWidget);
+
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      await tester.runAsync(() async {
+        await pendingPost.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byType(MateoToast), findsNothing);
+    });
+
+    testWidgets('when another page covers Post, loading is dismissible and failure shows an error', (tester) async {
+      final pendingFailure = Completer<void>();
+      when(
+        () => jobRepository.createJob(
+          description: 'Preciso de ajuda para descarregar caixas.',
+          latitude: -23.561684,
+          longitude: -46.655981,
+          contactMethod: .whatsapp,
+          contactIdentifier: '+5511999999999',
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenAnswer((_) async {
+        await pendingFailure.future;
+        throw Exception('Post failed');
+      });
+      final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      unawaited(goRouter.push<void>('/other'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      goRouter.go('/feed');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(PostView), findsNothing);
+
+      await tester.tap(find.text(i18n.post.publishing.loading));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(i18n.post.publishing.loading), findsNothing);
+
+      pendingFailure.complete();
+      await tester.runAsync(() async {
+        await pendingFailure.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(i18n.post.publishing.error), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('when publishing finishes before leaving, navigation shows no loading toast', (tester) async {
+      await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      await tester.runAsync(() async {
+        await pendingPost.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('post_close_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(MateoToast), findsNothing);
+    });
+
+    testWidgets('when authentication is dismissed after leaving, it should clear loading', (tester) async {
+      final pendingFailure = Completer<void>();
+      when(
+        () => jobRepository.createJob(
+          description: 'Preciso de ajuda para descarregar caixas.',
+          latitude: -23.561684,
+          longitude: -46.655981,
+          contactMethod: .whatsapp,
+          contactIdentifier: '+5511999999999',
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenAnswer((_) async {
+        await pendingFailure.future;
+        throw AuthenticationDismissedDioException(requestOptions: RequestOptions(path: '/jobs'));
+      });
+      await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+
+      await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('post_close_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+      pendingFailure.complete();
+      await tester.runAsync(() async {
+        await pendingFailure.future;
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byType(MateoToast), findsNothing);
+    });
   });
 
   testWidgets('when entering a description, it should preserve the text in post state', (tester) async {
@@ -811,6 +1196,53 @@ void main() {
 }
 
 abstract final class PostViewTestHelpers {
+  static Future<GoRouter> pumpPublishingRoute(
+    WidgetTester tester, {
+    required Translations i18n,
+    required MockJobRepository jobRepository,
+  }) async {
+    final routeObserver = RouteObserver<ModalRoute<void>>();
+    final goRouter = GoRouter(
+      observers: [routeObserver, MateoNavigatorObserver()],
+      initialLocation: const PostRoute().location,
+      routes: [
+        GoRoute(path: '/feed', builder: (context, state) => const SizedBox.shrink()),
+        GoRoute(path: '/other', builder: (context, state) => const SizedBox.shrink()),
+        $postRoute,
+      ],
+    );
+    addTearDown(goRouter.dispose);
+    await tester.pumpWidget(
+      TestApp.router(
+        routerConfig: goRouter,
+        providerOverrides: providerOverrides(
+          i18n: i18n,
+          initialPostData: const PostData(
+            contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+            descriptionText: 'Preciso de ajuda para descarregar caixas.',
+            location: (latitude: -23.561684, longitude: -46.655981),
+            locationTitle: 'Pinheiros',
+          ),
+          additionalOverrides: [
+            jobRepositoryProvider.overrideWithValue(jobRepository),
+            routeObserverProvider.overrideWithValue(routeObserver),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final providerContainer = ProviderScope.containerOf(tester.element(find.byType(PostView)), listen: false);
+    await providerContainer
+        .read(appAuthStateProvider.notifier)
+        .setSession(
+          AuthSessionDto.fixture().copyWith(
+            accessTokenExpiresAt: DateTime.utc(2100),
+            refreshTokenExpiresAt: DateTime.utc(2100),
+          ),
+        );
+    return goRouter;
+  }
+
   static List<Override> providerOverrides({
     required Translations i18n,
     PostData initialPostData = const PostData(),
@@ -832,6 +1264,8 @@ abstract final class PostViewTestHelpers {
     TextScaler textScaler = TextScaler.noScaling,
     Size size = const Size(390, 844),
     double devicePixelRatio = 1,
+    EdgeInsets viewInsets = const EdgeInsets.only(bottom: 300),
+    EdgeInsets padding = EdgeInsets.zero,
   }) async {
     tester.view
       ..devicePixelRatio = devicePixelRatio
@@ -843,7 +1277,8 @@ abstract final class PostViewTestHelpers {
         mediaQueryData: MediaQueryData(
           size: size,
           devicePixelRatio: devicePixelRatio,
-          viewInsets: const EdgeInsets.only(bottom: 300),
+          viewInsets: viewInsets,
+          padding: padding,
           disableAnimations: disableAnimations,
           textScaler: textScaler,
         ),

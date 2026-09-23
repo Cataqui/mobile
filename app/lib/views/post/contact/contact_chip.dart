@@ -18,40 +18,44 @@ class ContactChip extends ConsumerWidget {
       Brightness.dark => throw UnsupportedError('ContactChip does not support dark mode.'),
     };
     final contact = ref.watch(postStateProvider.select((postData) => postData.contact));
+    final isPublishing = ref.watch(postStateProvider.select((postData) => postData.isPublishing));
 
-    return MateoPress(
-      animation: MateoPressAnimationType.scale,
-      onPressed: (_) => PostContactView.push(context: context),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 40),
-        child: MateoSurface(
-          key: const ValueKey('post_contact_chip'),
-          color: colors.background,
-          shape: const .capsule(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                contact?.contactMethod.icon(size: 20, color: colors.foreground) ??
-                    MateoIcon(.phone, size: 20, color: colors.foreground),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    contact?.contactMethod.displayIdentifier(contact.identifier) ??
-                        ref.watch(translationProvider).post.contact.chipTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colors.foreground,
-                      fontFamily: MateoTypography.fontFamily,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: MateoTypography.letterSpacing,
+    return Opacity(
+      opacity: isPublishing ? 0.5 : 1,
+      child: MateoPress(
+        animation: MateoPressAnimationType.scale,
+        onPressed: isPublishing ? null : (_) => PostContactView.push(context: context),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 40),
+          child: MateoSurface(
+            key: const ValueKey('post_contact_chip'),
+            color: colors.background,
+            shape: const .capsule(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  contact?.contactMethod.icon(size: 20, color: colors.foreground) ??
+                      MateoIcon(.phone, size: 20, color: colors.foreground),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      contact?.contactMethod.displayIdentifier(contact.identifier) ??
+                          ref.watch(translationProvider).post.contact.chipTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.foreground,
+                        fontFamily: MateoTypography.fontFamily,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: MateoTypography.letterSpacing,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

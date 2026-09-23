@@ -57,7 +57,7 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
           .showLoading(
             context,
             message: ref.read(translationProvider).whatsappLoginButton.checking,
-            duration: const Duration(days: 365),
+            duration: const .untilDismissed(),
             dismissible: false,
           );
     });

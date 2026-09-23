@@ -52,77 +52,88 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
+    final isPublishing = ref.watch(postStateProvider.select((postData) => postData.isPublishing));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        KeyedSubtree(
-          key: const ValueKey('post_description_layout'),
-          child: _PostDescriptionHeight(
-            duration: _motionDuration,
-            curve: _motionCurve,
-            vsync: this,
-            animationsDisabled: MediaQuery.disableAnimationsOf(context),
-            child: Semantics(
-              textField: true,
-              label: i18n.post.description.inputSemanticLabel,
-              child: DefaultSelectionStyle(
-                cursorColor: MateoTheme.of(context).colorScheme.accent,
-                selectionColor: _descriptionSelectionColor,
-                child: Material(
-                  type: .transparency,
-                  child: TextField(
-                    key: const ValueKey('post_description_input'),
-                    controller: _descriptionController,
-                    focusNode: _descriptionFocusNode,
-                    autofocus: true,
-                    keyboardType: TextInputType.multiline,
-                    textInputAction: TextInputAction.newline,
-                    maxLines: null,
-                    scrollPhysics: const NeverScrollableScrollPhysics(),
-                    scrollPadding: EdgeInsets.zero,
-                    cursorColor: MateoTheme.of(context).colorScheme.accent,
-                    cursorWidth: 2,
-                    style: _descriptionTextStyle.copyWith(color: MateoTheme.of(context).colorScheme.text.primary),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      filled: false,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      hintText: i18n.post.description.placeholder,
-                      hintStyle: _descriptionTextStyle.copyWith(
-                        color: MateoTheme.of(context).colorScheme.text.tertiary,
+    return SafeArea(
+      top: false,
+      left: false,
+      right: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          KeyedSubtree(
+            key: const ValueKey('post_description_layout'),
+            child: _PostDescriptionHeight(
+              duration: _motionDuration,
+              curve: _motionCurve,
+              vsync: this,
+              animationsDisabled: MediaQuery.disableAnimationsOf(context),
+              child: Semantics(
+                textField: true,
+                label: i18n.post.description.inputSemanticLabel,
+                child: DefaultSelectionStyle(
+                  cursorColor: MateoTheme.of(context).colorScheme.accent,
+                  selectionColor: _descriptionSelectionColor,
+                  child: Material(
+                    type: .transparency,
+                    child: TextField(
+                      key: const ValueKey('post_description_input'),
+                      controller: _descriptionController,
+                      focusNode: _descriptionFocusNode,
+                      autofocus: true,
+                      readOnly: isPublishing,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      maxLines: null,
+                      scrollPhysics: const NeverScrollableScrollPhysics(),
+                      scrollPadding: EdgeInsets.zero,
+                      cursorColor: MateoTheme.of(context).colorScheme.accent,
+                      cursorWidth: 2,
+                      style: _descriptionTextStyle.copyWith(
+                        color: isPublishing
+                            ? MateoTheme.of(context).colorScheme.text.secondary
+                            : MateoTheme.of(context).colorScheme.text.primary,
                       ),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        filled: false,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        hintText: i18n.post.description.placeholder,
+                        hintStyle: _descriptionTextStyle.copyWith(
+                          color: MateoTheme.of(context).colorScheme.text.tertiary,
+                        ),
+                      ),
+                      onTapOutside: (_) {},
+                      onChanged: ref.read(postStateProvider.notifier).setDescription,
                     ),
-                    onTapOutside: (_) {},
-                    onChanged: ref.read(postStateProvider.notifier).setDescription,
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: GestureDetector(
-            key: const ValueKey('post_description_focus_area'),
-            behavior: HitTestBehavior.opaque,
-            excludeFromSemantics: true,
-            onTap: _descriptionFocusNode.requestFocus,
-            child: const SizedBox.expand(),
+          Expanded(
+            child: GestureDetector(
+              key: const ValueKey('post_description_focus_area'),
+              behavior: HitTestBehavior.opaque,
+              excludeFromSemantics: true,
+              onTap: isPublishing ? null : _descriptionFocusNode.requestFocus,
+              child: const SizedBox.expand(),
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-        const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [LocationChip(), SizedBox(height: 8), ContactChip()],
-        ),
-      ],
+          const SizedBox(height: 20),
+          const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [LocationChip(), SizedBox(height: 8), ContactChip()],
+          ),
+        ],
+      ),
     );
   }
 }

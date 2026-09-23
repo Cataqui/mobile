@@ -66,6 +66,11 @@
     "title": "Postar",
     "closeButtonSemanticLabel": "Fechar",
     "publishButtonTitle": "Enviar",
+    "publishing": {
+      "loading": "Postando...",
+      "error": "Não conseguimos postar. Tenta de novo",
+      "success": "Postado!"
+    },
     "description": {
       "placeholder": "Do que você precisa?",
       "inputSemanticLabel": "Descrição do trampo"

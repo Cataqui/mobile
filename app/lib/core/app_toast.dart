@@ -25,7 +25,7 @@ class AppToast {
     BuildContext context, {
     required String message,
     Widget? icon,
-    Duration? duration,
+    MateoToastDuration duration = const .auto(),
     bool dismissible = true,
   }) {
     showMateoToast(
@@ -36,10 +36,16 @@ class AppToast {
     );
   }
 
-  void showLoading(BuildContext context, {required String message, Duration? duration, bool dismissible = true}) {
+  void showLoading(
+    BuildContext context, {
+    required String message,
+    MateoToastDuration duration = const .auto(),
+    bool dismissible = true,
+    VoidCallback? onPressed,
+  }) {
     showMateoToast(
       context: context,
-      toast: MateoToast(message: message, status: .loading),
+      toast: MateoToast(message: message, status: .loading, onPressed: onPressed),
       duration: duration,
       dismissible: dismissible,
     );

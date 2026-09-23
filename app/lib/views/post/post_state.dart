@@ -17,28 +17,36 @@ class PostState extends _$PostState {
     final postData = state;
     if (!postData.canPublish) return;
 
-    final idempotencyKey = _idempotencyKey ??= const Uuid().v4();
-    final jobRepository = ref.read(jobRepositoryProvider);
-    final selectedLocation = postData.location;
-    final ({double latitude, double longitude}) location;
-    if (selectedLocation != null) {
-      location = selectedLocation;
-    } else {
-      final addressSelection = postData.addressSelection!;
-      final addressDetails = await ref
-          .read(geosearchRepositoryProvider)
-          .getAddressDetails(addressId: addressSelection.addressId, sessionToken: addressSelection.sessionToken);
-      location = (latitude: addressDetails.latitude, longitude: addressDetails.longitude);
-    }
+    final keepAliveLink = ref.keepAlive();
+    state = state.copyWith(isPublishing: true);
 
-    await jobRepository.createJob(
-      description: postData.descriptionText!,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      contactMethod: postData.contact!.contactMethod,
-      contactIdentifier: postData.contact!.identifier,
-      idempotencyKey: idempotencyKey,
-    );
+    try {
+      final idempotencyKey = _idempotencyKey ??= const Uuid().v4();
+      final jobRepository = ref.read(jobRepositoryProvider);
+      final selectedLocation = postData.location;
+      final ({double latitude, double longitude}) location;
+      if (selectedLocation != null) {
+        location = selectedLocation;
+      } else {
+        final addressSelection = postData.addressSelection!;
+        final addressDetails = await ref
+            .read(geosearchRepositoryProvider)
+            .getAddressDetails(addressId: addressSelection.addressId, sessionToken: addressSelection.sessionToken);
+        location = (latitude: addressDetails.latitude, longitude: addressDetails.longitude);
+      }
+
+      await jobRepository.createJob(
+        description: postData.descriptionText!,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        contactMethod: postData.contact!.contactMethod,
+        contactIdentifier: postData.contact!.identifier,
+        idempotencyKey: idempotencyKey,
+      );
+    } finally {
+      state = state.copyWith(isPublishing: false);
+      keepAliveLink.close();
+    }
   }
 
   void setDescription(String descriptionText) {
