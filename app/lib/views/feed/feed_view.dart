@@ -144,11 +144,11 @@ class _FeedViewState extends ConsumerState<FeedView> {
           : null,
       footer: .new(
         trailing: _buildJobCreationButton(i18n),
-        leading: const CircleAvatar(radius: 28),
+        leading: MateoPress(onPressed: (animation) {}, child: const CircleAvatar(radius: 28)),
         padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
       ),
       surface: MateoViewSurface(
-        padding: const EdgeInsets.symmetric(horizontal: 12).copyWith(bottom: 20, top: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20, top: 10),
         color: colorScheme.background,
         edgeEffect: .fade(),
         child: RepaintBoundary(

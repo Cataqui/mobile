@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -15,7 +17,9 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
+import 'package:mocktail/mocktail.dart';
 
+import '../../mocks.dart';
 import '../../utils/test_app.dart';
 import 'post_test_state.dart';
 
@@ -192,6 +196,84 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('post_description_input')), 'Preciso de ajuda hoje');
     await tester.pump();
 
+    expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
+  });
+
+  testWidgets('when tapping Publish, it should send the post and keep the composer open', (tester) async {
+    final jobRepository = MockJobRepository();
+    final pendingPost = Completer<ApiEnvelopeDto<JobDto>>();
+    when(
+      () => jobRepository.createJob(
+        description: 'Preciso de ajuda para descarregar caixas.',
+        latitude: -23.561684,
+        longitude: -46.655981,
+        contactMethod: .whatsapp,
+        contactIdentifier: '+5511999999999',
+        idempotencyKey: any(named: 'idempotencyKey'),
+      ),
+    ).thenAnswer((_) => pendingPost.future);
+    await PostViewTestHelpers.pump(
+      tester,
+      i18n: i18n,
+      initialPostData: const PostData(
+        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        descriptionText: 'Preciso de ajuda para descarregar caixas.',
+        location: (latitude: -23.561684, longitude: -46.655981),
+        locationTitle: 'Pinheiros',
+      ),
+      additionalOverrides: [jobRepositoryProvider.overrideWithValue(jobRepository)],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+    await tester.pump();
+
+    verify(
+      () => jobRepository.createJob(
+        description: 'Preciso de ajuda para descarregar caixas.',
+        latitude: -23.561684,
+        longitude: -46.655981,
+        contactMethod: .whatsapp,
+        contactIdentifier: '+5511999999999',
+        idempotencyKey: any(named: 'idempotencyKey'),
+      ),
+    ).called(1);
+    pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+    await tester.pump();
+    expect(find.byType(PostView), findsOneWidget);
+    expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
+  });
+
+  testWidgets('when posting fails, it should leave the composer usable without surfacing an exception', (tester) async {
+    final jobRepository = MockJobRepository();
+    when(
+      () => jobRepository.createJob(
+        description: 'Preciso de ajuda para descarregar caixas.',
+        latitude: -23.561684,
+        longitude: -46.655981,
+        contactMethod: .whatsapp,
+        contactIdentifier: '+5511999999999',
+        idempotencyKey: any(named: 'idempotencyKey'),
+      ),
+    ).thenThrow(Exception('Post failed'));
+    await PostViewTestHelpers.pump(
+      tester,
+      i18n: i18n,
+      initialPostData: const PostData(
+        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        descriptionText: 'Preciso de ajuda para descarregar caixas.',
+        location: (latitude: -23.561684, longitude: -46.655981),
+        locationTitle: 'Pinheiros',
+      ),
+      additionalOverrides: [jobRepositoryProvider.overrideWithValue(jobRepository)],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(PostView), findsOneWidget);
     expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
   });
 
@@ -729,10 +811,15 @@ void main() {
 }
 
 abstract final class PostViewTestHelpers {
-  static List<Override> providerOverrides({required Translations i18n, PostData initialPostData = const PostData()}) {
+  static List<Override> providerOverrides({
+    required Translations i18n,
+    PostData initialPostData = const PostData(),
+    List<Override> additionalOverrides = const [],
+  }) {
     return [
       translationProvider.overrideWithValue(i18n),
       postStateProvider.overrideWith(() => PostTestState(initialData: initialPostData)),
+      ...additionalOverrides,
     ];
   }
 
@@ -740,6 +827,7 @@ abstract final class PostViewTestHelpers {
     WidgetTester tester, {
     required Translations i18n,
     PostData initialPostData = const PostData(),
+    List<Override> additionalOverrides = const [],
     bool disableAnimations = true,
     TextScaler textScaler = TextScaler.noScaling,
     Size size = const Size(390, 844),
@@ -759,7 +847,11 @@ abstract final class PostViewTestHelpers {
           disableAnimations: disableAnimations,
           textScaler: textScaler,
         ),
-        providerOverrides: providerOverrides(i18n: i18n, initialPostData: initialPostData),
+        providerOverrides: providerOverrides(
+          i18n: i18n,
+          initialPostData: initialPostData,
+          additionalOverrides: additionalOverrides,
+        ),
         child: const PostView(),
       ),
     );
