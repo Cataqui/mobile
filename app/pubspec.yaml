@@ -77,6 +77,8 @@ flutter_gen:
     image: true
 
 flutter:
+  config:
+    enable-dart-data-assets: true
   uses-material-design: true
   assets:
     - assets/logos/
