@@ -15,7 +15,7 @@ import 'package:cataqui_app/views/post/post_view.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -145,6 +145,39 @@ void main() {
     refreshResponse.complete(ApiEnvelopeDto.fixture(data: issuedSession));
     await tester.pumpAndSettle();
     expect(container.read(appAuthStateProvider), AuthSessionDto.fromIssuedAuthSession(issuedSession));
+  });
+
+  testWidgets('when Post goes to Feed, the footer can open a fresh Post page', (tester) async {
+    final goRouter = GoRouter(
+      observers: [MateoNavigatorObserver()],
+      initialLocation: const FeedRoute().location,
+      routes: [$feedRoute, $postRoute],
+    );
+    addTearDown(goRouter.dispose);
+    await tester.pumpWidget(TestApp.router(routerConfig: goRouter));
+    await tester.pumpAndSettle();
+    final providerContainer = ProviderScope.containerOf(tester.element(find.byType(FeedView)), listen: false);
+    await providerContainer
+        .read(appAuthStateProvider.notifier)
+        .setSession(
+          AuthSessionDto.fixture().copyWith(
+            accessTokenExpiresAt: DateTime.utc(2100),
+            refreshTokenExpiresAt: DateTime.utc(2100),
+          ),
+        );
+
+    await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+    await tester.pumpAndSettle();
+    expect(find.byType(PostView), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('post_description_input')), 'Draft from first visit');
+
+    const FeedRoute().go(tester.element(find.byType(PostView)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PostView), findsOneWidget);
+    expect(tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).controller!.text, isEmpty);
   });
 
   testWidgets('when saved credentials are revoked, post draft remains and contact requests login', (tester) async {

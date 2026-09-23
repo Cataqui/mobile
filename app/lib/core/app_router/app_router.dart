@@ -17,7 +17,9 @@ class AppRouter extends _$AppRouter {
   void build() {}
 
   Future<void> push(BuildContext context, AppRouteData appRoute) {
-    return _navigate(context, appRoute, () async => appRoute.push<void>(context));
+    return _navigate(context, appRoute, () async {
+      unawaited(appRoute.push<void>(context).then<void>((_) {}));
+    });
   }
 
   Future<void> go(BuildContext context, AppRouteData appRoute) {
