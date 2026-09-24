@@ -1,3 +1,4 @@
+import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
@@ -13,9 +14,9 @@ class PostState extends _$PostState {
   @override
   PostData build() => const PostData();
 
-  Future<void> publish() async {
+  Future<JobDto?> publish() async {
     final postData = state;
-    if (!postData.canPublish) return;
+    if (!postData.canPublish) return null;
 
     final keepAliveLink = ref.keepAlive();
     state = state.copyWith(isPublishing: true);
@@ -35,7 +36,7 @@ class PostState extends _$PostState {
         location = (latitude: addressDetails.latitude, longitude: addressDetails.longitude);
       }
 
-      await jobRepository.createJob(
+      final postedJob = await jobRepository.createJob(
         description: postData.descriptionText!,
         latitude: location.latitude,
         longitude: location.longitude,
@@ -43,6 +44,7 @@ class PostState extends _$PostState {
         contactIdentifier: postData.contact!.identifier,
         idempotencyKey: idempotencyKey,
       );
+      return postedJob.data;
     } finally {
       state = state.copyWith(isPublishing: false);
       keepAliveLink.close();

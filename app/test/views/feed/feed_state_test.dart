@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -157,6 +158,68 @@ void main() {
       await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
 
       verify(() => repository.getFeedJobs(cursor: any(named: 'cursor'))).called(1);
+    });
+
+    test('injected jobs appear first with their response fields and stay first after refresh', () async {
+      final repository = MockFeedRepository();
+      _stubFeedJobs(repository: repository);
+      final container = _createContainer(repository: repository);
+      await container.read(feedStateProvider.future);
+      final createdJob = JobDto.fixture().copyWith(
+        jobId: 'new-post',
+        title: 'Novo trampo',
+        descriptionSummary: 'Resumo novo',
+        payment: 'Outro pagamento',
+        createdAt: DateTime.utc(2026, 9, 23),
+      );
+
+      container.read(feedStateProvider.notifier).injectJob(createdJob);
+      var feedData = container.read(feedStateProvider).value!;
+      expect(feedData.jobs.map((job) => job.jobId), ['new-post', 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502']);
+      expect(feedData.jobs.first.title, 'Novo trampo');
+      expect(feedData.jobs.first.descriptionSummary, 'Resumo novo');
+      expect(feedData.jobs.first.payment, 'Outro pagamento');
+      expect(feedData.jobs.first.location.latitude, createdJob.location.latitude);
+
+      await container.read(feedStateProvider.notifier).getFeedJobs();
+      feedData = container.read(feedStateProvider).value!;
+      expect(feedData.jobs.map((job) => job.jobId).first, 'new-post');
+
+      container.read(feedStateProvider.notifier).injectJob(JobDto.fixture().copyWith(jobId: 'another-job'));
+      feedData = container.read(feedStateProvider).value!;
+      expect(feedData.jobs.map((job) => job.jobId), [
+        'another-job',
+        'new-post',
+        'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
+      ]);
+    });
+
+    test('pagination does not duplicate an injected job returned by the feed', () async {
+      final repository = MockFeedRepository();
+      _stubFeedJobs(
+        repository: repository,
+        secondEnvelope: _feedEnvelope(jobs: [_feedJob(jobId: 'new-post')], hasMore: false),
+      );
+      final container = _createContainer(repository: repository);
+      await container.read(feedStateProvider.future);
+
+      container.read(feedStateProvider.notifier).injectJob(JobDto.fixture().copyWith(jobId: 'new-post'));
+      await container.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true);
+
+      expect(container.read(feedStateProvider).value!.jobs.where((job) => job.jobId == 'new-post').length, 1);
+    });
+
+    test('the injected job remains visible when a feed refresh fails', () async {
+      final repository = MockFeedRepository();
+      _stubFeedJobs(repository: repository);
+      final container = _createContainer(repository: repository);
+      await container.read(feedStateProvider.future);
+      container.read(feedStateProvider.notifier).injectJob(JobDto.fixture().copyWith(jobId: 'new-post'));
+      when(() => repository.getFeedJobs(cursor: any(named: 'cursor'))).thenThrow(StateError('offline'));
+
+      await container.read(feedStateProvider.notifier).getFeedJobs();
+
+      expect(container.read(feedStateProvider).value!.jobs.first.jobId, 'new-post');
     });
   });
 }

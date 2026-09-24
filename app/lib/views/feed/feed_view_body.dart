@@ -1,10 +1,11 @@
 part of 'feed_view.dart';
 
 class _FeedViewBody extends ConsumerStatefulWidget {
-  const _FeedViewBody({required this.controller, required this.onAdjustAreaPressed});
+  const _FeedViewBody({required this.controller, required this.onAdjustAreaPressed, required this.onIndexChanged});
 
   final SnapListController controller;
   final VoidCallback onAdjustAreaPressed;
+  final ValueChanged<int> onIndexChanged;
 
   @override
   ConsumerState<_FeedViewBody> createState() => _FeedBodyContentState();
@@ -69,7 +70,10 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
       incomingTransitionBuilder: (context, progress, isReverse, child) {
         return FadeTransition(opacity: progress, child: child);
       },
-      onIndexChanged: (index) => _currentMapIndexNotifier.value = index,
+      onIndexChanged: (index) {
+        _currentMapIndexNotifier.value = index;
+        widget.onIndexChanged(index);
+      },
       trailingBuilder: (context) {
         if (feedData.paginationError != null) {
           return _buildLoadMoreError(
@@ -84,7 +88,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         final job = feedData.jobs[index];
         final location = job.location;
 
-        return MateoSurface(
+        final mapCard = MateoSurface(
           key: ValueKey(job.jobId),
           shape: _mapSurfaceShape,
           color: mapColorScheme.background,
@@ -125,6 +129,7 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             ],
           ),
         );
+        return mapCard;
       },
     );
   }

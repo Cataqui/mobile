@@ -25,6 +25,9 @@
     "retry": "Tentar novamente",
     "end": "Você viu todas as oportunidades por enquanto.",
     "jobCreationButtonSemanticLabel": "Criar trabalho",
+    "recentlyPosted": {
+      "toastMessage": "Esse é o seu post!"
+    },
     "offline": {
       "title": "Sem Internet",
       "description": "Parece que a internet não tá funcionando. Dá uma olhada e tenta de novo",

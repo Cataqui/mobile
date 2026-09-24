@@ -24,7 +24,7 @@ part 'feed_swipe_up_hint_overlay.dart';
 part 'feed_view_body.dart';
 
 class FeedView extends ConsumerStatefulWidget {
-  const FeedView({super.key});
+  const FeedView({super.key, this.toast});
 
   static Future<void> precacheImages(BuildContext context) async {
     await Future.wait([
@@ -45,6 +45,8 @@ class FeedView extends ConsumerStatefulWidget {
   static const _emptyIllustrationHeight = 150.0;
   static const _errorIllustrationHeight = 140.0;
 
+  final MateoToast? toast;
+
   @override
   ConsumerState<FeedView> createState() => _FeedViewState();
 }
@@ -52,6 +54,40 @@ class FeedView extends ConsumerStatefulWidget {
 class _FeedViewState extends ConsumerState<FeedView> {
   final SnapListController _feedController = SnapListController();
   late final ValueNotifier<bool> _isHintActiveNotifier;
+  MateoToastController? _toastController;
+  bool _shouldShowToast = false;
+  bool _isRouteSettled = false;
+
+  void _dismissToast() {
+    _shouldShowToast = false;
+    _toastController?.dismiss();
+    _toastController = null;
+  }
+
+  void _showPendingToast() {
+    if (!_isRouteSettled || !_shouldShowToast || widget.toast == null) return;
+    _shouldShowToast = false;
+    _toastController = showMateoToast(
+      context: context,
+      toast: widget.toast!,
+      duration: .custom(duration: const Duration(seconds: 5)),
+      delay: const Duration(milliseconds: 200),
+    );
+  }
+
+  void _onRouteSettled() {
+    _isRouteSettled = true;
+    _showPendingToast();
+  }
+
+  void _onRouteUnsettled() {
+    _isRouteSettled = false;
+    _dismissToast();
+  }
+
+  void _onIndexChanged(int index) {
+    if (index > 0) _dismissToast();
+  }
 
   void _showLocationAvailabilitySheet() {
     final i18n = ref.read(translationProvider);
@@ -100,12 +136,29 @@ class _FeedViewState extends ConsumerState<FeedView> {
   @override
   void initState() {
     super.initState();
+    _shouldShowToast = widget.toast != null;
     final hasSeenHint = ref.read(appStorageStateProvider.select((s) => s.value?.hasSeenSwipeFeedHint));
     _isHintActiveNotifier = ValueNotifier<bool>(!(hasSeenHint ?? false));
   }
 
   @override
+  void didUpdateWidget(covariant FeedView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (identical(oldWidget.toast, widget.toast)) return;
+    _dismissToast();
+    if (widget.toast == null) return;
+    _shouldShowToast = true;
+    if (_feedController.hasClients) _feedController.jumpTo(0);
+    if (_isRouteSettled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showPendingToast();
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    _dismissToast();
     _feedController.dispose();
     _isHintActiveNotifier.dispose();
     super.dispose();
@@ -117,42 +170,50 @@ class _FeedViewState extends ConsumerState<FeedView> {
     final i18n = ref.watch(translationProvider);
     final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
 
-    return MateoView(
-      avoidBottomInset: false,
-      padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 20),
-      header: MateoViewHeader(
-        leading: MateoButton(
-          presentation: .label(
-            width: .fit,
-            variant: .tertiary,
-            size: .small,
-            label: i18n.feed.locationAvailability.cityLabel,
-            elevation: 0,
-            leadingIcon: MateoIcon(.mapPin, color: MateoTheme.of(context).palette.accent[9]),
-            trailingIcon: MateoIcon(.chevronDown, color: MateoTheme.of(context).colorScheme.text.primary),
+    return RouteListener(
+      onSettled: _onRouteSettled,
+      onUnsettled: _onRouteUnsettled,
+      child: MateoView(
+        avoidBottomInset: false,
+        padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 20),
+        header: MateoViewHeader(
+          leading: MateoButton(
+            presentation: .label(
+              width: .fit,
+              variant: .tertiary,
+              size: .small,
+              label: i18n.feed.locationAvailability.cityLabel,
+              elevation: 0,
+              leadingIcon: MateoIcon(.mapPin, color: MateoTheme.of(context).palette.accent[9]),
+              trailingIcon: MateoIcon(.chevronDown, color: MateoTheme.of(context).colorScheme.text.primary),
+            ),
+            onPressed: _showLocationAvailabilitySheet,
           ),
-          onPressed: _showLocationAvailabilitySheet,
         ),
-      ),
-      overlay: hasJobs
-          ? IgnorePointer(
-              child: _FeedSwipeUpHintOverlay(
-                feedController: _feedController,
-                isHintActiveNotifier: _isHintActiveNotifier,
-              ),
-            )
-          : null,
-      footer: .new(
-        trailing: _buildJobCreationButton(i18n),
-        leading: MateoPress(onPressed: (animation) {}, child: const CircleAvatar(radius: 28)),
-        padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
-      ),
-      surface: MateoViewSurface(
-        padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20, top: 10),
-        color: colorScheme.background,
-        edgeEffect: .fade(),
-        child: RepaintBoundary(
-          child: _FeedViewBody(controller: _feedController, onAdjustAreaPressed: _showLocationAvailabilitySheet),
+        overlay: hasJobs && widget.toast == null
+            ? IgnorePointer(
+                child: _FeedSwipeUpHintOverlay(
+                  feedController: _feedController,
+                  isHintActiveNotifier: _isHintActiveNotifier,
+                ),
+              )
+            : null,
+        footer: .new(
+          trailing: _buildJobCreationButton(i18n),
+          leading: MateoPress(onPressed: (animation) {}, child: const CircleAvatar(radius: 28)),
+          padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
+        ),
+        surface: MateoViewSurface(
+          padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20, top: 10),
+          color: colorScheme.background,
+          edgeEffect: .fade(),
+          child: RepaintBoundary(
+            child: _FeedViewBody(
+              controller: _feedController,
+              onAdjustAreaPressed: _showLocationAvailabilitySheet,
+              onIndexChanged: _onIndexChanged,
+            ),
+          ),
         ),
       ),
     );

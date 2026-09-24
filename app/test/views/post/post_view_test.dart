@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
+import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/job_dto.dart';
@@ -8,6 +9,8 @@ import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/post/location/post_location_view.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
@@ -25,6 +28,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
+import '../feed/feed_view_test_helpers.dart';
 import 'post_test_state.dart';
 
 void main() {
@@ -395,8 +399,8 @@ void main() {
       expect(find.text(i18n.post.publishing.success), findsOneWidget);
     });
 
-    testWidgets('publishing success unlocks the reopened Post without a success toast', (tester) async {
-      await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+    testWidgets('publishing success from reopened Post opens Feed with the post toast', (tester) async {
+      final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
 
       await tester.tap(find.byKey(const ValueKey('post_publish_button')));
       await tester.pump();
@@ -418,31 +422,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       await tester.pump(const Duration(milliseconds: 250));
 
-      expect(find.byType(PostView), findsOneWidget);
-      expect(find.byType(MateoToast), findsNothing);
-      expect(tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).readOnly, isFalse);
-      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).isLoading, isFalse);
-      expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
-      expect(
-        tester.widget<GestureDetector>(find.byKey(const ValueKey('post_description_focus_area'))).onTap,
-        isNotNull,
-      );
-      expect(
-        tester
-            .widget<MateoPress>(
-              find.ancestor(of: find.byKey(const ValueKey('post_location_chip')), matching: find.byType(MateoPress)),
-            )
-            .onPressed,
-        isNotNull,
-      );
-      expect(
-        tester
-            .widget<MateoPress>(
-              find.ancestor(of: find.byKey(const ValueKey('post_contact_chip')), matching: find.byType(MateoPress)),
-            )
-            .onPressed,
-        isNotNull,
-      );
+      expect(goRouter.state.matchedLocation, const FeedRoute().location);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
+      expect(find.byType(PostView), findsNothing);
+      expect(tester.widget<MateoToast>(find.byType(MateoToast)).status, MateoToastStatus.neutral);
+      expect(find.text(i18n.feed.recentlyPosted.toastMessage), findsOneWidget);
     });
 
     testWidgets('loading toast opens Post above a page covering the first Post', (tester) async {
@@ -476,6 +463,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       expect(find.text(i18n.post.publishing.success), findsNothing);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
     });
 
     testWidgets('when closing Post during publishing, loading is replaced by success', (tester) async {
@@ -487,8 +478,9 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('post_close_button')));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 900));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
       expect(find.byType(PostView), findsNothing);
       expect(find.text(i18n.post.publishing.loading), findsOneWidget);
 
@@ -532,9 +524,7 @@ void main() {
       expect(find.text(i18n.post.publishing.success), findsOneWidget);
     });
 
-    testWidgets('when returning to Post before success, it should clear loading without a success toast', (
-      tester,
-    ) async {
+    testWidgets('when returning to Post before success, it should replace loading with the post toast', (tester) async {
       final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
 
       await tester.tap(find.byKey(const ValueKey('post_publish_button')));
@@ -558,7 +548,12 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.pump(const Duration(milliseconds: 250));
-      expect(find.byType(MateoToast), findsNothing);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
+      expect(tester.widget<MateoToast>(find.byType(MateoToast)).status, MateoToastStatus.neutral);
+      expect(find.text(i18n.feed.recentlyPosted.toastMessage), findsOneWidget);
     });
 
     testWidgets('when another page covers Post, loading is dismissible and failure shows an error', (tester) async {
@@ -608,8 +603,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('when publishing finishes before leaving, navigation shows no loading toast', (tester) async {
-      await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+    testWidgets('when publishing finishes inside Post, Feed opens with the posted job first', (tester) async {
+      final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+      final providerContainer = ProviderScope.containerOf(tester.element(find.byType(PostView)), listen: false);
 
       await tester.tap(find.byKey(const ValueKey('post_publish_button')));
       await tester.pump();
@@ -619,11 +615,17 @@ void main() {
         await Future<void>.delayed(Duration.zero);
       });
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('post_close_button')));
-      await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
+      expect(goRouter.state.matchedLocation, const FeedRoute().location);
+      expect(providerContainer.read(feedStateProvider).value!.jobs.first.jobId, JobDto.fixture().jobId);
       expect(find.byType(MateoToast), findsNothing);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
+      expect(tester.widget<MateoToast>(find.byType(MateoToast)).status, MateoToastStatus.neutral);
+      expect(find.text(i18n.feed.recentlyPosted.toastMessage), findsOneWidget);
     });
 
     testWidgets('when authentication is dismissed after leaving, it should clear loading', (tester) async {
@@ -1201,12 +1203,15 @@ abstract final class PostViewTestHelpers {
     required Translations i18n,
     required MockJobRepository jobRepository,
   }) async {
+    FeedViewTestHelpers.mockHapticFeedback(tester);
+    FeedViewTestHelpers.mockPlatformViews(tester);
+    FeedViewTestHelpers.mockGoogleMapsPlatform();
     final routeObserver = RouteObserver<ModalRoute<void>>();
     final goRouter = GoRouter(
       observers: [routeObserver, MateoNavigatorObserver()],
       initialLocation: const PostRoute().location,
       routes: [
-        GoRoute(path: '/feed', builder: (context, state) => const SizedBox.shrink()),
+        $feedRoute,
         GoRoute(path: '/other', builder: (context, state) => const SizedBox.shrink()),
         $postRoute,
       ],
@@ -1226,6 +1231,10 @@ abstract final class PostViewTestHelpers {
           additionalOverrides: [
             jobRepositoryProvider.overrideWithValue(jobRepository),
             routeObserverProvider.overrideWithValue(routeObserver),
+            feedStateProvider.overrideWith(
+              () => FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
+            ),
+            appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
           ],
         ),
       ),

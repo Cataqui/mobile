@@ -166,6 +166,7 @@ class FeedViewTestHelpers {
     MockSharedPreferencesAsync? prefs,
     bool? hasSeenSwipeFeedHint,
     ScrollBehavior? scrollBehavior,
+    MateoToast? toast,
   }) async {
     mockHapticFeedback(tester);
     mockPlatformViews(tester);
@@ -179,8 +180,11 @@ class FeedViewTestHelpers {
           hasSeenSwipeFeedHint: hasSeenSwipeFeedHint ?? (prefs != null ? null : true),
         ),
         child: scrollBehavior == null
-            ? const FeedView()
-            : ScrollConfiguration(behavior: scrollBehavior, child: const FeedView()),
+            ? FeedView(toast: toast)
+            : ScrollConfiguration(
+                behavior: scrollBehavior,
+                child: FeedView(toast: toast),
+              ),
       ),
     );
     await tester.pump(); // Microtask resolves, data arrives, exit starts
@@ -195,8 +199,9 @@ class FeedViewTestHelpers {
     List<Override> providerOverrides = const [],
   }) async {
     final rootNavigatorKey = GlobalKey<NavigatorState>();
+    final routeObserver = RouteObserver<ModalRoute<void>>();
     final goRouter = GoRouter(
-      observers: [MateoNavigatorObserver()],
+      observers: [routeObserver, MateoNavigatorObserver()],
       navigatorKey: rootNavigatorKey,
       initialLocation: const FeedRoute().location,
       routes: [$feedRoute, $postRoute, $jobRoute],
@@ -212,6 +217,7 @@ class FeedViewTestHelpers {
           feedStateProvider.overrideWith(() => feedState ?? FakeFeedState(buildResult: feedDataEmpty)),
           goRouterProvider.overrideWithValue(goRouter),
           rootNavigatorKeyProvider.overrideWithValue(rootNavigatorKey),
+          routeObserverProvider.overrideWithValue(routeObserver),
           appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
           ...providerOverrides,
         ],

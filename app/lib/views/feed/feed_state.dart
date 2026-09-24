@@ -1,4 +1,5 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -8,6 +9,7 @@ part 'feed_state.g.dart';
 @Riverpod(keepAlive: true)
 class FeedState extends _$FeedState {
   bool _isFetchingNextPage = false;
+  final List<FeedJobDto> _injectedJobs = [];
 
   @override
   Future<FeedData> build() {
@@ -24,16 +26,40 @@ class FeedState extends _$FeedState {
     state = await AsyncValue.guard(_getFirstFeedJobs);
   }
 
+  void injectJob(JobDto job) {
+    final injectedJob = FeedJobDto.fromJob(job);
+    _injectedJobs
+      ..removeWhere((existingJob) => existingJob.jobId == injectedJob.jobId)
+      ..insert(0, injectedJob);
+
+    final currentData = state.value;
+    state = AsyncData<FeedData>(
+      currentData == null
+          ? FeedData(jobs: [injectedJob], hasMore: false)
+          : currentData.copyWith(jobs: _withInjectedJobs(currentData.jobs)),
+    );
+  }
+
+  List<FeedJobDto> _withInjectedJobs(List<FeedJobDto> jobs) {
+    final injectedIds = _injectedJobs.map((job) => job.jobId).toSet();
+    return [..._injectedJobs, ...jobs.where((job) => !injectedIds.contains(job.jobId))];
+  }
+
   Future<FeedData> _getFirstFeedJobs() async {
     final feedRepository = ref.read(feedRepositoryProvider);
-    final feedJobsEnvelope = await feedRepository.getFeedJobs();
-    final pagination = feedJobsEnvelope.pagination;
+    try {
+      final feedJobsEnvelope = await feedRepository.getFeedJobs();
+      final pagination = feedJobsEnvelope.pagination;
 
-    return FeedData(
-      jobs: feedJobsEnvelope.data,
-      hasMore: pagination?.hasMore ?? false,
-      nextCursor: pagination?.nextCursor,
-    );
+      return FeedData(
+        jobs: _withInjectedJobs(feedJobsEnvelope.data),
+        hasMore: pagination?.hasMore ?? false,
+        nextCursor: pagination?.nextCursor,
+      );
+    } catch (_) {
+      if (_injectedJobs.isEmpty) rethrow;
+      return FeedData(jobs: [..._injectedJobs], hasMore: false);
+    }
   }
 
   Future<void> _getNextFeedJobs() async {
@@ -52,7 +78,7 @@ class FeedState extends _$FeedState {
 
       state = AsyncData<FeedData>(
         currentState.copyWith(
-          jobs: <FeedJobDto>[...currentState.jobs, ...feedJobsEnvelope.data],
+          jobs: _withInjectedJobs([...currentState.jobs, ...feedJobsEnvelope.data]),
           hasMore: pagination?.hasMore ?? false,
           nextCursor: pagination?.nextCursor,
           paginationError: null,

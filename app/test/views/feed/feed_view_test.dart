@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -8,6 +11,9 @@ import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
+import 'package:cataqui_app/views/post/post_data.dart';
+import 'package:cataqui_app/views/post/post_route.dart';
+import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:cataqui_app/views/post/post_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
@@ -23,6 +29,7 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
+import '../post/post_test_state.dart';
 import 'feed_view_test_helpers.dart';
 
 void main() {
@@ -33,6 +40,181 @@ void main() {
   });
 
   group('FeedView', () {
+    group('published post return', () {
+      late MockJobRepository jobRepository;
+
+      setUp(() {
+        jobRepository = MockJobRepository();
+        when(
+          () => jobRepository.createJob(
+            description: 'Preciso de ajuda para descarregar caixas.',
+            latitude: -23.561684,
+            longitude: -46.655981,
+            contactMethod: .whatsapp,
+            contactIdentifier: '+5511999999999',
+            idempotencyKey: any(named: 'idempotencyKey'),
+          ),
+        ).thenAnswer(
+          (_) async => ApiEnvelopeDto.fixture(
+            data: JobDto.fixture().copyWith(jobId: 'new-post', title: 'Meu trampo'),
+          ),
+        );
+      });
+
+      Future<void> publishToFeed(WidgetTester tester, {bool startFromSecondJob = false}) async {
+        await FeedViewTestHelpers.pumpFeedRoute(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 2)),
+          settle: false,
+          providerOverrides: [
+            jobRepositoryProvider.overrideWithValue(jobRepository),
+            postStateProvider.overrideWith(
+              () => PostTestState(
+                initialData: const PostData(
+                  descriptionText: 'Preciso de ajuda para descarregar caixas.',
+                  contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+                  location: (latitude: -23.561684, longitude: -46.655981),
+                  locationTitle: 'Pinheiros',
+                ),
+              ),
+            ),
+          ],
+        );
+
+        if (startFromSecondJob) {
+          final feedController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
+          unawaited(feedController.next());
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 500));
+          expect(feedController.index, 1);
+        }
+
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pump();
+        expect(find.byType(FeedView), findsOneWidget);
+        expect(find.byType(MateoToast), findsNothing);
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pump();
+      }
+
+      testWidgets('Publish returns to Feed with the new job first and a five-second pointer toast', (tester) async {
+        await publishToFeed(tester);
+        await tester.pump(const Duration(milliseconds: 199));
+        expect(find.byType(MateoToast), findsNothing);
+        await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump();
+
+        expect(find.byType(PostView), findsNothing);
+        expect(find.byType(FeedView), findsOneWidget);
+        final toast = tester.widget<MateoToast>(find.byType(MateoToast));
+        expect(toast.status, MateoToastStatus.neutral);
+        expect(toast.message, i18n.feed.recentlyPosted.toastMessage);
+        expect(tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob.jobId, 'new-post');
+        expect(find.byKey(const ValueKey('post_published_pointer')), findsOneWidget);
+        await tester.pump(const Duration(seconds: 4));
+        expect(find.byType(MateoToast), findsOneWidget);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(milliseconds: 250));
+        expect(find.byType(MateoToast), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('Publish returns to the first card after starting from a later job', (tester) async {
+        await publishToFeed(tester, startFromSecondJob: true);
+
+        final feedController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
+        expect(feedController.index, 0);
+        expect(tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob.jobId, 'new-post');
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('the published post toast leaves when another route opens', (tester) async {
+        await publishToFeed(tester);
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump();
+        expect(find.byType(MateoToast), findsOneWidget);
+
+        await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 250));
+
+        expect(find.byType(PostView), findsOneWidget);
+        expect(find.byType(MateoToast), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('the published post toast leaves when the next job is selected', (tester) async {
+        await publishToFeed(tester);
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump();
+        expect(find.byType(MateoToast), findsOneWidget);
+
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester, title: 'Meu trampo');
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+
+        expect(tester.widget<SnapList>(find.byType(SnapList)).controller!.index, 1);
+        expect(find.byType(MateoToast), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('moving to the next job during the wait prevents the toast', (tester) async {
+        await publishToFeed(tester);
+        await FeedViewTestHelpers.swipeAwayCurrentJob(tester, title: 'Meu trampo');
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(tester.widget<SnapList>(find.byType(SnapList)).controller!.index, 1);
+        expect(find.byType(MateoToast), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
+      testWidgets('leaving Feed during the wait prevents the toast', (tester) async {
+        await publishToFeed(tester);
+        final router = GoRouter.of(tester.element(find.byType(FeedView)));
+        unawaited(router.push<void>(const PostRoute().location));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+
+        expect(find.byType(PostView), findsOneWidget);
+        expect(find.byType(MateoToast), findsNothing);
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+    });
+
+    testWidgets('FeedRoute shows the MateoToast supplied by its caller', (tester) async {
+      await FeedViewTestHelpers.pumpFeedRoute(
+        tester: tester,
+        feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 2)),
+        settle: false,
+      );
+
+      const FeedRoute(
+        $extra: (toast: MateoToast(message: 'Aviso temporário', status: .info)),
+      ).go(tester.element(find.byType(FeedView)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
+
+      final toast = tester.widget<MateoToast>(find.byType(MateoToast));
+      expect(toast.status, MateoToastStatus.info);
+      expect(toast.message, 'Aviso temporário');
+      await tester.pump(const Duration(seconds: 4));
+      expect(find.byType(MateoToast), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byType(MateoToast), findsNothing);
+      await FeedViewTestHelpers.pumpAndCleanUp(tester);
+    });
+
     group('chrome', () {
       testWidgets('when the view renders in any state, it should show the current city button', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
@@ -532,6 +714,21 @@ void main() {
     });
 
     group('data — with jobs', () {
+      testWidgets('a recently published first job uses the full feed card area', (tester) async {
+        final feedData = FeedViewTestHelpers.feedDataWithJobs(count: 2);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => feedData),
+          hasSeenSwipeFeedHint: false,
+          toast: MateoToast(message: i18n.feed.recentlyPosted.toastMessage, status: .neutral),
+        );
+
+        expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
+        expect(find.byKey(const ValueKey('feed_recently_posted_pointer')), findsNothing);
+        expect(tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob.jobId, 'job_0');
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
       testWidgets('when feedData has jobs, it should render SnapList', (tester) async {
         final prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => true);

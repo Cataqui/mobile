@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/post/post_details_input/post_details_input.dart';
+import 'package:cataqui_app/views/post/post_published_pointer/post_published_pointer.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:flutter/material.dart';
@@ -61,11 +64,21 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
     final appToast = ref.read(appToastProvider);
     final publishingMessages = ref.read(translationProvider).post.publishing;
     final router = GoRouter.maybeOf(context);
+    final providerContainer = ProviderScope.containerOf(context, listen: false);
     _preparePublishingToast();
 
     try {
-      final publishFuture = ref.read(postStateProvider.notifier).publish();
-      await publishFuture;
+      final JobDto? postedJob;
+      try {
+        postedJob = await ref.read(postStateProvider.notifier).publish();
+      } on Object catch (error) {
+        if (toastContext.mounted) {
+          if (_publishingToastShown) dismissMateoToast(context: toastContext);
+          appToast.maybeShowError(toastContext, error: error, message: publishingMessages.error);
+        }
+        return;
+      }
+      if (postedJob == null) return;
       if (!toastContext.mounted) return;
       final isPostVisible = router == null
           ? _isPostVisible
@@ -75,11 +88,19 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
         return;
       }
       if (_publishingToastShown) dismissMateoToast(context: toastContext);
-    } on Object catch (error) {
-      if (toastContext.mounted) {
-        if (_publishingToastShown) dismissMateoToast(context: toastContext);
-        appToast.maybeShowError(toastContext, error: error, message: publishingMessages.error);
-      }
+      if (router == null) return;
+      providerContainer.read(feedStateProvider.notifier).injectJob(postedJob);
+      await WidgetsBinding.instance.endOfFrame;
+      if (!toastContext.mounted || router.state.matchedLocation != const PostRoute().location) return;
+      FeedRoute(
+        $extra: (
+          toast: MateoToast(
+            message: providerContainer.read(translationProvider).feed.recentlyPosted.toastMessage,
+            status: .neutral,
+            icon: const PostPublishedPointer(),
+          ),
+        ),
+      ).go(toastContext);
     } finally {
       _showPublishingToast = null;
       _publishingToastShown = false;

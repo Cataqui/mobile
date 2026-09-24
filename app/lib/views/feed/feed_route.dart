@@ -11,18 +11,20 @@ part 'feed_route.g.dart';
 
 @TypedGoRoute<FeedRoute>(path: '/feed')
 class FeedRoute extends AppRouteData with $FeedRoute {
-  const FeedRoute();
+  const FeedRoute({this.$extra});
+
+  final ({MateoToast toast})? $extra;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     unawaited(FeedView.precacheImages(context));
 
-    return const MateoPage(
-      transition: MateoPageTransition.push(
+    return MateoPage(
+      transition: const MateoPageTransition.push(
         duration: Duration(milliseconds: 550),
         direction: MateoPageTransitionDirection.up,
       ),
-      child: FeedView(),
+      child: FeedView(toast: $extra?.toast),
     );
   }
 }

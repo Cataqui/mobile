@@ -3,14 +3,17 @@ import 'dart:async';
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
+import 'package:cataqui_app/gen/icons.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
+import 'package:cataqui_app/views/post/post_published_pointer/post_published_pointer.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 
 import '../../utils/test_app.dart';
 import 'feed_view_test_helpers.dart';
@@ -36,6 +39,7 @@ Widget _goldenScenario({
   required FakeFeedState feedState,
   bool hasSeenSwipeFeedHint = true,
   bool animationsEnabled = false,
+  MateoToast? toast,
   double height = 780,
 }) {
   return SizedBox(
@@ -49,7 +53,7 @@ Widget _goldenScenario({
           feedStateProvider.overrideWith(() => feedState),
           appStorageStateProvider.overrideWith(() => _FixedAppStorageState(hasSeenSwipeFeedHint: hasSeenSwipeFeedHint)),
         ],
-        child: const FeedView(),
+        child: FeedView(toast: toast),
       ),
     ),
   );
@@ -130,6 +134,40 @@ void main() {
           feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
         );
       },
+    );
+
+    goldenTest(
+      'when a post was just published, the neutral pointer toast appears above Feed',
+      fileName: 'feed_view_recently_posted',
+      pumpWidget: TestApp.pumpGolden,
+      pumpBeforeTest: TestApp.settleGolden,
+      whilePerforming: (tester) => withClock(Clock.fixed(DateTime(2025, 6, 15, 20)), () async {
+        await FeedViewTestHelpers.prepareGoldenCapture(tester: tester, contextFinder: find.byType(FeedView));
+        final context = tester.element(find.byType(FeedView));
+        showMateoToast(
+          context: context,
+          toast: MateoToast(
+            message: i18n.feed.recentlyPosted.toastMessage,
+            status: .neutral,
+            icon: const PostPublishedPointer(),
+          ),
+          duration: .custom(duration: const Duration(seconds: 5)),
+        );
+        await tester.pump();
+        await tester.runAsync(
+          () => $IconsCache.precachePointerHandUp(tester.element(find.byType(MateoToast)), width: 28, height: 28),
+        );
+        await tester.pump(const Duration(milliseconds: 600));
+        return null;
+      }),
+      builder: () => _goldenScenario(
+        feedState: FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataWithJobs(count: 2))),
+        toast: MateoToast(
+          message: i18n.feed.recentlyPosted.toastMessage,
+          status: .neutral,
+          icon: const PostPublishedPointer(),
+        ),
+      ),
     );
 
     goldenTest(
