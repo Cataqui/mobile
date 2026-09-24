@@ -1,4 +1,5 @@
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
+import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/user_repository.dart';
@@ -17,9 +18,46 @@ void main() {
     authenticatedDio = MockDio();
     repository = UserRepository(authenticatedDio: authenticatedDio);
     _UserRepositoryTestHelpers.stubContactsRequest(dio: authenticatedDio);
+    _UserRepositoryTestHelpers.stubProfileRequest(dio: authenticatedDio);
   });
 
   group('UserRepository', () {
+    group('getMyProfile', () {
+      test('when requesting my profile, it should call the current user endpoint', () async {
+        await repository.getMyProfile();
+
+        verify(() => authenticatedDio.get<Map<String, Object?>>('/users/me')).called(1);
+      });
+
+      test('when receiving my profile, it should map the user fields', () async {
+        final envelope = await repository.getMyProfile();
+
+        expect(
+          envelope.data,
+          UserProfileDto.fixture().copyWith(
+            userId: _UserRepositoryTestData.profileUserId,
+            displayIdentifier: 'Maria Oliveira',
+          ),
+        );
+      });
+
+      test('when receiving my profile, it should map the envelope metadata', () async {
+        final envelope = await repository.getMyProfile();
+
+        expect(
+          (requestId: envelope.requestId, endpoint: envelope.endpoint),
+          (requestId: 'my-profile-request-001', endpoint: '/v1/users/me'),
+        );
+      });
+
+      test('when the request fails, it should propagate the Dio exception', () async {
+        final exception = DioException(requestOptions: RequestOptions(path: '/users/me'));
+        when(() => authenticatedDio.get<Map<String, Object?>>('/users/me')).thenThrow(exception);
+
+        await expectLater(repository.getMyProfile(), throwsA(same(exception)));
+      });
+    });
+
     group('getContacts', () {
       test('when requesting saved contacts, it should call the user contacts endpoint', () async {
         await repository.getContacts();
@@ -78,6 +116,14 @@ void main() {
 
 abstract final class _UserRepositoryTestData {
   static const contactId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  static const profileUserId = 'e3c24aa7-d27d-4ba3-9de1-e5f3e1658055';
+
+  static final profileEnvelopeJson = <String, Object?>{
+    'data': <String, Object?>{'userId': profileUserId, 'displayIdentifier': 'Maria Oliveira'},
+    'requestId': 'my-profile-request-001',
+    'timestamp': '2026-09-24T12:00:00.000Z',
+    'endpoint': '/v1/users/me',
+  };
 
   static final envelopeJson = <String, Object?>{
     'data': <Object?>[
@@ -90,6 +136,15 @@ abstract final class _UserRepositoryTestData {
 }
 
 abstract final class _UserRepositoryTestHelpers {
+  static void stubProfileRequest({required MockDio dio}) {
+    when(() => dio.get<Map<String, Object?>>('/users/me')).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
+        data: _UserRepositoryTestData.profileEnvelopeJson,
+        requestOptions: RequestOptions(path: '/users/me'),
+      ),
+    );
+  }
+
   static void stubContactsRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
     when(() => dio.get<Map<String, Object?>>('/users/me/contacts')).thenAnswer(
       (_) async => Response<Map<String, Object?>>(

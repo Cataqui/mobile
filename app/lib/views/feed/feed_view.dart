@@ -206,7 +206,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
             child: MateoSurface(
               shape: const .capsule(),
               elevation: MateoElevation(level: 1),
-              child: $Svg.defaultUserProfilePicture(height: 55),
+              child: $Svg.defaultUserProfilePicture(height: 57),
             ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
