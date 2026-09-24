@@ -6,6 +6,7 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/gen/lotties.g.dart';
+import 'package:cataqui_app/gen/svg.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
@@ -200,7 +201,14 @@ class _FeedViewState extends ConsumerState<FeedView> {
             : null,
         footer: .new(
           trailing: _buildJobCreationButton(i18n),
-          leading: MateoPress(onPressed: (animation) {}, child: const CircleAvatar(radius: 28)),
+          leading: MateoPress(
+            onPressed: (animation) {},
+            child: MateoSurface(
+              shape: const .capsule(),
+              elevation: MateoElevation(level: 1),
+              child: $Svg.defaultUserProfilePicture(height: 55),
+            ),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
         ),
         surface: MateoViewSurface(
