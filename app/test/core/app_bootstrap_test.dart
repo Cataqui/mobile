@@ -1,14 +1,21 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_bootstrap.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_data.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
+import 'package:cataqui_app/core/dtos/auth_credentials_dto.dart';
+import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
+import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
+import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:cataqui_app/views/my_profile/my_profile_state.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -17,6 +24,127 @@ import '../mocks.dart';
 
 void main() {
   group('AppBootstrap.setup', () {
+    group('when preparing the profile', () {
+      late MockSharedPreferencesAsync prefs;
+      late MockFlutterSecureStorage secureStorage;
+      late MockFeedRepository feedRepository;
+      late MockAuthRepository authRepository;
+      late MockUserRepository userRepository;
+      late MockLoginSheetController loginSheetController;
+
+      setUp(() {
+        prefs = MockSharedPreferencesAsync();
+        secureStorage = MockFlutterSecureStorage();
+        feedRepository = MockFeedRepository();
+        authRepository = MockAuthRepository();
+        userRepository = MockUserRepository();
+        loginSheetController = MockLoginSheetController();
+        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
+        when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
+        when(
+          () => secureStorage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
+        when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
+        when(() => feedRepository.getFeedJobs()).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: <FeedJobDto>[]));
+        when(loginSheetController.show).thenAnswer((_) async => false);
+      });
+
+      ProviderContainer buildContainer() {
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesAsyncProvider.overrideWithValue(prefs),
+            secureStorageProvider.overrideWithValue(secureStorage),
+            feedRepositoryProvider.overrideWithValue(feedRepository),
+            authRepositoryProvider.overrideWithValue(authRepository),
+            userRepositoryProvider.overrideWithValue(userRepository),
+            loginSheetControllerProvider.overrideWithValue(loginSheetController),
+          ],
+        );
+        addTearDown(container.dispose);
+        return container;
+      }
+
+      test(
+        'when there are no saved credentials, it should prepare an empty profile without requesting login',
+        () async {
+          final container = buildContainer();
+
+          await AppBootstrap.setup(providerContainer: container);
+
+          expect(container.exists(myProfileStateProvider), isTrue);
+          expect(await container.read(myProfileStateProvider.future), isNull);
+          verifyNever(userRepository.getMyProfile);
+          verifyNever(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken')));
+          verifyNever(loginSheetController.show);
+        },
+      );
+
+      test('when the user logs in after startup, it should fetch their profile', () async {
+        final didRequestProfile = Completer<void>();
+        when(userRepository.getMyProfile).thenAnswer((_) async {
+          didRequestProfile.complete();
+          return ApiEnvelopeDto.fixture(data: UserProfileDto.fixture());
+        });
+        final container = buildContainer();
+        await AppBootstrap.setup(providerContainer: container);
+
+        await container
+            .read(appAuthStateProvider.notifier)
+            .setSession(AuthSessionDto.fixture().copyWith(accessTokenExpiresAt: DateTime.utc(2100)));
+        await didRequestProfile.future.timeout(const Duration(seconds: 2));
+
+        expect(await container.read(myProfileStateProvider.future), UserProfileDto.fixture());
+        verify(userRepository.getMyProfile).called(1);
+      });
+
+      test('when saved credentials restore a session, it should fetch the profile without delaying startup', () async {
+        final storedCredentials = AuthCredentialsDto.fixture().copyWith(refreshTokenExpiresAt: DateTime.utc(2100));
+        when(
+          () => secureStorage.read(key: any(named: 'key')),
+        ).thenAnswer((_) async => storedCredentials.toSecureStorageValue());
+        when(() => authRepository.refreshSession(refreshToken: storedCredentials.refreshToken)).thenAnswer(
+          (_) async => ApiEnvelopeDto.fixture(
+            data:
+                NotpIntentExchangeResultDto.issuedSession(
+                      accessToken: 'restored-access-token',
+                      tokenType: 'Bearer',
+                      expiresAt: DateTime.utc(2100),
+                      refreshToken: storedCredentials.refreshToken,
+                      refreshExpiresAt: DateTime.utc(2100),
+                      userId: 'restored-user',
+                    )
+                    as IssuedAuthSessionDto,
+          ),
+        );
+        final profileResponse = Completer<ApiEnvelopeDto<UserProfileDto>>();
+        final didRequestProfile = Completer<void>();
+        when(userRepository.getMyProfile).thenAnswer((_) {
+          didRequestProfile.complete();
+          return profileResponse.future;
+        });
+        final container = buildContainer();
+
+        await withClock(Clock.fixed(DateTime.utc(2026, 9, 24)), () async {
+          await AppBootstrap.setup(providerContainer: container);
+          await didRequestProfile.future.timeout(const Duration(seconds: 2));
+          expect(container.read(appStorageStateProvider).value?.authCredentials, storedCredentials);
+          verify(() => authRepository.refreshSession(refreshToken: storedCredentials.refreshToken)).called(1);
+          expect(container.read(appAuthStateProvider)?.userId, 'restored-user');
+
+          expect(container.read(myProfileStateProvider).isLoading, isTrue);
+          expect(container.read(appAuthStateProvider)?.userId, 'restored-user');
+          verifyNever(loginSheetController.show);
+
+          profileResponse.complete(ApiEnvelopeDto.fixture(data: UserProfileDto.fixture()));
+          expect(await container.read(myProfileStateProvider.future), UserProfileDto.fixture());
+        });
+        verify(userRepository.getMyProfile).called(1);
+      });
+    });
+
     group('when startupProvider loads successfully', () {
       late MockSharedPreferencesAsync prefs;
       late MockFlutterSecureStorage secureStorage;
