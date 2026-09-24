@@ -11,6 +11,7 @@ import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
+import 'package:cataqui_app/views/me/me_route.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -204,7 +205,7 @@ class FeedViewTestHelpers {
       observers: [routeObserver, MateoNavigatorObserver()],
       navigatorKey: rootNavigatorKey,
       initialLocation: const FeedRoute().location,
-      routes: [$feedRoute, $postRoute, $jobRoute],
+      routes: [$feedRoute, $postRoute, $jobRoute, $meRoute],
     );
     addTearDown(goRouter.dispose);
     mockHapticFeedback(tester);

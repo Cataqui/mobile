@@ -274,6 +274,32 @@ void main() {
       );
     });
 
+    testWidgets('when two default maps share a theme, they should reuse the encoded style', (tester) async {
+      await tester.pumpWidget(
+        TestApp.screen(
+          child: SizedBox(
+            height: 240,
+            child: Row(
+              children: [
+                for (var index = 0; index < 2; index++)
+                  Expanded(
+                    child: JobLocationMap(
+                      location: _JobLocationMapTestHelpers.testLocation,
+                      areaDiameterInMeters: _JobLocationMapTestHelpers.testAreaDiameterInMeters,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final maps = tester.widgetList<GoogleMap>(find.byType(GoogleMap)).toList();
+      expect(maps, hasLength(2));
+      expect(identical(maps.first.style, maps.last.style), isTrue);
+    });
+
     testWidgets('when the active light theme changes, it should preserve the native map identity', (tester) async {
       final mateoTheme = MateoThemeData.light(accentColor: const Color(0xFFFF4A4B), onAccent: const Color(0xFFFFFFFF));
       final theme = ValueNotifier<MateoThemeData>(mateoTheme);

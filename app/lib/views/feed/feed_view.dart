@@ -10,6 +10,8 @@ import 'package:cataqui_app/gen/svg.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:cataqui_app/views/me/me_route.dart';
+import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
@@ -202,11 +204,17 @@ class _FeedViewState extends ConsumerState<FeedView> {
         footer: .new(
           trailing: _buildJobCreationButton(i18n),
           leading: MateoPress(
-            onPressed: (animation) {},
-            child: MateoSurface(
-              shape: const .capsule(),
-              elevation: MateoElevation(level: 1),
-              child: $Svg.defaultUserProfilePicture(height: 57),
+            key: const ValueKey('feed_me_button'),
+            semanticLabel: i18n.feed.meButtonSemanticLabel,
+            onPressed: (animation) => unawaited(ref.read(appRouterProvider.notifier).push(context, const MeRoute())),
+            child: Morph(
+              targets: [ref.watch(userAvatarMorphTargetProvider)],
+              child: MateoSurface(
+                shape: const .capsule(),
+                color: MateoTheme.of(context).palette.neutral[3],
+                elevation: MateoElevation(level: 1),
+                child: $Svg.defaultUserProfilePicture(height: 57, color1: MateoTheme.of(context).palette.neutral[3]),
+              ),
             ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),

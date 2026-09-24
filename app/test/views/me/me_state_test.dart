@@ -5,7 +5,7 @@ import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
-import 'package:cataqui_app/views/my_profile/my_profile_state.dart';
+import 'package:cataqui_app/views/me/me_state.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -48,22 +48,22 @@ void main() {
   tearDown(() => container.dispose());
 
   test('when signed out, it should have no profile and make no profile request', () async {
-    expect(await container.read(myProfileStateProvider.future), isNull);
+    expect(await container.read(meStateProvider.future), isNull);
     verifyNever(userRepository.getMyProfile);
   });
 
   test('when the user logs in, it should fetch and keep their profile', () async {
-    expect(await container.read(myProfileStateProvider.future), isNull);
+    expect(await container.read(meStateProvider.future), isNull);
 
     await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
     await container.pump();
 
-    expect((await container.read(myProfileStateProvider.future))?.displayIdentifier, 'Ana Teste');
+    expect((await container.read(meStateProvider.future))?.displayIdentifier, 'Ana Teste');
     verify(userRepository.getMyProfile).called(1);
   });
 
   test('when a profile request fails temporarily, it should retry and load the profile', () async {
-    container.listen(myProfileStateProvider, (_, _) {});
+    container.listen(meStateProvider, (_, _) {});
     var requestCount = 0;
     when(userRepository.getMyProfile).thenAnswer((_) async {
       requestCount += 1;
@@ -77,11 +77,11 @@ void main() {
       }
       return ApiEnvelopeDto.fixture(data: UserProfileDto.fixture());
     });
-    await container.read(myProfileStateProvider.future);
+    await container.read(meStateProvider.future);
 
     await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
 
-    expect(await container.read(myProfileStateProvider.future).timeout(const Duration(seconds: 3)), isNotNull);
+    expect(await container.read(meStateProvider.future).timeout(const Duration(seconds: 3)), isNotNull);
     expect(requestCount, 2);
   });
 
@@ -94,11 +94,11 @@ void main() {
         type: .badResponse,
       ),
     );
-    await container.read(myProfileStateProvider.future);
+    await container.read(meStateProvider.future);
 
     await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
 
-    await expectLater(container.read(myProfileStateProvider.future), throwsA(isA<DioException>()));
+    await expectLater(container.read(meStateProvider.future), throwsA(isA<DioException>()));
     await Future<void>.delayed(const Duration(milliseconds: 300));
     verify(userRepository.getMyProfile).called(1);
   });
@@ -107,29 +107,26 @@ void main() {
     when(
       userRepository.getMyProfile,
     ).thenThrow(AuthenticationDismissedDioException(requestOptions: RequestOptions(path: '/users/me')));
-    await container.read(myProfileStateProvider.future);
+    await container.read(meStateProvider.future);
 
     await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
 
-    await expectLater(
-      container.read(myProfileStateProvider.future),
-      throwsA(isA<AuthenticationDismissedDioException>()),
-    );
+    await expectLater(container.read(meStateProvider.future), throwsA(isA<AuthenticationDismissedDioException>()));
     await Future<void>.delayed(const Duration(milliseconds: 300));
     verify(userRepository.getMyProfile).called(1);
   });
 
   test('when authentication clears, it should clear the profile', () async {
-    await container.read(myProfileStateProvider.future);
+    await container.read(meStateProvider.future);
     await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
     await container.pump();
-    await container.read(myProfileStateProvider.future);
-    expect(container.read(myProfileStateProvider).value, isNotNull);
+    await container.read(meStateProvider.future);
+    expect(container.read(meStateProvider).value, isNotNull);
 
     container.invalidate(appAuthStateProvider);
     await container.pump();
 
-    expect(await container.read(myProfileStateProvider.future), isNull);
+    expect(await container.read(meStateProvider.future), isNull);
     verify(userRepository.getMyProfile).called(1);
   });
 
@@ -139,13 +136,13 @@ void main() {
       fetchCount += 1;
       return ApiEnvelopeDto.fixture(data: UserProfileDto.fixture().copyWith(displayIdentifier: 'Profile $fetchCount'));
     });
-    await container.read(myProfileStateProvider.future);
+    await container.read(meStateProvider.future);
     final firstSession = AuthSessionDto.fixture();
 
     await container.read(appAuthStateProvider.notifier).setSession(firstSession);
     await container.pump();
-    await container.read(myProfileStateProvider.future);
-    expect(container.read(myProfileStateProvider).value?.displayIdentifier, 'Profile 1');
+    await container.read(meStateProvider.future);
+    expect(container.read(meStateProvider).value?.displayIdentifier, 'Profile 1');
 
     await container.read(appAuthStateProvider.notifier).setSession(firstSession.copyWith(accessToken: 'renewed-token'));
     await container.pump();
@@ -153,8 +150,8 @@ void main() {
 
     await container.read(appAuthStateProvider.notifier).setSession(firstSession.copyWith(userId: 'second-user'));
     await container.pump();
-    await container.read(myProfileStateProvider.future);
-    expect(container.read(myProfileStateProvider).value?.displayIdentifier, 'Profile 2');
+    await container.read(meStateProvider.future);
+    expect(container.read(meStateProvider).value?.displayIdentifier, 'Profile 2');
     expect(fetchCount, 2);
   });
 }

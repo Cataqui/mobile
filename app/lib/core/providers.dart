@@ -16,6 +16,7 @@ import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/add_contact/add_contact_route.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
+import 'package:cataqui_app/views/me/me_route.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/welcome/welcome_route.dart';
 import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
@@ -211,7 +212,7 @@ GoRouter goRouter(Ref ref) {
 
       return const FeedRoute().location;
     },
-    routes: [$welcomeRoute, $feedRoute, $postRoute, $jobRoute, $addContactRoute],
+    routes: [$welcomeRoute, $feedRoute, $postRoute, $jobRoute, $addContactRoute, $meRoute],
   );
 }
 

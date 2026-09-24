@@ -19,6 +19,7 @@
     }
   },
   "feed": {
+    "meButtonSemanticLabel": "Abrir meu perfil",
     "searchPlaceholder": "Buscar Oportunidades",
     "loading": "Buscando oportunidades perto de você...",
     "paginationError": "Não conseguimos buscar mais oportunidades.",
@@ -64,6 +65,23 @@
       "message": "Por enquanto, estamos disponíveis só na cidade de São Paulo. Logo estaremos em mais cidades!",
       "closeButtonTitle": "Beleza"
     }
+  },
+  "me": {
+    "closeButtonSemanticLabel": "Fechar perfil",
+    "logoutButtonSemanticLabel": "Sair da conta",
+    "loadingSemanticLabel": "Carregando perfil",
+    "myPostsTitle": "Postados",
+    "activePostStatus": "No ar",
+    "inactivePostStatus": "Fora do ar",
+    "loadingPostSemanticLabel": "Carregando publicação",
+    "loadingMorePostsSemanticLabel": "Carregando mais publicações",
+    "emptyPosts": "Você ainda não publicou nada.",
+    "postsError": "Não conseguimos carregar seus posts.",
+    "paginationError": {
+      "title": "Deu ruim",
+      "description": "Tentamos pegar mais, mas algo aconteceu"
+    },
+    "retryButtonTitle": "Tentar de novo"
   },
   "post": {
     "title": "Postar",

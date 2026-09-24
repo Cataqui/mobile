@@ -4,7 +4,7 @@ import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
-import 'package:cataqui_app/views/my_profile/my_profile_state.dart';
+import 'package:cataqui_app/views/me/me_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +13,7 @@ import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platf
 
 abstract final class AppBootstrap {
   static Future<void> setup({required ProviderContainer providerContainer}) async {
-    providerContainer.listen(myProfileStateProvider, (_, _) {});
+    providerContainer.listen(meStateProvider, (_, _) {});
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     await _warmUpGoogleMaps();

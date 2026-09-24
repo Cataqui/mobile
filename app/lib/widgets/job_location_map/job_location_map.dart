@@ -34,6 +34,8 @@ class JobLocationMap extends StatelessWidget {
 
   static const _circleId = CircleId('job-location-area');
   static const _tileSize = 256.0;
+  static ({Brightness brightness, MateoPalette palette, JobLocationMapColorScheme colorScheme, String? style})?
+  _cachedAppearance;
 
   /// Insets that keep Google attribution clear of overlapping feed content.
   static const mapPadding = EdgeInsets.only(bottom: 20);
@@ -54,12 +56,8 @@ class JobLocationMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedColorScheme =
-        colorScheme ??
-        JobLocationMapColorScheme.fromBrightness(
-          brightness: MateoTheme.of(context).brightness,
-          palette: MateoTheme.of(context).palette,
-        );
+    final appearance = _resolveAppearance(context);
+    final resolvedColorScheme = appearance.colorScheme;
     final mapKey = (location, areaDiameterInMeters, zoom, offset, mapPadding);
 
     return ColoredBox(
@@ -69,7 +67,7 @@ class JobLocationMap extends StatelessWidget {
           child: GoogleMap(
             key: ValueKey<Object>(mapKey),
             initialCameraPosition: CameraPosition(target: _cameraTarget(), zoom: zoom),
-            style: JobLocationMapStyle.fromColorScheme(colorScheme: resolvedColorScheme).googleMapsJson,
+            style: appearance.style,
             backgroundColor: resolvedColorScheme.background,
             mapType: MapType.normal,
             minMaxZoomPreference: MinMaxZoomPreference(zoom, zoom),
@@ -107,6 +105,34 @@ class JobLocationMap extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  ({JobLocationMapColorScheme colorScheme, String? style}) _resolveAppearance(BuildContext context) {
+    if (colorScheme case final colorScheme?) {
+      return (
+        colorScheme: colorScheme,
+        style: JobLocationMapStyle.fromColorScheme(colorScheme: colorScheme).googleMapsJson,
+      );
+    }
+
+    final theme = MateoTheme.of(context);
+    final cached = _cachedAppearance;
+    if (cached != null && cached.brightness == theme.brightness && cached.palette == theme.palette) {
+      return (colorScheme: cached.colorScheme, style: cached.style);
+    }
+
+    final resolvedColorScheme = JobLocationMapColorScheme.fromBrightness(
+      brightness: theme.brightness,
+      palette: theme.palette,
+    );
+    final style = JobLocationMapStyle.fromColorScheme(colorScheme: resolvedColorScheme).googleMapsJson;
+    _cachedAppearance = (
+      brightness: theme.brightness,
+      palette: theme.palette,
+      colorScheme: resolvedColorScheme,
+      style: style,
+    );
+    return (colorScheme: resolvedColorScheme, style: style);
   }
 
   Offset _effectiveOffset() {

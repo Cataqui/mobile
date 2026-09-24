@@ -14,7 +14,7 @@ import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
-import 'package:cataqui_app/views/my_profile/my_profile_state.dart';
+import 'package:cataqui_app/views/me/me_state.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -74,8 +74,8 @@ void main() {
 
           await AppBootstrap.setup(providerContainer: container);
 
-          expect(container.exists(myProfileStateProvider), isTrue);
-          expect(await container.read(myProfileStateProvider.future), isNull);
+          expect(container.exists(meStateProvider), isTrue);
+          expect(await container.read(meStateProvider.future), isNull);
           verifyNever(userRepository.getMyProfile);
           verifyNever(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken')));
           verifyNever(loginSheetController.show);
@@ -96,7 +96,7 @@ void main() {
             .setSession(AuthSessionDto.fixture().copyWith(accessTokenExpiresAt: DateTime.utc(2100)));
         await didRequestProfile.future.timeout(const Duration(seconds: 2));
 
-        expect(await container.read(myProfileStateProvider.future), UserProfileDto.fixture());
+        expect(await container.read(meStateProvider.future), UserProfileDto.fixture());
         verify(userRepository.getMyProfile).called(1);
       });
 
@@ -134,12 +134,12 @@ void main() {
           verify(() => authRepository.refreshSession(refreshToken: storedCredentials.refreshToken)).called(1);
           expect(container.read(appAuthStateProvider)?.userId, 'restored-user');
 
-          expect(container.read(myProfileStateProvider).isLoading, isTrue);
+          expect(container.read(meStateProvider).isLoading, isTrue);
           expect(container.read(appAuthStateProvider)?.userId, 'restored-user');
           verifyNever(loginSheetController.show);
 
           profileResponse.complete(ApiEnvelopeDto.fixture(data: UserProfileDto.fixture()));
-          expect(await container.read(myProfileStateProvider.future), UserProfileDto.fixture());
+          expect(await container.read(meStateProvider.future), UserProfileDto.fixture());
         });
         verify(userRepository.getMyProfile).called(1);
       });
