@@ -64,11 +64,19 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
       curve: Curves.easeOutCubic,
       controller: widget.controller,
       itemCount: feedData.jobs.length,
-      outgoingTransitionBuilder: (_, animation, isReverse, child) {
-        return FadeTransition(opacity: Tween<double>(begin: 1, end: 0).animate(animation), child: child);
+      outgoingTransitionBuilder: (_, animation, details, child) {
+        return FadeTransition(
+          opacity: details.involvesTrailing && !details.isTrailing
+              ? const AlwaysStoppedAnimation<double>(1)
+              : Tween<double>(begin: 1, end: 0).animate(animation),
+          child: child,
+        );
       },
-      incomingTransitionBuilder: (context, progress, isReverse, child) {
-        return FadeTransition(opacity: progress, child: child);
+      incomingTransitionBuilder: (context, progress, details, child) {
+        return FadeTransition(
+          opacity: details.involvesTrailing && !details.isTrailing ? const AlwaysStoppedAnimation<double>(1) : progress,
+          child: child,
+        );
       },
       onIndexChanged: (index) {
         _currentMapIndexNotifier.value = index;
