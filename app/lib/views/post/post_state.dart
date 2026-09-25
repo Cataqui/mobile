@@ -40,6 +40,7 @@ class PostState extends _$PostState {
         description: postData.descriptionText!,
         latitude: location.latitude,
         longitude: location.longitude,
+        locationTitle: postData.locationTitle!.trim(),
         contactMethod: postData.contact!.contactMethod,
         contactIdentifier: postData.contact!.identifier,
         idempotencyKey: idempotencyKey,

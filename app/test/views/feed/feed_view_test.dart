@@ -50,6 +50,7 @@ void main() {
             description: 'Preciso de ajuda para descarregar caixas.',
             latitude: -23.561684,
             longitude: -46.655981,
+            locationTitle: any(named: 'locationTitle'),
             contactMethod: .whatsapp,
             contactIdentifier: '+5511999999999',
             idempotencyKey: any(named: 'idempotencyKey'),

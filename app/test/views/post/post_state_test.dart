@@ -23,12 +23,13 @@ void main() {
       final postState = container.read(postStateProvider.notifier)
         ..setDescription('  Preciso de ajuda para descarregar caixas.  ')
         ..selectContact(contactMethod: .whatsapp, identifier: '+5511999999999')
-        ..setLocation(latitude: -23.561684, longitude: -46.655981, locationTitle: 'Pinheiros');
+        ..setLocation(latitude: -23.561684, longitude: -46.655981, locationTitle: '  Pinheiros  ');
       when(
         () => jobRepository.createJob(
           description: '  Preciso de ajuda para descarregar caixas.  ',
           latitude: -23.561684,
           longitude: -46.655981,
+          locationTitle: 'Pinheiros',
           contactMethod: .whatsapp,
           contactIdentifier: '+5511999999999',
           idempotencyKey: any(named: 'idempotencyKey'),
@@ -42,6 +43,7 @@ void main() {
                   description: '  Preciso de ajuda para descarregar caixas.  ',
                   latitude: -23.561684,
                   longitude: -46.655981,
+                  locationTitle: 'Pinheiros',
                   contactMethod: .whatsapp,
                   contactIdentifier: '+5511999999999',
                   idempotencyKey: captureAny(named: 'idempotencyKey'),
@@ -62,6 +64,7 @@ void main() {
                   description: '  Preciso de ajuda para descarregar caixas.  ',
                   latitude: -23.561684,
                   longitude: -46.655981,
+                  locationTitle: 'Pinheiros',
                   contactMethod: .whatsapp,
                   contactIdentifier: '+5511999999999',
                   idempotencyKey: captureAny(named: 'idempotencyKey'),
@@ -92,6 +95,7 @@ void main() {
           description: 'Preciso de ajuda para descarregar caixas.',
           latitude: -23.561684,
           longitude: -46.655981,
+          locationTitle: 'Avenida Paulista',
           contactMethod: .phoneCall,
           contactIdentifier: '+5511999999999',
           idempotencyKey: any(named: 'idempotencyKey'),
@@ -108,6 +112,7 @@ void main() {
           description: 'Preciso de ajuda para descarregar caixas.',
           latitude: -23.561684,
           longitude: -46.655981,
+          locationTitle: 'Avenida Paulista',
           contactMethod: .phoneCall,
           contactIdentifier: '+5511999999999',
           idempotencyKey: any(named: 'idempotencyKey'),
@@ -138,6 +143,7 @@ void main() {
           description: any(named: 'description'),
           latitude: any(named: 'latitude'),
           longitude: any(named: 'longitude'),
+          locationTitle: any(named: 'locationTitle'),
           contactMethod: .whatsapp,
           contactIdentifier: any(named: 'contactIdentifier'),
           idempotencyKey: any(named: 'idempotencyKey'),

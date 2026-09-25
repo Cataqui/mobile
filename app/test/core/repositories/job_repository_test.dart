@@ -31,6 +31,7 @@ void main() {
           description: _JobRepositoryTestData.description,
           latitude: -23.556391,
           longitude: -46.844076,
+          locationTitle: 'Avenida Paulista',
           contactMethod: .phoneCall,
           contactIdentifier: '+5511999999999',
           idempotencyKey: _JobRepositoryTestData.idempotencyKey,
@@ -45,7 +46,7 @@ void main() {
         ).captured;
         expect(request[0], {
           'description': _JobRepositoryTestData.description,
-          'location': {'latitude': -23.556391, 'longitude': -46.844076},
+          'location': {'title': 'Avenida Paulista', 'latitude': -23.556391, 'longitude': -46.844076},
           'contact': {'method': 'PHONE_CALL', 'identifier': '+5511999999999'},
         });
         expect((request[1] as Options).headers, {'Idempotency-Key': _JobRepositoryTestData.idempotencyKey});
@@ -57,6 +58,7 @@ void main() {
           description: _JobRepositoryTestData.description,
           latitude: -23.556391,
           longitude: -46.844076,
+          locationTitle: 'Avenida Paulista',
           contactMethod: .whatsapp,
           contactIdentifier: '+5511999999999',
           idempotencyKey: _JobRepositoryTestData.idempotencyKey,
@@ -82,6 +84,7 @@ void main() {
             description: _JobRepositoryTestData.description,
             latitude: -23.556391,
             longitude: -46.844076,
+            locationTitle: 'Avenida Paulista',
             contactMethod: .whatsapp,
             contactIdentifier: '+5511999999999',
             idempotencyKey: _JobRepositoryTestData.idempotencyKey,

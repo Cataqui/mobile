@@ -20,6 +20,7 @@ abstract class PostData with _$PostData {
     if (isPublishing) return false;
     if (descriptionText?.trim().isEmpty ?? true) return false;
     if (contact == null) return false;
+    if (locationTitle?.trim().isEmpty ?? true) return false;
 
     return addressSelection != null || location != null;
   }

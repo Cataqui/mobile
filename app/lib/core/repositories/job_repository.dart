@@ -14,6 +14,7 @@ class JobRepository {
     required String description,
     required double latitude,
     required double longitude,
+    required String locationTitle,
     required JobContactMethod contactMethod,
     required String contactIdentifier,
     required String idempotencyKey,
@@ -22,7 +23,7 @@ class JobRepository {
       '/jobs',
       data: <String, Object?>{
         'description': description,
-        'location': <String, Object?>{'latitude': latitude, 'longitude': longitude},
+        'location': <String, Object?>{'title': locationTitle, 'latitude': latitude, 'longitude': longitude},
         'contact': <String, Object?>{'method': contactMethod.jsonValue, 'identifier': contactIdentifier},
       },
       options: Options(headers: <String, String>{'Idempotency-Key': idempotencyKey}),

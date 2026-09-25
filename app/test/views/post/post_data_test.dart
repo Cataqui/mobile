@@ -58,8 +58,17 @@ void main() {
           blankDescription: completeData.copyWith(descriptionText: '   ').canPublish,
           missingContact: completeData.copyWith(contact: null).canPublish,
           missingLocation: completeData.copyWith(addressSelection: null).canPublish,
+          missingLocationTitle: completeData.copyWith(locationTitle: null).canPublish,
+          blankLocationTitle: completeData.copyWith(locationTitle: '   ').canPublish,
         ),
-        (missingDescription: false, blankDescription: false, missingContact: false, missingLocation: false),
+        (
+          missingDescription: false,
+          blankDescription: false,
+          missingContact: false,
+          missingLocation: false,
+          missingLocationTitle: false,
+          blankLocationTitle: false,
+        ),
       );
     });
   });
