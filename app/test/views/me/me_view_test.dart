@@ -16,6 +16,7 @@ import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
+import 'package:cataqui_app/widgets/logout_warning_sheet/logout_warning_sheet.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -611,14 +612,41 @@ void main() {
     expect(find.byKey(const ValueKey('me_identifier_skeleton')), findsNothing);
   });
 
-  testWidgets('when logout is tapped, it should remain on the Me view', (tester) async {
+  testWidgets('when logout is tapped, it should open the warning over the Me view', (tester) async {
     await tester.pumpWidget(const TestApp.screen(child: MeView()));
 
     await tester.tap(find.byKey(const ValueKey('me_logout_button')));
     await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(MeView), findsOneWidget);
-    expect(find.bySemanticsLabel(i18n.me.logoutButtonSemanticLabel), findsOneWidget);
+    expect(find.byType(LogoutWarningSheet), findsOneWidget);
+    expect(find.text(i18n.logoutWarningSheet.title), findsOneWidget);
+  });
+
+  testWidgets('when logout is tapped on the Me route, it should show the warning over that route', (tester) async {
+    await FeedViewTestHelpers.pumpFeedRoute(
+      tester: tester,
+      providerOverrides: [
+        meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
+        myPostsStateProvider.overrideWith(
+          () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+        ),
+      ],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('feed_me_button')));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 460));
+    expect(find.byType(MeView), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('me_logout_button')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(MeView), findsOneWidget);
+    expect(find.byType(LogoutWarningSheet), findsOneWidget);
+    expect(find.text(i18n.logoutWarningSheet.title), findsOneWidget);
   });
 
   testWidgets('when opening the Me page from the feed then closing it, it should slide up and return to the feed', (

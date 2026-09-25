@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/svg.g.dart';
 import 'package:cataqui_app/views/me/my_posts_carousel.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/me/widgets/current_user_display_identifier.dart';
+import 'package:cataqui_app/widgets/logout_warning_sheet/logout_warning_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -34,7 +37,7 @@ class MeView extends ConsumerWidget {
           ),
           trailing: MateoButton(
             key: const ValueKey('me_logout_button'),
-            onPressed: () {},
+            onPressed: () => unawaited(LogoutWarningSheet.show(context: context)),
             presentation: .icon(
               variant: .primary.base,
               elevation: 1,
