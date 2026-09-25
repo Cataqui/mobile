@@ -15,8 +15,8 @@ class MyPostStatusDot extends ConsumerWidget {
     final theme = MateoTheme.of(context);
     final i18n = ref.watch(translationProvider);
     final presentation = switch (status) {
-      .active => (color: theme.colorScheme.text.profit, label: i18n.me.activePostStatus),
-      .archived || .unknown => (color: theme.colorScheme.text.tertiary, label: i18n.me.inactivePostStatus),
+      .active => (color: theme.colorScheme.text.profit, label: i18n.me.myPosts.activeStatus),
+      .archived || .unknown => (color: theme.colorScheme.text.tertiary, label: i18n.me.myPosts.inactiveStatus),
     };
 
     return Semantics(

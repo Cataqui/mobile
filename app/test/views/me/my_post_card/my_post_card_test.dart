@@ -47,7 +47,7 @@ void main() {
 
     expect(find.text('Garçom'), findsOneWidget);
     expect(find.text(r'R$100/dia'), findsOneWidget);
-    expect(find.bySemanticsLabel(i18n.me.activePostStatus), findsOneWidget);
+    expect(find.bySemanticsLabel(i18n.me.myPosts.activeStatus), findsOneWidget);
     expect(find.byType(MyPostStatusDot), findsOneWidget);
     final card = tester.getRect(find.byType(MyPostCard));
     final statusChip = tester.getRect(find.byType(MyPostStatusDot));
@@ -89,7 +89,7 @@ void main() {
       ),
     );
 
-    expect(find.bySemanticsLabel(i18n.me.inactivePostStatus), findsOneWidget);
+    expect(find.bySemanticsLabel(i18n.me.myPosts.inactiveStatus), findsOneWidget);
     expect(find.byType(MyPostStatusDot), findsOneWidget);
   });
 
@@ -113,7 +113,7 @@ void main() {
     expect(surface.color, MateoTheme.of(tester.element(card)).palette.neutral[2]);
     expect(find.byType(Skeleton), findsOneWidget);
     expect(tester.widget<Skeleton>(find.byType(Skeleton)).transition, isA<SkeletonTransition>());
-    expect(find.bySemanticsLabel(i18n.me.loadingPostSemanticLabel), findsOneWidget);
+    expect(find.bySemanticsLabel(i18n.me.myPosts.loadingPostSemanticLabel), findsOneWidget);
     expect(find.byType(JobLocationMap), findsNothing);
     expect(mapRenderer.createdIds, isEmpty);
   });

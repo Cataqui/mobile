@@ -83,6 +83,43 @@ void main() {
       );
 
       goldenTest(
+        'when there are no posts, it should show the post prompt',
+        fileName: 'me_empty',
+        constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+        pumpWidget: MeGoldenTestHelpers.pumpGolden,
+        pumpBeforeTest: MeGoldenTestHelpers.settleGolden,
+        builder: () => TestApp.screen(
+          mediaQueryData: const MediaQueryData(size: Size(390, 844), disableAnimations: true),
+          providerOverrides: [
+            meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
+            myPostsStateProvider.overrideWith(
+              () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+            ),
+          ],
+          child: const MeView(),
+        ),
+      );
+
+      goldenTest(
+        'when posts fail to load, it should show the initial error panel',
+        fileName: 'me_initial_error',
+        constraints: const BoxConstraints.tightFor(width: 390, height: 844),
+        pumpWidget: MeGoldenTestHelpers.pumpGolden,
+        pumpBeforeTest: MeGoldenTestHelpers.settleGolden,
+        builder: () => TestApp.screen(
+          mediaQueryData: const MediaQueryData(size: Size(390, 844), disableAnimations: true),
+          providerOverrides: [
+            meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
+            myPostsStateProvider.overrideWith(
+              () => FakeMyPostsState(AsyncError<MyPostsData?>(StateError('offline'), StackTrace.empty)),
+            ),
+          ],
+          child: const MeView(),
+        ),
+        whilePerforming: MeGoldenTestHelpers.showInitialError,
+      );
+
+      goldenTest(
         'when more posts fail to load, it should show the pagination retry panel',
         fileName: 'me_pagination_error',
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
@@ -170,13 +207,22 @@ abstract final class MeGoldenTestHelpers {
 
   static Future<Future<void> Function()> showPaginationError(WidgetTester tester) async {
     final cleanup = await scrollToTrailingItem(tester);
+    await precacheErrorIllustration(tester, const ValueKey('my_posts_pagination_error_illustration'));
+    return cleanup;
+  }
+
+  static Future<Future<void> Function()> showInitialError(WidgetTester tester) async {
+    await precacheErrorIllustration(tester, const ValueKey('my_posts_initial_error_illustration'));
+    return () async {};
+  }
+
+  static Future<void> precacheErrorIllustration(WidgetTester tester, Key key) async {
     await withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () async {
-      final imageFinder = find.byKey(const ValueKey('my_posts_pagination_error_illustration')).last;
+      final imageFinder = find.byKey(key).last;
       final image = tester.widget<Image>(imageFinder);
       await tester.runAsync(() => precacheImage(image.image, tester.element(imageFinder)));
       await tester.pump();
     });
-    return cleanup;
   }
 
   static Widget feedRoute() {

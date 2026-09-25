@@ -23,8 +23,8 @@ void main() {
     final theme = MateoTheme.of(tester.element(chip));
     final dot = find.byKey(const ValueKey('my_post_status_dot'));
     expect(tester.getSize(dot), const Size(10, 10));
-    expect(find.text(i18n.me.activePostStatus), findsNothing);
-    expect(find.bySemanticsLabel(i18n.me.activePostStatus), findsOneWidget);
+    expect(find.text(i18n.me.myPosts.activeStatus), findsNothing);
+    expect(find.bySemanticsLabel(i18n.me.myPosts.activeStatus), findsOneWidget);
     expect(find.descendant(of: chip, matching: find.byType(MateoSurface)), findsNothing);
     expect(
       (tester.widget<DecoratedBox>(find.descendant(of: chip, matching: find.byType(DecoratedBox))).decoration
@@ -44,8 +44,8 @@ void main() {
     final chip = find.byType(MyPostStatusDot);
     final theme = MateoTheme.of(tester.element(chip));
     expect(tester.getSize(find.byKey(const ValueKey('my_post_status_dot'))), const Size(10, 10));
-    expect(find.text(i18n.me.inactivePostStatus), findsNothing);
-    expect(find.bySemanticsLabel(i18n.me.inactivePostStatus), findsOneWidget);
+    expect(find.text(i18n.me.myPosts.inactiveStatus), findsNothing);
+    expect(find.bySemanticsLabel(i18n.me.myPosts.inactiveStatus), findsOneWidget);
     expect(
       (tester.widget<DecoratedBox>(find.descendant(of: chip, matching: find.byType(DecoratedBox))).decoration
               as BoxDecoration)
@@ -61,7 +61,7 @@ void main() {
       ),
     );
 
-    expect(find.bySemanticsLabel(i18n.me.inactivePostStatus), findsOneWidget);
+    expect(find.bySemanticsLabel(i18n.me.myPosts.inactiveStatus), findsOneWidget);
     final dot = tester.widget<DecoratedBox>(
       find.descendant(of: find.byType(MyPostStatusDot), matching: find.byType(DecoratedBox)),
     );

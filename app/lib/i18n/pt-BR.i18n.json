@@ -70,18 +70,23 @@
     "closeButtonSemanticLabel": "Fechar perfil",
     "logoutButtonSemanticLabel": "Sair da conta",
     "loadingSemanticLabel": "Carregando perfil",
-    "myPostsTitle": "Postados",
-    "activePostStatus": "No ar",
-    "inactivePostStatus": "Fora do ar",
-    "loadingPostSemanticLabel": "Carregando publicação",
-    "loadingMorePostsSemanticLabel": "Carregando mais publicações",
-    "emptyPosts": "Você ainda não publicou nada.",
-    "postsError": "Não conseguimos carregar seus posts.",
-    "paginationError": {
-      "title": "Deu ruim",
-      "description": "Tentamos pegar mais, mas algo aconteceu"
-    },
-    "retryButtonTitle": "Tentar de novo"
+    "myPosts": {
+      "title": "Postados",
+      "activeStatus": "No ar",
+      "inactiveStatus": "Fora do ar",
+      "loadingPostSemanticLabel": "Carregando publicação",
+      "loadingMoreSemanticLabel": "Carregando mais publicações",
+      "empty": "Você ainda não postou nada",
+      "error": {
+        "title": "Deu ruim",
+        "description": "Não conseguimos carregar seus posts."
+      },
+      "paginationError": {
+        "title": "Deu ruim",
+        "description": "Tentamos pegar mais, mas algo aconteceu"
+      },
+      "retryButtonTitle": "Tentar de novo"
+    }
   },
   "post": {
     "title": "Postar",

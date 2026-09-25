@@ -8,15 +8,24 @@ class FakeMyPostsState extends MyPostsState {
   FakeMyPostsState(this.initialValue);
 
   final AsyncValue<MyPostsData?> initialValue;
+  int buildCalls = 0;
   int loadNextPageCalls = 0;
 
   @override
   Future<MyPostsData?> build() {
+    buildCalls += 1;
     state = initialValue;
     return Completer<MyPostsData?>().future;
   }
 
   void showData(MyPostsData data) => state = AsyncData(data);
+
+  void showError(Object error) => state = AsyncError(error, StackTrace.empty);
+
+  void showPaginationError(Object error) {
+    final data = state.value!;
+    state = AsyncData(data.copyWith(isLoadingMore: false, paginationError: error));
+  }
 
   @override
   Future<void> loadNextPage() async {

@@ -20,7 +20,7 @@ class MeView extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) => MateoView(
         key: const ValueKey('me_view'),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         header: MateoViewHeader(
           leading: MateoButton(
             key: const ValueKey('me_close_button'),
@@ -72,7 +72,7 @@ class MeView extends ConsumerWidget {
                     MateoIcon(.socialMediaPost, size: 26, color: colorScheme.text.tertiary),
                     const SizedBox(width: 4),
                     Text(
-                      i18n.me.myPostsTitle,
+                      i18n.me.myPosts.title,
                       key: const ValueKey('me_posts_heading'),
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.text.tertiary),
                     ),
@@ -80,7 +80,10 @@ class MeView extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              MyPostsCarousel(viewportWidth: constraints.maxWidth - surfacePadding.horizontal),
+              MyPostsCarousel(
+                viewportWidth: constraints.maxWidth - surfacePadding.horizontal,
+                rightOverflow: surfacePadding.right,
+              ),
             ],
           ),
         ),

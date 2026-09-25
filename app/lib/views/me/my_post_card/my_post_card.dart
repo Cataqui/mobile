@@ -29,7 +29,7 @@ class MyPostCard extends ConsumerWidget {
     return Skeleton(
       enabled: skeleton,
       transition: const .crossfade(duration: Duration(milliseconds: 240)),
-      semanticsLabel: skeletonSemanticsLabel ?? ref.watch(translationProvider).me.loadingPostSemanticLabel,
+      semanticsLabel: skeletonSemanticsLabel ?? ref.watch(translationProvider).me.myPosts.loadingPostSemanticLabel,
       style: SkeletonStyle(color: skeletonColor, radius: const Radius.circular(_radius), effect: skeletonEffect),
       child: MateoSurface(
         width: const .fill(),
