@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
+import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
+import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/me/me_route.dart';
 import 'package:cataqui_app/views/me/me_state.dart';
@@ -23,8 +28,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
+import '../../mocks.dart';
 import '../../utils/test_app.dart';
 import '../../widgets/job_location_map/google_maps_test_renderer.dart';
 import '../feed/feed_view_test_helpers.dart';
@@ -647,6 +654,102 @@ void main() {
     expect(find.byType(MeView), findsOneWidget);
     expect(find.byType(LogoutWarningSheet), findsOneWidget);
     expect(find.text(i18n.logoutWarningSheet.title), findsOneWidget);
+  });
+
+  testWidgets(
+    'logout reveals the same Feed and shows success before server revocation finishes',
+    (tester) => withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () async {
+      final revocation = Completer<void>();
+      final authRepository = MockAuthRepository();
+      when(
+        () => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken')),
+      ).thenAnswer((_) => revocation.future);
+      final container = await FeedViewTestHelpers.pumpFeedRoute(
+        tester: tester,
+        feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3, hasMore: false)),
+        providerOverrides: [
+          authRepositoryProvider.overrideWithValue(authRepository),
+          meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
+          myPostsStateProvider.overrideWith(
+            () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+          ),
+        ],
+      );
+      final feedElement = tester.element(find.byType(FeedView));
+      final feedController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
+      unawaited(feedController.next());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(feedController.index, 1);
+
+      await tester.tap(find.byKey(const ValueKey('feed_me_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('me_logout_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('logout_warning_sheet_logout_button')));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text(i18n.logoutWarningSheet.success), findsNothing);
+      await tester.pumpAndSettle();
+
+      expect(container.read(appAuthStateProvider), isNull);
+      expect(container.read(appStorageStateProvider).requireValue.authCredentials, isNull);
+      expect(find.byType(MeView), findsNothing);
+      expect(tester.element(find.byType(FeedView)), same(feedElement));
+      expect(tester.widget<SnapList>(find.byType(SnapList)).controller, same(feedController));
+      expect(feedController.index, 1);
+      expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
+      verify(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken'))).called(1);
+      expect(revocation.isCompleted, isFalse);
+
+      revocation.completeError(StateError('offline'));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
+    }),
+  );
+
+  testWidgets('logout from direct Me falls back to Feed with the success toast', (tester) async {
+    final rootNavigatorKey = GlobalKey<NavigatorState>();
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      observers: [MateoNavigatorObserver()],
+      initialLocation: const MeRoute().location,
+      routes: [$meRoute, $feedRoute],
+    );
+    addTearDown(router.dispose);
+    final authRepository = MockAuthRepository();
+    when(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {});
+    FeedViewTestHelpers.mockHapticFeedback(tester);
+    FeedViewTestHelpers.mockPlatformViews(tester);
+    FeedViewTestHelpers.mockGoogleMapsPlatform();
+    await tester.pumpWidget(
+      TestApp.router(
+        routerConfig: router,
+        providerOverrides: [
+          goRouterProvider.overrideWithValue(router),
+          rootNavigatorKeyProvider.overrideWithValue(rootNavigatorKey),
+          feedStateProvider.overrideWith(() => FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty)),
+          appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
+          appAuthStateProvider.overrideWith(() => FakeAppAuthState(AuthSessionDto.fixture())),
+          authRepositoryProvider.overrideWithValue(authRepository),
+          meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
+          myPostsStateProvider.overrideWith(
+            () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('me_logout_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('logout_warning_sheet_logout_button')));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+
+    expect(router.state.matchedLocation, const FeedRoute().location);
+    expect(find.byType(FeedView), findsOneWidget);
+    expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
   });
 
   testWidgets('when opening the Me page from the feed then closing it, it should slide up and return to the feed', (

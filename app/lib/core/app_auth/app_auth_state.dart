@@ -12,16 +12,20 @@ part 'app_auth_state.g.dart';
 class AppAuthState extends _$AppAuthState {
   Future<AuthSessionDto?>? _activeCredentialRefresh;
   Future<AuthSessionDto?>? _activeForegroundAuthentication;
+  Future<void>? _activeLogout;
 
   @override
   AuthSessionDto? build() => null;
 
   bool get hasValidSession {
+    if (_activeLogout != null) return false;
+
     final currentSession = state;
     return currentSession != null && currentSession.accessTokenExpiresAt.isAfter(clock.now());
   }
 
   bool get hasUsableLocalCredentials {
+    if (_activeLogout != null) return false;
     if (hasValidSession) return true;
 
     final credentials = ref.read(appStorageStateProvider).value?.authCredentials;
@@ -43,12 +47,15 @@ class AppAuthState extends _$AppAuthState {
   }
 
   Future<AuthSessionDto?> getOrAuthenticateSession() {
+    if (_activeLogout != null) return Future<AuthSessionDto?>.value();
     if (hasValidSession) return Future<AuthSessionDto?>.value(state);
 
     return refreshSession();
   }
 
   Future<AuthSessionDto?> refreshSession() {
+    if (_activeLogout != null) return Future<AuthSessionDto?>.value();
+
     final activeForegroundAuthentication = _activeForegroundAuthentication;
     if (activeForegroundAuthentication != null) return activeForegroundAuthentication;
 
@@ -66,6 +73,8 @@ class AppAuthState extends _$AppAuthState {
   }
 
   Future<void> refreshSessionInBackground() async {
+    if (_activeLogout != null) return;
+
     try {
       final activeForegroundAuthentication = _activeForegroundAuthentication;
 
@@ -80,7 +89,22 @@ class AppAuthState extends _$AppAuthState {
     }
   }
 
+  Future<void> logoutCurrentSession() {
+    final activeLogout = _activeLogout;
+    if (activeLogout != null) return activeLogout;
+
+    late final Future<void> logout;
+    logout = _performLogout().whenComplete(() {
+      if (identical(_activeLogout, logout)) _activeLogout = null;
+    });
+    _activeLogout = logout;
+
+    return logout;
+  }
+
   Future<AuthSessionDto?> _refreshCredentials() {
+    if (_activeLogout != null) return Future<AuthSessionDto?>.value();
+
     final activeCredentialRefresh = _activeCredentialRefresh;
     if (activeCredentialRefresh != null) return activeCredentialRefresh;
 
@@ -99,9 +123,11 @@ class AppAuthState extends _$AppAuthState {
 
   Future<AuthSessionDto?> _refreshThenAuthenticateInteractively() async {
     final session = await _refreshCredentials();
+    if (_activeLogout != null) return null;
     if (session != null) return session;
 
     await _clearAuthenticationIfNeeded();
+    if (_activeLogout != null) return null;
 
     final didLogin = await ref.read(loginSheetControllerProvider).show();
     if (!didLogin) return null;
@@ -113,6 +139,25 @@ class AppAuthState extends _$AppAuthState {
     }
 
     return authenticatedSession;
+  }
+
+  Future<void> _performLogout() async {
+    final activeCredentialRefresh = _activeCredentialRefresh;
+    if (activeCredentialRefresh != null) {
+      try {
+        await activeCredentialRefresh;
+      } on Object {
+        // A failed refresh does not prevent local logout.
+      }
+    }
+
+    final storedCredentials = await ref.read(appStorageStateProvider.future);
+    final refreshToken = state?.refreshToken ?? storedCredentials.authCredentials?.refreshToken;
+    await _clearAuthentication();
+
+    if (refreshToken == null) return;
+
+    await ref.read(authRepositoryProvider).logoutCurrentSession(refreshToken: refreshToken);
   }
 
   Future<AuthSessionDto?> _performCredentialRefresh() async {

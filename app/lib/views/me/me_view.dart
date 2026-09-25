@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/svg.g.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/me/my_posts_carousel.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/me/widgets/current_user_display_identifier.dart';
@@ -37,7 +39,7 @@ class MeView extends ConsumerWidget {
           ),
           trailing: MateoButton(
             key: const ValueKey('me_logout_button'),
-            onPressed: () => unawaited(LogoutWarningSheet.show(context: context)),
+            onPressed: () => unawaited(_showLogout(context, ref)),
             presentation: .icon(
               variant: .primary.base,
               elevation: 1,
@@ -92,5 +94,45 @@ class MeView extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showLogout(BuildContext context, WidgetRef ref) async {
+    final meRoute = ModalRoute.of(context);
+    final appAuthState = ref.read(appAuthStateProvider.notifier);
+    final appToast = ref.read(appToastProvider);
+    final successMessage = ref.read(translationProvider).logoutWarningSheet.success;
+    final rootNavigator = ref.read(rootNavigatorKeyProvider).currentState;
+
+    final didLogout = await LogoutWarningSheet.show(
+      context: context,
+      onConfirmed: () async {
+        try {
+          await appAuthState.logoutCurrentSession();
+        } on Object {
+          // Local logout has already completed; remote revocation has no UI feedback.
+        }
+      },
+    );
+    if (!didLogout || !context.mounted) return;
+
+    final navigator = Navigator.of(context);
+    if (!navigator.canPop()) {
+      await ref
+          .read(appRouterProvider.notifier)
+          .go(
+            context,
+            FeedRoute(
+              $extra: (toast: MateoToast(message: successMessage, status: .success)),
+            ),
+          );
+      return;
+    }
+
+    navigator.pop();
+    await meRoute?.completed;
+
+    final toastContext = rootNavigator?.overlay?.context;
+    if (toastContext == null || !toastContext.mounted) return;
+    appToast.showSuccess(toastContext, message: successMessage);
   }
 }

@@ -623,5 +623,152 @@ void main() {
         (sameFuture: true, refreshRequestCount: 1, firstResult: expectedSession, secondResult: expectedSession),
       );
     });
+
+    group('logoutCurrentSession', () {
+      test('when a session is active, it should revoke its token and clear both local auth stores first', () async {
+        final session = AuthSessionDto.fixture().copyWith(refreshToken: 'active-refresh-token');
+        await container.read(appAuthStateProvider.notifier).setSession(session);
+        await container
+            .read(appStorageStateProvider.notifier)
+            .setAuthCredentials(
+              credentials: AuthCredentialsDto.fromAuthSession(session).copyWith(refreshToken: 'older-token'),
+            );
+        AuthSessionDto? sessionDuringRequest;
+        AuthCredentialsDto? credentialsDuringRequest;
+        when(() => authRepository.logoutCurrentSession(refreshToken: 'active-refresh-token')).thenAnswer((_) async {
+          sessionDuringRequest = container.read(appAuthStateProvider);
+          credentialsDuringRequest = container.read(appStorageStateProvider).value!.authCredentials;
+        });
+
+        await container.read(appAuthStateProvider.notifier).logoutCurrentSession();
+
+        expect(
+          (
+            sessionDuringRequest: sessionDuringRequest,
+            credentialsDuringRequest: credentialsDuringRequest,
+            session: container.read(appAuthStateProvider),
+            credentials: container.read(appStorageStateProvider).value!.authCredentials,
+          ),
+          (sessionDuringRequest: null, credentialsDuringRequest: null, session: null, credentials: null),
+        );
+        verify(() => authRepository.logoutCurrentSession(refreshToken: 'active-refresh-token')).called(1);
+        verify(() => secureStorage.delete(key: 'auth_credentials')).called(1);
+      });
+
+      test('when only saved credentials exist, it should revoke their session and clear them', () async {
+        await container
+            .read(appStorageStateProvider.notifier)
+            .setAuthCredentials(
+              credentials: AuthCredentialsDto.fixture().copyWith(refreshToken: 'saved-refresh-token'),
+            );
+        when(() => authRepository.logoutCurrentSession(refreshToken: 'saved-refresh-token')).thenAnswer((_) async {});
+
+        await container.read(appAuthStateProvider.notifier).logoutCurrentSession();
+
+        expect(container.read(appAuthStateProvider), isNull);
+        expect(container.read(appStorageStateProvider).value!.authCredentials, isNull);
+        verify(() => authRepository.logoutCurrentSession(refreshToken: 'saved-refresh-token')).called(1);
+      });
+
+      test('when no credentials exist, it should finish without calling the repository', () async {
+        await container.read(appAuthStateProvider.notifier).logoutCurrentSession();
+
+        expect(container.read(appAuthStateProvider), isNull);
+        expect(container.read(appStorageStateProvider).value!.authCredentials, isNull);
+        verifyNever(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken')));
+      });
+
+      test('when revocation fails, it should propagate the error after clearing local auth', () async {
+        await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
+        final error = DioException(requestOptions: RequestOptions(path: '/auth/sessions/logout'));
+        when(() => authRepository.logoutCurrentSession(refreshToken: 'refresh-token')).thenThrow(error);
+
+        await expectLater(container.read(appAuthStateProvider.notifier).logoutCurrentSession(), throwsA(same(error)));
+
+        expect(container.read(appAuthStateProvider), isNull);
+        expect(container.read(appStorageStateProvider).value!.authCredentials, isNull);
+      });
+
+      test(
+        'when logout is in progress, callers should share one request and authentication should not restart',
+        () async {
+          await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
+          final logoutResponse = Completer<void>();
+          var logoutRequestCount = 0;
+          when(() => authRepository.logoutCurrentSession(refreshToken: 'refresh-token')).thenAnswer((_) {
+            logoutRequestCount += 1;
+            return logoutResponse.future;
+          });
+
+          final appAuthState = container.read(appAuthStateProvider.notifier);
+          final firstLogout = appAuthState.logoutCurrentSession();
+          final secondLogout = appAuthState.logoutCurrentSession();
+          await Future<void>.delayed(Duration.zero);
+          final hasUsableLocalCredentialsDuringLogout = appAuthState.hasUsableLocalCredentials;
+          final authentication = await appAuthState.getOrAuthenticateSession();
+          final explicitRefresh = await appAuthState.refreshSession();
+          await appAuthState.refreshSessionInBackground();
+          logoutResponse.complete();
+          await Future.wait([firstLogout, secondLogout]);
+
+          expect(
+            (
+              sameFuture: identical(firstLogout, secondLogout),
+              logoutRequestCount: logoutRequestCount,
+              hasUsableLocalCredentialsDuringLogout: hasUsableLocalCredentialsDuringLogout,
+              authentication: authentication,
+              explicitRefresh: explicitRefresh,
+              session: container.read(appAuthStateProvider),
+            ),
+            (
+              sameFuture: true,
+              logoutRequestCount: 1,
+              hasUsableLocalCredentialsDuringLogout: false,
+              authentication: null,
+              explicitRefresh: null,
+              session: null,
+            ),
+          );
+          verifyNever(() => loginSheetController.show());
+          verifyNever(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken')));
+        },
+      );
+
+      test('when credential refresh is in flight, it should revoke the rotated token and remain signed out', () async {
+        await container
+            .read(appStorageStateProvider.notifier)
+            .setAuthCredentials(
+              credentials: AuthCredentialsDto.fixture().copyWith(
+                refreshToken: 'saved-refresh-token',
+                refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+              ),
+            );
+        final refreshResponse = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
+        when(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).thenAnswer((_) {
+          return refreshResponse.future;
+        });
+        when(() => authRepository.logoutCurrentSession(refreshToken: 'rotated-refresh-token')).thenAnswer((_) async {});
+
+        await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
+          final backgroundRefresh = container.read(appAuthStateProvider.notifier).refreshSessionInBackground();
+          await Future<void>.delayed(Duration.zero);
+          final logout = container.read(appAuthStateProvider.notifier).logoutCurrentSession();
+          verifyNever(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken')));
+          refreshResponse.complete(
+            ApiEnvelopeDto.fixture(
+              data: (NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto).copyWith(
+                refreshToken: 'rotated-refresh-token',
+              ),
+            ),
+          );
+          await Future.wait([backgroundRefresh, logout]);
+        });
+
+        expect(container.read(appAuthStateProvider), isNull);
+        expect(container.read(appStorageStateProvider).value!.authCredentials, isNull);
+        verify(() => authRepository.logoutCurrentSession(refreshToken: 'rotated-refresh-token')).called(1);
+        verifyNever(() => loginSheetController.show());
+      });
+    });
   });
 }

@@ -235,6 +235,7 @@
     "title": "Tem certeza?",
     "description": "Na próxima vez que você quiser usar o app vai ter que entrar na sua conta de novo",
     "back": "Voltar",
-    "logout": "Vou sair"
+    "logout": "Vou sair",
+    "success": "Você saiu"
   }
 }

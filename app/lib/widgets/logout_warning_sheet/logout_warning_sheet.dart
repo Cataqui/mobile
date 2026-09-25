@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
+import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,20 +10,30 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 class LogoutWarningSheet extends ConsumerStatefulWidget {
-  const LogoutWarningSheet({super.key});
+  const LogoutWarningSheet({required this.onConfirmed, required this.onSubmissionStarted, super.key});
 
-  static Future<void> show({required BuildContext context}) {
+  static Future<bool> show({required BuildContext context, required Future<void> Function() onConfirmed}) async {
     unawaited(HapticFeedback.warningNotification());
+    var isSubmitting = false;
 
-    return showMateoSheet<void>(
+    final didLogout = await showMateoSheet<bool>(
       context: context,
-      view: const MateoSheetView(
+      shouldDismiss: (_) => !isSubmitting,
+      view: MateoSheetView(
         reserveHeaderSpace: false,
-        header: MateoSheetViewHeader(presentation: .closeButton()),
-        surface: MateoSheetViewSurface(key: ValueKey('logout_warning_sheet_surface'), child: LogoutWarningSheet()),
+        header: const MateoSheetViewHeader(presentation: .closeButton()),
+        surface: MateoSheetViewSurface(
+          key: const ValueKey('logout_warning_sheet_surface'),
+          child: LogoutWarningSheet(onConfirmed: onConfirmed, onSubmissionStarted: () => isSubmitting = true),
+        ),
       ),
     );
+
+    return didLogout ?? false;
   }
+
+  final Future<void> Function() onConfirmed;
+  final VoidCallback onSubmissionStarted;
 
   @override
   ConsumerState<LogoutWarningSheet> createState() => _LogoutWarningSheetState();
@@ -30,6 +42,8 @@ class LogoutWarningSheet extends ConsumerStatefulWidget {
 class _LogoutWarningSheetState extends ConsumerState<LogoutWarningSheet> {
   final MotionController _warningIconMotionController = MotionController();
   bool _hasShaken = false;
+  bool _isSubmitting = false;
+  bool _didFinish = false;
 
   void _shakeWhenSettled() {
     if (_hasShaken) return;
@@ -37,8 +51,30 @@ class _LogoutWarningSheetState extends ConsumerState<LogoutWarningSheet> {
     _warningIconMotionController.play();
   }
 
+  void _finishWhenCleared() {
+    if (!mounted || !_isSubmitting || _didFinish) return;
+    if (ref.read(appAuthStateProvider) != null) return;
+
+    final storage = ref.read(appStorageStateProvider);
+    if (!storage.hasValue || storage.requireValue.authCredentials != null) return;
+
+    _didFinish = true;
+    Navigator.of(context).pop(true);
+  }
+
+  void _confirmLogout() {
+    if (_isSubmitting) return;
+
+    widget.onSubmissionStarted();
+    setState(() => _isSubmitting = true);
+    unawaited(widget.onConfirmed());
+    _finishWhenCleared();
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen(appAuthStateProvider, (_, _) => _finishWhenCleared());
+    ref.listen(appStorageStateProvider, (_, _) => _finishWhenCleared());
     final i18n = ref.watch(translationProvider);
     final colorScheme = MateoTheme.of(context).colorScheme;
 
@@ -91,7 +127,7 @@ class _LogoutWarningSheetState extends ConsumerState<LogoutWarningSheet> {
                 child: MateoButton(
                   key: const ValueKey('logout_warning_sheet_back_button'),
                   presentation: .label(label: i18n.logoutWarningSheet.back, variant: .secondary.neutral, width: .fill),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
                 ),
               ),
               const SizedBox(width: 12),
@@ -99,7 +135,8 @@ class _LogoutWarningSheetState extends ConsumerState<LogoutWarningSheet> {
                 child: MateoButton(
                   key: const ValueKey('logout_warning_sheet_logout_button'),
                   presentation: .label(label: i18n.logoutWarningSheet.logout, variant: .primary.warning, width: .fill),
-                  onPressed: () {},
+                  isLoading: _isSubmitting,
+                  onPressed: _confirmLogout,
                 ),
               ),
             ],

@@ -92,6 +92,10 @@ class AuthRepository {
     );
   }
 
+  Future<void> logoutCurrentSession({required String refreshToken}) async {
+    await unauthenticatedDio.post<void>('/auth/sessions/logout', data: <String, String>{'refreshToken': refreshToken});
+  }
+
   Future<ApiEnvelopeDto<MicroserviceAccessTokenDto>> createGeosearchAccessToken() async {
     final response = await authenticatedDio.post<Map<String, Object?>>('/auth/microservices/geosearch');
 

@@ -268,6 +268,34 @@ void main() {
       });
     });
 
+    group('logoutCurrentSession', () {
+      setUp(() {
+        when(
+          () => dio.post<void>('/auth/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
+        ).thenAnswer(
+          (_) async => Response<void>(statusCode: 204, requestOptions: RequestOptions(path: '/auth/sessions/logout')),
+        );
+      });
+
+      test('when logout returns no content, it should send the refresh token without authentication', () async {
+        await repository.logoutCurrentSession(refreshToken: 'saved-refresh-token');
+
+        verify(
+          () => dio.post<void>('/auth/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
+        ).called(1);
+        verifyNever(() => authenticatedDio.post<void>(any(), data: any(named: 'data')));
+      });
+
+      test('when logout fails, it should propagate the transport error', () async {
+        final error = DioException(requestOptions: RequestOptions(path: '/auth/sessions/logout'));
+        when(
+          () => dio.post<void>('/auth/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
+        ).thenThrow(error);
+
+        await expectLater(repository.logoutCurrentSession(refreshToken: 'saved-refresh-token'), throwsA(same(error)));
+      });
+    });
+
     group('createGeosearchAccessToken', () {
       setUp(() {
         _AuthRepositoryTestData.stubGeosearchAccessTokenRequest(dio: authenticatedDio);
