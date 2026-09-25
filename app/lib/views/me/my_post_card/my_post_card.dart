@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/dtos/user_job.dart';
+import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/widgets/post_status_dot.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
@@ -10,14 +10,16 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 part 'scroll_deferred_job_location_map.dart';
 
 class MyPostCard extends ConsumerWidget {
-  const MyPostCard({required UserJob this.job, super.key}) : skeletonEffect = null, skeletonSemanticsLabel = null;
+  const MyPostCard({required UserJobSummaryDto this.job, super.key})
+    : skeletonEffect = null,
+      skeletonSemanticsLabel = null;
   const MyPostCard.skeleton({this.skeletonEffect, this.skeletonSemanticsLabel, super.key}) : job = null;
 
   static const aspectRatio = 0.8;
   static const _radius = 42.0;
   static const _detailsInset = 9.0;
 
-  final UserJob? job;
+  final UserJobSummaryDto? job;
   final SkeletonEffect? skeletonEffect;
   final String? skeletonSemanticsLabel;
 
@@ -63,7 +65,7 @@ class MyPostCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetails(BuildContext context, WidgetRef ref, UserJob job) {
+  Widget _buildDetails(BuildContext context, WidgetRef ref, UserJobSummaryDto job) {
     final i18n = ref.watch(translationProvider);
     final colorScheme = MateoTheme.of(context).colorScheme;
     return MateoSurface(

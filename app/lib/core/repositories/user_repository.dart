@@ -1,7 +1,7 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
-import 'package:cataqui_app/core/dtos/user_job.dart';
-import 'package:cataqui_app/core/dtos/user_job_detail/user_job_detail_dto.dart';
+import 'package:cataqui_app/core/dtos/user_job_dto.dart';
+import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:dio/dio.dart';
 
@@ -10,24 +10,25 @@ class UserRepository {
 
   final Dio authenticatedDio;
 
-  Future<ApiEnvelopeDto<UserJobDetailDto>> getMyPostedJob({required String jobId}) async {
+  Future<ApiEnvelopeDto<UserJobDto>> getMyPostedJob({required String jobId}) async {
     final response = await authenticatedDio.get<Map<String, Object?>>('/users/me/jobs/$jobId');
 
-    return ApiEnvelopeDto<UserJobDetailDto>.fromJson(
+    return ApiEnvelopeDto<UserJobDto>.fromJson(
       response.data!,
-      (json) => UserJobDetailDto.fromJson(json! as Map<String, Object?>),
+      (json) => UserJobDto.fromJson(json! as Map<String, Object?>),
     );
   }
 
-  Future<ApiEnvelopeDto<List<UserJob>>> getMyPostedJobs({String? cursor}) async {
+  Future<ApiEnvelopeDto<List<UserJobSummaryDto>>> getMyPostedJobs({String? cursor}) async {
     final response = await authenticatedDio.get<Map<String, Object?>>(
       '/users/me/jobs',
       queryParameters: <String, Object?>{if (cursor != null) 'cursor': cursor},
     );
 
-    return ApiEnvelopeDto<List<UserJob>>.fromJson(
+    return ApiEnvelopeDto<List<UserJobSummaryDto>>.fromJson(
       response.data!,
-      (json) => (json! as List<Object?>).map((item) => UserJob.fromJson(item! as Map<String, Object?>)).toList(),
+      (json) =>
+          (json! as List<Object?>).map((item) => UserJobSummaryDto.fromJson(item! as Map<String, Object?>)).toList(),
     );
   }
 

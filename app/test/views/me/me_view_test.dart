@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
-import 'package:cataqui_app/core/dtos/user_job.dart';
+import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -66,7 +66,7 @@ void main() {
                 AsyncData(
                   MyPostsData(
                     userId: 'test-user',
-                    jobs: [UserJob.fixture().copyWith(createdAt: DateTime.utc(2026, 9, 23, 12))],
+                    jobs: [UserJobSummaryDto.fixture().copyWith(createdAt: DateTime.utc(2026, 9, 23, 12))],
                     hasMore: false,
                   ),
                 ),
@@ -149,7 +149,7 @@ void main() {
       jobsState.showData(
         MyPostsData(
           userId: 'test-user',
-          jobs: [UserJob.fixture().copyWith(title: 'Loaded job', createdAt: DateTime.utc(2026, 9, 23, 12))],
+          jobs: [UserJobSummaryDto.fixture().copyWith(title: 'Loaded job', createdAt: DateTime.utc(2026, 9, 23, 12))],
           hasMore: false,
         ),
       );
@@ -176,8 +176,8 @@ void main() {
                   MyPostsData(
                     userId: 'test-user',
                     jobs: [
-                      UserJob.fixture().copyWith(jobId: 'job-1', createdAt: DateTime.utc(2026, 9, 23, 12)),
-                      UserJob.fixture().copyWith(jobId: 'job-2', createdAt: DateTime.utc(2026, 9, 23, 12)),
+                      UserJobSummaryDto.fixture().copyWith(jobId: 'job-1', createdAt: DateTime.utc(2026, 9, 23, 12)),
+                      UserJobSummaryDto.fixture().copyWith(jobId: 'job-2', createdAt: DateTime.utc(2026, 9, 23, 12)),
                     ],
                     hasMore: false,
                   ),
@@ -220,7 +220,7 @@ void main() {
             userId: 'test-user',
             jobs: [
               for (var index = 0; index < 5; index++)
-                UserJob.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
+                UserJobSummaryDto.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
             ],
             hasMore: true,
             nextCursor: 'next-page',
@@ -414,7 +414,10 @@ void main() {
                     userId: 'test-user',
                     jobs: [
                       for (var index = 0; index < 20; index++)
-                        UserJob.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
+                        UserJobSummaryDto.fixture().copyWith(
+                          jobId: 'job-$index',
+                          createdAt: DateTime.utc(2026, 9, 23, 12),
+                        ),
                     ],
                     hasMore: false,
                   ),
@@ -451,7 +454,10 @@ void main() {
                     userId: 'test-user',
                     jobs: [
                       for (var index = 0; index < 24; index++)
-                        UserJob.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
+                        UserJobSummaryDto.fixture().copyWith(
+                          jobId: 'job-$index',
+                          createdAt: DateTime.utc(2026, 9, 23, 12),
+                        ),
                     ],
                     hasMore: false,
                   ),
@@ -497,7 +503,7 @@ void main() {
 
     final jobs = [
       for (var index = 0; index < 24; index++)
-        UserJob.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
+        UserJobSummaryDto.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
     ];
     await withClock(
       Clock.fixed(DateTime.utc(2026, 9, 24, 12)),
@@ -529,7 +535,7 @@ void main() {
       AsyncData(
         MyPostsData(
           userId: 'test-user',
-          jobs: [UserJob.fixture().copyWith(jobId: 'posted-job', createdAt: DateTime.utc(2026, 9, 23, 12))],
+          jobs: [UserJobSummaryDto.fixture().copyWith(jobId: 'posted-job', createdAt: DateTime.utc(2026, 9, 23, 12))],
           hasMore: true,
           nextCursor: 'next-page',
           paginationError: StateError('offline'),
@@ -579,7 +585,7 @@ void main() {
       AsyncData(
         MyPostsData(
           userId: 'test-user',
-          jobs: [UserJob.fixture().copyWith(createdAt: DateTime.utc(2026, 9, 23, 12))],
+          jobs: [UserJobSummaryDto.fixture().copyWith(createdAt: DateTime.utc(2026, 9, 23, 12))],
           hasMore: true,
           isLoadingMore: true,
         ),

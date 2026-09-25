@@ -4,7 +4,7 @@ import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
-import 'package:cataqui_app/core/dtos/user_job.dart';
+import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +22,9 @@ void main() {
   setUp(() {
     userRepository = MockUserRepository();
     authState = FakeAppAuthState(null);
-    when(userRepository.getMyPostedJobs).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: [UserJob.fixture()]));
+    when(
+      userRepository.getMyPostedJobs,
+    ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: [UserJobSummaryDto.fixture()]));
     container = ProviderContainer(
       overrides: [
         userRepositoryProvider.overrideWithValue(userRepository),
@@ -43,11 +45,11 @@ void main() {
 
     authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'first-user');
     await container.pump();
-    expect((await container.read(myPostsStateProvider.future))?.jobs, [UserJob.fixture()]);
+    expect((await container.read(myPostsStateProvider.future))?.jobs, [UserJobSummaryDto.fixture()]);
 
     authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-user');
     await container.pump();
-    expect((await container.read(myPostsStateProvider.future))?.jobs, [UserJob.fixture()]);
+    expect((await container.read(myPostsStateProvider.future))?.jobs, [UserJobSummaryDto.fixture()]);
     verify(userRepository.getMyPostedJobs).called(2);
   });
 
@@ -60,16 +62,18 @@ void main() {
     authState.currentSession = session.copyWith(accessToken: 'renewed-token');
     await container.pump();
 
-    expect(container.read(myPostsStateProvider).value?.jobs, [UserJob.fixture()]);
+    expect(container.read(myPostsStateProvider).value?.jobs, [UserJobSummaryDto.fixture()]);
     verify(userRepository.getMyPostedJobs).called(1);
   });
 
   test('when the user changes during pagination, it should keep only the new user’s jobs', () async {
-    final oldPage = Completer<ApiEnvelopeDto<List<UserJob>>>();
+    final oldPage = Completer<ApiEnvelopeDto<List<UserJobSummaryDto>>>();
     var initialRequests = 0;
     when(userRepository.getMyPostedJobs).thenAnswer((_) async {
       initialRequests += 1;
-      return ApiEnvelopeDto.fixture(data: [UserJob.fixture().copyWith(jobId: 'user-$initialRequests')]).copyWith(
+      return ApiEnvelopeDto.fixture(
+        data: [UserJobSummaryDto.fixture().copyWith(jobId: 'user-$initialRequests')],
+      ).copyWith(
         pagination: ApiPaginationDto(
           hasMore: initialRequests == 1,
           nextCursor: initialRequests == 1 ? 'old-page' : null,
@@ -87,19 +91,21 @@ void main() {
     await container.read(myPostsStateProvider.future);
     expect(initialRequests, 2);
 
-    oldPage.complete(ApiEnvelopeDto.fixture(data: [UserJob.fixture().copyWith(jobId: 'old-page-job')]));
+    oldPage.complete(ApiEnvelopeDto.fixture(data: [UserJobSummaryDto.fixture().copyWith(jobId: 'old-page-job')]));
     await pendingPage;
 
     expect(container.read(myPostsStateProvider).value?.jobs.map((job) => job.jobId), ['user-2']);
   });
 
   test('when the user changes during the first request, it should discard the old user’s response', () async {
-    final firstResponse = Completer<ApiEnvelopeDto<List<UserJob>>>();
+    final firstResponse = Completer<ApiEnvelopeDto<List<UserJobSummaryDto>>>();
     var requestCount = 0;
     when(userRepository.getMyPostedJobs).thenAnswer((_) {
       requestCount += 1;
       if (requestCount == 1) return firstResponse.future;
-      return Future.value(ApiEnvelopeDto.fixture(data: [UserJob.fixture().copyWith(jobId: 'second-user-job')]));
+      return Future.value(
+        ApiEnvelopeDto.fixture(data: [UserJobSummaryDto.fixture().copyWith(jobId: 'second-user-job')]),
+      );
     });
     authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'first-user');
     await container.pump();
@@ -108,15 +114,17 @@ void main() {
     await container.pump();
     await container.read(myPostsStateProvider.future);
 
-    firstResponse.complete(ApiEnvelopeDto.fixture(data: [UserJob.fixture().copyWith(jobId: 'first-user-job')]));
+    firstResponse.complete(
+      ApiEnvelopeDto.fixture(data: [UserJobSummaryDto.fixture().copyWith(jobId: 'first-user-job')]),
+    );
     await container.pump();
 
     expect(container.read(myPostsStateProvider).value?.jobs.map((job) => job.jobId), ['second-user-job']);
   });
 
   test('when reaching the next page, it should append jobs and stop at the last page', () async {
-    final firstJob = UserJob.fixture().copyWith(jobId: 'first-job');
-    final secondJob = UserJob.fixture().copyWith(jobId: 'second-job');
+    final firstJob = UserJobSummaryDto.fixture().copyWith(jobId: 'first-job');
+    final secondJob = UserJobSummaryDto.fixture().copyWith(jobId: 'second-job');
     when(userRepository.getMyPostedJobs).thenAnswer(
       (_) async => ApiEnvelopeDto.fixture(
         data: [firstJob],
@@ -139,10 +147,10 @@ void main() {
   });
 
   test('when a page is already loading, it should not make another page request', () async {
-    final nextPage = Completer<ApiEnvelopeDto<List<UserJob>>>();
+    final nextPage = Completer<ApiEnvelopeDto<List<UserJobSummaryDto>>>();
     when(userRepository.getMyPostedJobs).thenAnswer(
       (_) async => ApiEnvelopeDto.fixture(
-        data: [UserJob.fixture()],
+        data: [UserJobSummaryDto.fixture()],
       ).copyWith(pagination: const ApiPaginationDto(hasMore: true, nextCursor: 'page-two')),
     );
     when(() => userRepository.getMyPostedJobs(cursor: 'page-two')).thenAnswer((_) => nextPage.future);
@@ -157,7 +165,7 @@ void main() {
     verify(() => userRepository.getMyPostedJobs(cursor: 'page-two')).called(1);
 
     nextPage.complete(
-      ApiEnvelopeDto.fixture(data: <UserJob>[]).copyWith(pagination: const ApiPaginationDto(hasMore: false)),
+      ApiEnvelopeDto.fixture(data: <UserJobSummaryDto>[]).copyWith(pagination: const ApiPaginationDto(hasMore: false)),
     );
     await firstLoad;
   });
@@ -166,14 +174,14 @@ void main() {
     var pageRequests = 0;
     when(userRepository.getMyPostedJobs).thenAnswer(
       (_) async => ApiEnvelopeDto.fixture(
-        data: [UserJob.fixture()],
+        data: [UserJobSummaryDto.fixture()],
       ).copyWith(pagination: const ApiPaginationDto(hasMore: true, nextCursor: 'page-two')),
     );
     when(() => userRepository.getMyPostedJobs(cursor: 'page-two')).thenAnswer((_) async {
       pageRequests += 1;
       if (pageRequests == 1) throw StateError('offline');
       return ApiEnvelopeDto.fixture(
-        data: [UserJob.fixture().copyWith(jobId: 'second-job')],
+        data: [UserJobSummaryDto.fixture().copyWith(jobId: 'second-job')],
       ).copyWith(pagination: const ApiPaginationDto(hasMore: false));
     });
     authState.currentSession = AuthSessionDto.fixture();
@@ -181,13 +189,13 @@ void main() {
     await container.read(myPostsStateProvider.future);
 
     await container.read(myPostsStateProvider.notifier).loadNextPage();
-    expect(container.read(myPostsStateProvider).value?.jobs, [UserJob.fixture()]);
+    expect(container.read(myPostsStateProvider).value?.jobs, [UserJobSummaryDto.fixture()]);
     expect(container.read(myPostsStateProvider).value?.paginationError, isA<StateError>());
 
     await container.read(myPostsStateProvider.notifier).loadNextPage();
     expect(container.read(myPostsStateProvider).value?.jobs, [
-      UserJob.fixture(),
-      UserJob.fixture().copyWith(jobId: 'second-job'),
+      UserJobSummaryDto.fixture(),
+      UserJobSummaryDto.fixture().copyWith(jobId: 'second-job'),
     ]);
     expect(container.read(myPostsStateProvider).value?.paginationError, isNull);
   });

@@ -2,9 +2,9 @@ import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
-import 'package:cataqui_app/core/dtos/user_job.dart';
-import 'package:cataqui_app/core/dtos/user_job_detail/user_job_detail_dto.dart';
-import 'package:cataqui_app/core/dtos/user_job_detail/user_job_detail_location_dto.dart';
+import 'package:cataqui_app/core/dtos/user_job_dto.dart';
+import 'package:cataqui_app/core/dtos/user_job_location_dto.dart';
+import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -48,19 +48,16 @@ void main() {
 
         expect(
           envelope.data,
-          UserJobDetailDto(
+          UserJobDto(
             jobId: _UserRepositoryTestData.activeJobId,
-            title: 'Descarregar caixas',
             description: 'Ajudar a descarregar caixas durante a tarde.',
-            descriptionSummary: 'Trabalho de um dia',
             contact: const JobContactDto(contactMethod: .whatsapp, identifier: '+5511888888888'),
-            location: const UserJobDetailLocationDto(
+            location: const UserJobLocationDto(
               title: 'Rua Pardal Branco, 32',
               latitude: -23.55,
               longitude: -46.63,
               areaRadius: 2000,
             ),
-            payment: r'R$150',
             status: .active,
             createdAt: DateTime.parse('2026-09-23T12:00:00.000Z'),
             updatedAt: DateTime.parse('2026-09-23T13:00:00.000Z'),
@@ -76,7 +73,7 @@ void main() {
         );
       });
 
-      test('when receiving an archived job with removed contact and unknown payment, it should retain nulls', () async {
+      test('when receiving an archived job with removed contact, it should retain the missing contact', () async {
         _UserRepositoryTestHelpers.stubPostedJobDetailRequest(
           dio: authenticatedDio,
           responseJson: <String, Object?>{
@@ -84,7 +81,6 @@ void main() {
             'data': <String, Object?>{
               ..._UserRepositoryTestData.postedJobDetailJson,
               'contact': null,
-              'payment': null,
               'status': 'ARCHIVED',
             },
           },
@@ -93,7 +89,6 @@ void main() {
         final envelope = await repository.getMyPostedJob(jobId: _UserRepositoryTestData.activeJobId);
 
         expect(envelope.data.contact, isNull);
-        expect(envelope.data.payment, isNull);
         expect(envelope.data.status, JobStatus.archived);
       });
 
@@ -132,8 +127,8 @@ void main() {
       test('when receiving posted jobs, it should map all fields and both statuses', () async {
         final envelope = await repository.getMyPostedJobs();
 
-        expect(envelope.data, <UserJob>[
-          UserJob.fixture().copyWith(
+        expect(envelope.data, <UserJobSummaryDto>[
+          UserJobSummaryDto.fixture().copyWith(
             jobId: _UserRepositoryTestData.activeJobId,
             title: 'Descarregar caixas',
             descriptionSummary: 'Trabalho de um dia',
@@ -143,7 +138,7 @@ void main() {
             createdAt: DateTime.parse('2026-09-23T12:00:00.000Z'),
             updatedAt: DateTime.parse('2026-09-23T13:00:00.000Z'),
           ),
-          UserJob.fixture().copyWith(
+          UserJobSummaryDto.fixture().copyWith(
             jobId: _UserRepositoryTestData.archivedJobId,
             title: 'Organizar estoque',
             descriptionSummary: 'Organização de caixas',
@@ -298,9 +293,7 @@ abstract final class _UserRepositoryTestData {
 
   static final postedJobDetailJson = <String, Object?>{
     'jobId': activeJobId,
-    'title': 'Descarregar caixas',
     'description': 'Ajudar a descarregar caixas durante a tarde.',
-    'descriptionSummary': 'Trabalho de um dia',
     'contact': <String, Object?>{'method': 'WHATSAPP', 'identifier': '+5511888888888'},
     'location': <String, Object?>{
       'title': 'Rua Pardal Branco, 32',
@@ -308,7 +301,6 @@ abstract final class _UserRepositoryTestData {
       'longitude': -46.63,
       'areaRadius': 2000,
     },
-    'payment': r'R$150',
     'status': 'ACTIVE',
     'createdAt': '2026-09-23T12:00:00.000Z',
     'updatedAt': '2026-09-23T13:00:00.000Z',

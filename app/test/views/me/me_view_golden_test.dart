@@ -2,7 +2,7 @@ import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
-import 'package:cataqui_app/core/dtos/user_job.dart';
+import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -180,7 +180,7 @@ void main() {
 }
 
 abstract final class MeGoldenTestHelpers {
-  static UserJob job({JobStatus status = .active}) => UserJob.fixture().copyWith(
+  static UserJobSummaryDto job({JobStatus status = .active}) => UserJobSummaryDto.fixture().copyWith(
     jobId: status == .active ? 'active-job' : 'archived-job',
     title: 'Garçom',
     payment: r'R$100/dia',

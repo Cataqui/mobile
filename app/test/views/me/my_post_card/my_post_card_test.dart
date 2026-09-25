@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/dtos/user_job.dart';
+import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/me/my_post_card/my_post_card.dart';
@@ -24,7 +24,7 @@ void main() {
   testWidgets('when a post is active, it should show feed-style details and status over a full-card map', (
     tester,
   ) async {
-    final job = UserJob.fixture().copyWith(
+    final job = UserJobSummaryDto.fixture().copyWith(
       jobId: 'active-job',
       title: 'Garçom',
       payment: r'R$100/dia',
@@ -82,7 +82,10 @@ void main() {
           child: SizedBox(
             width: 390,
             child: MyPostCard(
-              job: UserJob.fixture().copyWith(status: JobStatus.archived, createdAt: DateTime.utc(2026, 9, 23, 12)),
+              job: UserJobSummaryDto.fixture().copyWith(
+                status: JobStatus.archived,
+                createdAt: DateTime.utc(2026, 9, 23, 12),
+              ),
             ),
           ),
         ),

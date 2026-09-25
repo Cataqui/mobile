@@ -2,12 +2,12 @@ import 'package:cataqui_app/core/dtos/job_location_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'user_job.freezed.dart';
-part 'user_job.g.dart';
+part 'user_job_summary_dto.freezed.dart';
+part 'user_job_summary_dto.g.dart';
 
 @freezed
-abstract class UserJob with _$UserJob {
-  const factory UserJob({
+abstract class UserJobSummaryDto with _$UserJobSummaryDto {
+  const factory UserJobSummaryDto({
     required String jobId,
     required String title,
     required String descriptionSummary,
@@ -16,11 +16,11 @@ abstract class UserJob with _$UserJob {
     @JsonKey(unknownEnumValue: JobStatus.unknown) required JobStatus status,
     required DateTime createdAt,
     required DateTime updatedAt,
-  }) = _UserJob;
+  }) = _UserJobSummaryDto;
 
-  factory UserJob.fromJson(Map<String, Object?> json) => _$UserJobFromJson(json);
+  factory UserJobSummaryDto.fromJson(Map<String, Object?> json) => _$UserJobSummaryDtoFromJson(json);
 
-  factory UserJob.fixture() => UserJob(
+  factory UserJobSummaryDto.fixture() => UserJobSummaryDto(
     jobId: 'dfa0eb67-7b9b-4df5-9112-b92e7a8a7502',
     title: 'Ajuda para descarregar caixas',
     descriptionSummary: 'Trabalho rápido para ajudar a descarregar caixas no Centro.',
