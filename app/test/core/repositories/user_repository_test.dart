@@ -1,7 +1,10 @@
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
+import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job.dart';
+import 'package:cataqui_app/core/dtos/user_job_detail/user_job_detail_dto.dart';
+import 'package:cataqui_app/core/dtos/user_job_detail/user_job_detail_location_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -27,9 +30,85 @@ void main() {
     _UserRepositoryTestHelpers.stubContactsRequest(dio: authenticatedDio);
     _UserRepositoryTestHelpers.stubProfileRequest(dio: authenticatedDio);
     _UserRepositoryTestHelpers.stubPostedJobsRequest(dio: authenticatedDio);
+    _UserRepositoryTestHelpers.stubPostedJobDetailRequest(dio: authenticatedDio);
   });
 
   group('UserRepository', () {
+    group('getMyPostedJob', () {
+      test('when requesting a posted job, it should forward the job ID in the detail path', () async {
+        await repository.getMyPostedJob(jobId: _UserRepositoryTestData.activeJobId);
+
+        verify(
+          () => authenticatedDio.get<Map<String, Object?>>('/users/me/jobs/${_UserRepositoryTestData.activeJobId}'),
+        ).called(1);
+      });
+
+      test('when receiving an active job, it should map its full detail and envelope', () async {
+        final envelope = await repository.getMyPostedJob(jobId: _UserRepositoryTestData.activeJobId);
+
+        expect(
+          envelope.data,
+          UserJobDetailDto(
+            jobId: _UserRepositoryTestData.activeJobId,
+            title: 'Descarregar caixas',
+            description: 'Ajudar a descarregar caixas durante a tarde.',
+            descriptionSummary: 'Trabalho de um dia',
+            contact: const JobContactDto(contactMethod: .whatsapp, identifier: '+5511888888888'),
+            location: const UserJobDetailLocationDto(
+              title: 'Rua Pardal Branco, 32',
+              latitude: -23.55,
+              longitude: -46.63,
+              areaRadius: 2000,
+            ),
+            payment: r'R$150',
+            status: .active,
+            createdAt: DateTime.parse('2026-09-23T12:00:00.000Z'),
+            updatedAt: DateTime.parse('2026-09-23T13:00:00.000Z'),
+          ),
+        );
+        expect(
+          (requestId: envelope.requestId, timestamp: envelope.timestamp, endpoint: envelope.endpoint),
+          (
+            requestId: 'posted-job-detail-request-001',
+            timestamp: DateTime.parse('2026-09-24T12:00:00.000Z'),
+            endpoint: '/v1/users/me/jobs/${_UserRepositoryTestData.activeJobId}',
+          ),
+        );
+      });
+
+      test('when receiving an archived job with removed contact and unknown payment, it should retain nulls', () async {
+        _UserRepositoryTestHelpers.stubPostedJobDetailRequest(
+          dio: authenticatedDio,
+          responseJson: <String, Object?>{
+            ..._UserRepositoryTestData.postedJobDetailEnvelopeJson,
+            'data': <String, Object?>{
+              ..._UserRepositoryTestData.postedJobDetailJson,
+              'contact': null,
+              'payment': null,
+              'status': 'ARCHIVED',
+            },
+          },
+        );
+
+        final envelope = await repository.getMyPostedJob(jobId: _UserRepositoryTestData.activeJobId);
+
+        expect(envelope.data.contact, isNull);
+        expect(envelope.data.payment, isNull);
+        expect(envelope.data.status, JobStatus.archived);
+      });
+
+      test('when the request fails, it should propagate the Dio exception', () async {
+        const path = '/users/me/jobs/${_UserRepositoryTestData.activeJobId}';
+        final exception = DioException(requestOptions: RequestOptions(path: path));
+        when(() => authenticatedDio.get<Map<String, Object?>>(path)).thenThrow(exception);
+
+        await expectLater(
+          repository.getMyPostedJob(jobId: _UserRepositoryTestData.activeJobId),
+          throwsA(same(exception)),
+        );
+      });
+    });
+
     group('getMyPostedJobs', () {
       test('when requesting the first page, it should call my jobs endpoint without a cursor', () async {
         await repository.getMyPostedJobs();
@@ -217,6 +296,31 @@ abstract final class _UserRepositoryTestData {
   static const activeJobId = 'd27b86e5-c3e7-4426-9972-40c459486bb3';
   static const archivedJobId = '31ff79f9-6287-4a40-a573-0a81d6163d38';
 
+  static final postedJobDetailJson = <String, Object?>{
+    'jobId': activeJobId,
+    'title': 'Descarregar caixas',
+    'description': 'Ajudar a descarregar caixas durante a tarde.',
+    'descriptionSummary': 'Trabalho de um dia',
+    'contact': <String, Object?>{'method': 'WHATSAPP', 'identifier': '+5511888888888'},
+    'location': <String, Object?>{
+      'title': 'Rua Pardal Branco, 32',
+      'latitude': -23.55,
+      'longitude': -46.63,
+      'areaRadius': 2000,
+    },
+    'payment': r'R$150',
+    'status': 'ACTIVE',
+    'createdAt': '2026-09-23T12:00:00.000Z',
+    'updatedAt': '2026-09-23T13:00:00.000Z',
+  };
+
+  static final postedJobDetailEnvelopeJson = <String, Object?>{
+    'data': postedJobDetailJson,
+    'requestId': 'posted-job-detail-request-001',
+    'timestamp': '2026-09-24T12:00:00.000Z',
+    'endpoint': '/v1/users/me/jobs/$activeJobId',
+  };
+
   static final postedJobsEnvelopeJson = <String, Object?>{
     'data': <Object?>[
       <String, Object?>{
@@ -264,6 +368,15 @@ abstract final class _UserRepositoryTestData {
 }
 
 abstract final class _UserRepositoryTestHelpers {
+  static void stubPostedJobDetailRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
+    when(() => dio.get<Map<String, Object?>>('/users/me/jobs/${_UserRepositoryTestData.activeJobId}')).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
+        data: responseJson ?? _UserRepositoryTestData.postedJobDetailEnvelopeJson,
+        requestOptions: RequestOptions(path: '/users/me/jobs/${_UserRepositoryTestData.activeJobId}'),
+      ),
+    );
+  }
+
   static void stubPostedJobsRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
     when(
       () => dio.get<Map<String, Object?>>('/users/me/jobs', queryParameters: any(named: 'queryParameters')),

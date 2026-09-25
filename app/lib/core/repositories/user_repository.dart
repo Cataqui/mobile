@@ -1,6 +1,7 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job.dart';
+import 'package:cataqui_app/core/dtos/user_job_detail/user_job_detail_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
 import 'package:dio/dio.dart';
 
@@ -8,6 +9,15 @@ class UserRepository {
   const UserRepository({required this.authenticatedDio});
 
   final Dio authenticatedDio;
+
+  Future<ApiEnvelopeDto<UserJobDetailDto>> getMyPostedJob({required String jobId}) async {
+    final response = await authenticatedDio.get<Map<String, Object?>>('/users/me/jobs/$jobId');
+
+    return ApiEnvelopeDto<UserJobDetailDto>.fromJson(
+      response.data!,
+      (json) => UserJobDetailDto.fromJson(json! as Map<String, Object?>),
+    );
+  }
 
   Future<ApiEnvelopeDto<List<UserJob>>> getMyPostedJobs({String? cursor}) async {
     final response = await authenticatedDio.get<Map<String, Object?>>(
