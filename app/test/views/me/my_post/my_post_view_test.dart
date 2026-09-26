@@ -8,6 +8,7 @@ import 'package:cataqui_app/views/me/my_post/my_post_detail_chips.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_header_surface.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_state.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_view.dart';
+import 'package:cataqui_app/views/me/my_post/post_activation_slide_action/post_activation_slide_action.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -45,6 +46,8 @@ void main() {
     expect(find.text(detail.description), findsOneWidget);
     expect(find.text(detail.location.title), findsOneWidget);
     expect(find.byType(MyPostDetailChips), findsOneWidget);
+    expect(find.byType(PostActivationSlideAction), findsOneWidget);
+    expect(find.text(i18n.me.myPost.activationSlide.archive), findsOneWidget);
     expect(find.bySemanticsLabel(i18n.me.myPosts.activeStatus), findsOneWidget);
     expect(TickerMode.valuesOf(tester.element(find.byKey(const ValueKey('my_post_status_dot')))).enabled, isFalse);
     expect(tester.widgetList<Skeleton>(find.byType(Skeleton)).every((skeleton) => !skeleton.enabled), isTrue);
@@ -57,7 +60,7 @@ void main() {
   });
 
   testWidgets('loading post retains the summary and placeholder chips', (tester) async {
-    final summary = UserJobSummaryDto.fixture();
+    final summary = UserJobSummaryDto.fixture().copyWith(status: JobStatus.archived);
     await tester.pumpWidget(
       TestApp.screen(
         providerOverrides: [
@@ -75,9 +78,11 @@ void main() {
     expect(find.byKey(const ValueKey(#location)), findsOneWidget);
     expect(find.descendant(of: find.byType(MyPostDetailChips), matching: find.byType(Morph)), findsNothing);
     expect(find.text(i18n.me.myPost.unknown), findsNWidgets(2));
+    expect(find.byType(PostActivationSlideAction), findsOneWidget);
+    expect(find.text(i18n.me.myPost.activationSlide.activate), findsOneWidget);
   });
 
-  testWidgets('loading a detail with the same status keeps the view outside the rebuild', (tester) async {
+  testWidgets('summary footer stays mounted while same-status detail loads', (tester) async {
     final summary = UserJobSummaryDto.fixture().copyWith(status: .active);
     final detail = UserJobDto.fixture().copyWith(status: .active, description: 'Loaded description');
     late FakeMyPostState fakeState;
@@ -93,11 +98,19 @@ void main() {
     );
     await tester.pump();
     final viewElement = tester.element(find.byType(MyPostView));
+    final slideState = tester.state(find.byType(PostActivationSlideAction));
 
     fakeState.complete(detail);
     expect(viewElement.dirty, isFalse);
     await tester.pump();
+    expect(find.byType(PostActivationSlideAction), findsOneWidget);
+    expect(tester.state(find.byType(PostActivationSlideAction)), same(slideState));
     expect(find.text('Loaded description'), findsOneWidget);
+
+    fakeState.complete(detail.copyWith(description: 'Updated description'));
+    expect(viewElement.dirty, isFalse);
+    await tester.pump();
+    expect(find.text('Updated description'), findsOneWidget);
   });
 
   testWidgets('chips resize without disappearing or overflowing when detail loads', (tester) async {
@@ -216,6 +229,7 @@ void main() {
     );
     await tester.pump();
     expect(find.bySemanticsLabel(i18n.me.myPosts.inactiveStatus), findsOneWidget);
+    expect(find.text(i18n.me.myPost.activationSlide.activate), findsOneWidget);
     expect(find.text(detail.location.title), findsOneWidget);
     expect(find.textContaining('+55'), findsNothing);
     expect(find.byKey(const ValueKey('my_post_backdrop')), findsNothing);
@@ -311,6 +325,8 @@ void main() {
     await tester.pump();
     expect(find.text(summary.title), findsOneWidget);
     expect(find.text(i18n.me.myPost.error.title), findsOneWidget);
+    expect(find.byType(PostActivationSlideAction), findsOneWidget);
+    expect(find.text(i18n.me.myPost.activationSlide.archive), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('my_post_retry_button')));
     await tester.pump();
     await tester.pump();

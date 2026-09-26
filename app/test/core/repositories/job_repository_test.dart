@@ -22,6 +22,7 @@ void main() {
     _JobRepositoryTestHelpers.stubJobRequest(dio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubJobContactRequest(dio: unauthenticatedDio);
     _JobRepositoryTestHelpers.stubCreateJobRequest(dio: authenticatedDio);
+    _JobRepositoryTestHelpers.stubStatusRequests(dio: authenticatedDio);
   });
 
   group('JobRepository', () {
@@ -142,6 +143,26 @@ void main() {
       });
     });
 
+    test('archives a job through authenticated Dio and reads the returned status', () async {
+      final response = await repository.archiveJob(jobId: _JobRepositoryTestData.jobId);
+
+      verify(
+        () => authenticatedDio.post<Map<String, Object?>>('/jobs/${_JobRepositoryTestData.jobId}/archive'),
+      ).called(1);
+      expect(response.data.status, JobStatus.archived);
+      verifyNever(() => unauthenticatedDio.post<Map<String, Object?>>(any()));
+    });
+
+    test('activates a job through authenticated Dio and reads the returned status', () async {
+      final response = await repository.activateJob(jobId: _JobRepositoryTestData.jobId);
+
+      verify(
+        () => authenticatedDio.post<Map<String, Object?>>('/jobs/${_JobRepositoryTestData.jobId}/activate'),
+      ).called(1);
+      expect(response.data.status, JobStatus.active);
+      verifyNever(() => unauthenticatedDio.post<Map<String, Object?>>(any()));
+    });
+
     group('getJobContact', () {
       test('when requesting a job contact, it should call the contact endpoint with the job and contact ids', () async {
         await repository.getJobContact(
@@ -258,6 +279,22 @@ abstract final class _JobRepositoryTestHelpers {
         requestOptions: RequestOptions(path: '/jobs'),
       ),
     );
+  }
+
+  static void stubStatusRequests({required MockDio dio}) {
+    for (final status in [JobStatus.archived, JobStatus.active]) {
+      final action = status == JobStatus.archived ? 'archive' : 'activate';
+      final path = '/jobs/${_JobRepositoryTestData.jobId}/$action';
+      when(() => dio.post<Map<String, Object?>>(path)).thenAnswer(
+        (_) async => Response<Map<String, Object?>>(
+          data: {
+            ..._JobRepositoryTestData.jobEnvelopeJson,
+            'data': JobDto.fixture().copyWith(status: status).toJson(),
+          },
+          requestOptions: RequestOptions(path: path),
+        ),
+      );
+    }
   }
 
   static void stubJobRequest({required MockDio dio, Map<String, Object?>? responseJson}) {

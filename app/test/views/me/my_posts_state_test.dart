@@ -5,6 +5,7 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,6 +65,40 @@ void main() {
 
     expect(container.read(myPostsStateProvider).value?.jobs, [UserJobSummaryDto.fixture()]);
     verify(userRepository.getMyPostedJobs).called(1);
+  });
+
+  test('updates the loaded post status in the carousel after a mutation', () async {
+    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'poster');
+    await container.pump();
+    await container.read(myPostsStateProvider.future);
+    final original = UserJobSummaryDto.fixture();
+
+    container.read(myPostsStateProvider.notifier).updateJobStatus(jobId: original.jobId, status: JobStatus.archived);
+
+    expect(container.read(myPostsStateProvider).requireValue!.jobs.single.status, JobStatus.archived);
+    verify(userRepository.getMyPostedJobs).called(1);
+  });
+
+  test('keeps a status update when a pending page completes', () async {
+    final nextPage = Completer<ApiEnvelopeDto<List<UserJobSummaryDto>>>();
+    final original = UserJobSummaryDto.fixture().copyWith(status: JobStatus.active);
+    when(userRepository.getMyPostedJobs).thenAnswer(
+      (_) async => ApiEnvelopeDto.fixture(
+        data: [original],
+      ).copyWith(pagination: const ApiPaginationDto(hasMore: true, nextCursor: 'next-page')),
+    );
+    when(() => userRepository.getMyPostedJobs(cursor: 'next-page')).thenAnswer((_) => nextPage.future);
+    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'poster');
+    await container.pump();
+    await container.read(myPostsStateProvider.future);
+
+    final pendingPage = container.read(myPostsStateProvider.notifier).loadNextPage();
+    container.read(myPostsStateProvider.notifier).updateJobStatus(jobId: original.jobId, status: JobStatus.archived);
+    nextPage.complete(ApiEnvelopeDto.fixture(data: [UserJobSummaryDto.fixture().copyWith(jobId: 'later-job')]));
+    await pendingPage;
+
+    expect(container.read(myPostsStateProvider).requireValue!.jobs.first.status, JobStatus.archived);
+    expect(container.read(myPostsStateProvider).requireValue!.jobs.length, 2);
   });
 
   test('when the user changes during pagination, it should keep only the new user’s jobs', () async {

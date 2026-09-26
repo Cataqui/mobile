@@ -39,6 +39,18 @@ class JobRepository {
     return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
   }
 
+  Future<ApiEnvelopeDto<JobDto>> archiveJob({required String jobId}) async {
+    final response = await authenticatedDio.post<Map<String, Object?>>('/jobs/$jobId/archive');
+
+    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+  }
+
+  Future<ApiEnvelopeDto<JobDto>> activateJob({required String jobId}) async {
+    final response = await authenticatedDio.post<Map<String, Object?>>('/jobs/$jobId/activate');
+
+    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+  }
+
   Future<ApiEnvelopeDto<JobContactDto>> getJobContact({required String jobId, required String contactId}) async {
     final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId/contact/$contactId');
 

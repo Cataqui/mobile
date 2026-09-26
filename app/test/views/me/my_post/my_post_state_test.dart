@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
+import 'package:cataqui_app/core/dtos/job_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_dto.dart';
 import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -13,16 +16,23 @@ import '../../../mocks.dart';
 
 void main() {
   late MockUserRepository userRepository;
+  late MockJobRepository jobRepository;
   late ProviderContainer container;
 
   setUp(() {
     userRepository = MockUserRepository();
+    jobRepository = MockJobRepository();
     when(() => userRepository.getMyPostedJob(jobId: 'job-123')).thenAnswer(
       (_) async => ApiEnvelopeDto.fixture(
         data: UserJobDto.fixture().copyWith(jobId: 'job-123', description: 'Detalhes do post'),
       ),
     );
-    container = ProviderContainer(overrides: [userRepositoryProvider.overrideWithValue(userRepository)]);
+    container = ProviderContainer(
+      overrides: [
+        userRepositoryProvider.overrideWithValue(userRepository),
+        jobRepositoryProvider.overrideWithValue(jobRepository),
+      ],
+    );
   });
 
   tearDown(() => container.dispose());
@@ -60,5 +70,60 @@ void main() {
     final data = await container.read(myPostStateProvider('job-123').future);
 
     expect(data.contactLabel, 'other-contact');
+  });
+
+  test('archives the loaded post and preserves its formatted contact', () async {
+    when(
+      () => jobRepository.archiveJob(jobId: 'job-123'),
+    ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: JobDto.fixture().copyWith(status: JobStatus.archived)));
+    container.listen(myPostStateProvider('job-123'), (_, _) {});
+    final before = await container.read(myPostStateProvider('job-123').future);
+
+    await container.read(myPostStateProvider('job-123').notifier).changeStatus(status: JobStatus.archived);
+
+    final after = container.read(myPostStateProvider('job-123')).requireValue;
+    expect(after.detail.status, JobStatus.archived);
+    expect(after.contactLabel, before.contactLabel);
+    verify(() => jobRepository.archiveJob(jobId: 'job-123')).called(1);
+  });
+
+  test('archives before detail loads and applies the status to the later detail', () async {
+    final detailResponse = Completer<ApiEnvelopeDto<UserJobDto>>();
+    when(() => userRepository.getMyPostedJob(jobId: 'job-123')).thenAnswer((_) => detailResponse.future);
+    when(
+      () => jobRepository.archiveJob(jobId: 'job-123'),
+    ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: JobDto.fixture().copyWith(status: JobStatus.archived)));
+    container.listen(myPostStateProvider('job-123'), (_, _) {});
+    final pendingDetail = container.read(myPostStateProvider('job-123').future);
+
+    await container.read(myPostStateProvider('job-123').notifier).changeStatus(status: JobStatus.archived);
+    expect(container.read(myPostStateProvider('job-123')).isLoading, isTrue);
+    verify(() => jobRepository.archiveJob(jobId: 'job-123')).called(1);
+
+    detailResponse.complete(
+      ApiEnvelopeDto.fixture(
+        data: UserJobDto.fixture().copyWith(jobId: 'job-123', status: JobStatus.active),
+      ),
+    );
+    final detail = await pendingDetail;
+    expect(detail.detail.status, JobStatus.archived);
+  });
+
+  test('failed activation keeps the loaded post archived', () async {
+    when(
+      () => jobRepository.archiveJob(jobId: 'job-123'),
+    ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: JobDto.fixture().copyWith(status: JobStatus.archived)));
+    final failure = StateError('offline');
+    when(() => jobRepository.activateJob(jobId: 'job-123')).thenThrow(failure);
+    container.listen(myPostStateProvider('job-123'), (_, _) {});
+    await container.read(myPostStateProvider('job-123').future);
+    await container.read(myPostStateProvider('job-123').notifier).changeStatus(status: JobStatus.archived);
+
+    await expectLater(
+      container.read(myPostStateProvider('job-123').notifier).changeStatus(status: JobStatus.active),
+      throwsA(same(failure)),
+    );
+
+    expect(container.read(myPostStateProvider('job-123')).requireValue.detail.status, JobStatus.archived);
   });
 }

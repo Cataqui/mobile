@@ -1,10 +1,12 @@
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_detail_content.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_header_flight_delegate.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_header_surface.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_morph_target.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_state.dart';
+import 'package:cataqui_app/views/me/my_post/post_activation_slide_action/post_activation_slide_action.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -49,6 +51,11 @@ class MyPostView extends ConsumerWidget {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
+        footer: detailPresentation.status != JobStatus.unknown
+            ? MateoViewFooter(
+                principal: PostActivationSlideAction(jobId: summary.jobId, status: detailPresentation.status),
+              )
+            : null,
         surface: .scrollable(
           color: theme.colorScheme.background,
           padding: const EdgeInsets.symmetric(horizontal: 20).copyWith(top: 32),

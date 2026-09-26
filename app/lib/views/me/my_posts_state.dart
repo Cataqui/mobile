@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_auth/authenticated_provider_retry.dart';
+import 'package:cataqui_app/core/enums/job_enums.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_posts_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,9 +34,10 @@ class MyPostsState extends _$MyPostsState {
     try {
       final envelope = await ref.read(userRepositoryProvider).getMyPostedJobs(cursor: currentData.nextCursor);
       if (currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
+      final latestData = state.value ?? currentData;
       state = AsyncData(
-        currentData.copyWith(
-          jobs: [...currentData.jobs, ...envelope.data],
+        latestData.copyWith(
+          jobs: [...latestData.jobs, ...envelope.data],
           hasMore: envelope.pagination?.hasMore ?? false,
           nextCursor: envelope.pagination?.nextCursor,
           isLoadingMore: false,
@@ -44,7 +46,21 @@ class MyPostsState extends _$MyPostsState {
       );
     } catch (error) {
       if (currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
-      state = AsyncData(currentData.copyWith(isLoadingMore: false, paginationError: error));
+      state = AsyncData((state.value ?? currentData).copyWith(isLoadingMore: false, paginationError: error));
     }
+  }
+
+  void updateJobStatus({required String jobId, required JobStatus status}) {
+    final currentData = state.value;
+    if (currentData == null || currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
+
+    state = AsyncData(
+      currentData.copyWith(
+        jobs: [
+          for (final job in currentData.jobs)
+            if (job.jobId == jobId) job.copyWith(status: status) else job,
+        ],
+      ),
+    );
   }
 }

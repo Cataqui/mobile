@@ -91,6 +91,13 @@
       "closeButtonSemanticLabel": "Fechar publicação",
       "loadingSemanticLabel": "Carregando detalhes da publicação",
       "unknown": "Desconhecido",
+      "activationSlide": {
+        "activate": "Deslize pra colocar no ar",
+        "archive": "Deslize pra tirar do ar",
+        "loading": "Atualizando publicação",
+        "activateError": "Não deu pra colocar seu post no ar. Tenta de novo",
+        "archiveError": "Não deu pra tirar seu post do ar. Tenta de novo"
+      },
       "error": {
         "title": "Não conseguimos carregar seu post",
         "retryButtonTitle": "Tentar de novo"
