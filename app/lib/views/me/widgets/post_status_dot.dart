@@ -23,6 +23,8 @@ class MyPostStatusDot extends ConsumerWidget {
       container: true,
       label: presentation.label,
       child: Motion(
+        // Motion only applies startup when mounted, so a status change needs a new host.
+        key: ValueKey(status),
         startup: status == .active && !MediaQuery.disableAnimationsOf(context) ? .play : .skip,
         effect: const PulseFadeMotionEffect(minOpacity: 0.2, duration: Duration(milliseconds: 1800)),
         child: SizedBox(

@@ -46,6 +46,7 @@ void main() {
     expect(find.text(detail.location.title), findsOneWidget);
     expect(find.byType(MyPostDetailChips), findsOneWidget);
     expect(find.bySemanticsLabel(i18n.me.myPosts.activeStatus), findsOneWidget);
+    expect(TickerMode.valuesOf(tester.element(find.byKey(const ValueKey('my_post_status_dot')))).enabled, isFalse);
     expect(tester.widgetList<Skeleton>(find.byType(Skeleton)).every((skeleton) => !skeleton.enabled), isTrue);
     expect(tester.widgetList<MateoButton>(find.byType(MateoButton)).length, 1);
     expect(find.byType(MateoView), findsOneWidget);
@@ -74,6 +75,29 @@ void main() {
     expect(find.byKey(const ValueKey(#location)), findsOneWidget);
     expect(find.descendant(of: find.byType(MyPostDetailChips), matching: find.byType(Morph)), findsNothing);
     expect(find.text(i18n.me.myPost.unknown), findsNWidgets(2));
+  });
+
+  testWidgets('loading a detail with the same status keeps the view outside the rebuild', (tester) async {
+    final summary = UserJobSummaryDto.fixture().copyWith(status: .active);
+    final detail = UserJobDto.fixture().copyWith(status: .active, description: 'Loaded description');
+    late FakeMyPostState fakeState;
+    await tester.pumpWidget(
+      TestApp.screen(
+        providerOverrides: [
+          myPostStateProvider(
+            summary.jobId,
+          ).overrideWith(() => fakeState = FakeMyPostState(const AsyncLoading<UserJobDto>())),
+        ],
+        child: MyPostView(summary: summary),
+      ),
+    );
+    await tester.pump();
+    final viewElement = tester.element(find.byType(MyPostView));
+
+    fakeState.complete(detail);
+    expect(viewElement.dirty, isFalse);
+    await tester.pump();
+    expect(find.text('Loaded description'), findsOneWidget);
   });
 
   testWidgets('chips resize without disappearing or overflowing when detail loads', (tester) async {
@@ -135,12 +159,12 @@ void main() {
     for (var frame = 0; frame < 20; frame++) {
       await tester.pump(const Duration(milliseconds: 16));
       await expectChipPainted(frame);
-      if (frame == 4) {
-        final capsule = tester.getRect(find.byKey(const ValueKey(#contact)));
-        final corner = await pixelAt(Offset(capsule.right - 2, capsule.top + 2));
-        final outside = await pixelAt(Offset(capsule.right + 2, capsule.top + 2));
-        expect(corner, outside, reason: 'the capsule must keep its rounded end while resizing');
-      }
+      final capsule = tester.getRect(find.byKey(const ValueKey(#contact)));
+      final corner = await pixelAt(Offset(capsule.right - 2, capsule.top + 2));
+      final outside = await pixelAt(Offset(capsule.right + 2, capsule.top + 2));
+      final side = await pixelAt(Offset(capsule.right - 2, capsule.center.dy));
+      expect(corner, outside, reason: 'the capsule lost its rounded end at frame $frame');
+      expect(side, isNot(outside), reason: 'the capsule edge disappeared at frame $frame');
       expect(tester.takeException(), isNull, reason: 'resize frame $frame overflowed');
     }
     expect(tester.state(find.byKey(const ValueKey(#contact))), same(contactState));
@@ -225,7 +249,7 @@ void main() {
     expect(tester.widget<SingleChildScrollView>(horizontalScroll).scrollDirection, Axis.horizontal);
     expect(tester.getRect(horizontalScroll).left, 0);
     expect(tester.getRect(horizontalScroll).width, 390);
-    expect(tester.getTopLeft(find.byKey(const ValueKey(#contact))).dx, 24);
+    expect(tester.getTopLeft(find.byKey(const ValueKey(#contact))).dx, 14);
     final locationText = find.text(locationTitle);
     expect(tester.widget<Text>(locationText).overflow, isNot(TextOverflow.ellipsis));
     final before = tester.getTopLeft(locationText).dx;

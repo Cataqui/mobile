@@ -70,4 +70,26 @@ void main() {
       MateoTheme.of(tester.element(find.byType(MyPostStatusDot))).colorScheme.text.tertiary,
     );
   });
+
+  testWidgets('archiving an active job stops the status animation', (tester) async {
+    await tester.pumpWidget(
+      const TestApp.screen(
+        child: Center(child: MyPostStatusDot(status: JobStatus.active)),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpWidget(
+      const TestApp.screen(
+        child: Center(child: MyPostStatusDot(status: JobStatus.archived)),
+      ),
+    );
+
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(milliseconds: 300),
+    );
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    expect(find.bySemanticsLabel(i18n.me.myPosts.inactiveStatus), findsOneWidget);
+  });
 }

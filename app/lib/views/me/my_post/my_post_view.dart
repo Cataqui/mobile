@@ -19,9 +19,14 @@ class MyPostView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = MateoTheme.of(context);
     final i18n = ref.watch(translationProvider);
-    final detailState = ref.watch(myPostStateProvider(summary.jobId));
-    final detail = detailState.asData?.value;
-    final displayedSummary = detail == null ? summary : summary.copyWith(status: detail.status);
+    final detailPresentation = ref.watch(
+      myPostStateProvider(
+        summary.jobId,
+      ).select((state) => (status: state.asData?.value.detail.status ?? summary.status, hasError: state.hasError)),
+    );
+    final displayedSummary = detailPresentation.status == summary.status
+        ? summary
+        : summary.copyWith(status: detailPresentation.status);
     final routeAnimation = ModalRoute.of(context)?.animation ?? const AlwaysStoppedAnimation<double>(1);
 
     final detailContent = Transform.translate(
@@ -60,7 +65,7 @@ class MyPostView extends ConsumerWidget {
                   expansion: 1,
                 ),
               ),
-              if (detailState.hasError) Expanded(child: detailContent) else detailContent,
+              if (detailPresentation.hasError) Expanded(child: detailContent) else detailContent,
             ],
           ),
         ),

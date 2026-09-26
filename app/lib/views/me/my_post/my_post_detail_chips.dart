@@ -1,20 +1,19 @@
 import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
-import 'package:cataqui_app/core/dtos/user_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/views/me/my_post/my_post_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 class MyPostDetailChips extends ConsumerWidget {
-  const MyPostDetailChips({required this.loading, this.detail, super.key});
+  const MyPostDetailChips({this.data, super.key});
 
   static const iconSize = 20.0;
   static const verticalPadding = 9.0;
   static const height = iconSize + 2 * verticalPadding;
   static const _resizeDuration = Duration(milliseconds: 260);
 
-  final bool loading;
-  final UserJobDto? detail;
+  final MyPostData? data;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,12 +30,12 @@ class MyPostDetailChips extends ConsumerWidget {
 
   Widget _buildRow(BuildContext context, {required String unknownLabel}) {
     final theme = MateoTheme.of(context);
-    final contact = loading ? null : detail?.contact;
+    final contact = data?.detail.contact;
     final contactPresentation = _contactPresentation(context, unknownLabel, contact: contact);
     return Row(
       mainAxisSize: .min,
       children: [
-        if (loading || contact != null) ...[
+        if (_loading || contact != null) ...[
           _chip(context, chip: #contact, icon: contactPresentation.icon, text: contactPresentation.text),
           const SizedBox(width: 10),
         ],
@@ -44,7 +43,7 @@ class MyPostDetailChips extends ConsumerWidget {
           context,
           chip: #location,
           icon: MateoIcon(.mapPin, size: iconSize, color: theme.colorScheme.text.secondary),
-          text: loading ? unknownLabel : _locationTitle(unknownLabel),
+          text: _loading ? unknownLabel : _locationTitle(unknownLabel),
         ),
       ],
     );
@@ -78,7 +77,7 @@ class MyPostDetailChips extends ConsumerWidget {
       duration: duration,
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        color: loading ? theme.colorScheme.skeleton.bone : theme.colorScheme.buttons.secondary.neutral.background,
+        color: _loading ? theme.colorScheme.skeleton.bone : theme.colorScheme.buttons.secondary.neutral.background,
         borderRadius: BorderRadius.circular(height / 2),
       ),
       clipBehavior: .antiAlias,
@@ -86,7 +85,7 @@ class MyPostDetailChips extends ConsumerWidget {
         duration: duration,
         curve: Curves.easeOutCubic,
         alignment: .centerLeft,
-        child: AnimatedOpacity(duration: duration, opacity: loading ? 0 : 1, child: content),
+        child: AnimatedOpacity(duration: duration, opacity: _loading ? 0 : 1, child: content),
       ),
     );
   }
@@ -101,18 +100,14 @@ class MyPostDetailChips extends ConsumerWidget {
       return (icon: MateoIcon(.questionmark, size: iconSize, color: color), text: unknownLabel);
     }
 
-    return (
-      icon: contact.contactMethod.icon(size: iconSize, color: color),
-      text: switch (contact.contactMethod) {
-        .unknown => contact.identifier,
-        .whatsapp || .phoneCall => contact.contactMethod.displayIdentifier(contact.identifier),
-      },
-    );
+    return (icon: contact.contactMethod.icon(size: iconSize, color: color), text: data?.contactLabel ?? unknownLabel);
   }
 
   String _locationTitle(String unknownLabel) {
-    final title = detail?.location.title;
+    final title = data?.detail.location.title;
     if (title == null || title.trim().isEmpty) return unknownLabel;
     return title;
   }
+
+  bool get _loading => data == null;
 }

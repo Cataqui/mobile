@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/user_job_dto.dart';
+import 'package:cataqui_app/views/me/my_post/my_post_data.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,17 +12,17 @@ class FakeMyPostState extends MyPostState {
   final UserJobDto? retryValue;
   int retryCalls = 0;
 
-  void complete(UserJobDto detail) => state = AsyncData(detail);
+  void complete(UserJobDto detail) => state = AsyncData(MyPostData.fromDetail(detail));
 
   @override
-  Future<UserJobDto> build(String jobId) {
-    state = initialValue;
-    return Completer<UserJobDto>().future;
+  Future<MyPostData> build(String jobId) {
+    state = initialValue.whenData(MyPostData.fromDetail);
+    return Completer<MyPostData>().future;
   }
 
   @override
   Future<void> retry() async {
     retryCalls += 1;
-    if (retryValue case final detail?) state = AsyncData(detail);
+    if (retryValue case final detail?) state = AsyncData(MyPostData.fromDetail(detail));
   }
 }

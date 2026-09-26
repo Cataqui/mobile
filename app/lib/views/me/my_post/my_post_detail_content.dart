@@ -24,7 +24,7 @@ class MyPostDetailContent extends ConsumerWidget {
     final theme = MateoTheme.of(context);
     final i18n = ref.watch(translationProvider);
     final detailState = ref.watch(myPostStateProvider(jobId));
-    final detail = detailState.asData?.value;
+    final data = detailState.asData?.value;
     final descriptionStyle = TextStyle(
       fontSize: 16,
       fontWeight: .w500,
@@ -89,7 +89,8 @@ class MyPostDetailContent extends ConsumerWidget {
             style: descriptionStyle,
           ),
         ),
-        data: (detail) => Text(detail.description, key: const ValueKey('my_post_description'), style: descriptionStyle),
+        data: (data) =>
+            Text(data.detail.description, key: const ValueKey('my_post_description'), style: descriptionStyle),
       ),
     );
     return MorphNode(
@@ -143,7 +144,7 @@ class MyPostDetailContent extends ConsumerWidget {
                     alignment: .center,
                     minWidth: chipsWidth,
                     maxWidth: chipsWidth,
-                    child: MyPostDetailChips(loading: detail == null, detail: detail),
+                    child: MyPostDetailChips(data: data),
                   ),
                 ),
                 const SizedBox(height: 18),

@@ -21,7 +21,7 @@ class MyPostRoute extends AppRouteData with $MyPostRoute {
     final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return CustomTransitionPage<void>(
       key: state.pageKey,
-      opaque: false,
+      opaque: true,
       transitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 180),
       reverseTransitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 50),
       child: MyPostView(summary: $extra),

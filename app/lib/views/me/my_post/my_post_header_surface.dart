@@ -90,7 +90,14 @@ class MyPostHeaderSurface extends StatelessWidget {
             ],
           ],
         ),
-        Positioned(top: 0, right: 0, child: MyPostStatusDot(status: summary.status)),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: TickerMode(
+            enabled: expansion < 1,
+            child: MyPostStatusDot(status: summary.status),
+          ),
+        ),
       ],
     );
     final radius = lerpDouble(33, detailRadius, expansion)!;

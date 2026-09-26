@@ -183,6 +183,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     expect(target.status.value, MorphTagStatus.completed);
     expect(find.byWidgetPredicate((widget) => widget.runtimeType.toString() == '_MorphNodePaint'), findsNothing);
+    final coveredCard = find.byType(MyPostCard, skipOffstage: false);
+    expect(coveredCard, findsOneWidget);
+    expect(TickerMode.valuesOf(tester.element(coveredCard)).enabled, isFalse);
+    expect(ModalRoute.of(tester.element(find.byType(MyPostView)))!.opaque, isTrue);
     expect(
       tester
           .renderObject<RenderParagraph>(
@@ -203,6 +207,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
       if (frame == 2) {
         expect(find.byWidgetPredicate((widget) => widget.runtimeType.toString() == '_MorphNodePaint'), findsOneWidget);
+        final viewFade = tester.widget<FadeTransition>(
+          find.ancestor(of: find.byKey(const ValueKey('my_post_view')), matching: find.byType(FadeTransition)).first,
+        );
+        expect(viewFade.opacity.value, inExclusiveRange(0, 1));
       }
       expect(tester.takeException(), isNull, reason: 'returning frame $frame');
       expectFlightTextSeparated();
