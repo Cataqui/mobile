@@ -35,7 +35,7 @@ class CurrentUserDisplayIdentifier extends ConsumerWidget {
               style: SkeletonStyle(
                 color: colorScheme.skeleton.bone,
                 effect: const SkeletonFadeEffect(),
-                radius: const Radius.circular(999),
+                shape: const MateoRoundedShapeBorder.capsule(),
               ),
               child: Text(loadingLabel, style: identifierStyle),
             ),

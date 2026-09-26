@@ -80,7 +80,7 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
           style: SkeletonStyle(
             color: MateoTheme.of(context).palette.neutral[4],
             effect: const SkeletonFadeEffect(),
-            radius: const Radius.circular(999),
+            shape: const MateoRoundedShapeBorder.capsule(),
           ),
           child: Column(
             children: [

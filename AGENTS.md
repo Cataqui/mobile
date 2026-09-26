@@ -206,6 +206,9 @@ widget or model that produces or consumes the data.
   responsibility, materially improves readability, is reused, or an API or lifecycle requires stable function identity.
 - Extract it when it is reused, represents an independently meaningful domain rule, is required by an API or lifecycle,
   or makes otherwise unclear logic materially easier to understand.
+- **Extract multi-condition ternaries:** When a ternary condition combines more than one check, or ternaries are nested,
+  move the decision into a clearly named method or getter. Use early returns or an exhaustive switch there so the call
+  site stays readable. This overrides the preference to inline single-use logic above.
 
 - **Do not create single-use factory classes for providers.** When construction logic is used by exactly one provider,
   build the dependency directly inside that provider. Extract a factory class only when construction is reused by

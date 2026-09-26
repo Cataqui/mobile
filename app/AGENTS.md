@@ -65,7 +65,24 @@ type-safe translations.
 - **Provider:** `translationProvider` is declared in `app/lib/core/providers.dart`
   and reads the locale from `appStateProvider`.
 
+## Widget-Owned Dependencies
+
+Let a widget read app dependencies it uses through the available context or
+provider, instead of passing their resolved values through its parent solely
+to avoid a lookup. For example, a chip widget that owns an unknown-value
+fallback should read `translationProvider` itself rather than accept an
+`unknownLabel` parameter. Pass a value explicitly when the parent actually
+chooses or transforms it as part of the widget's behavior.
+
 ## State Management
+
+### Render Async State Clearly
+
+Use Riverpod's `AsyncValue` helpers, such as `when`, when they express loading,
+data, and error UI more clearly than manual `hasError` checks, nullable data,
+or nested conditionals. Keep layout and transitions shared by every state
+outside the `when` branches so each branch contains only the content that
+changes. Use a direct state property when the widget needs just one fact.
 
 ### Provider Placement
 

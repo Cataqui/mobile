@@ -50,7 +50,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
           style: SkeletonStyle(
             color: MateoTheme.of(context).colorScheme.skeleton.bone,
             effect: const SkeletonFadeEffect(),
-            radius: const Radius.circular(999),
+            shape: const MateoRoundedShapeBorder.capsule(),
           ),
           child: Morph(
             targets: [transformTargets.header],
