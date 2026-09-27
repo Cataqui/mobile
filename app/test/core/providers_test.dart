@@ -32,6 +32,26 @@ import '../mocks.dart';
 import '../utils/test_app.dart';
 
 void main() {
+  group('translationProvider', () {
+    test('Portuguese day plurals keep their wording without a missing-resolver warning', () {
+      final printedMessages = <String>[];
+      final dayLabels = runZoned(() {
+        final container = ProviderContainer();
+        try {
+          final translations = container.read(translationProvider);
+          return [
+            for (final count in [0, 1, 2]) translations.feedJob.timeAgo.days(count: count),
+          ];
+        } finally {
+          container.dispose();
+        }
+      }, zoneSpecification: ZoneSpecification(print: (_, _, _, message) => printedMessages.add(message)));
+
+      expect(dayLabels, ['0 dias atrás', '1 dia atrás', '2 dias atrás']);
+      expect(printedMessages, isEmpty);
+    });
+  });
+
   group('deviceCornerRadiiProvider', () {
     test('when first read, it should not assume display corner radii', () {
       final container = ProviderContainer();

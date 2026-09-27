@@ -46,7 +46,13 @@ AppToast appToast(Ref ref) {
 @Riverpod(keepAlive: true)
 Translations translation(Ref ref) {
   final locale = ref.watch(appStateProvider.select((s) => s.currentLocale));
-  return locale.buildSync();
+  return locale.buildSync(
+    cardinalResolver: (count, {zero, one, two, few, many, other}) {
+      if (count == 0) return zero ?? other ?? count.toString();
+      if (count == 1) return one ?? other ?? count.toString();
+      return other ?? count.toString();
+    },
+  );
 }
 
 @Riverpod(keepAlive: true)

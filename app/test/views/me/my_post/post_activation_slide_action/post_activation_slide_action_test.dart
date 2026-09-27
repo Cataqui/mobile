@@ -28,30 +28,39 @@ void main() {
     expect(find.byType(MateoLoadingIndicator), findsNothing);
   });
 
-  testWidgets('thumb movement emits light ticks during drag and automatic return', (tester) async {
+  testWidgets('when dragging and returning, it should avoid selection haptic platform calls', (tester) async {
     final hapticCalls = _ActionTestHarness.recordHapticCalls(tester);
-    final fakeState = await _ActionTestHarness.pumpAction(tester, status: JobStatus.archived);
+    await _ActionTestHarness.pumpAction(tester, status: JobStatus.archived);
 
     final rect = tester.getRect(find.byType(PostActivationSlideAction));
     final gesture = await tester.startGesture(Offset(rect.left + 26, rect.center.dy));
-    for (var step = 0; step < 3; step++) {
-      await gesture.moveBy(const Offset(60, 0));
+    for (var step = 0; step < 10; step++) {
+      await gesture.moveBy(const Offset(18, 0));
       await tester.pump();
     }
-    final tickCount = hapticCalls.length;
-    expect(tickCount, greaterThanOrEqualTo(2));
-    expect(hapticCalls.map((call) => call.arguments), everyElement('HapticFeedbackType.selectionClick'));
-
     await gesture.up();
-    for (var frame = 0; frame < 4; frame++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    expect(hapticCalls.length, greaterThan(tickCount));
     await tester.pumpAndSettle();
-    final settledTickCount = hapticCalls.length;
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(hapticCalls, hasLength(settledTickCount));
-    expect(fakeState.changeStatusCalls, 0);
+    await tester.idle();
+    expect(hapticCalls, isEmpty);
+  });
+
+  testWidgets('semantic activation with reduced motion sends only the success haptic', (tester) async {
+    final hapticCalls = _ActionTestHarness.recordHapticCalls(tester);
+    final semantics = tester.ensureSemantics();
+    final fakeState = await _ActionTestHarness.pumpAction(
+      tester,
+      status: JobStatus.archived,
+      mediaQueryData: const MediaQueryData(disableAnimations: true),
+    );
+
+    final node = tester.getSemantics(find.byType(PostActivationSlideAction));
+    node.owner!.performAction(node.id, .tap);
+    await tester.pump();
+    await tester.idle();
+
+    expect(fakeState.changeStatusCalls, 1);
+    expect(hapticCalls.map((call) => call.arguments), ['HapticFeedbackType.successNotification']);
+    semantics.dispose();
   });
 
   testWidgets('archive starts once at the end and reverses into activation', (tester) async {
@@ -142,6 +151,7 @@ abstract final class _ActionTestHarness {
     WidgetTester tester, {
     required JobStatus status,
     Future<void> Function(JobStatus)? onChangeStatus,
+    MediaQueryData? mediaQueryData,
   }) async {
     final fakeState = FakeMyPostState(
       AsyncData(UserJobDto.fixture().copyWith(jobId: jobId, status: status)),
@@ -149,6 +159,7 @@ abstract final class _ActionTestHarness {
     );
     await tester.pumpWidget(
       TestApp(
+        mediaQueryData: mediaQueryData,
         providerOverrides: [myPostStateProvider(jobId).overrideWith(() => fakeState)],
         child: Center(
           child: SizedBox(
@@ -163,7 +174,7 @@ abstract final class _ActionTestHarness {
         ),
       ),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
     return fakeState;
   }
 

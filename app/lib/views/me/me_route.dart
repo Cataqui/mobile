@@ -18,7 +18,7 @@ class MeRoute extends AppRouteData with $MeRoute {
     return MateoPage<void>(
       allowSnapshotting: false,
       key: state.pageKey,
-      transition: const .slide(direction: .up, duration: Duration(milliseconds: 450)),
+      transition: const .slide(direction: .up),
       child: const MeView(),
     );
   }

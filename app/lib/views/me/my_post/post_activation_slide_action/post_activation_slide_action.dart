@@ -28,13 +28,12 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
   static const _labelInset = 20.0;
   static const _settleDuration = Duration(milliseconds: 360);
 
-  late final AnimationController _fillAnimationController = AnimationController(vsync: this)
-    ..addListener(_onFillChanged);
+  late final AnimationController _fillAnimationController = AnimationController(vsync: this);
   late JobStatus _visualStatus = widget.status;
   bool _isRequesting = false;
   bool _isReturning = false;
   bool _isDragging = false;
-  double _lastHapticProgress = 0;
+  double _thumbTravel = 0;
 
   JobStatus get _targetStatus => switch (_visualStatus) {
     JobStatus.active => JobStatus.archived,
@@ -42,8 +41,7 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
     JobStatus.unknown => throw UnsupportedError('Unknown job status has no slide action.'),
   };
 
-  Color _colorForStatus(JobStatus status) {
-    final theme = MateoTheme.of(context);
+  Color _colorForStatus(JobStatus status, MateoThemeData theme) {
     if (status == JobStatus.archived) return theme.colorScheme.buttons.primary.success.background;
 
     return switch (theme.brightness) {
@@ -52,9 +50,13 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
     };
   }
 
-  Color get _fillColor => _isReturning
-      ? Color.lerp(_colorForStatus(_targetStatus), _colorForStatus(_visualStatus), 1 - _fillAnimationController.value)!
-      : _colorForStatus(_visualStatus);
+  Color _fillColorForTheme(MateoThemeData theme) => _isReturning
+      ? Color.lerp(
+          _colorForStatus(_targetStatus, theme),
+          _colorForStatus(_visualStatus, theme),
+          1 - _fillAnimationController.value,
+        )!
+      : _colorForStatus(_visualStatus, theme);
 
   double get _arrowRotation {
     if (_isReturning) {
@@ -63,14 +65,6 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
           : math.pi * _fillAnimationController.value;
     }
     return _visualStatus == JobStatus.active ? math.pi : 0;
-  }
-
-  void _onFillChanged() {
-    final progress = _fillAnimationController.value;
-    if (progress == _lastHapticProgress) return;
-    _lastHapticProgress = progress;
-    if (_isReturning) return;
-    unawaited(HapticFeedback.selectionClick());
   }
 
   void _startDrag(DragStartDetails details, double trackWidth) {
@@ -82,17 +76,15 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
         : x >= trackWidth - _thumbInset - _thumbDiameter - 20;
   }
 
-  void _updateDrag(DragUpdateDetails details, double trackWidth) {
+  void _updateDrag(DragUpdateDetails details) {
     if (!_isDragging || _isRequesting || _isReturning) return;
 
-    final travel = trackWidth - _thumbDiameter - 2 * _thumbInset;
-    if (travel <= 0) return;
+    if (_thumbTravel <= 0) return;
     final direction = _visualStatus == JobStatus.archived ? 1 : -1;
-    _fillAnimationController.value = (_fillAnimationController.value + details.delta.dx * direction / travel).clamp(
-      0.0,
-      1.0,
-    );
-    if (_fillAnimationController.value == 1) {
+    final nextProgress = (_fillAnimationController.value + details.delta.dx * direction / _thumbTravel).clamp(0.0, 1.0);
+    if (nextProgress == _fillAnimationController.value) return;
+    _fillAnimationController.value = nextProgress;
+    if (nextProgress == 1) {
       _isDragging = false;
       unawaited(_submit());
     }
@@ -182,109 +174,104 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
       value: _isRequesting ? i18n.loading : null,
       onTap: _isRequesting || _isReturning ? null : _completeSemanticsAction,
       child: ExcludeSemantics(
-        child: MateoSurface(
-          key: const ValueKey('post_activation_slide_action'),
-          width: const .fill(),
-          shape: const .capsule(),
-          color: theme.colorScheme.background,
-          elevation: .new(level: 1),
-          padding: const EdgeInsets.all(4),
-          child: SizedBox(
-            height: _trackHeight,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final trackWidth = constraints.maxWidth;
-                return GestureDetector(
-                  behavior: .opaque,
-                  onHorizontalDragStart: (details) => _startDrag(details, trackWidth),
-                  onHorizontalDragUpdate: (details) => _updateDrag(details, trackWidth),
-                  onHorizontalDragEnd: (_) => _endDrag(),
-                  onHorizontalDragCancel: _endDrag,
-                  child: AnimatedBuilder(
-                    animation: _fillAnimationController,
-                    builder: (context, _) {
-                      final progress = _fillAnimationController.value;
-                      final thumbTravel = trackWidth - _thumbDiameter - 2 * _thumbInset;
-                      final thumbOffset = _isReturning ? 0.0 : thumbTravel * progress;
-                      final thumbLeft =
-                          _thumbInset + (_visualStatus == JobStatus.archived ? thumbOffset : thumbTravel - thumbOffset);
-
-                      return DecoratedBox(
-                        decoration: ShapeDecoration(
-                          color: theme.colorScheme.skeleton.bone,
-                          shape: const MateoRoundedShapeBorder.capsule(),
+        child: RepaintBoundary(
+          child: MateoSurface(
+            key: const ValueKey('post_activation_slide_action'),
+            width: const .fill(),
+            shape: const .capsule(),
+            color: theme.colorScheme.background,
+            elevation: .new(level: 1),
+            padding: const EdgeInsets.all(4),
+            child: SizedBox(
+              height: _trackHeight,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final trackWidth = constraints.maxWidth;
+                  _thumbTravel = trackWidth - _thumbDiameter - 2 * _thumbInset;
+                  final arrowIcon = MateoIcon(
+                    .arrowRight,
+                    size: 26,
+                    color: theme.colorScheme.buttons.primary.success.foreground,
+                  );
+                  return GestureDetector(
+                    behavior: .opaque,
+                    onHorizontalDragStart: (details) => _startDrag(details, trackWidth),
+                    onHorizontalDragUpdate: _updateDrag,
+                    onHorizontalDragEnd: (_) => _endDrag(),
+                    onHorizontalDragCancel: _endDrag,
+                    child: DecoratedBox(
+                      decoration: ShapeDecoration(
+                        color: theme.colorScheme.skeleton.bone,
+                        shape: const MateoRoundedShapeBorder.capsule(),
+                      ),
+                      child: AnimatedBuilder(
+                        animation: _fillAnimationController,
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                          style: TextStyle(fontSize: 15, fontWeight: .w600, color: theme.colorScheme.text.primary),
                         ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              top: _thumbInset,
-                              left: _visualStatus == JobStatus.archived ? _thumbInset : null,
-                              right: _visualStatus == JobStatus.active ? _thumbInset : null,
-                              width: _thumbDiameter + thumbTravel * progress,
-                              height: _thumbDiameter,
-                              child: DecoratedBox(
-                                decoration: ShapeDecoration(
-                                  color: _fillColor,
-                                  shape: const MateoRoundedShapeBorder.capsule(),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              bottom: 0,
-                              left: _visualStatus == JobStatus.archived
-                                  ? math.min(thumbLeft + _thumbDiameter + 16, trackWidth - _labelInset)
-                                  : _labelInset,
-                              right: _visualStatus == JobStatus.active
-                                  ? math.min(trackWidth - thumbLeft + _labelInset, trackWidth - _labelInset)
-                                  : _labelInset,
-                              child: Opacity(
-                                opacity: 1 - progress,
-                                child: Align(
-                                  alignment: .centerLeft,
-                                  child: Text(
-                                    label,
-                                    maxLines: 1,
-                                    overflow: .ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: .w600,
-                                      color: theme.colorScheme.text.primary,
-                                    ),
+                        builder: (context, labelText) {
+                          final progress = _fillAnimationController.value;
+                          final thumbOffset = _isReturning ? 0.0 : _thumbTravel * progress;
+                          final thumbLeft =
+                              _thumbInset +
+                              (_visualStatus == JobStatus.archived ? thumbOffset : _thumbTravel - thumbOffset);
+
+                          return Stack(
+                            children: [
+                              Positioned(
+                                top: _thumbInset,
+                                left: _visualStatus == JobStatus.archived ? _thumbInset : null,
+                                right: _visualStatus == JobStatus.active ? _thumbInset : null,
+                                width: _thumbDiameter + _thumbTravel * progress,
+                                height: _thumbDiameter,
+                                child: DecoratedBox(
+                                  decoration: ShapeDecoration(
+                                    color: _fillColorForTheme(theme),
+                                    shape: const MateoRoundedShapeBorder.capsule(),
                                   ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              top: _thumbInset,
-                              left: thumbLeft,
-                              width: _thumbDiameter,
-                              height: _thumbDiameter,
-                              child: Center(
-                                child: _isRequesting
-                                    ? MateoLoadingIndicator(
-                                        presentation: .circular(
-                                          size: 24,
-                                          color: theme.colorScheme.buttons.primary.success.foreground,
-                                        ),
-                                      )
-                                    : Transform.rotate(
-                                        angle: _arrowRotation,
-                                        child: MateoIcon(
-                                          .arrowRight,
-                                          size: 26,
-                                          color: theme.colorScheme.buttons.primary.success.foreground,
-                                        ),
-                                      ),
+                              Positioned(
+                                top: 0,
+                                bottom: 0,
+                                left: _visualStatus == JobStatus.archived
+                                    ? math.min(thumbLeft + _thumbDiameter + 16, trackWidth - _labelInset)
+                                    : _labelInset,
+                                right: _visualStatus == JobStatus.active
+                                    ? math.min(trackWidth - thumbLeft + _labelInset, trackWidth - _labelInset)
+                                    : _labelInset,
+                                child: Opacity(
+                                  opacity: 1 - progress,
+                                  child: Align(alignment: .centerLeft, child: labelText),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
+                              Positioned(
+                                top: _thumbInset,
+                                left: thumbLeft,
+                                width: _thumbDiameter,
+                                height: _thumbDiameter,
+                                child: Center(
+                                  child: _isRequesting
+                                      ? MateoLoadingIndicator(
+                                          presentation: .circular(
+                                            size: 24,
+                                            color: theme.colorScheme.buttons.primary.success.foreground,
+                                          ),
+                                        )
+                                      : Transform.rotate(angle: _arrowRotation, child: arrowIcon),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
