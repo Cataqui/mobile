@@ -6,10 +6,16 @@ import 'package:cataqui_app/views/me/my_post_card/my_post_card.dart';
 import 'package:cataqui_app/views/me/my_posts_data.dart';
 import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
+
+part 'my_posts_flick_physics.dart';
+part 'my_posts_drag.dart';
+part 'my_posts_scroll_controller.dart';
+part 'my_posts_scroll_position.dart';
 
 class MyPostsCarousel extends ConsumerStatefulWidget {
   const MyPostsCarousel({required this.viewportWidth, required this.rightOverflow, super.key});
@@ -25,7 +31,7 @@ class MyPostsCarousel extends ConsumerStatefulWidget {
 }
 
 class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
-  final ScrollController _jobsScrollController = ScrollController();
+  final ScrollController _jobsScrollController = _MyPostsScrollController();
 
   double get _cardWidth => widget.viewportWidth - MyPostsCarousel._cardPeek;
 
@@ -225,6 +231,9 @@ class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
       child: ListView.builder(
         key: const ValueKey('me_posts_list'),
         controller: _jobsScrollController,
+        physics: ScrollConfiguration.of(context).getPlatform(context) == TargetPlatform.iOS
+            ? const _MyPostsFlickPhysics()
+            : null,
         scrollDirection: .horizontal,
         clipBehavior: Clip.none,
         itemExtent: cardWidth + MyPostsCarousel._cardSpacing,

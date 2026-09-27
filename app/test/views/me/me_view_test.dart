@@ -14,7 +14,7 @@ import 'package:cataqui_app/views/me/me_route.dart';
 import 'package:cataqui_app/views/me/me_state.dart';
 import 'package:cataqui_app/views/me/me_view.dart';
 import 'package:cataqui_app/views/me/my_post_card/my_post_card.dart';
-import 'package:cataqui_app/views/me/my_posts_carousel.dart';
+import 'package:cataqui_app/views/me/my_posts_carousel/my_posts_carousel.dart';
 import 'package:cataqui_app/views/me/my_posts_data.dart';
 import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
@@ -23,6 +23,7 @@ import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
 import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/logout_warning_sheet/logout_warning_sheet.dart';
 import 'package:clock/clock.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -160,6 +161,54 @@ void main() {
       expect(find.bySemanticsLabel(i18n.me.myPosts.loadingPostSemanticLabel), findsNothing);
       expect(find.byWidgetPredicate((widget) => widget is MyPostCard && !widget.skeleton), findsOneWidget);
     });
+  });
+
+  testWidgets('when flicking My Posts, iPhone should use the Android fling threshold', (tester) async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      debugDefaultTargetPlatformOverride = platform;
+      await tester.pumpWidget(
+        TestApp.screen(
+          providerOverrides: [
+            myPostsStateProvider.overrideWith(() => FakeMyPostsState(const AsyncLoading<MyPostsData?>())),
+          ],
+          child: const MeView(),
+        ),
+      );
+
+      final postsList = tester.widget<ListView>(find.byKey(const ValueKey('me_posts_list')));
+      expect(postsList.controller!.position.physics.minFlingVelocity, 50);
+    }
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('when releasing My Posts, the drag should stay direct and the fling should accelerate', (tester) async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      debugDefaultTargetPlatformOverride = platform;
+      await tester.pumpWidget(
+        TestApp.screen(
+          providerOverrides: [
+            myPostsStateProvider.overrideWith(() => FakeMyPostsState(const AsyncLoading<MyPostsData?>())),
+          ],
+          child: MeView(key: ValueKey(platform)),
+        ),
+      );
+
+      final postsList = find.byKey(const ValueKey('me_posts_list'));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.dragFrom(tester.getTopLeft(postsList) + const Offset(100, 70), const Offset(-120, 0));
+      final postsPosition = tester.widget<ListView>(postsList).controller!.position;
+      expect(postsPosition.pixels, closeTo(100, 0.01));
+
+      postsPosition
+          .drag(DragStartDetails(), () {})
+          .end(DragEndDetails(velocity: const Velocity(pixelsPerSecond: Offset(-800, 0)), primaryVelocity: -800));
+      expect(postsPosition.activity!.velocity, closeTo(1120, 0.01));
+    }
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('when dragging posts horizontally, it should stop at the dragged offset without snapping', (
@@ -477,7 +526,7 @@ void main() {
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -280));
     await tester.pump();
-    await tester.flingFrom(tester.getTopLeft(postsList) + const Offset(100, 70), const Offset(-520, 0), 12000);
+    await tester.flingFrom(tester.getTopLeft(postsList) + const Offset(100, 70), const Offset(-100, 0), 12000);
     await tester.pump();
     final scrollPosition = tester.widget<ListView>(postsList).controller!.position;
     expect(scrollPosition.isScrollingNotifier.value, isTrue);

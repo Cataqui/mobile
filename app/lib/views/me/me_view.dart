@@ -4,7 +4,7 @@ import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/svg.g.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/me/my_posts_carousel.dart';
+import 'package:cataqui_app/views/me/my_posts_carousel/my_posts_carousel.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/me/widgets/current_user_display_identifier.dart';
 import 'package:cataqui_app/widgets/logout_warning_sheet/logout_warning_sheet.dart';
