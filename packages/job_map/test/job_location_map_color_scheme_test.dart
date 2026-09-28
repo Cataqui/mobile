@@ -1,7 +1,6 @@
-import 'package:cataqui_app/core/enums/address_category.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_map/src/job_location_map_color_scheme.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 void main() {
@@ -42,7 +41,7 @@ void main() {
           business: null,
           government: null,
           medical: null,
-          park: AddressCategory.park.color(palette: palette),
+          park: palette.green[9],
           placeOfWorship: null,
           school: null,
           sportsComplex: null,

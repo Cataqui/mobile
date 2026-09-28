@@ -22,17 +22,19 @@ class MyPostStatusDot extends ConsumerWidget {
     return Semantics(
       container: true,
       label: presentation.label,
-      child: Motion(
-        // Motion only applies startup when mounted, so a status change needs a new host.
-        key: ValueKey(status),
-        startup: status == .active && !MediaQuery.disableAnimationsOf(context) ? .play : .skip,
-        effect: const PulseFadeMotionEffect(minOpacity: 0.2, duration: Duration(milliseconds: 1800)),
-        child: SizedBox(
-          key: const ValueKey('my_post_status_dot'),
-          width: 10,
-          height: 10,
-          child: DecoratedBox(
-            decoration: BoxDecoration(shape: BoxShape.circle, color: presentation.color),
+      child: RepaintBoundary(
+        child: Motion(
+          // Motion only applies startup when mounted, so a status change needs a new host.
+          key: ValueKey(status),
+          startup: status == .active && !MediaQuery.disableAnimationsOf(context) ? .play : .skip,
+          effect: const PulseFadeMotionEffect(minOpacity: 0.2, duration: Duration(milliseconds: 1800)),
+          child: SizedBox(
+            key: const ValueKey('my_post_status_dot'),
+            width: 10,
+            height: 10,
+            child: DecoratedBox(
+              decoration: BoxDecoration(shape: BoxShape.circle, color: presentation.color),
+            ),
           ),
         ),
       ),

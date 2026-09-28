@@ -1,4 +1,3 @@
-import 'package:cataqui_app/core/enums/address_category.dart';
 import 'package:flutter/material.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
@@ -14,6 +13,7 @@ final class JobLocationMapFeatureColorScheme {
     this.labelsIcon,
     this.labelsText,
     this.labelsTextFill,
+    this.labelsTextFillLightness,
     this.labelsTextStroke,
   });
 
@@ -26,6 +26,7 @@ final class JobLocationMapFeatureColorScheme {
   final Color? labelsIcon;
   final Color? labelsText;
   final Color? labelsTextFill;
+  final int? labelsTextFillLightness;
   final Color? labelsTextStroke;
 }
 
@@ -78,7 +79,7 @@ final class JobLocationMapColorScheme {
 
   factory JobLocationMapColorScheme.light({required MateoPalette palette}) {
     return JobLocationMapColorScheme._(
-      all: const JobLocationMapFeatureColorScheme(),
+      all: const JobLocationMapFeatureColorScheme(labelsTextFillLightness: -25),
       administrative: const JobLocationMapFeatureColorScheme(),
       administrativeCountry: const JobLocationMapFeatureColorScheme(),
       administrativeLandParcel: const JobLocationMapFeatureColorScheme(),
@@ -96,7 +97,7 @@ final class JobLocationMapColorScheme {
       pointOfInterestGovernment: const JobLocationMapFeatureColorScheme(),
       pointOfInterestMedical: const JobLocationMapFeatureColorScheme(),
       pointOfInterestPark: JobLocationMapFeatureColorScheme(
-        labelsIcon: AddressCategory.park.color(palette: palette),
+        labelsIcon: palette.green[9],
         geometryFill: palette.green[6],
       ),
       pointOfInterestPlaceOfWorship: const JobLocationMapFeatureColorScheme(),

@@ -999,6 +999,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.2"
+  pigeon:
+    dependency: transitive
+    description:
+      name: pigeon
+      sha256: "65eb8cfeaf7ecf481f6ca6c150a53d949909411f70e432d1b9a182fd53c7f71b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "26.1.10"
   platform:
     dependency: transitive
     description:

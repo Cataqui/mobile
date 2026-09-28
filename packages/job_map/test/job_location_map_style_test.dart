@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_map/src/job_location_map_color_scheme.dart';
+import 'package:job_map/src/job_location_map_style.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 class _JobLocationMapStyleTestHelpers {
@@ -16,7 +16,7 @@ class _JobLocationMapStyleTestHelpers {
 
   static bool get usesEmbeddedGoogleMapsSchema {
     const allowedRuleKeys = <String>{'elementType', 'featureType', 'stylers'};
-    const allowedStylerKeys = <String>{'color', 'visibility', 'weight'};
+    const allowedStylerKeys = <String>{'color', 'lightness', 'visibility', 'weight'};
     final decoded = jsonDecode(defaultStyle.googleMapsJson!);
     if (decoded is! List<Object?>) return false;
 
@@ -45,6 +45,7 @@ void main() {
             .map((rule) => (elementType: rule.elementType, featureType: rule.featureType))
             .toSet(),
         <({String elementType, String featureType})>{
+          (featureType: 'all', elementType: 'labels.text.fill'),
           (featureType: 'landscape', elementType: 'geometry'),
           (featureType: 'landscape.man_made', elementType: 'geometry'),
           (featureType: 'landscape.natural', elementType: 'geometry'),
@@ -57,6 +58,13 @@ void main() {
           (featureType: 'water', elementType: 'geometry.fill'),
         },
       );
+    });
+
+    test('when using the light map, it should darken Google label text without replacing category colors', () {
+      final rule = _JobLocationMapStyleTestHelpers.defaultStyle.rules.singleWhere(
+        (rule) => rule.featureType == 'all' && rule.elementType == 'labels.text.fill',
+      );
+      expect(rule.stylers.single.toJson(), <String, Object?>{'lightness': -25});
     });
 
     test('when serializing mapped colors, it should produce the Google Maps root array', () {
@@ -111,7 +119,7 @@ void main() {
           last: (featureType: rules.last.featureType, elementType: rules.last.elementType),
         ),
         (
-          first: (featureType: 'landscape', elementType: 'geometry'),
+          first: (featureType: 'all', elementType: 'labels.text.fill'),
           last: (featureType: 'water', elementType: 'geometry.fill'),
         ),
       );

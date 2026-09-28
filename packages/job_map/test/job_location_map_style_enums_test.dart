@@ -1,5 +1,5 @@
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_style.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_map/src/job_location_map_style.dart';
 
 void main() {
   group('JobLocationMapVisibility', () {

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:job_map/src/job_location_map_color_scheme.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 part 'job_location_map_style.freezed.dart';
@@ -11,6 +11,7 @@ part 'job_location_map_style_enums.dart';
 
 @freezed
 sealed class JobLocationMapStyle with _$JobLocationMapStyle {
+  @JsonSerializable(explicitToJson: true)
   const factory JobLocationMapStyle({required List<JobLocationMapStyleRule> rules}) = _JobLocationMapStyle;
 
   const JobLocationMapStyle._();
@@ -70,6 +71,12 @@ sealed class JobLocationMapStyle with _$JobLocationMapStyle {
           ])
             if (element.color case final color?)
               _colorRule(featureType: feature.featureType, elementType: element.elementType, color: color),
+          if (feature.colors.labelsTextFillLightness case final lightness?)
+            JobLocationMapStyleRule(
+              featureType: feature.featureType,
+              elementType: 'labels.text.fill',
+              stylers: [JobLocationMapStyleStyler(lightness: lightness)],
+            ),
           if (feature.colors.geometryWeight case final weight?)
             _weightRule(featureType: feature.featureType, weight: weight),
         ],
@@ -106,6 +113,7 @@ sealed class JobLocationMapStyle with _$JobLocationMapStyle {
 
 @freezed
 sealed class JobLocationMapStyleRule with _$JobLocationMapStyleRule {
+  @JsonSerializable(explicitToJson: true)
   const factory JobLocationMapStyleRule({
     required String featureType,
     required String elementType,
@@ -118,8 +126,12 @@ sealed class JobLocationMapStyleRule with _$JobLocationMapStyleRule {
 @freezed
 sealed class JobLocationMapStyleStyler with _$JobLocationMapStyleStyler {
   @JsonSerializable(includeIfNull: false)
-  const factory JobLocationMapStyleStyler({String? color, JobLocationMapVisibility? visibility, int? weight}) =
-      _JobLocationMapStyleStyler;
+  const factory JobLocationMapStyleStyler({
+    String? color,
+    int? lightness,
+    JobLocationMapVisibility? visibility,
+    int? weight,
+  }) = _JobLocationMapStyleStyler;
 
   factory JobLocationMapStyleStyler.fromJson(Map<String, Object?> json) => _$JobLocationMapStyleStylerFromJson(json);
 }
