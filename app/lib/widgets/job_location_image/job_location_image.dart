@@ -26,7 +26,7 @@ class JobLocationImage extends ConsumerStatefulWidget {
 }
 
 class _JobLocationImageState extends ConsumerState<JobLocationImage> {
-  static const _imageFadeDuration = Duration(milliseconds: 300);
+  static const _imageFadeDuration = Duration(milliseconds: 120);
   GlobalKey<_JobLocationImageFeedbackState> _feedbackKey = GlobalKey<_JobLocationImageFeedbackState>();
   int _retry = 0;
 

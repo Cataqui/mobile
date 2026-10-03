@@ -78,13 +78,13 @@ void main() {
     expect(find.byType(Motion), findsNothing);
     expect(tester.widgetList<RawImage>(find.byType(RawImage)).any((image) => image.image != null), isTrue);
   });
-  testWidgets('when a map arrives asynchronously, it should fade in over 300 milliseconds', (tester) async {
+  testWidgets('when a map arrives asynchronously, it should fade in over 120 milliseconds', (tester) async {
     await _JobLocationImageTestHelpers.pump(tester, cacheManager: cacheManager);
     await StaticMapCacheTestHelpers.loadImages(tester);
     final fade = find.descendant(of: find.byType(CachedNetworkImage), matching: find.byType(FadeTransition));
-    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump(const Duration(milliseconds: 60));
     expect(tester.widget<FadeTransition>(fade.first).opacity.value, inExclusiveRange(0, 1));
-    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump(const Duration(milliseconds: 60));
     expect(tester.widget<FadeTransition>(fade.first).opacity.value, 1);
   });
   testWidgets('when reduced motion is enabled, it should disable the image fade', (tester) async {
