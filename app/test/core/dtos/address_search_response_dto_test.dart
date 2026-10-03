@@ -54,7 +54,7 @@ void main() {
       );
     });
 
-    test('when geosearch returns changed category names, it should map the current worker contract', () {
+    test('when maps returns changed category names, it should map the current worker contract', () {
       final categories =
           <String>[
             'COCKTAIL_BAR',
@@ -96,7 +96,7 @@ final class _AddressSearchResponseDtoTestData {
     return <String, Object?>{
       'suggestions': <Object?>[
         <String, Object?>{
-          'addressId': 'address-id-123',
+          'placeId': 'address-id-123',
           'fullText': 'Avenida Paulista, Bela Vista, São Paulo - SP, Brasil',
           'primaryText': 'Avenida Paulista',
           'category': category,

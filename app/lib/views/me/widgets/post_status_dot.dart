@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -21,7 +21,7 @@ final class AuthInterceptor extends InterceptorWithAuth {
   final Future<void> Function() refreshSessionInBackground;
 
   @override
-  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+  void onResponse(Response<Object?> response, ResponseInterceptorHandler handler) {
     final session = getCurrentSession();
 
     if (session != null && session.accessTokenExpiresAt.difference(clock.now()) < refreshThreshold) {

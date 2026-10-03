@@ -1,5 +1,5 @@
 import 'package:alchemist/alchemist.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
@@ -96,7 +96,7 @@ abstract final class PostViewGoldenTestHelpers {
 
   static Widget buildPostViewWithSelectedContact() {
     return buildPostView(
-      initialPostData: const PostData(contact: (contactMethod: JobContactMethod.whatsapp, identifier: 'Ventairy.Dev')),
+      initialPostData: const PostData(contact: (contactMethod: ContactMethod.whatsapp, identifier: 'Ventairy.Dev')),
     );
   }
 

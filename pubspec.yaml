@@ -1,51 +1,16 @@
-name: cataqui_workspce
+name: cataqui_workspace
 publish_to: none
 environment:
   sdk: ">=3.12.0 <4.0.0"
 
 workspace:
   - app
-  - packages/job_map
 
 dev_dependencies:
   build_runner: ^2.15.0
   dart_husky: ^1.8.1
   melos: 8.2.2
   very_good_analysis: ^7.0.0
-
-# Use the reviewed fork until https://github.com/flutter/packages/pull/12357
-# is split, published, and available from pub.dev.
-dependency_overrides:
-  google_maps_flutter:
-    git:
-      url: https://github.com/RyanHolanda/packages.git
-      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
-      path: packages/google_maps_flutter/google_maps_flutter
-  google_maps_flutter_android:
-    git:
-      url: https://github.com/RyanHolanda/packages.git
-      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
-      path: packages/google_maps_flutter/google_maps_flutter_android
-  google_maps_flutter_ios:
-    git:
-      url: https://github.com/RyanHolanda/packages.git
-      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
-      path: packages/google_maps_flutter/google_maps_flutter_ios
-  google_maps_flutter_ios_sdk9:
-    git:
-      url: https://github.com/RyanHolanda/packages.git
-      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
-      path: packages/google_maps_flutter/google_maps_flutter_ios_sdk9
-  google_maps_flutter_platform_interface:
-    git:
-      url: https://github.com/RyanHolanda/packages.git
-      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
-      path: packages/google_maps_flutter/google_maps_flutter_platform_interface
-  google_maps_flutter_web:
-    git:
-      url: https://github.com/RyanHolanda/packages.git
-      ref: dffba8623011b566ed8f0bef77d339e21a4d699c
-      path: packages/google_maps_flutter/google_maps_flutter_web
 
 melos:
   name: cataqui
@@ -59,7 +24,7 @@ melos:
       description: Run tests with coverage
       exec:
         command: |
-          fvm flutter test --coverage --test-randomize-ordering-seed=random && \
+          CI=true fvm flutter test --coverage --test-randomize-ordering-seed=random && \
           if [ -s coverage/lcov.info ]; then \
             remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$' && \
             awk '/^name:/ {print $2; exit}' pubspec.yaml | xargs -I {} genhtml coverage/lcov.info \
@@ -75,7 +40,7 @@ melos:
     test:no-coverage:
       description: Run tests without coverage
       exec:
-        command: fvm flutter test --test-randomize-ordering-seed=random
+        command: CI=true fvm flutter test --test-randomize-ordering-seed=random
         concurrency: 1
       packageFilters:
         dirExists: test
@@ -89,7 +54,7 @@ melos:
       description: Run tests with --coverage (no HTML report)
       exec:
         command: |
-          fvm flutter test --coverage --test-randomize-ordering-seed=random && \
+          CI=true fvm flutter test --coverage --test-randomize-ordering-seed=random && \
           if [ -s coverage/lcov.info ]; then \
             remove_from_coverage -f coverage/lcov.info -r '\.g\.dart$' -r '\.freezed\.dart$'; \
           fi
@@ -100,7 +65,7 @@ melos:
     goldens:update:
       description: Update approved golden files
       exec:
-        command: fvm flutter test --update-goldens --test-randomize-ordering-seed=random
+        command: CI=true fvm flutter test --update-goldens --test-randomize-ordering-seed=random
         concurrency: 1
       packageFilters:
         fileExists: dart_test.yaml
@@ -113,8 +78,7 @@ melos:
         fvm dart pub global activate flutter_launcher_icons 0.14.4 && \
         fvm dart pub global activate remove_from_coverage && \
         fvm dart run dart_husky install && \
-        melos run gen --no-select && \
-        melos run goldens:update --no-select
+        fvm dart run melos run gen --no-select
 
     get:
       description: Install dependencies for a package

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
@@ -92,142 +90,29 @@ void main() {
         ).called(1);
       });
 
-      test(
-        'when the NOTP intent is pending before verification, it should poll and return the issued session',
-        () async {
-          var requestCount = 0;
-          _AuthRepositoryTestData.stubPendingThenIssuedSessionExchangeRequest(
-            dio: dio,
-            onRequest: () => requestCount += 1,
-          );
+      test('when the NOTP intent is pending, it should return the backend retry interval without polling', () async {
+        _AuthRepositoryTestData.stubPendingExchangeRequest(dio: dio);
 
-          final envelope = await repository.exchangeNotpIntent(intentToken: _AuthRepositoryTestData.intentToken);
+        final envelope = await repository.exchangeNotpIntent(intentToken: _AuthRepositoryTestData.intentToken);
 
-          expect(
-            (session: envelope.data, requestCount: requestCount),
-            (session: NotpIntentExchangeResultDto.issuedSessionFixture(), requestCount: 2),
-          );
-        },
-      );
+        expect(envelope.data, const NotpIntentExchangeResultDto.pending(retryAfterSeconds: 3));
+      });
 
-      test('when the NOTP intent stays pending past the exchange deadline, it should throw a timeout', () async {
-        repository = AuthRepository(
-          authenticatedDio: authenticatedDio,
-          unauthenticatedDio: dio,
-          exchangeIntentTimeout: const Duration(milliseconds: 1),
-        );
-        var requestCount = 0;
-        _AuthRepositoryTestData.stubPendingExchangeRequest(dio: dio, onRequest: () => requestCount += 1);
-        Object? thrownError;
+      test('when a NOTP exchange issues a session, it should map the complete response envelope', () async {
+        _AuthRepositoryTestData.stubIssuedSessionExchangeRequest(dio: dio);
 
-        try {
-          await repository.exchangeNotpIntent(intentToken: _AuthRepositoryTestData.intentToken);
-        } on Object catch (error) {
-          thrownError = error;
-        }
+        final envelope = await repository.exchangeNotpIntent(intentToken: _AuthRepositoryTestData.intentToken);
 
         expect(
-          (timedOut: thrownError is TimeoutException, requestCount: requestCount),
-          (timedOut: true, requestCount: 1),
-        );
-      });
-
-      test('when the exchange deadline has not started, it should keep polling until the session is issued', () async {
-        repository = AuthRepository(
-          authenticatedDio: authenticatedDio,
-          unauthenticatedDio: dio,
-          exchangeIntentTimeout: Duration.zero,
-        );
-        final exchangeTimeoutStart = Completer<void>();
-        var requestCount = 0;
-        _AuthRepositoryTestData.stubPendingThenIssuedSessionExchangeRequest(
-          dio: dio,
-          onRequest: () => requestCount += 1,
-        );
-
-        final envelope = await repository.exchangeNotpIntent(
-          intentToken: _AuthRepositoryTestData.intentToken,
-          timeoutStart: exchangeTimeoutStart.future,
-        );
-
-        expect(
-          (session: envelope.data, requestCount: requestCount),
-          (session: NotpIntentExchangeResultDto.issuedSessionFixture(), requestCount: 2),
-        );
-      });
-
-      test('when an exchange request succeeds after the deadline, it should return the issued session', () async {
-        repository = AuthRepository(
-          authenticatedDio: authenticatedDio,
-          unauthenticatedDio: dio,
-          exchangeIntentTimeout: Duration.zero,
-        );
-        final responseCompleter = Completer<Response<Map<String, Object?>>>();
-        when(
-          () => dio.post<Map<String, Object?>>(
-            '/auth/notp/intents/exchange',
-            data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
-          ),
-        ).thenAnswer((_) => responseCompleter.future);
-
-        final exchange = repository.exchangeNotpIntent(
-          intentToken: _AuthRepositoryTestData.intentToken,
-          timeoutStart: Future<void>.value(),
-        );
-        await Future<void>.delayed(Duration.zero);
-        responseCompleter.complete(
-          Response<Map<String, Object?>>(
-            data: _AuthRepositoryTestData.issuedSessionResponseJson,
-            requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
+          envelope,
+          ApiEnvelopeDto<NotpIntentExchangeResultDto>(
+            data: NotpIntentExchangeResultDto.issuedSessionFixture(),
+            requestId: 'notp-exchange-request-002',
+            timestamp: DateTime.utc(2026, 8, 10, 15, 0, 1),
+            endpoint: '/v1/auth/notp/intents/exchange',
           ),
         );
-
-        expect((await exchange).data, NotpIntentExchangeResultDto.issuedSessionFixture());
       });
-
-      test(
-        'when an in-flight exchange fails after the deadline, it should propagate the error without polling again',
-        () async {
-          repository = AuthRepository(
-            authenticatedDio: authenticatedDio,
-            unauthenticatedDio: dio,
-            exchangeIntentTimeout: Duration.zero,
-          );
-          final terminalError = DioException(
-            requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
-            response: Response<void>(
-              requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
-              statusCode: 404,
-            ),
-          );
-          var requestCount = 0;
-          final responseCompleter = Completer<Response<Map<String, Object?>>>();
-          when(
-            () => dio.post<Map<String, Object?>>(
-              '/auth/notp/intents/exchange',
-              data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
-            ),
-          ).thenAnswer((_) {
-            requestCount += 1;
-            return responseCompleter.future;
-          });
-          Object? thrownError;
-
-          try {
-            final exchange = repository.exchangeNotpIntent(
-              intentToken: _AuthRepositoryTestData.intentToken,
-              timeoutStart: Future<void>.value(),
-            );
-            await Future<void>.delayed(Duration.zero);
-            responseCompleter.completeError(terminalError);
-            await exchange;
-          } on Object catch (error) {
-            thrownError = error;
-          }
-
-          expect((error: thrownError, requestCount: requestCount), (error: terminalError, requestCount: 1));
-        },
-      );
     });
 
     group('refreshSession', () {
@@ -296,19 +181,19 @@ void main() {
       });
     });
 
-    group('createGeosearchAccessToken', () {
+    group('createMapsAccessToken', () {
       setUp(() {
-        _AuthRepositoryTestData.stubGeosearchAccessTokenRequest(dio: authenticatedDio);
+        _AuthRepositoryTestData.stubMapsAccessTokenRequest(dio: authenticatedDio);
       });
 
-      test('when creating geosearch access, it should call the authenticated microservice endpoint', () async {
-        await repository.createGeosearchAccessToken();
+      test('when creating maps access, it should call the authenticated microservice endpoint', () async {
+        await repository.createMapsAccessToken();
 
-        verify(() => authenticatedDio.post<Map<String, Object?>>('/auth/microservices/geosearch')).called(1);
+        verify(() => authenticatedDio.post<Map<String, Object?>>('/auth/microservices/maps')).called(1);
       });
 
-      test('when geosearch access is issued, it should map the bearer access token', () async {
-        final envelope = await repository.createGeosearchAccessToken();
+      test('when maps access is issued, it should map the bearer access token', () async {
+        final envelope = await repository.createMapsAccessToken();
 
         expect(
           (accessToken: envelope.data.accessToken, tokenType: envelope.data.tokenType),
@@ -316,8 +201,8 @@ void main() {
         );
       });
 
-      test('when geosearch access is issued, it should map the expiration timestamp', () async {
-        final envelope = await repository.createGeosearchAccessToken();
+      test('when maps access is issued, it should map the expiration timestamp', () async {
+        final envelope = await repository.createMapsAccessToken();
 
         expect(envelope.data.expiresAt, DateTime.parse('2026-08-22T15:10:00.000Z'));
       });
@@ -379,7 +264,7 @@ class _AuthRepositoryTestData {
   };
 
   static final pendingResponseJson = <String, Object?>{
-    'data': <String, Object?>{'status': 'PENDING', 'retryAfterSeconds': 1},
+    'data': <String, Object?>{'status': 'PENDING', 'retryAfterSeconds': 3},
     'requestId': 'notp-exchange-request-001',
     'timestamp': '2026-08-10T15:00:00.000Z',
     'endpoint': '/v1/auth/notp/intents/exchange',
@@ -399,15 +284,15 @@ class _AuthRepositoryTestData {
     'endpoint': '/v1/auth/sessions/refresh',
   };
 
-  static final geosearchAccessTokenResponseJson = <String, Object?>{
+  static final mapsAccessTokenResponseJson = <String, Object?>{
     'data': <String, Object?>{
       'accessToken': 'header.payload.signature',
       'expiresAt': '2026-08-22T15:10:00.000Z',
       'tokenType': 'Bearer',
     },
-    'requestId': 'geosearch-token-request-004',
+    'requestId': 'maps-token-request-004',
     'timestamp': '2026-08-22T15:00:00.000Z',
-    'endpoint': '/v1/auth/microservices/geosearch',
+    'endpoint': '/v1/auth/microservices/maps',
   };
 
   static void stubCreatedNotpIntentRequest({required MockDio dio}) {
@@ -435,39 +320,18 @@ class _AuthRepositoryTestData {
     );
   }
 
-  static void stubPendingThenIssuedSessionExchangeRequest({required MockDio dio, required void Function() onRequest}) {
-    var isFirstRequest = true;
+  static void stubPendingExchangeRequest({required MockDio dio}) {
     when(
       () => dio.post<Map<String, Object?>>(
         '/auth/notp/intents/exchange',
         data: <String, String>{'intentToken': intentToken},
       ),
-    ).thenAnswer((_) async {
-      onRequest();
-      final responseData = isFirstRequest ? pendingResponseJson : issuedSessionResponseJson;
-      isFirstRequest = false;
-
-      return Response<Map<String, Object?>>(
-        data: responseData,
-        requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
-      );
-    });
-  }
-
-  static void stubPendingExchangeRequest({required MockDio dio, required void Function() onRequest}) {
-    when(
-      () => dio.post<Map<String, Object?>>(
-        '/auth/notp/intents/exchange',
-        data: <String, String>{'intentToken': intentToken},
-      ),
-    ).thenAnswer((_) async {
-      onRequest();
-
-      return Response<Map<String, Object?>>(
+    ).thenAnswer(
+      (_) async => Response<Map<String, Object?>>(
         data: pendingResponseJson,
         requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
-      );
-    });
+      ),
+    );
   }
 
   static void stubRefreshSessionRequest({required MockDio dio}) {
@@ -484,11 +348,11 @@ class _AuthRepositoryTestData {
     );
   }
 
-  static void stubGeosearchAccessTokenRequest({required MockDio dio}) {
-    when(() => dio.post<Map<String, Object?>>('/auth/microservices/geosearch')).thenAnswer(
+  static void stubMapsAccessTokenRequest({required MockDio dio}) {
+    when(() => dio.post<Map<String, Object?>>('/auth/microservices/maps')).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
-        data: geosearchAccessTokenResponseJson,
-        requestOptions: RequestOptions(path: '/auth/microservices/geosearch'),
+        data: mapsAccessTokenResponseJson,
+        requestOptions: RequestOptions(path: '/auth/microservices/maps'),
       ),
     );
   }

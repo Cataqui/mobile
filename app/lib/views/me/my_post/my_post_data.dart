@@ -1,6 +1,6 @@
 import 'dart:isolate';
 
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_dto.dart';
 import 'package:flutter/foundation.dart';
 
@@ -16,21 +16,21 @@ class MyPostData {
 
   static Future<MyPostData> prepare(UserJobDto detail) async {
     final contact = detail.contact;
-    if (contact == null || contact.identifier.trim().isEmpty || contact.contactMethod == .unknown) {
+    if (contact == null || contact.identifier.trim().isEmpty || contact.method == .unknown) {
       return MyPostData.fromDetail(detail);
     }
 
-    final method = contact.contactMethod;
+    final method = contact.method;
     final identifier = contact.identifier;
     final contactLabel = await Isolate.run(() => method.displayIdentifier(identifier));
     return MyPostData(detail: detail, contactLabel: contactLabel);
   }
 
-  static String? _formatContact(JobContactDto? contact) {
+  static String? _formatContact(ContactDto? contact) {
     if (contact == null || contact.identifier.trim().isEmpty) return null;
-    return switch (contact.contactMethod) {
+    return switch (contact.method) {
       .unknown => contact.identifier,
-      .whatsapp || .phoneCall => contact.contactMethod.displayIdentifier(contact.identifier),
+      .whatsapp || .phoneCall => contact.method.displayIdentifier(contact.identifier),
     };
   }
 }

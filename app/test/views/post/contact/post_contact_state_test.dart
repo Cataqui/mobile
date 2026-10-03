@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
+import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/post/contact/post_contact_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks.dart';
+import '../../me/fake_app_auth_state.dart';
 
 void main() {
   late MockUserRepository userRepository;
@@ -24,17 +27,17 @@ void main() {
         data: [
           SavedContactDto.fixture().copyWith(
             contactId: 'whatsapp-username',
-            contactMethod: JobContactMethod.whatsapp,
+            method: ContactMethod.whatsapp,
             identifier: 'Ventairy.Dev',
           ),
           SavedContactDto.fixture().copyWith(
             contactId: 'phone-us',
-            contactMethod: JobContactMethod.phoneCall,
+            method: ContactMethod.phoneCall,
             identifier: '+1 (202) 555-0123',
           ),
           SavedContactDto.fixture().copyWith(
             contactId: 'whatsapp-br',
-            contactMethod: JobContactMethod.whatsapp,
+            method: ContactMethod.whatsapp,
             identifier: '+55 11 91234 5678',
           ),
         ],
@@ -60,6 +63,32 @@ void main() {
     verify(userRepository.getContacts).called(1);
   });
 
+  test('when the account changes, it should replace saved contacts with the current account contacts', () async {
+    final authState = FakeAppAuthState(AuthSessionDto.fixture().copyWith(userId: 'first-poster'));
+    final firstContact = SavedContactDto.fixture().copyWith(contactId: 'first-poster-contact');
+    final secondContact = SavedContactDto.fixture().copyWith(contactId: 'second-poster-contact');
+    var requestCount = 0;
+    when(userRepository.getContacts).thenAnswer((_) async {
+      requestCount += 1;
+      return ApiEnvelopeDto.fixture(data: [if (requestCount == 1) firstContact else secondContact]);
+    });
+    final container = ProviderContainer(
+      overrides: [
+        userRepositoryProvider.overrideWithValue(userRepository),
+        appAuthStateProvider.overrideWith(() => authState),
+      ],
+    )..listen(postContactStateProvider, (_, _) {});
+    addTearDown(container.dispose);
+    container.read(appAuthStateProvider);
+    await container.read(postContactStateProvider.future);
+
+    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-poster');
+    await container.pump();
+    final contacts = await container.read(postContactStateProvider.future);
+
+    expect(contacts.map((option) => option.contact.contactId).toList(), ['second-poster-contact']);
+  });
+
   test('when the repository fails, it should expose the transport error', () async {
     when(userRepository.getContacts).thenThrow(StateError('transport failed'));
     final container = _PostContactStateTestHelpers.createContainer(userRepository);
@@ -70,12 +99,7 @@ void main() {
   test('when a phone identifier is invalid, it should expose a format error', () async {
     when(userRepository.getContacts).thenAnswer(
       (_) async => ApiEnvelopeDto.fixture(
-        data: [
-          SavedContactDto.fixture().copyWith(
-            contactMethod: JobContactMethod.phoneCall,
-            identifier: 'not a phone number',
-          ),
-        ],
+        data: [SavedContactDto.fixture().copyWith(method: ContactMethod.phoneCall, identifier: 'not a phone number')],
       ),
     );
     final container = _PostContactStateTestHelpers.createContainer(userRepository);
@@ -85,8 +109,7 @@ void main() {
 
   test('when a contact method is unknown, it should expose an unsupported-method error', () async {
     when(userRepository.getContacts).thenAnswer(
-      (_) async =>
-          ApiEnvelopeDto.fixture(data: [SavedContactDto.fixture().copyWith(contactMethod: JobContactMethod.unknown)]),
+      (_) async => ApiEnvelopeDto.fixture(data: [SavedContactDto.fixture().copyWith(method: ContactMethod.unknown)]),
     );
     final container = _PostContactStateTestHelpers.createContainer(userRepository);
 

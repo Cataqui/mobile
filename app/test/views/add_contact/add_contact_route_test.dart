@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/add_contact/add_contact_route.dart';
 import 'package:cataqui_app/views/add_contact/add_contact_view.dart';
@@ -61,7 +61,7 @@ void main() {
         await tester.pump();
         expect(find.byType(AddContactView), findsOneWidget);
         final route = ModalRoute.of(tester.element(find.byType(AddContactView)))!;
-        expect(route.settings, isA<MateoPage<void>>());
+        expect(route.settings, isA<MateoPage<bool>>());
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(EditableText), '11987654321');
         await tester.pump();
@@ -112,7 +112,7 @@ void main() {
     expect(router.canPop(), isFalse);
     expect(container.read(postStateProvider).descriptionText, 'Ajudar na mudanca');
     expect(container.read(postStateProvider).contact, (
-      contactMethod: JobContactMethod.whatsapp,
+      contactMethod: ContactMethod.whatsapp,
       identifier: '+5511912345678',
     ));
   });
@@ -129,5 +129,61 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('add_contact_close_button')));
     await tester.pumpAndSettle();
     expect(find.byType(PostView), findsOneWidget);
+  });
+
+  testWidgets('saving after a direct typed push preserves the job form and reports the selection', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/post',
+      routes: [$postRoute, $addContactRoute],
+      observers: [MateoNavigatorObserver()],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(TestApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+    final postContext = tester.element(find.byType(PostView));
+    final container = ProviderScope.containerOf(postContext);
+    container.read(postStateProvider.notifier).setDescription('Carregar caixas');
+
+    final didSave = const AddContactRoute().push<bool>(postContext);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(EditableText), '+5511912345678');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('add_contact_save_button')));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(PostView), findsOneWidget);
+    expect(find.byType(AddContactView), findsNothing);
+    expect(router.canPop(), isFalse);
+    expect(container.read(postStateProvider).descriptionText, 'Carregar caixas');
+    expect(container.read(postStateProvider).contact, (
+      contactMethod: ContactMethod.whatsapp,
+      identifier: '+5511912345678',
+    ));
+    expect(await didSave, isTrue);
+  });
+
+  testWidgets('saving from a direct entry opens the job form with the selected contact', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/add-contact',
+      routes: [$postRoute, $addContactRoute],
+      observers: [MateoNavigatorObserver()],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(TestApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(AddContactView)));
+    await tester.enterText(find.byType(EditableText), '+5511912345678');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('add_contact_save_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PostView), findsOneWidget);
+    expect(find.byType(AddContactView), findsNothing);
+    expect(router.canPop(), isFalse);
+    expect(container.read(postStateProvider).contact, (
+      contactMethod: ContactMethod.whatsapp,
+      identifier: '+5511912345678',
+    ));
   });
 }

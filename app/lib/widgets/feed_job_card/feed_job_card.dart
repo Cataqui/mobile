@@ -39,6 +39,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
       },
       child: MateoSurface(
         width: const .fill(),
+        height: const .fit(),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
 
         color: colorScheme.background,

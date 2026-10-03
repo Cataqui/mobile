@@ -18,7 +18,7 @@ import '../../../mocks.dart';
 import 'post_location_test_helpers.dart';
 
 void main() {
-  late MockGeosearchRepository geosearchRepository;
+  late MockMapsRepository mapsRepository;
   late Translations i18n;
 
   setUpAll(() {
@@ -26,9 +26,9 @@ void main() {
   });
 
   setUp(() {
-    geosearchRepository = MockGeosearchRepository();
+    mapsRepository = MockMapsRepository();
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
@@ -208,7 +208,7 @@ void main() {
   });
 
   testWidgets('when a query is waiting for debounce, it should not show search results yet', (tester) async {
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await tester.enterText(find.byKey(const ValueKey('post_location_search_field')), 'Rua');
     await tester.pump(const Duration(milliseconds: 299));
@@ -219,7 +219,7 @@ void main() {
   testWidgets('when a nonblank query is waiting for debounce, it should keep the current location button', (
     tester,
   ) async {
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await tester.enterText(find.byKey(const ValueKey('post_location_search_field')), 'Rua');
     await tester.pump();
@@ -229,12 +229,12 @@ void main() {
 
   testWidgets('when an address search is loading, it should hide the current location button', (tester) async {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
     ).thenAnswer((_) => Completer<AddressSearchResponseDto>().future);
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua', settle: false);
 
@@ -242,7 +242,7 @@ void main() {
   });
 
   testWidgets('when an address search finishes, it should keep the current location button hidden', (tester) async {
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
 
@@ -251,12 +251,12 @@ void main() {
 
   testWidgets('when an address search fails, it should keep the current location button hidden', (tester) async {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
     ).thenThrow(StateError('search failed'));
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
 
@@ -265,12 +265,12 @@ void main() {
 
   testWidgets('when an address search is pending, it should show localized skeleton semantics', (tester) async {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
     ).thenAnswer((_) => Completer<AddressSearchResponseDto>().future);
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua', settle: false);
 
@@ -281,7 +281,7 @@ void main() {
   });
 
   testWidgets('when address search succeeds, it should show suggestions in API order', (tester) async {
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
     final first = find.byKey(const ValueKey('post_location_suggestion_address-id-123'));
@@ -299,12 +299,12 @@ void main() {
 
   testWidgets('when address search returns no suggestions, it should show the localized empty state', (tester) async {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
     ).thenAnswer((_) async => PostLocationTestHelpers.emptyAddressSearchResponse);
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
 
@@ -313,12 +313,12 @@ void main() {
 
   testWidgets('when address search fails, it should show the localized generic error', (tester) async {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
     ).thenThrow(StateError('search failed'));
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
 
@@ -327,12 +327,12 @@ void main() {
 
   testWidgets('when address search fails offline, it should show the localized offline error', (tester) async {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
     ).thenThrow(PostLocationTestHelpers.createOfflineDioException());
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
 
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
 
@@ -342,7 +342,7 @@ void main() {
   testWidgets('when a suggestion is selected, it should return with its id and primary label in post state', (
     tester,
   ) async {
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
     final container = ProviderScope.containerOf(tester.element(find.byType(PostView, skipOffstage: false)));
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
 
@@ -365,7 +365,7 @@ void main() {
   testWidgets('when a suggestion is selected, it should keep the overlay open until the updated chip renders', (
     tester,
   ) async {
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
     final locationRoute = ModalRoute.of(tester.element(find.byType(PostLocationView)))!;
     final suggestion = find.byKey(const ValueKey('post_location_suggestion_address-id-123'));
@@ -379,7 +379,7 @@ void main() {
   });
 
   testWidgets('when a suggestion is selected, it should not request address details', (tester) async {
-    await PostLocationTestHelpers.openLocation(tester, geosearchRepository: geosearchRepository);
+    await PostLocationTestHelpers.openLocation(tester, mapsRepository: mapsRepository);
     await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua');
 
     final suggestion = find.byKey(const ValueKey('post_location_suggestion_address-id-123'));
@@ -389,7 +389,7 @@ void main() {
     await tester.pumpAndSettle();
 
     verifyNever(
-      () => geosearchRepository.getAddressDetails(
+      () => mapsRepository.getAddressDetails(
         addressId: any(named: 'addressId'),
         sessionToken: any(named: 'sessionToken'),
       ),

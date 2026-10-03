@@ -1,6 +1,7 @@
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:dio/dio.dart';
@@ -95,17 +96,17 @@ void main() {
       });
     });
 
-    group('getJob', () {
+    group('getPublicJob', () {
       test('when requesting a job, it should call the job detail endpoint with the job id', () async {
-        await repository.getJob(jobId: _JobRepositoryTestData.jobId);
+        await repository.getPublicJob(jobId: _JobRepositoryTestData.jobId);
 
         verify(() => unauthenticatedDio.get<Map<String, Object?>>('/jobs/${_JobRepositoryTestData.jobId}')).called(1);
       });
 
       test('when receiving a job, it should map the job dto data', () async {
-        final envelope = await repository.getJob(jobId: _JobRepositoryTestData.jobId);
+        final envelope = await repository.getPublicJob(jobId: _JobRepositoryTestData.jobId);
 
-        expect(envelope.data.jobId, JobDto.fixture().jobId);
+        expect(envelope.data.jobId, PublicJobDto.fixture().jobId);
       });
 
       test('when receiving payment text, it should preserve the backend text', () async {
@@ -113,11 +114,11 @@ void main() {
           dio: unauthenticatedDio,
           responseJson: {
             ..._JobRepositoryTestData.jobEnvelopeJson,
-            'data': JobDto.fixture().copyWith(payment: r'R$150 ou R$140').toJson(),
+            'data': PublicJobDto.fixture().copyWith(payment: r'R$150 ou R$140').toJson(),
           },
         );
 
-        final envelope = await repository.getJob(jobId: _JobRepositoryTestData.jobId);
+        final envelope = await repository.getPublicJob(jobId: _JobRepositoryTestData.jobId);
 
         expect(envelope.data.payment, r'R$150 ou R$140');
       });
@@ -127,17 +128,17 @@ void main() {
           dio: unauthenticatedDio,
           responseJson: {
             ..._JobRepositoryTestData.jobEnvelopeJson,
-            'data': JobDto.fixture().copyWith(payment: null).toJson(),
+            'data': PublicJobDto.fixture().copyWith(payment: null).toJson(),
           },
         );
 
-        final envelope = await repository.getJob(jobId: _JobRepositoryTestData.jobId);
+        final envelope = await repository.getPublicJob(jobId: _JobRepositoryTestData.jobId);
 
         expect(envelope.data.payment, isNull);
       });
 
       test('when receiving a job, it should map the request id', () async {
-        final envelope = await repository.getJob(jobId: _JobRepositoryTestData.jobId);
+        final envelope = await repository.getPublicJob(jobId: _JobRepositoryTestData.jobId);
 
         expect(envelope.requestId, '5b591550-c650-4e27-a2ed-d6f02e1c0da2');
       });
@@ -183,7 +184,7 @@ void main() {
           contactId: _JobRepositoryTestData.contactId,
         );
 
-        expect(envelope.data.contactMethod, _JobRepositoryTestData.contact.contactMethod);
+        expect(envelope.data.method, _JobRepositoryTestData.contact.method);
       });
 
       test('when receiving a job contact, it should map the identifier from the dto', () async {
@@ -227,13 +228,10 @@ abstract final class _JobRepositoryTestData {
   static const idempotencyKey = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
   static const description = 'Preciso de ajuda para descarregar caixas.';
 
-  static final contact = JobContactDto.fixture().copyWith(
-    contactMethod: JobContactMethod.whatsapp,
-    identifier: '+5511999999999',
-  );
+  static final contact = ContactDto.fixture().copyWith(method: ContactMethod.whatsapp, identifier: '+5511999999999');
 
   static final jobEnvelopeJson = <String, Object?>{
-    'data': JobDto.fixture().toJson(),
+    'data': PublicJobDto.fixture().toJson(),
     'requestId': '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
     'timestamp': '2026-06-06T00:37:46.623Z',
     'endpoint': '/v1/jobs/$jobId',
@@ -247,7 +245,7 @@ abstract final class _JobRepositoryTestData {
   };
 
   static final createdJobEnvelopeJson = <String, Object?>{
-    'data': JobDto.fixture().toJson(),
+    'data': PublicJobDto.fixture().toJson(),
     'requestId': 'create-req-001',
     'timestamp': '2026-06-06T00:37:46.623Z',
     'endpoint': '/v1/jobs',
@@ -289,7 +287,7 @@ abstract final class _JobRepositoryTestHelpers {
         (_) async => Response<Map<String, Object?>>(
           data: {
             ..._JobRepositoryTestData.jobEnvelopeJson,
-            'data': JobDto.fixture().copyWith(status: status).toJson(),
+            'data': PublicJobDto.fixture().copyWith(status: status).toJson(),
           },
           requestOptions: RequestOptions(path: path),
         ),

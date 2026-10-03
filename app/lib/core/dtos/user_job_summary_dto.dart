@@ -1,5 +1,5 @@
-import 'package:cataqui_app/core/dtos/job_location_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/fuzzy_job_location_dto.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'user_job_summary_dto.freezed.dart';
@@ -12,7 +12,7 @@ abstract class UserJobSummaryDto with _$UserJobSummaryDto {
     required String title,
     required String descriptionSummary,
     required String? payment,
-    required JobLocationDto location,
+    required FuzzyJobLocationDto location,
     @JsonKey(unknownEnumValue: JobStatus.unknown) required JobStatus status,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -25,8 +25,8 @@ abstract class UserJobSummaryDto with _$UserJobSummaryDto {
     title: 'Ajuda para descarregar caixas',
     descriptionSummary: 'Trabalho rápido para ajudar a descarregar caixas no Centro.',
     payment: r'R$120',
-    location: JobLocationDto.fixture(),
-    status: JobStatus.active,
+    location: FuzzyJobLocationDto.fixture(),
+    status: .active,
     createdAt: DateTime.parse('2026-09-22T12:00:00.000Z'),
     updatedAt: DateTime.parse('2026-09-22T12:00:00.000Z'),
   );

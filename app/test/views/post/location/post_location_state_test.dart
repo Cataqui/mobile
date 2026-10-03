@@ -14,13 +14,13 @@ import 'package:mocktail/mocktail.dart';
 import '../../../mocks.dart';
 
 void main() {
-  late MockGeosearchRepository geosearchRepository;
+  late MockMapsRepository mapsRepository;
   late List<({String query, String sessionToken})> searchRequests;
 
   setUp(() {
-    geosearchRepository = MockGeosearchRepository();
+    mapsRepository = MockMapsRepository();
     searchRequests = <({String query, String sessionToken})>[];
-    _PostLocationStateTestData.stubSearch(geosearchRepository: geosearchRepository, requests: searchRequests);
+    _PostLocationStateTestData.stubSearch(mapsRepository: mapsRepository, requests: searchRequests);
   });
 
   group('PostLocationState', () {
@@ -28,7 +28,7 @@ void main() {
       testWidgets('when queries change during the debounce, it should search only the latest trimmed query', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
 
         unawaited(notifier.searchAddresses(query: 'Avenida'));
@@ -50,7 +50,7 @@ void main() {
       testWidgets('when only surrounding whitespace changes, it should not search the same query again', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
 
@@ -64,11 +64,11 @@ void main() {
       testWidgets('when the debounce elapses, it should expose the search as loading', (tester) async {
         final response = Completer<AddressSearchResponseDto>();
         _PostLocationStateTestData.stubSearch(
-          geosearchRepository: geosearchRepository,
+          mapsRepository: mapsRepository,
           requests: searchRequests,
           response: response.future,
         );
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
 
         final search = container.read(postLocationStateProvider.notifier).searchAddresses(query: 'Avenida Paulista');
         final isLoadingBeforeDebounce = container.read(postLocationStateProvider).addressSearch.isLoading;
@@ -89,7 +89,7 @@ void main() {
       testWidgets('when an address search succeeds, it should expose the returned addresses and attribution', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
 
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
 
@@ -101,21 +101,21 @@ void main() {
 
       testWidgets('when an address search fails, it should expose the search error', (tester) async {
         _PostLocationStateTestData.stubSearch(
-          geosearchRepository: geosearchRepository,
+          mapsRepository: mapsRepository,
           requests: searchRequests,
           error: StateError('search failed'),
         );
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
 
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
 
         expect(container.read(postLocationStateProvider).addressSearch, isA<AsyncError<AddressSearchResponseDto?>>());
       });
 
-      testWidgets('when a blank query replaces address results, it should clear them without querying geosearch', (
+      testWidgets('when a blank query replaces address results, it should clear them without querying maps', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
 
         final blankSearch = container.read(postLocationStateProvider.notifier).searchAddresses(query: '   ');
@@ -131,10 +131,10 @@ void main() {
         );
       });
 
-      testWidgets('when a blank query cancels a pending search, it should settle without querying geosearch', (
+      testWidgets('when a blank query cancels a pending search, it should settle without querying maps', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         var pendingSearchCompleted = false;
         final pendingSearch = notifier.searchAddresses(query: 'Avenida Paulista').whenComplete(() {
@@ -159,34 +159,32 @@ void main() {
         }
       });
 
-      testWidgets(
-        'when the provider is disposed during a pending search, it should settle without querying geosearch',
-        (tester) async {
-          final container = ProviderContainer(
-            overrides: [geosearchRepositoryProvider.overrideWithValue(geosearchRepository)],
-          )..listen(postLocationStateProvider, (_, _) {}, fireImmediately: true);
-          var pendingSearchCompleted = false;
-          final pendingSearch = container
-              .read(postLocationStateProvider.notifier)
-              .searchAddresses(query: 'Avenida Paulista')
-              .whenComplete(() {
-                pendingSearchCompleted = true;
-              });
+      testWidgets('when the provider is disposed during a pending search, it should settle without querying maps', (
+        tester,
+      ) async {
+        final container = ProviderContainer(overrides: [mapsRepositoryProvider.overrideWithValue(mapsRepository)])
+          ..listen(postLocationStateProvider, (_, _) {}, fireImmediately: true);
+        var pendingSearchCompleted = false;
+        final pendingSearch = container
+            .read(postLocationStateProvider.notifier)
+            .searchAddresses(query: 'Avenida Paulista')
+            .whenComplete(() {
+              pendingSearchCompleted = true;
+            });
 
-          container.dispose();
-          await tester.pump();
+        container.dispose();
+        await tester.pump();
 
-          try {
-            expect(
-              (pendingSearchCompleted: pendingSearchCompleted, requestCount: searchRequests.length),
-              (pendingSearchCompleted: true, requestCount: 0),
-            );
-          } finally {
-            await _PostLocationStateTestData.elapseDebounce(tester);
-            await pendingSearch;
-          }
-        },
-      );
+        try {
+          expect(
+            (pendingSearchCompleted: pendingSearchCompleted, requestCount: searchRequests.length),
+            (pendingSearchCompleted: true, requestCount: 0),
+          );
+        } finally {
+          await _PostLocationStateTestData.elapseDebounce(tester);
+          await pendingSearch;
+        }
+      });
 
       testWidgets('when a newer query supersedes a running search, it should settle the older search immediately', (
         tester,
@@ -194,18 +192,18 @@ void main() {
         final firstResponse = Completer<AddressSearchResponseDto>();
         final secondResponse = Completer<AddressSearchResponseDto>();
         _PostLocationStateTestData.stubSearchForQuery(
-          geosearchRepository: geosearchRepository,
+          mapsRepository: mapsRepository,
           requests: searchRequests,
           query: 'Avenida Paulista',
           response: firstResponse.future,
         );
         _PostLocationStateTestData.stubSearchForQuery(
-          geosearchRepository: geosearchRepository,
+          mapsRepository: mapsRepository,
           requests: searchRequests,
           query: 'Rua Augusta',
           response: secondResponse.future,
         );
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         var firstSearchCompleted = false;
         final firstSearch = notifier.searchAddresses(query: 'Avenida Paulista').whenComplete(() {
@@ -242,18 +240,18 @@ void main() {
         final firstResponse = Completer<AddressSearchResponseDto>();
         final secondResponse = Completer<AddressSearchResponseDto>();
         _PostLocationStateTestData.stubSearchForQuery(
-          geosearchRepository: geosearchRepository,
+          mapsRepository: mapsRepository,
           requests: searchRequests,
           query: 'Avenida Paulista',
           response: firstResponse.future,
         );
         _PostLocationStateTestData.stubSearchForQuery(
-          geosearchRepository: geosearchRepository,
+          mapsRepository: mapsRepository,
           requests: searchRequests,
           query: 'Rua Augusta',
           response: secondResponse.future,
         );
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
 
         final firstSearch = notifier.searchAddresses(query: 'Avenida Paulista');
@@ -276,7 +274,7 @@ void main() {
       testWidgets('when multiple queries belong to one autocomplete session, it should reuse one UUID token', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida');
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
 
@@ -292,7 +290,7 @@ void main() {
       testWidgets('when a blank query abandons autocomplete, it should use a new token for the next session', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
         await notifier.searchAddresses(query: '   ');
@@ -303,7 +301,7 @@ void main() {
       });
 
       testWidgets('when a new or blank query starts, it should preserve the saved coordinates', (tester) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final postNotifier = container.read(postStateProvider.notifier);
         final locationNotifier = container.read(postLocationStateProvider.notifier);
         postNotifier.setLocation(latitude: -23.561684, longitude: -46.655981, locationTitle: 'Pinheiros');
@@ -326,7 +324,7 @@ void main() {
 
     group('selectAddress', () {
       testWidgets('when no autocomplete session exists, it should not save an address selection', (tester) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
 
         container
             .read(postLocationStateProvider.notifier)
@@ -337,7 +335,7 @@ void main() {
       });
 
       testWidgets('when autocomplete is active, it should save the address id supplied by the UI', (tester) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
 
         container
@@ -351,7 +349,7 @@ void main() {
       });
 
       testWidgets('when a blank query abandons autocomplete, it should not save an address selection', (tester) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
         await notifier.searchAddresses(query: '   ');
@@ -364,7 +362,7 @@ void main() {
       testWidgets('when an address is selected, it should save its id with the autocomplete session token', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
 
         container
@@ -378,7 +376,7 @@ void main() {
       });
 
       testWidgets('when an address is selected, it should clear previously resolved coordinates', (tester) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         container
             .read(postStateProvider.notifier)
             .setLocation(latitude: -23.561684, longitude: -46.655981, locationTitle: 'Pinheiros');
@@ -394,7 +392,7 @@ void main() {
       testWidgets('when an address is selected, it should rotate the token before the next search session', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
         notifier.selectAddress(suggestion: _PostLocationStateTestData.firstSuggestion);
@@ -407,7 +405,7 @@ void main() {
       testWidgets('when an address was already selected, it should not replace it without a new search', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
         notifier.selectAddress(suggestion: _PostLocationStateTestData.firstSuggestion);
@@ -421,7 +419,7 @@ void main() {
       testWidgets('when a new or blank query starts, it should preserve the deferred address selection', (
         tester,
       ) async {
-        final container = _PostLocationStateTestData.createContainer(geosearchRepository: geosearchRepository);
+        final container = _PostLocationStateTestData.createContainer(mapsRepository: mapsRepository);
         final notifier = container.read(postLocationStateProvider.notifier);
         await _PostLocationStateTestData.search(tester: tester, container: container, query: 'Avenida Paulista');
         notifier.selectAddress(suggestion: _PostLocationStateTestData.firstSuggestion);
@@ -483,8 +481,8 @@ abstract final class _PostLocationStateTestData {
     suggestions: <AddressSuggestionDto>[secondSuggestion],
     attribution: AddressSearchAttributionDto(text: 'Google Maps'),
   );
-  static ProviderContainer createContainer({required MockGeosearchRepository geosearchRepository}) {
-    final container = ProviderContainer(overrides: [geosearchRepositoryProvider.overrideWithValue(geosearchRepository)])
+  static ProviderContainer createContainer({required MockMapsRepository mapsRepository}) {
+    final container = ProviderContainer(overrides: [mapsRepositoryProvider.overrideWithValue(mapsRepository)])
       ..listen(postLocationStateProvider, (_, _) {}, fireImmediately: true)
       ..listen(postStateProvider, (_, _) {}, fireImmediately: true);
     addTearDown(container.dispose);
@@ -506,13 +504,13 @@ abstract final class _PostLocationStateTestData {
   }
 
   static void stubSearch({
-    required MockGeosearchRepository geosearchRepository,
+    required MockMapsRepository mapsRepository,
     required List<({String query, String sessionToken})> requests,
     Future<AddressSearchResponseDto>? response,
     Object? error,
   }) {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
@@ -524,13 +522,13 @@ abstract final class _PostLocationStateTestData {
   }
 
   static void stubSearchForQuery({
-    required MockGeosearchRepository geosearchRepository,
+    required MockMapsRepository mapsRepository,
     required List<({String query, String sessionToken})> requests,
     required String query,
     required Future<AddressSearchResponseDto> response,
   }) {
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: query,
         sessionToken: any(named: 'sessionToken'),
       ),

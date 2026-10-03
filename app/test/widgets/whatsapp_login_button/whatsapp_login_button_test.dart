@@ -61,15 +61,55 @@ void main() {
       expect(tester.widget<MateoButton>(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey)).isLoading, isTrue);
     });
 
+    testWidgets('when the app resumes before WhatsApp launch completes, it should still complete login', (
+      tester,
+    ) async {
+      final whatsappLaunch = Completer<bool>();
+      when(
+        () => whatsapp.chat(message: WhatsappLoginButtonTestHelpers.message),
+      ).thenAnswer((_) => whatsappLaunch.future);
+      AuthSessionDto? authenticatedSession;
+      await WhatsappLoginButtonTestHelpers.pumpButton(
+        tester: tester,
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+        onSuccess: (session) => authenticatedSession = session,
+      );
+      await WhatsappLoginButtonTestHelpers.startLogin(tester: tester);
+
+      await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);
+      whatsappLaunch.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(authenticatedSession, WhatsappLoginButtonTestHelpers.authSession);
+    });
+
+    testWidgets('when the login button is tapped twice before rebuilding, it should keep the active return signal', (
+      tester,
+    ) async {
+      AuthSessionDto? authenticatedSession;
+      await WhatsappLoginButtonTestHelpers.pumpButton(
+        tester: tester,
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+        onSuccess: (session) => authenticatedSession = session,
+      );
+
+      await tester.tap(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
+      await tester.tap(find.byKey(WhatsappLoginButtonTestHelpers.buttonKey));
+      await tester.pumpAndSettle();
+      await WhatsappLoginButtonTestHelpers.resumeApp(tester: tester);
+      await tester.pumpAndSettle();
+
+      expect(authenticatedSession, WhatsappLoginButtonTestHelpers.authSession);
+    });
+
     testWidgets(
       'when login remains incomplete after returning from WhatsApp, it should wait three seconds then keep the checking message visible beyond five seconds',
       (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () => authRepository.exchangeNotpIntent(
-            intentToken: WhatsappLoginButtonTestHelpers.intentToken,
-            timeoutStart: any(named: 'timeoutStart'),
-          ),
+          () => authRepository.exchangeNotpIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
         ).thenAnswer((_) => exchangeCompleter.future);
         await WhatsappLoginButtonTestHelpers.pumpButton(
           tester: tester,
@@ -102,10 +142,7 @@ void main() {
       (tester) async {
         final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         when(
-          () => authRepository.exchangeNotpIntent(
-            intentToken: WhatsappLoginButtonTestHelpers.intentToken,
-            timeoutStart: any(named: 'timeoutStart'),
-          ),
+          () => authRepository.exchangeNotpIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
         ).thenAnswer((_) => exchangeCompleter.future);
 
         await WhatsappLoginButtonTestHelpers.pumpButton(
@@ -133,10 +170,7 @@ void main() {
         (tester) async {
           final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
           when(
-            () => authRepository.exchangeNotpIntent(
-              intentToken: WhatsappLoginButtonTestHelpers.intentToken,
-              timeoutStart: any(named: 'timeoutStart'),
-            ),
+            () => authRepository.exchangeNotpIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
           ).thenAnswer((_) => exchangeCompleter.future);
           await WhatsappLoginButtonTestHelpers.pumpButton(
             tester: tester,
@@ -289,10 +323,7 @@ void main() {
     ) async {
       final exchangeCompleter = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
       when(
-        () => authRepository.exchangeNotpIntent(
-          intentToken: WhatsappLoginButtonTestHelpers.intentToken,
-          timeoutStart: any(named: 'timeoutStart'),
-        ),
+        () => authRepository.exchangeNotpIntent(intentToken: WhatsappLoginButtonTestHelpers.intentToken),
       ).thenAnswer((_) => exchangeCompleter.future);
       await WhatsappLoginButtonTestHelpers.pumpButton(
         tester: tester,

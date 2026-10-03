@@ -1,6 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
@@ -33,8 +33,8 @@ void main() {
       routes: [$feedRoute, $jobRoute],
     );
     jobRepository = MockJobRepository();
-    when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
-      (_) async => ApiEnvelopeDto<JobDto>(
+    when(() => jobRepository.getPublicJob(jobId: any(named: 'jobId'))).thenAnswer(
+      (_) async => ApiEnvelopeDto<PublicJobDto>(
         data: JobViewTestHelpers.job(),
         requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
         timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
@@ -271,8 +271,8 @@ void main() {
       (tester) async {
         final feedJob = JobViewTestHelpers.feedJob();
         final description = List<String>.filled(80, 'Linha de descrição longa.').join('\n');
-        when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
-          (_) async => ApiEnvelopeDto<JobDto>(
+        when(() => jobRepository.getPublicJob(jobId: any(named: 'jobId'))).thenAnswer(
+          (_) async => ApiEnvelopeDto<PublicJobDto>(
             data: JobViewTestHelpers.job(description: description),
             requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
             timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
@@ -301,8 +301,8 @@ void main() {
       (tester) async {
         final feedJob = JobViewTestHelpers.feedJob();
         final description = List<String>.filled(80, 'Linha de descrição longa.').join('\n');
-        when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
-          (_) async => ApiEnvelopeDto<JobDto>(
+        when(() => jobRepository.getPublicJob(jobId: any(named: 'jobId'))).thenAnswer(
+          (_) async => ApiEnvelopeDto<PublicJobDto>(
             data: JobViewTestHelpers.job(description: description),
             requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
             timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
@@ -333,8 +333,8 @@ void main() {
       (tester) async {
         final feedJob = JobViewTestHelpers.feedJob();
         final description = List<String>.filled(80, 'Linha de descrição longa.').join('\n');
-        when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
-          (_) async => ApiEnvelopeDto<JobDto>(
+        when(() => jobRepository.getPublicJob(jobId: any(named: 'jobId'))).thenAnswer(
+          (_) async => ApiEnvelopeDto<PublicJobDto>(
             data: JobViewTestHelpers.job(description: description),
             requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
             timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),

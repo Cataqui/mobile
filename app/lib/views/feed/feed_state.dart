@@ -1,5 +1,5 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -9,6 +9,7 @@ part 'feed_state.g.dart';
 @Riverpod(keepAlive: true)
 class FeedState extends _$FeedState {
   bool _isFetchingNextPage = false;
+  int _refreshGeneration = 0;
   final List<FeedJobDto> _injectedJobs = [];
 
   @override
@@ -22,12 +23,21 @@ class FeedState extends _$FeedState {
       return;
     }
 
+    final refreshGeneration = ++_refreshGeneration;
+    _isFetchingNextPage = false;
     state = const AsyncLoading<FeedData>();
-    state = await AsyncValue.guard(_getFirstFeedJobs);
+    final result = await AsyncValue.guard(_getFirstFeedJobs);
+    if (!ref.mounted || refreshGeneration != _refreshGeneration) return;
+    state = result;
   }
 
-  void injectJob(JobDto job) {
-    final injectedJob = FeedJobDto.fromJob(job);
+  Future<void> refreshAfterJobStatusChange({required String jobId}) async {
+    _injectedJobs.removeWhere((job) => job.jobId == jobId);
+    await getFeedJobs();
+  }
+
+  void injectJob(PublicJobDto job) {
+    final injectedJob = FeedJobDto.fromPublicJob(job);
     _injectedJobs
       ..removeWhere((existingJob) => existingJob.jobId == injectedJob.jobId)
       ..insert(0, injectedJob);
@@ -70,24 +80,28 @@ class FeedState extends _$FeedState {
     }
 
     _isFetchingNextPage = true;
+    final refreshGeneration = _refreshGeneration;
 
     try {
       final feedRepository = ref.read(feedRepositoryProvider);
       final feedJobsEnvelope = await feedRepository.getFeedJobs(cursor: currentState.nextCursor);
+      if (!ref.mounted || refreshGeneration != _refreshGeneration) return;
       final pagination = feedJobsEnvelope.pagination;
+      final latestData = state.requireValue;
 
       state = AsyncData<FeedData>(
-        currentState.copyWith(
-          jobs: _withInjectedJobs([...currentState.jobs, ...feedJobsEnvelope.data]),
+        latestData.copyWith(
+          jobs: _withInjectedJobs([...latestData.jobs, ...feedJobsEnvelope.data]),
           hasMore: pagination?.hasMore ?? false,
           nextCursor: pagination?.nextCursor,
           paginationError: null,
         ),
       );
     } catch (error) {
-      state = AsyncData<FeedData>(currentState.copyWith(paginationError: error));
+      if (!ref.mounted || refreshGeneration != _refreshGeneration) return;
+      state = AsyncData<FeedData>(state.requireValue.copyWith(paginationError: error));
     } finally {
-      _isFetchingNextPage = false;
+      if (refreshGeneration == _refreshGeneration) _isFetchingNextPage = false;
     }
   }
 }

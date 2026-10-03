@@ -21,22 +21,22 @@ void main() {
       expect(() => config.cataquiApiUrl, throwsStateError);
     });
 
-    test('when the flavor is development, it should use the staging geosearch worker', () {
+    test('when the flavor is development, it should use the staging maps worker', () {
       const config = AppConfig(flavor: 'development');
 
-      expect(config.geosearchUrl, 'https://staging.geosearch.cataqui.com');
+      expect(config.mapsUrl, 'https://staging.maps.cataqui.com');
     });
 
-    test('when the flavor is production, it should use the production geosearch worker', () {
+    test('when the flavor is production, it should use the production maps worker', () {
       const config = AppConfig(flavor: 'production');
 
-      expect(config.geosearchUrl, 'https://geosearch.cataqui.com');
+      expect(config.mapsUrl, 'https://maps.cataqui.com');
     });
 
-    test('when the flavor is unsupported, it should reject geosearch URL resolution', () {
+    test('when the flavor is unsupported, it should reject maps URL resolution', () {
       const config = AppConfig(flavor: 'unsupported');
 
-      expect(() => config.geosearchUrl, throwsStateError);
+      expect(() => config.mapsUrl, throwsStateError);
     });
 
     test('when the flavor is development, it should enable development behavior', () {

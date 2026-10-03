@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/post/post_details_input/post_details_input.dart';
 import 'package:cataqui_app/views/post/post_published_pointer/post_published_pointer.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
@@ -24,34 +23,36 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
   late final RouteObserver<ModalRoute<void>> _routeObserver;
   VoidCallback? _showPublishingToast;
   bool _isPostVisible = true;
-  bool _publishingToastShown = false;
+  MateoToastController? _publishingToastController;
 
   void _preparePublishingToast() {
     if (_showPublishingToast != null) return;
 
     final toastContext = Navigator.of(context, rootNavigator: true).context;
     final providerContainer = ProviderScope.containerOf(context, listen: false);
-    final appToast = ref.read(appToastProvider);
     final router = GoRouter.maybeOf(context);
     final loadingMessage = ref.read(translationProvider).post.publishing.loading;
 
     _showPublishingToast = () {
-      if (!toastContext.mounted || _publishingToastShown || !providerContainer.read(postStateProvider).isPublishing) {
+      if (!toastContext.mounted ||
+          _publishingToastController != null ||
+          !providerContainer.read(postStateProvider).isPublishing) {
         return;
       }
-      appToast.showLoading(
-        toastContext,
-        message: loadingMessage,
-        duration: const .untilDismissed(),
-        onPressed: () {
-          if (!toastContext.mounted || router == null || !providerContainer.read(postStateProvider).isPublishing) {
-            return;
-          }
-          if (router.state.matchedLocation == const PostRoute().location) return;
-          unawaited(const PostRoute().push<void>(toastContext));
-        },
-      );
-      _publishingToastShown = true;
+      _publishingToastController = providerContainer
+          .read(appToastProvider)
+          .showLoading(
+            toastContext,
+            message: loadingMessage,
+            duration: const .untilDismissed(),
+            onPressed: () {
+              if (!toastContext.mounted || router == null || !providerContainer.read(postStateProvider).isPublishing) {
+                return;
+              }
+              if (router.state.matchedLocation == const PostRoute().location) return;
+              unawaited(const PostRoute().push<void>(toastContext));
+            },
+          );
     };
   }
 
@@ -68,12 +69,11 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
     _preparePublishingToast();
 
     try {
-      final JobDto? postedJob;
+      final PublicJobDto? postedJob;
       try {
         postedJob = await ref.read(postStateProvider.notifier).publish();
       } on Object catch (error) {
         if (toastContext.mounted) {
-          if (_publishingToastShown) dismissMateoToast(context: toastContext);
           appToast.maybeShowError(toastContext, error: error, message: publishingMessages.error);
         }
         return;
@@ -87,9 +87,7 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
         appToast.showSuccess(toastContext, message: publishingMessages.success);
         return;
       }
-      if (_publishingToastShown) dismissMateoToast(context: toastContext);
       if (router == null) return;
-      providerContainer.read(feedStateProvider.notifier).injectJob(postedJob);
       await WidgetsBinding.instance.endOfFrame;
       if (!toastContext.mounted || router.state.matchedLocation != const PostRoute().location) return;
       FeedRoute(
@@ -103,7 +101,8 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
       ).go(toastContext);
     } finally {
       _showPublishingToast = null;
-      _publishingToastShown = false;
+      _publishingToastController?.dismiss();
+      _publishingToastController = null;
     }
   }
 
@@ -148,7 +147,6 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
     );
 
     return MateoView(
-      // avoidBottomInset: true,
       key: const ValueKey('post_view'),
       header: MateoViewHeader(
         key: const ValueKey('post_header'),

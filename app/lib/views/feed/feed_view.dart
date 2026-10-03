@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/core/static_map/static_map_request.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/gen/lotties.g.dart';
 import 'package:cataqui_app/gen/svg.g.dart';
@@ -14,8 +14,8 @@ import 'package:cataqui_app/views/me/me_route.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map_color_scheme.dart';
+import 'package:cataqui_app/widgets/job_location_image/job_location_image.dart';
+import 'package:cataqui_app/widgets/job_location_image/job_location_image_prefetcher.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
@@ -55,7 +55,7 @@ class FeedView extends ConsumerStatefulWidget {
 }
 
 class _FeedViewState extends ConsumerState<FeedView> {
-  final SnapListController _feedController = SnapListController();
+  final SnapListController _feedSnapListController = SnapListController();
   late final ValueNotifier<bool> _isHintActiveNotifier;
   MateoToastController? _toastController;
   bool _shouldShowToast = false;
@@ -151,7 +151,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
     _dismissToast();
     if (widget.toast == null) return;
     _shouldShowToast = true;
-    if (_feedController.hasClients) _feedController.jumpTo(0);
+    if (_feedSnapListController.hasClients) _feedSnapListController.jumpTo(0);
     if (_isRouteSettled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _showPendingToast();
@@ -162,7 +162,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
   @override
   void dispose() {
     _dismissToast();
-    _feedController.dispose();
+    _feedSnapListController.dispose();
     _isHintActiveNotifier.dispose();
     super.dispose();
   }
@@ -171,68 +171,67 @@ class _FeedViewState extends ConsumerState<FeedView> {
   Widget build(BuildContext context) {
     final colorScheme = MateoTheme.of(context).colorScheme;
     final i18n = ref.watch(translationProvider);
-    final hasJobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs.isNotEmpty ?? false));
+    final jobs = ref.watch(feedStateProvider.select((s) => s.value?.jobs));
+    final hasJobs = jobs?.isNotEmpty ?? false;
 
-    return RouteListener(
-      onSettled: _onRouteSettled,
-      onUnsettled: _onRouteUnsettled,
-      child: MateoView(
-        avoidBottomInset: false,
-        padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 20),
-        header: MateoViewHeader(
-          leading: MateoButton(
-            presentation: .label(
-              width: .fit,
-              variant: .tertiary,
-              size: .small,
-              label: i18n.feed.locationAvailability.cityLabel,
-              elevation: 0,
-              leadingIcon: MateoIcon(.mapPin, color: MateoTheme.of(context).palette.accent[9]),
-              trailingIcon: MateoIcon(.chevronDown, color: MateoTheme.of(context).colorScheme.text.primary),
-            ),
-            onPressed: _showLocationAvailabilitySheet,
-          ),
-        ),
-        overlay: hasJobs && widget.toast == null
-            ? IgnorePointer(
-                child: _FeedSwipeUpHintOverlay(
-                  feedController: _feedController,
-                  isHintActiveNotifier: _isHintActiveNotifier,
-                ),
-              )
-            : null,
-        footer: .new(
-          trailing: _buildJobCreationButton(i18n),
-          leading: MateoPress(
-            key: const ValueKey('feed_me_button'),
-            semanticLabel: i18n.feed.meButtonSemanticLabel,
-            onPressed: (animation) => unawaited(ref.read(appRouterProvider.notifier).push(context, const MeRoute())),
-            child: Morph(
-              targets: [ref.watch(userAvatarMorphTargetProvider)],
-              child: MateoSurface(
-                shape: const .capsule(),
-                color: MateoTheme.of(context).palette.neutral[3],
-                elevation: MateoElevation(level: 1),
-                child: $Svg.defaultUserProfilePicture(height: 57, color1: MateoTheme.of(context).palette.neutral[3]),
+    final view = MateoView(
+      avoidBottomInset: false,
+      padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 20),
+      overlay: hasJobs && widget.toast == null
+          ? IgnorePointer(
+              child: _FeedSwipeUpHintOverlay(
+                feedSnapListController: _feedSnapListController,
+                isHintActiveNotifier: _isHintActiveNotifier,
               ),
+            )
+          : null,
+      header: MateoViewHeader(
+        leading: MateoButton(
+          presentation: .label(
+            width: .fit,
+            variant: .tertiary,
+            size: .small,
+            label: i18n.feed.locationAvailability.cityLabel,
+            elevation: 0,
+            leadingIcon: MateoIcon(.mapPin, color: MateoTheme.of(context).palette.accent[9]),
+            trailingIcon: MateoIcon(.chevronDown, color: MateoTheme.of(context).colorScheme.text.primary),
+          ),
+          onPressed: _showLocationAvailabilitySheet,
+        ),
+      ),
+      footer: .new(
+        trailing: _buildJobCreationButton(i18n),
+        leading: MateoPress(
+          key: const ValueKey('feed_me_button'),
+          semanticLabel: i18n.feed.meButtonSemanticLabel,
+          onPressed: (animation) => unawaited(ref.read(appRouterProvider.notifier).push(context, const MeRoute())),
+          child: Morph(
+            targets: [ref.watch(userAvatarMorphTargetProvider)],
+            child: MateoSurface(
+              shape: const .capsule(),
+              color: MateoTheme.of(context).palette.neutral[3],
+              elevation: MateoElevation(level: 1),
+              child: $Svg.defaultUserProfilePicture(height: 57, color1: MateoTheme.of(context).palette.neutral[3]),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
         ),
-        surface: MateoViewSurface(
-          padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20, top: 10),
-          color: colorScheme.background,
-          edgeEffect: .fade(),
-          child: RepaintBoundary(
-            child: _FeedViewBody(
-              controller: _feedController,
-              onAdjustAreaPressed: _showLocationAvailabilitySheet,
-              onIndexChanged: _onIndexChanged,
-            ),
+        padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 0, bottom: 12),
+      ),
+      surface: MateoViewSurface(
+        padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20, top: 10),
+        color: colorScheme.background,
+        edgeEffect: .fade(),
+        child: RepaintBoundary(
+          child: _FeedViewBody(
+            snapListController: _feedSnapListController,
+            onAdjustAreaPressed: _showLocationAvailabilitySheet,
+            onIndexChanged: _onIndexChanged,
           ),
         ),
       ),
     );
+
+    return RouteListener(onSettled: _onRouteSettled, onUnsettled: _onRouteUnsettled, child: view);
   }
 
   Widget _buildJobCreationButton(Translations i18n) {

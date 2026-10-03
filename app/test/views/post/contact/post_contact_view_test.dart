@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/post/contact/post_contact_view.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
@@ -49,13 +49,7 @@ void main() {
             .length,
         edgeEffect: surface.edgeEffect,
       ),
-      (
-        view: 1,
-        sheet: 1,
-        handleInHeader: 1,
-        addActionInFooter: 1,
-        edgeEffect: MateoEdgeEffect.fade(at: const [.bottom]),
-      ),
+      (view: 1, sheet: 1, handleInHeader: 1, addActionInFooter: 1, edgeEffect: MateoEdgeEffect.fade()),
     );
   });
 
@@ -175,7 +169,7 @@ void main() {
             .length,
       ),
       (
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: 'Ventairy.Dev'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: 'Ventairy.Dev'),
         sheetCount: 0,
         chipTextCount: 1,
         whatsappIconCount: 1,

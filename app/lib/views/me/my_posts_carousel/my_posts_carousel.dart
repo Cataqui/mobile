@@ -1,19 +1,24 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/core/static_map/static_map_request.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/views/me/my_post_card/my_post_card.dart';
 import 'package:cataqui_app/views/me/my_posts_data.dart';
 import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
+import 'package:cataqui_app/widgets/job_location_image/job_location_image_prefetcher.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
-part 'my_posts_flick_physics.dart';
 part 'my_posts_drag.dart';
+part 'my_posts_flick_physics.dart';
 part 'my_posts_scroll_controller.dart';
 part 'my_posts_scroll_position.dart';
 
@@ -31,36 +36,135 @@ class MyPostsCarousel extends ConsumerStatefulWidget {
 }
 
 class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
-  final ScrollController _jobsScrollController = _MyPostsScrollController();
+  static const _decodedLookahead = 2;
+
+  late final ScrollController _jobsScrollController = _MyPostsScrollController(
+    onBallisticTargetChanged: _onBallisticTargetChanged,
+  );
+  double? _arrivalPixels;
+  late final JobLocationImagePrefetcher _imagePrefetcher;
+  bool _workScheduled = false;
+  bool _scrollingForward = true;
+  bool _canPrefetch = true;
+  double _previousPixels = 0;
 
   double get _cardWidth => widget.viewportWidth - MyPostsCarousel._cardPeek;
 
+  double get _cardExtent => _cardWidth + MyPostsCarousel._cardSpacing;
+
+  void _onBallisticTargetChanged(double? pixels) {
+    _arrivalPixels = pixels;
+    _checkPaginationAfterLayout();
+  }
+
   void _loadNextPage() {
+    if (!_canPrefetch) return;
     final data = ref.read(myPostsStateProvider).value;
     if (!_jobsScrollController.hasClients) return;
     if (data == null || !data.hasMore || data.isLoadingMore || data.paginationError != null) return;
 
     final position = _jobsScrollController.position;
-    final cardExtent = position.viewportDimension - MyPostsCarousel._cardPeek + MyPostsCarousel._cardSpacing;
-    if (position.pixels + position.viewportDimension < (data.jobs.length - 3) * cardExtent) return;
+    final upcomingPosition = math.max(position.pixels, _arrivalPixels ?? position.pixels);
+    if (upcomingPosition + position.viewportDimension < (data.jobs.length - 6) * _cardExtent) return;
 
     unawaited(ref.read(myPostsStateProvider.notifier).loadNextPage());
   }
 
   void _checkPaginationAfterLayout() {
+    if (_jobsScrollController.hasClients && _jobsScrollController.position.hasContentDimensions) {
+      final position = _jobsScrollController.position;
+      final pixels = position.pixels.clamp(position.minScrollExtent, position.maxScrollExtent);
+      if (pixels != _previousPixels) _scrollingForward = pixels > _previousPixels;
+      _previousPixels = pixels;
+    }
+    if (_workScheduled) return;
+    _workScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _loadNextPage();
+      _workScheduled = false;
+      if (!mounted) return;
+      _loadNextPage();
+      _prefetchImages();
     });
   }
+
+  void _prefetchImages() {
+    final data = ref.read(myPostsStateProvider).asData?.value;
+    if (!_canPrefetch || !_jobsScrollController.hasClients || data == null || data.jobs.isEmpty) {
+      _imagePrefetcher.update(requests: []);
+      return;
+    }
+    final position = _jobsScrollController.position;
+    final pixels = position.pixels.clamp(position.minScrollExtent, position.maxScrollExtent);
+    final firstVisible = (pixels / _cardExtent).floor();
+    final lastVisible = ((pixels + position.viewportDimension) / _cardExtent).ceil() - 1;
+    final direction = _scrollingForward ? 1 : -1;
+    final nextIndex = _scrollingForward ? lastVisible + 1 : firstVisible - 1;
+    final upcomingIndices = [
+      for (var offset = 0; offset < 3; offset++)
+        if (nextIndex + offset * direction >= 0 && nextIndex + offset * direction < data.jobs.length)
+          nextIndex + offset * direction,
+    ];
+    final arrivalPixels = _arrivalPixels;
+    final decodedIndices = <int>[];
+    if (arrivalPixels != null && (arrivalPixels - pixels).abs() > _cardExtent * _decodedLookahead) {
+      final arrival = arrivalPixels.clamp(position.minScrollExtent, position.maxScrollExtent);
+      final firstArrival = (arrival / _cardExtent).floor();
+      final lastArrival = ((arrival + position.viewportDimension) / _cardExtent).ceil() - 1;
+      final arrivalCenter = arrival + position.viewportDimension / 2;
+      final arrivalIndices =
+          [
+            for (var index = firstArrival; index <= lastArrival; index++)
+              if (index >= 0 && index < data.jobs.length) index,
+          ]..sort(
+            (first, second) => (first * _cardExtent + _cardWidth / 2 - arrivalCenter).abs().compareTo(
+              (second * _cardExtent + _cardWidth / 2 - arrivalCenter).abs(),
+            ),
+          );
+      decodedIndices.addAll({
+        ...arrivalIndices.take(1),
+        ...upcomingIndices.take(1),
+        ...arrivalIndices.skip(1).take(_decodedLookahead - 1),
+      });
+    } else {
+      decodedIndices.addAll(upcomingIndices.take(_decodedLookahead));
+    }
+    final requests = <int, StaticMapRequest>{
+      for (final index in {...decodedIndices, ...upcomingIndices})
+        index: StaticMapRequest(imageUrl: data.jobs[index].location.imageUrl, size: .pixels960x960),
+    };
+    _imagePrefetcher.update(
+      requests: [for (final index in upcomingIndices) requests[index]!],
+      decodedRequests: [for (final index in decodedIndices) requests[index]!],
+    );
+  }
+
+  Future<void> _prepareImage(StaticMapRequest request) => precacheImage(
+    CachedNetworkImageProvider(request.url, cacheKey: request.cacheKey, cacheManager: _imagePrefetcher.cacheManager),
+    context,
+    onError: (error, stackTrace) {},
+  );
 
   @override
   void initState() {
     super.initState();
+    _imagePrefetcher = JobLocationImagePrefetcher(
+      cacheManager: ref.read(staticMapCacheManagerProvider),
+      prepareImage: _prepareImage,
+    );
     _jobsScrollController.addListener(_checkPaginationAfterLayout);
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _canPrefetch = (ModalRoute.isCurrentOf(context) ?? true) && TickerMode.valuesOf(context).enabled;
+    if (!_canPrefetch) _imagePrefetcher.update(requests: []);
+    _checkPaginationAfterLayout();
+  }
+
+  @override
   void dispose() {
+    _imagePrefetcher.dispose();
     _jobsScrollController
       ..removeListener(_checkPaginationAfterLayout)
       ..dispose();
@@ -70,6 +174,7 @@ class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
   @override
   Widget build(BuildContext context) {
     final jobsState = ref.watch(myPostsStateProvider);
+    _checkPaginationAfterLayout();
 
     return jobsState.when(
       skipLoadingOnRefresh: false,
@@ -228,32 +333,41 @@ class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
     final cardWidth = _cardWidth;
     return SizedBox(
       height: cardWidth / MyPostCard.aspectRatio,
-      child: ListView.builder(
-        key: const ValueKey('me_posts_list'),
-        controller: _jobsScrollController,
-        physics: ScrollConfiguration.of(context).getPlatform(context) == TargetPlatform.iOS
-            ? const _MyPostsFlickPhysics()
-            : null,
-        scrollDirection: .horizontal,
-        clipBehavior: Clip.none,
-        itemExtent: cardWidth + MyPostsCarousel._cardSpacing,
-        itemCount: loading ? 2 : data.jobs.length + (data.hasMore || data.paginationError != null ? 1 : 0),
-        itemBuilder: (context, index) {
-          Widget card;
-          if (!loading && index == data.jobs.length) {
-            card = data.paginationError != null
-                ? _buildPaginationError(context, cardWidth)
-                : MyPostCard.skeleton(
-                    skeletonSemanticsLabel: ref.watch(translationProvider).me.myPosts.loadingMoreSemanticLabel,
-                  );
-          } else {
-            card = loading ? const MyPostCard.skeleton() : MyPostCard(job: data.jobs[index]);
-          }
-          return Padding(
-            padding: const EdgeInsets.only(right: MyPostsCarousel._cardSpacing),
-            child: card,
-          );
-        },
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+        child: Listener(
+          onPointerUp: (event) {
+            if (_jobsScrollController.hasClients) {
+              (_jobsScrollController.position as _MyPostsScrollPosition).pointerUpTime = event.timeStamp;
+            }
+          },
+          child: ListView.builder(
+            key: const ValueKey('me_posts_list'),
+            scrollCacheExtent: const ScrollCacheExtent.pixels(0),
+            controller: _jobsScrollController,
+            physics: const _MyPostsFlickPhysics(),
+            scrollDirection: .horizontal,
+            clipBehavior: Clip.none,
+            itemExtent: _cardExtent,
+            itemCount: loading ? 2 : data.jobs.length + (data.hasMore || data.paginationError != null ? 1 : 0),
+            itemBuilder: (context, index) {
+              Widget card;
+              if (!loading && index == data.jobs.length) {
+                card = data.paginationError != null
+                    ? _buildPaginationError(context, cardWidth)
+                    : MyPostCard.skeleton(
+                        skeletonSemanticsLabel: ref.watch(translationProvider).me.myPosts.loadingMoreSemanticLabel,
+                      );
+              } else {
+                card = loading ? const MyPostCard.skeleton() : MyPostCard(job: data.jobs[index]);
+              }
+              return Padding(
+                padding: const EdgeInsets.only(right: MyPostsCarousel._cardSpacing),
+                child: card,
+              );
+            },
+          ),
+        ),
       ),
     );
   }

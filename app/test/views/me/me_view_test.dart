@@ -20,7 +20,6 @@ import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
-import 'package:cataqui_app/widgets/job_location_map/job_location_map.dart';
 import 'package:cataqui_app/widgets/logout_warning_sheet/logout_warning_sheet.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
@@ -33,8 +32,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
+import '../../utils/static_map_cache_test_helpers.dart';
 import '../../utils/test_app.dart';
-import '../../widgets/job_location_map/google_maps_test_renderer.dart';
 import '../feed/feed_view_test_helpers.dart';
 import 'fake_app_auth_state.dart';
 import 'fake_me_state.dart';
@@ -53,7 +52,6 @@ void main() {
   });
 
   testWidgets('when the Me page loads with a post, it should show the identifier and a job card', (tester) async {
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     await withClock(
       Clock.fixed(DateTime.utc(2026, 9, 24, 12)),
       () => tester.pumpWidget(
@@ -139,7 +137,6 @@ void main() {
   });
 
   testWidgets('when posts finish loading, it should replace the skeleton with the job details', (tester) async {
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     final jobsState = FakeMyPostsState(const AsyncLoading<MyPostsData?>());
     await withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () async {
       await tester.pumpWidget(
@@ -163,7 +160,9 @@ void main() {
     });
   });
 
-  testWidgets('when flicking My Posts, iPhone should use the Android fling threshold', (tester) async {
+  testWidgets('when flicking My Posts, iPhone and Android should use the same bounce and fling threshold', (
+    tester,
+  ) async {
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
     for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
@@ -173,12 +172,16 @@ void main() {
           providerOverrides: [
             myPostsStateProvider.overrideWith(() => FakeMyPostsState(const AsyncLoading<MyPostsData?>())),
           ],
-          child: const MeView(),
+          child: MeView(key: ValueKey(platform)),
         ),
       );
+      await tester.pump(const Duration(milliseconds: 600));
 
       final postsList = tester.widget<ListView>(find.byKey(const ValueKey('me_posts_list')));
-      expect(postsList.controller!.position.physics.minFlingVelocity, 50);
+      final position = postsList.controller!.position;
+      expect(position.physics, isA<BouncingScrollPhysics>());
+      expect(position.physics.minFlingVelocity, 50);
+      expect(position.physics.applyBoundaryConditions(position, -20), 0);
     }
     debugDefaultTargetPlatformOverride = null;
   });
@@ -211,10 +214,115 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
+  testWidgets('when a fast My Posts drag reports zero release velocity, it should keep coasting in either direction', (
+    tester,
+  ) async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      debugDefaultTargetPlatformOverride = platform;
+      await tester.pumpWidget(
+        TestApp.screen(
+          providerOverrides: [
+            myPostsStateProvider.overrideWith(() => FakeMyPostsState(const AsyncLoading<MyPostsData?>())),
+          ],
+          child: MeView(key: ValueKey(platform)),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+
+      final postsPosition = tester.widget<ListView>(find.byKey(const ValueKey('me_posts_list'))).controller!.position;
+      for (final fingerDirection in [-1.0, 1.0]) {
+        postsPosition.jumpTo(postsPosition.maxScrollExtent / 2);
+        final drag = postsPosition.drag(DragStartDetails(sourceTimeStamp: Duration.zero), () {});
+        for (final elapsedMilliseconds in [30, 90]) {
+          drag.update(
+            DragUpdateDetails(
+              sourceTimeStamp: Duration(milliseconds: elapsedMilliseconds),
+              globalPosition: Offset.zero,
+              delta: Offset(fingerDirection * 80, 0),
+              primaryDelta: fingerDirection * 80,
+            ),
+          );
+        }
+        drag.end(DragEndDetails(velocity: Velocity.zero, primaryVelocity: 0));
+
+        expect(postsPosition.activity, isA<BallisticScrollActivity>());
+        expect(postsPosition.activity!.velocity.sign, -fingerDirection);
+      }
+    }
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('when a fast My Posts drag pauses before release, it should stay stopped', (tester) async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      debugDefaultTargetPlatformOverride = platform;
+      await tester.pumpWidget(
+        TestApp.screen(
+          providerOverrides: [
+            myPostsStateProvider.overrideWith(() => FakeMyPostsState(const AsyncLoading<MyPostsData?>())),
+          ],
+          child: MeView(key: ValueKey(platform)),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+
+      final postsPosition = tester.widget<ListView>(find.byKey(const ValueKey('me_posts_list'))).controller!.position;
+      postsPosition.jumpTo(postsPosition.maxScrollExtent / 2);
+      final drag = postsPosition.drag(DragStartDetails(sourceTimeStamp: Duration.zero), () {});
+      for (final elapsedMilliseconds in [30, 90]) {
+        drag.update(
+          DragUpdateDetails(
+            sourceTimeStamp: Duration(milliseconds: elapsedMilliseconds),
+            globalPosition: Offset.zero,
+            delta: const Offset(-80, 0),
+            primaryDelta: -80,
+          ),
+        );
+      }
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 80)));
+      drag.end(DragEndDetails(velocity: Velocity.zero, primaryVelocity: 0));
+
+      expect(postsPosition.activity, isA<IdleScrollActivity>());
+    }
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('when processing a quick My Posts release is delayed, it should still coast', (tester) async {
+    await tester.pumpWidget(
+      TestApp.screen(
+        providerOverrides: [
+          myPostsStateProvider.overrideWith(() => FakeMyPostsState(const AsyncLoading<MyPostsData?>())),
+        ],
+        child: const MeView(),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+
+    final postsList = find.byKey(const ValueKey('me_posts_list'));
+    final postsPosition = tester.widget<ListView>(postsList).controller!.position;
+    for (final releaseDelay in [15, 85]) {
+      postsPosition.jumpTo(postsPosition.maxScrollExtent / 2);
+      final gesture = await tester.startGesture(tester.getTopLeft(postsList) + const Offset(100, 70));
+      await gesture.moveBy(const Offset(-80, 0), timeStamp: const Duration(milliseconds: 20));
+      await tester.pump(const Duration(milliseconds: 16));
+      await gesture.moveBy(const Offset(-80, 0), timeStamp: const Duration(milliseconds: 70));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 80)));
+      await gesture.up(timeStamp: Duration(milliseconds: 70 + releaseDelay));
+
+      if (releaseDelay == 15) {
+        expect(postsPosition.activity, isA<BallisticScrollActivity>());
+        continue;
+      }
+      expect(postsPosition.activity, isA<IdleScrollActivity>());
+    }
+  });
+
   testWidgets('when dragging posts horizontally, it should stop at the dragged offset without snapping', (
     tester,
   ) async {
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     await withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () async {
       await tester.pumpWidget(
         TestApp.screen(
@@ -253,10 +361,9 @@ void main() {
   });
 
   for (final viewportWidth in [390.0, 800.0]) {
-    testWidgets('when three cards remain at ${viewportWidth.toInt()}px, it should load more before the end', (
+    testWidgets('when six cards remain at ${viewportWidth.toInt()}px, it should load more before the end', (
       tester,
     ) async {
-      FeedViewTestHelpers.mockGoogleMapsPlatform();
       tester.view
         ..physicalSize = Size(viewportWidth, 900)
         ..devicePixelRatio = 1;
@@ -268,7 +375,7 @@ void main() {
           MyPostsData(
             userId: 'test-user',
             jobs: [
-              for (var index = 0; index < 5; index++)
+              for (var index = 0; index < 8; index++)
                 UserJobSummaryDto.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
             ],
             hasMore: true,
@@ -447,103 +554,7 @@ void main() {
     expect(find.byKey(const ValueKey('my_posts_retry')), findsOneWidget);
   });
 
-  testWidgets('when many posts are loaded, it should build maps only for nearby cards', (tester) async {
-    final mapRenderer = GoogleMapsTestRenderer()..install();
-    addTearDown(mapRenderer.restore);
-    await withClock(
-      Clock.fixed(DateTime.utc(2026, 9, 24, 12)),
-      () => tester.pumpWidget(
-        TestApp.screen(
-          providerOverrides: [
-            meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
-            myPostsStateProvider.overrideWith(
-              () => FakeMyPostsState(
-                AsyncData(
-                  MyPostsData(
-                    userId: 'test-user',
-                    jobs: [
-                      for (var index = 0; index < 20; index++)
-                        UserJobSummaryDto.fixture().copyWith(
-                          jobId: 'job-$index',
-                          createdAt: DateTime.utc(2026, 9, 23, 12),
-                        ),
-                    ],
-                    hasMore: false,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          child: const MeView(),
-        ),
-      ),
-    );
-
-    expect(mapRenderer.createdIds.length, lessThan(20));
-  });
-
-  testWidgets('when posts fling quickly, it should defer new maps until scrolling settles', (tester) async {
-    final mapRenderer = GoogleMapsTestRenderer()..install();
-    addTearDown(mapRenderer.restore);
-    tester.view
-      ..physicalSize = const Size(390, 900)
-      ..devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await withClock(
-      Clock.fixed(DateTime.utc(2026, 9, 24, 12)),
-      () => tester.pumpWidget(
-        TestApp.screen(
-          providerOverrides: [
-            myPostsStateProvider.overrideWith(
-              () => FakeMyPostsState(
-                AsyncData(
-                  MyPostsData(
-                    userId: 'test-user',
-                    jobs: [
-                      for (var index = 0; index < 24; index++)
-                        UserJobSummaryDto.fixture().copyWith(
-                          jobId: 'job-$index',
-                          createdAt: DateTime.utc(2026, 9, 23, 12),
-                        ),
-                    ],
-                    hasMore: false,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          child: const MeView(),
-        ),
-      ),
-    );
-
-    final postsList = find.byKey(const ValueKey('me_posts_list'));
-    expect(find.byKey(const ValueKey('me_post_deferred_map')), findsNothing);
-    expect(mapRenderer.createdIds, isNotEmpty);
-    final initialMapCount = mapRenderer.createdIds.length;
-
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -280));
-    await tester.pump();
-    await tester.flingFrom(tester.getTopLeft(postsList) + const Offset(100, 70), const Offset(-100, 0), 12000);
-    await tester.pump();
-    final scrollPosition = tester.widget<ListView>(postsList).controller!.position;
-    expect(scrollPosition.isScrollingNotifier.value, isTrue);
-    expect(find.byKey(const ValueKey('me_post_deferred_map'), skipOffstage: false), findsWidgets);
-
-    for (var frame = 0; frame < 80 && scrollPosition.isScrollingNotifier.value; frame++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    await tester.pump();
-    expect(scrollPosition.isScrollingNotifier.value, isFalse);
-    expect(find.byKey(const ValueKey('me_post_deferred_map')), findsNothing);
-    expect(find.byType(JobLocationMap), findsWidgets);
-    expect(mapRenderer.createdIds.length, greaterThan(initialMapCount));
-  });
-
   testWidgets('when many posts load, the horizontal scroll extent should be exact before scrolling', (tester) async {
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     tester.view
       ..physicalSize = const Size(390, 900)
       ..devicePixelRatio = 1;
@@ -574,7 +585,6 @@ void main() {
   });
 
   testWidgets('when a later page fails, it should keep the posts and offer a retry', (tester) async {
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     tester.view
       ..physicalSize = const Size(320, 700)
       ..devicePixelRatio = 1;
@@ -624,7 +634,6 @@ void main() {
   });
 
   testWidgets('when loading more fails, it should switch directly to retry', (tester) async {
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     tester.view
       ..physicalSize = const Size(390, 844)
       ..devicePixelRatio = 1;
@@ -731,11 +740,11 @@ void main() {
         ],
       );
       final feedElement = tester.element(find.byType(FeedView));
-      final feedController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
-      unawaited(feedController.next());
+      final feedSnapListController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
+      unawaited(feedSnapListController.next());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
-      expect(feedController.index, 1);
+      expect(feedSnapListController.index, 1);
 
       await tester.tap(find.byKey(const ValueKey('feed_me_button')));
       await tester.pumpAndSettle();
@@ -744,14 +753,15 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('logout_warning_sheet_logout_button')));
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.text(i18n.logoutWarningSheet.success), findsNothing);
+      await StaticMapCacheTestHelpers.loadImages(tester);
       await tester.pumpAndSettle();
 
       expect(container.read(appAuthStateProvider), isNull);
       expect(container.read(appStorageStateProvider).requireValue.authCredentials, isNull);
       expect(find.byType(MeView), findsNothing);
       expect(tester.element(find.byType(FeedView)), same(feedElement));
-      expect(tester.widget<SnapList>(find.byType(SnapList)).controller, same(feedController));
-      expect(feedController.index, 1);
+      expect(tester.widget<SnapList>(find.byType(SnapList)).controller, same(feedSnapListController));
+      expect(feedSnapListController.index, 1);
       expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
       verify(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken'))).called(1);
       expect(revocation.isCompleted, isFalse);
@@ -775,8 +785,6 @@ void main() {
     final authRepository = MockAuthRepository();
     when(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {});
     FeedViewTestHelpers.mockHapticFeedback(tester);
-    FeedViewTestHelpers.mockPlatformViews(tester);
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     await tester.pumpWidget(
       TestApp.router(
         routerConfig: router,
@@ -804,6 +812,8 @@ void main() {
 
     expect(router.state.matchedLocation, const FeedRoute().location);
     expect(find.byType(FeedView), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
     expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
   });
 

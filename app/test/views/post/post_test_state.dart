@@ -7,5 +7,8 @@ class PostTestState extends PostState {
   final PostData initialData;
 
   @override
-  PostData build() => initialData;
+  PostData build() {
+    super.build();
+    return initialData;
+  }
 }

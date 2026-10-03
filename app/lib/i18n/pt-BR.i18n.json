@@ -253,5 +253,10 @@
     "back": "Voltar",
     "logout": "Vou sair",
     "success": "Você saiu"
+  },
+  "jobLocationImage": {
+    "loading": "Carregando mapa...",
+    "retry": "Tentar novamente",
+    "semanticLabel": "Mapa da região aproximada do trabalho"
   }
 }

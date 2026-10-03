@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
@@ -18,6 +18,7 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
+import '../../utils/static_map_cache_test_helpers.dart';
 import '../feed/feed_view_test_helpers.dart';
 import 'job_view_test_helpers.dart';
 
@@ -173,7 +174,7 @@ class JobViewGoldenTestHelpers {
     );
   }
 
-  static JobDto job({String? description}) {
+  static PublicJobDto job({String? description}) {
     return JobViewTestHelpers.job(description: description, createdAt: fixedNow.subtract(const Duration(hours: 3)));
   }
 
@@ -198,8 +199,8 @@ class JobViewGoldenTestHelpers {
     final goldenFeedJob = feedJob();
     final jobRepository = MockJobRepository();
 
-    when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
-      (_) async => ApiEnvelopeDto<JobDto>(
+    when(() => jobRepository.getPublicJob(jobId: any(named: 'jobId'))).thenAnswer(
+      (_) async => ApiEnvelopeDto<PublicJobDto>(
         data: job(),
         requestId: '5b591550-c650-4e27-a2ed-d6f02e1c0da2',
         timestamp: DateTime.parse('2026-06-06T00:37:46.623Z'),
@@ -221,11 +222,10 @@ class JobViewGoldenTestHelpers {
 
   static Future<void> prepareRoutedFeed(WidgetTester tester) async {
     await withClock(fixedClock(), () async {
-      FeedViewTestHelpers.mockPlatformViews(tester);
-      FeedViewTestHelpers.mockGoogleMapsPlatform();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 900));
       await tester.pump();
+      await StaticMapCacheTestHelpers.loadImages(tester);
       await tester.pumpAndSettle();
     });
   }

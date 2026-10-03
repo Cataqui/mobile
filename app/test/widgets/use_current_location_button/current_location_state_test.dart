@@ -65,6 +65,31 @@ void main() {
     expect(deviceLocation.addressRequestCount, 1);
   });
 
+  testWidgets('when location controls close, it should refresh an expired address only after they reopen', (
+    tester,
+  ) async {
+    final deviceLocation = FakeDeviceLocation(
+      address: address,
+      permissionStatuses: [DeviceLocationPermissionStatus.whileInUse],
+    );
+    final container = ProviderContainer.test(overrides: [deviceLocationProvider.overrideWithValue(deviceLocation)]);
+    addTearDown(container.dispose);
+    final subscription = container.listen(currentLocationStateProvider, (_, _) {});
+    await container.read(currentLocationStateProvider.future);
+
+    subscription.close();
+    await tester.pump(const Duration(minutes: 3));
+    await tester.pump();
+
+    expect(deviceLocation.addressRequestCount, 1);
+
+    container.listen(currentLocationStateProvider, (_, _) {});
+    await container.read(currentLocationStateProvider.future);
+    container.dispose();
+
+    expect(deviceLocation.addressRequestCount, 2);
+  });
+
   test('when initial permission is granted, it should resolve automatically in the active app locale', () async {
     final deviceLocation = FakeDeviceLocation(
       address: address,

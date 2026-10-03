@@ -8,4 +8,8 @@ class _MyPostsFlickPhysics extends BouncingScrollPhysics {
 
   @override
   double get minFlingVelocity => kMinFlingVelocity;
+
+  @override
+  bool recommendDeferredLoading(double velocity, ScrollMetrics metrics, BuildContext context) =>
+      velocity.abs() > metrics.viewportDimension;
 }

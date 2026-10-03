@@ -1,9 +1,13 @@
 part of 'feed_view.dart';
 
 class _FeedViewBody extends ConsumerStatefulWidget {
-  const _FeedViewBody({required this.controller, required this.onAdjustAreaPressed, required this.onIndexChanged});
+  const _FeedViewBody({
+    required this.snapListController,
+    required this.onAdjustAreaPressed,
+    required this.onIndexChanged,
+  });
 
-  final SnapListController controller;
+  final SnapListController snapListController;
   final VoidCallback onAdjustAreaPressed;
   final ValueChanged<int> onIndexChanged;
 
@@ -14,72 +18,86 @@ class _FeedViewBody extends ConsumerStatefulWidget {
 class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   static const MateoShape _mapSurfaceShape = .rounded(radius: 48);
 
-  final ValueNotifier<int> _currentMapIndexNotifier = ValueNotifier<int>(0);
+  late final JobLocationImagePrefetcher _imagePrefetcher;
+  bool _prefetchScheduled = false;
 
-  void _loadNextPage() {
+  int get _currentIndex => widget.snapListController.index ?? 0;
+
+  void _onFeedPositionChanged() {
     final data = ref.read(feedStateProvider).value;
-    final position = widget.controller.position;
+    final position = widget.snapListController.position;
     if (data == null || position == null || !data.hasMore || data.paginationError != null) return;
-    if (position < data.jobs.length - 1.3) return;
+    if (position < data.jobs.length - 6) return;
     unawaited(ref.read(feedStateProvider.notifier).getFeedJobs(fetchNextPage: true));
+  }
+
+  void _scheduleImagePrefetch() {
+    if (_prefetchScheduled) return;
+    _prefetchScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _prefetchScheduled = false;
+      if (!mounted) return;
+      final data = ref.read(feedStateProvider).value;
+      _imagePrefetcher.update(
+        requests: [
+          if (data != null)
+            for (final offset in [2, 3])
+              if (_currentIndex + offset < data.jobs.length)
+                StaticMapRequest(imageUrl: data.jobs[_currentIndex + offset].location.imageUrl, size: .pixels960x2560),
+        ],
+      );
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_loadNextPage);
+    _imagePrefetcher = JobLocationImagePrefetcher(cacheManager: ref.read(staticMapCacheManagerProvider));
+    widget.snapListController.addListener(_onFeedPositionChanged);
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_loadNextPage);
-    _currentMapIndexNotifier.dispose();
+    _imagePrefetcher.dispose();
+    widget.snapListController.removeListener(_onFeedPositionChanged);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final feedState = ref.watch(feedStateProvider);
-
-    return feedState.when(
-      data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
-      error: (error, st) => KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
-      loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
-    );
+    _scheduleImagePrefetch();
+    return ref
+        .watch(feedStateProvider)
+        .when(
+          data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
+          error: (error, st) =>
+              KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
+          loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
+        );
   }
 
   Widget _buildFeedContent(BuildContext context, FeedData feedData) {
     if (feedData.isEmpty) return _buildEnd(context);
-
-    final mapColorScheme = JobLocationMapColorScheme.fromBrightness(
-      brightness: MateoTheme.of(context).brightness,
-      palette: MateoTheme.of(context).palette,
-    );
-
     return SnapList.builder(
       clipBehavior: Clip.none,
       spacing: 10,
-      duration: const Duration(milliseconds: 230),
-      cacheItemCount: 3,
+      duration: const Duration(milliseconds: 180),
+      cacheItemCount: 1,
       curve: Curves.easeOutCubic,
-      controller: widget.controller,
+      controller: widget.snapListController,
       itemCount: feedData.jobs.length,
-      outgoingTransitionBuilder: (_, animation, details, child) {
-        return FadeTransition(
-          opacity: details.involvesTrailing && !details.isTrailing
-              ? const AlwaysStoppedAnimation<double>(1)
-              : Tween<double>(begin: 1, end: 0).animate(animation),
-          child: child,
-        );
-      },
-      incomingTransitionBuilder: (context, progress, details, child) {
-        return FadeTransition(
-          opacity: details.involvesTrailing && !details.isTrailing ? const AlwaysStoppedAnimation<double>(1) : progress,
-          child: child,
-        );
-      },
+      outgoingTransitionBuilder: (_, animation, details, child) => FadeTransition(
+        opacity: details.involvesTrailing && !details.isTrailing
+            ? const AlwaysStoppedAnimation<double>(1)
+            : Tween<double>(begin: 1, end: 0).animate(animation),
+        child: child,
+      ),
+      incomingTransitionBuilder: (context, progress, details, child) => FadeTransition(
+        opacity: details.involvesTrailing && !details.isTrailing ? const AlwaysStoppedAnimation<double>(1) : progress,
+        child: child,
+      ),
       onIndexChanged: (index) {
-        _currentMapIndexNotifier.value = index;
+        _scheduleImagePrefetch();
         widget.onIndexChanged(index);
       },
       trailingBuilder: (context) {
@@ -94,50 +112,25 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
       },
       itemBuilder: (context, index) {
         final job = feedData.jobs[index];
-        final location = job.location;
-
-        final mapCard = MateoSurface(
+        return MateoSurface(
           key: ValueKey(job.jobId),
           shape: _mapSurfaceShape,
-          color: mapColorScheme.background,
           width: const .fill(),
           height: const .fill(),
           child: Stack(
-            fit: StackFit.expand,
+            fit: .expand,
             children: [
-              ListenableBuilder(
-                listenable: _currentMapIndexNotifier,
-                builder: (context, _) {
-                  if ((index - _currentMapIndexNotifier.value).abs() > 1) {
-                    return const SizedBox.shrink();
-                  }
-
-                  const mapRadiusOffsetMultiplier = 4000;
-                  const mapRadiusReferenceHeight = 100;
-                  final mapRadiusOffset = Offset(
-                    0,
-                    mapRadiusOffsetMultiplier /
-                        (math.pow(MediaQuery.sizeOf(context).height / mapRadiusReferenceHeight, 2)),
-                  );
-
-                  return JobLocationMap(
-                    location: (latitude: location.latitude, longitude: location.longitude),
-                    areaDiameterInMeters: location.areaRadius.toDouble(),
-                    offset: mapRadiusOffset,
-                  );
-                },
-              ),
+              JobLocationImage(imageUrl: job.location.imageUrl, size: .pixels960x2560),
               Padding(
                 padding: const EdgeInsets.all(9),
                 child: Align(
-                  alignment: Alignment.topCenter,
+                  alignment: .topCenter,
                   child: SingleChildScrollView(child: FeedJobCard(feedJob: job)),
                 ),
               ),
             ],
           ),
         );
-        return mapCard;
       },
     );
   }
@@ -284,14 +277,9 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   }
 
   Widget _buildInitialLoading(BuildContext context) {
-    final mapColorScheme = JobLocationMapColorScheme.fromBrightness(
-      brightness: MateoTheme.of(context).brightness,
-      palette: MateoTheme.of(context).palette,
-    );
-
     return MateoSurface(
       shape: _mapSurfaceShape,
-      color: mapColorScheme.background,
+      color: MateoTheme.of(context).palette.neutral[2],
       width: const .fill(),
       height: const .fill(),
       child: Stack(

@@ -1,12 +1,13 @@
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
-import 'package:cataqui_app/core/dtos/job_location_dto.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
+import 'package:cataqui_app/core/dtos/fuzzy_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_location_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/user_repository.dart';
 import 'package:dio/dio.dart';
@@ -51,12 +52,13 @@ void main() {
           UserJobDto(
             jobId: _UserRepositoryTestData.activeJobId,
             description: 'Ajudar a descarregar caixas durante a tarde.',
-            contact: const JobContactDto(contactMethod: .whatsapp, identifier: '+5511888888888'),
+            contact: const ContactDto(method: .whatsapp, identifier: '+5511888888888'),
             location: const UserJobLocationDto(
               title: 'Rua Pardal Branco, 32',
               latitude: -23.55,
               longitude: -46.63,
               areaRadius: 2000,
+              imageUrl: 'https://maps.cataqui.com/static/fixture',
             ),
             status: .active,
             createdAt: DateTime.parse('2026-09-23T12:00:00.000Z'),
@@ -133,7 +135,12 @@ void main() {
             title: 'Descarregar caixas',
             descriptionSummary: 'Trabalho de um dia',
             payment: r'R$150',
-            location: const JobLocationDto(latitude: -23.55, longitude: -46.63, areaRadius: 2000),
+            location: const FuzzyJobLocationDto(
+              latitude: -23.55,
+              longitude: -46.63,
+              areaRadius: 2000,
+              imageUrl: 'https://maps.cataqui.com/static/fixture',
+            ),
             status: JobStatus.active,
             createdAt: DateTime.parse('2026-09-23T12:00:00.000Z'),
             updatedAt: DateTime.parse('2026-09-23T13:00:00.000Z'),
@@ -143,7 +150,12 @@ void main() {
             title: 'Organizar estoque',
             descriptionSummary: 'Organização de caixas',
             payment: null,
-            location: const JobLocationDto(latitude: -23.56, longitude: -46.64, areaRadius: 1500),
+            location: const FuzzyJobLocationDto(
+              latitude: -23.56,
+              longitude: -46.64,
+              areaRadius: 1500,
+              imageUrl: 'https://maps.cataqui.com/static/fixture',
+            ),
             status: JobStatus.archived,
             createdAt: DateTime.parse('2026-09-22T12:00:00.000Z'),
             updatedAt: DateTime.parse('2026-09-24T12:00:00.000Z'),
@@ -243,7 +255,7 @@ void main() {
           envelope.data.single,
           SavedContactDto.fixture().copyWith(
             contactId: _UserRepositoryTestData.contactId,
-            contactMethod: JobContactMethod.whatsapp,
+            method: ContactMethod.whatsapp,
             identifier: '+5511888888888',
           ),
         );
@@ -300,6 +312,7 @@ abstract final class _UserRepositoryTestData {
       'latitude': -23.55,
       'longitude': -46.63,
       'areaRadius': 2000,
+      'imageUrl': 'https://maps.cataqui.com/static/fixture',
     },
     'status': 'ACTIVE',
     'createdAt': '2026-09-23T12:00:00.000Z',
@@ -320,7 +333,12 @@ abstract final class _UserRepositoryTestData {
         'title': 'Descarregar caixas',
         'descriptionSummary': 'Trabalho de um dia',
         'payment': r'R$150',
-        'location': <String, Object?>{'latitude': -23.55, 'longitude': -46.63, 'areaRadius': 2000},
+        'location': <String, Object?>{
+          'latitude': -23.55,
+          'longitude': -46.63,
+          'areaRadius': 2000,
+          'imageUrl': 'https://maps.cataqui.com/static/fixture',
+        },
         'status': 'ACTIVE',
         'createdAt': '2026-09-23T12:00:00.000Z',
         'updatedAt': '2026-09-23T13:00:00.000Z',
@@ -330,7 +348,12 @@ abstract final class _UserRepositoryTestData {
         'title': 'Organizar estoque',
         'descriptionSummary': 'Organização de caixas',
         'payment': null,
-        'location': <String, Object?>{'latitude': -23.56, 'longitude': -46.64, 'areaRadius': 1500},
+        'location': <String, Object?>{
+          'latitude': -23.56,
+          'longitude': -46.64,
+          'areaRadius': 1500,
+          'imageUrl': 'https://maps.cataqui.com/static/fixture',
+        },
         'status': 'ARCHIVED',
         'createdAt': '2026-09-22T12:00:00.000Z',
         'updatedAt': '2026-09-24T12:00:00.000Z',

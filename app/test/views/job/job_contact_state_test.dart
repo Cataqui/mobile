@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job/job_contact_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,18 +33,24 @@ final class _JobContactStateTestHelpers {
 
 void main() {
   late MockJobRepository repository;
+  late MockWhatsapp whatsapp;
+  late MockPhoneNumber phoneNumber;
 
   setUp(() {
     registerFallbackValue(Uri());
     repository = MockJobRepository();
+    whatsapp = MockWhatsapp();
+    when(whatsapp.chat).thenAnswer((_) async => true);
+    phoneNumber = MockPhoneNumber();
+    when(phoneNumber.call).thenAnswer((_) async => true);
     when(
       () => repository.getJobContact(
         jobId: any(named: 'jobId'),
         contactId: any(named: 'contactId'),
       ),
     ).thenAnswer(
-      (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
-        data: JobContactDto.fixture().copyWith(contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+      (_) async => ApiEnvelopeDto<ContactDto>.fixture(
+        data: ContactDto.fixture().copyWith(method: .whatsapp, identifier: '+5511999999999'),
       ),
     );
   });
@@ -74,8 +81,6 @@ void main() {
 
     group('when contact is called', () {
       test('it should fetch the job contact with the correct job id and contact id', () async {
-        final whatsapp = MockWhatsapp();
-        final phoneNumber = MockPhoneNumber();
         final container = _JobContactStateTestHelpers.container(
           repository: repository,
           whatsapp: whatsapp,
@@ -90,9 +95,6 @@ void main() {
       });
 
       test('when the contact fetch succeeds with a whatsapp method, it should launch WhatsApp', () async {
-        final whatsapp = MockWhatsapp();
-        when(whatsapp.chat).thenAnswer((_) async => true);
-
         final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
 
         final notifier = container.read(jobContactStateProvider(jobId: 'job-wpp', contactId: 'contact-wpp').notifier);
@@ -108,16 +110,10 @@ void main() {
             contactId: any(named: 'contactId'),
           ),
         ).thenAnswer(
-          (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
-            data: JobContactDto.fixture().copyWith(
-              contactMethod: JobContactMethod.phoneCall,
-              identifier: '+5511888888888',
-            ),
+          (_) async => ApiEnvelopeDto<ContactDto>.fixture(
+            data: ContactDto.fixture().copyWith(method: .phoneCall, identifier: '+5511888888888'),
           ),
         );
-
-        final phoneNumber = MockPhoneNumber();
-        when(phoneNumber.call).thenAnswer((_) async => true);
 
         final container = _JobContactStateTestHelpers.container(repository: repository, phoneNumber: phoneNumber);
 
@@ -129,6 +125,81 @@ void main() {
         verify(phoneNumber.call).called(1);
       });
 
+      test('when WhatsApp rejects the launch, it should expose an AsyncError', () async {
+        when(whatsapp.chat).thenAnswer((_) async => false);
+        final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
+        final provider = jobContactStateProvider(jobId: 'job-wpp-unavailable', contactId: 'contact-wpp');
+
+        await container.read(provider.notifier).contact();
+
+        expect(container.read(provider).hasError, isTrue);
+      });
+
+      test('when the phone app rejects the launch, it should expose an AsyncError', () async {
+        when(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        ).thenAnswer(
+          (_) async => ApiEnvelopeDto<ContactDto>.fixture(
+            data: ContactDto.fixture().copyWith(method: .phoneCall, identifier: '+5511888888888'),
+          ),
+        );
+        when(phoneNumber.call).thenAnswer((_) async => false);
+        final container = _JobContactStateTestHelpers.container(repository: repository, phoneNumber: phoneNumber);
+        final provider = jobContactStateProvider(jobId: 'job-phone-unavailable', contactId: 'contact-phone');
+
+        await container.read(provider.notifier).contact();
+
+        expect(container.read(provider).hasError, isTrue);
+      });
+
+      test('when detail closes during the contact fetch, it should finish without launching another app', () async {
+        final contactResponse = Completer<ApiEnvelopeDto<ContactDto>>();
+        when(
+          () => repository.getJobContact(
+            jobId: any(named: 'jobId'),
+            contactId: any(named: 'contactId'),
+          ),
+        ).thenAnswer((_) => contactResponse.future);
+        final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
+        final provider = jobContactStateProvider(jobId: 'job-closed', contactId: 'contact-closed');
+        final subscription = container.listen(provider, (_, _) {});
+        final contact = container.read(provider.notifier).contact();
+
+        subscription.close();
+        await container.pump();
+        contactResponse.complete(
+          ApiEnvelopeDto<ContactDto>.fixture(
+            data: ContactDto.fixture().copyWith(method: .whatsapp, identifier: '+5511999999999'),
+          ),
+        );
+
+        await expectLater(contact, completes);
+        verifyNever(whatsapp.chat);
+      });
+
+      test('when detail closes during an external launch, it should finish without writing disposed state', () async {
+        final launchResult = Completer<bool>();
+        final launchStarted = Completer<void>();
+        when(whatsapp.chat).thenAnswer((_) {
+          launchStarted.complete();
+          return launchResult.future;
+        });
+        final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);
+        final provider = jobContactStateProvider(jobId: 'job-launch-closed', contactId: 'contact-launch-closed');
+        final subscription = container.listen(provider, (_, _) {});
+        final contact = container.read(provider.notifier).contact();
+        await launchStarted.future;
+
+        subscription.close();
+        await container.pump();
+        launchResult.complete(true);
+
+        await expectLater(contact, completes);
+      });
+
       test('when the contact method is unknown, it should not launch WhatsApp or telephony', () async {
         when(
           () => repository.getJobContact(
@@ -136,13 +207,9 @@ void main() {
             contactId: any(named: 'contactId'),
           ),
         ).thenAnswer(
-          (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
-            data: JobContactDto.fixture().copyWith(contactMethod: JobContactMethod.unknown),
-          ),
+          (_) async => ApiEnvelopeDto<ContactDto>.fixture(data: ContactDto.fixture().copyWith(method: .unknown)),
         );
 
-        final whatsapp = MockWhatsapp();
-        final phoneNumber = MockPhoneNumber();
         final container = _JobContactStateTestHelpers.container(
           repository: repository,
           whatsapp: whatsapp,
@@ -182,8 +249,6 @@ void main() {
           ),
         ).thenThrow(StateError('fetch failed'));
 
-        final whatsapp = MockWhatsapp();
-        final phoneNumber = MockPhoneNumber();
         final container = _JobContactStateTestHelpers.container(
           repository: repository,
           whatsapp: whatsapp,
@@ -200,7 +265,6 @@ void main() {
       });
 
       test('when the dispatch itself fails, it should expose an AsyncError', () async {
-        final whatsapp = MockWhatsapp();
         when(whatsapp.chat).thenThrow(StateError('launch failed'));
 
         final container = _JobContactStateTestHelpers.container(repository: repository, whatsapp: whatsapp);

@@ -16,15 +16,9 @@ import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 import '../../../utils/test_app.dart';
-import '../../../widgets/job_location_map/google_maps_test_renderer.dart';
 import 'fake_my_post_state.dart';
 
 void main() {
-  setUp(() {
-    final mapRenderer = GoogleMapsTestRenderer()..install();
-    addTearDown(mapRenderer.restore);
-  });
-
   final goldenConfig = AlchemistConfig.current();
   AlchemistConfig.runWithConfig(
     config: goldenConfig.copyWith(ciGoldensConfig: goldenConfig.ciGoldensConfig.copyWith(obscureText: false)),

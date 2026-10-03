@@ -18,12 +18,12 @@ import '../post_test_state.dart';
 import 'post_location_test_helpers.dart';
 
 void main() {
-  late MockGeosearchRepository geosearchRepository;
+  late MockMapsRepository mapsRepository;
 
   setUp(() {
-    geosearchRepository = MockGeosearchRepository();
+    mapsRepository = MockMapsRepository();
     when(
-      () => geosearchRepository.searchAddresses(
+      () => mapsRepository.searchAddresses(
         query: any(named: 'query'),
         sessionToken: any(named: 'sessionToken'),
       ),
@@ -42,10 +42,8 @@ void main() {
           await _PostLocationViewGoldenTestHelpers.openLocation(tester);
           return null;
         },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
+        builder: () =>
+            _PostLocationViewGoldenTestHelpers.buildPostView(mapsRepository: mapsRepository, disableAnimations: false),
       );
 
       goldenTest(
@@ -64,10 +62,8 @@ void main() {
           await tester.pump(const Duration(milliseconds: 400));
           return null;
         },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
+        builder: () =>
+            _PostLocationViewGoldenTestHelpers.buildPostView(mapsRepository: mapsRepository, disableAnimations: false),
       );
 
       goldenTest(
@@ -79,10 +75,8 @@ void main() {
           await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua das Flores');
           return null;
         },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
+        builder: () =>
+            _PostLocationViewGoldenTestHelpers.buildPostView(mapsRepository: mapsRepository, disableAnimations: false),
       );
 
       goldenTest(
@@ -91,7 +85,7 @@ void main() {
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
         whilePerforming: (tester) async {
           when(
-            () => geosearchRepository.searchAddresses(
+            () => mapsRepository.searchAddresses(
               query: any(named: 'query'),
               sessionToken: any(named: 'sessionToken'),
             ),
@@ -100,7 +94,7 @@ void main() {
           await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua das Flores', settle: false);
           return null;
         },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(geosearchRepository: geosearchRepository),
+        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(mapsRepository: mapsRepository),
       );
 
       goldenTest(
@@ -109,7 +103,7 @@ void main() {
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
         whilePerforming: (tester) async {
           when(
-            () => geosearchRepository.searchAddresses(
+            () => mapsRepository.searchAddresses(
               query: any(named: 'query'),
               sessionToken: any(named: 'sessionToken'),
             ),
@@ -118,10 +112,8 @@ void main() {
           await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua das Flores');
           return null;
         },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
+        builder: () =>
+            _PostLocationViewGoldenTestHelpers.buildPostView(mapsRepository: mapsRepository, disableAnimations: false),
       );
 
       goldenTest(
@@ -130,7 +122,7 @@ void main() {
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
         whilePerforming: (tester) async {
           when(
-            () => geosearchRepository.searchAddresses(
+            () => mapsRepository.searchAddresses(
               query: any(named: 'query'),
               sessionToken: any(named: 'sessionToken'),
             ),
@@ -139,10 +131,8 @@ void main() {
           await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua das Flores');
           return null;
         },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
+        builder: () =>
+            _PostLocationViewGoldenTestHelpers.buildPostView(mapsRepository: mapsRepository, disableAnimations: false),
       );
 
       goldenTest(
@@ -151,7 +141,7 @@ void main() {
         constraints: const BoxConstraints.tightFor(width: 390, height: 844),
         whilePerforming: (tester) async {
           when(
-            () => geosearchRepository.searchAddresses(
+            () => mapsRepository.searchAddresses(
               query: any(named: 'query'),
               sessionToken: any(named: 'sessionToken'),
             ),
@@ -160,10 +150,8 @@ void main() {
           await PostLocationTestHelpers.enterAddressQuery(tester, query: 'Rua das Flores');
           return null;
         },
-        builder: () => _PostLocationViewGoldenTestHelpers.buildPostView(
-          geosearchRepository: geosearchRepository,
-          disableAnimations: false,
-        ),
+        builder: () =>
+            _PostLocationViewGoldenTestHelpers.buildPostView(mapsRepository: mapsRepository, disableAnimations: false),
       );
     },
   );
@@ -179,7 +167,7 @@ abstract final class _PostLocationViewGoldenTestHelpers {
     await tester.pump();
   }
 
-  static Widget buildPostView({required MockGeosearchRepository geosearchRepository, bool disableAnimations = true}) {
+  static Widget buildPostView({required MockMapsRepository mapsRepository, bool disableAnimations = true}) {
     return SizedBox(
       width: 390,
       height: 844,
@@ -188,7 +176,7 @@ abstract final class _PostLocationViewGoldenTestHelpers {
         providerOverrides: [
           translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
           postStateProvider.overrideWith(() => PostTestState(initialData: const PostData())),
-          geosearchRepositoryProvider.overrideWithValue(geosearchRepository),
+          mapsRepositoryProvider.overrideWithValue(mapsRepository),
         ],
         child: const PostView(),
       ),

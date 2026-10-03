@@ -25,6 +25,8 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
   VoidCallback? _dismissCheckingToast;
 
   void _startLogin() {
+    if (ref.read(loginStateProvider).isLoading) return;
+
     final appReturn = Completer<void>();
     _appReturnCompleter = appReturn;
 
@@ -121,9 +123,8 @@ class _WhatsappLoginButtonState extends ConsumerState<WhatsappLoginButton> with 
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed || !mounted) return;
 
-    final loginState = ref.read(loginStateProvider.notifier);
     final appReturn = _appReturnCompleter;
-    if (!loginState.isExchangingNotpIntent || appReturn == null || appReturn.isCompleted) return;
+    if (appReturn == null || appReturn.isCompleted) return;
 
     appReturn.complete();
     _scheduleCheckingToast();

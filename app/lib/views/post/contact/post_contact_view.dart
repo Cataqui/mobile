@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/add_contact/add_contact_route.dart';
 import 'package:cataqui_app/views/post/contact/post_contact_option.dart';
@@ -21,15 +21,23 @@ class PostContactView extends ConsumerStatefulWidget {
       view: MateoSheetView(
         header: const MateoSheetViewHeader(presentation: .handle()),
         footer: MateoSheetViewFooter(
-          principal: MateoButton(
-            key: const ValueKey('post_contact_add_button'),
-            presentation: .label(
-              label: i18n.post.contact.addButtonTitle,
-              variant: .secondary.neutral,
-              width: .fill,
-              trailingIcon: const MateoIcon(.plusSignal, size: 18),
+          principal: Builder(
+            builder: (context) => MateoButton(
+              key: const ValueKey('post_contact_add_button'),
+              presentation: .label(
+                label: i18n.post.contact.addButtonTitle,
+                variant: .secondary.neutral,
+                width: .fill,
+                trailingIcon: const MateoIcon(.plusSignal, size: 18),
+              ),
+              onPressed: () async {
+                final sheetRoute = ModalRoute.of(context)!;
+                final didSaveContact = await const AddContactRoute().push<bool>(context);
+                if (didSaveContact != true || !context.mounted || !sheetRoute.isActive) return;
+
+                Navigator.of(context).removeRoute(sheetRoute);
+              },
             ),
-            onPressed: () => const AddContactRoute().push<void>(context),
           ),
         ),
         surface: MateoSheetViewSurface(
@@ -48,61 +56,25 @@ class PostContactView extends ConsumerStatefulWidget {
 class _PostContactViewState extends ConsumerState<PostContactView> {
   final ScrollController _contactsScrollController = ScrollController();
 
-  Widget _buildContactRow(
-    BuildContext context, {
-    required Key key,
-    required JobContactMethod contactMethod,
-    required String displayIdentifier,
-  }) {
-    final iconColors = _contactIconColors(context, contactMethod);
-
-    return Container(
-      key: key,
-      constraints: const BoxConstraints(minHeight: 58),
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          contactMethod.icon(size: 42, color: iconColors.foreground, backgroundColor: iconColors.background),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              displayIdentifier,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: MateoTheme.of(context).colorScheme.text.primary,
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _selectContact(BuildContext context, PostContactOption option) {
     ref
         .read(postStateProvider.notifier)
-        .selectContact(contactMethod: option.contact.contactMethod, identifier: option.contact.identifier);
+        .selectContact(contactMethod: option.contact.method, identifier: option.contact.identifier);
 
     Navigator.of(context).pop();
   }
 
-  ({Color background, Color foreground}) _contactIconColors(BuildContext context, JobContactMethod contactMethod) {
+  ({Color background, Color foreground}) _contactIconColors(BuildContext context, ContactMethod contactMethod) {
     return switch (MateoTheme.of(context).brightness) {
-      Brightness.light => switch (contactMethod) {
-        JobContactMethod.whatsapp => (
-          background: const Color(0xFF25D366),
-          foreground: MateoTheme.of(context).palette.neutral[1],
-        ),
-        JobContactMethod.phoneCall => (
+      .light => switch (contactMethod) {
+        .whatsapp => (background: const Color(0xFF25D366), foreground: MateoTheme.of(context).palette.neutral[1]),
+        .phoneCall => (
           background: MateoTheme.of(context).palette.violet[9],
           foreground: MateoTheme.of(context).palette.neutral[1],
         ),
-        JobContactMethod.unknown => throw UnsupportedError('Unknown job contact method.'),
+        .unknown => throw UnsupportedError('Unknown job contact method.'),
       },
-      Brightness.dark => throw UnsupportedError('PostContactView does not support dark mode.'),
+      .dark => throw UnsupportedError('PostContactView does not support dark mode.'),
     };
   }
 
@@ -137,11 +109,11 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
                 heightFactor: 1,
                 child: Text(
                   i18n.post.contact.empty,
-                  textAlign: TextAlign.center,
+                  textAlign: .center,
                   style: TextStyle(
                     color: MateoTheme.of(context).colorScheme.text.tertiary,
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: .w500,
                   ),
                 ),
               );
@@ -157,12 +129,12 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
               itemBuilder: (context, index) {
                 final option = options[index];
                 return MateoPress(
-                  animation: MateoPressAnimationType.scaleFade,
+                  animation: .scaleFade,
                   onPressed: (_) => _selectContact(context, option),
                   child: _buildContactRow(
                     context,
                     key: ValueKey('post_contact_option_${option.contact.contactId}'),
-                    contactMethod: option.contact.contactMethod,
+                    contactMethod: option.contact.method,
                     displayIdentifier: option.displayIdentifier,
                   ),
                 );
@@ -174,11 +146,11 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
             heightFactor: 1,
             child: Text(
               i18n.post.contact.error,
-              textAlign: TextAlign.center,
+              textAlign: .center,
               style: TextStyle(
                 color: MateoTheme.of(context).colorScheme.text.tertiary,
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: .w500,
               ),
             ),
           ),
@@ -199,7 +171,7 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
                     child: _buildContactRow(
                       context,
                       key: ValueKey('post_contact_skeleton_row_$index'),
-                      contactMethod: index.isEven ? JobContactMethod.whatsapp : JobContactMethod.phoneCall,
+                      contactMethod: index.isEven ? .whatsapp : .phoneCall,
                       displayIdentifier: index.isEven ? '+55 11 96923-0546' : '+1 202-555-0123',
                     ),
                   ),
@@ -207,6 +179,35 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildContactRow(
+    BuildContext context, {
+    required Key key,
+    required ContactMethod contactMethod,
+    required String displayIdentifier,
+  }) {
+    final iconColors = _contactIconColors(context, contactMethod);
+
+    return Container(
+      key: key,
+      constraints: const BoxConstraints(minHeight: 58),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          contactMethod.icon(size: 42, color: iconColors.foreground, backgroundColor: iconColors.background),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              displayIdentifier,
+              maxLines: 1,
+              overflow: .ellipsis,
+              style: TextStyle(color: MateoTheme.of(context).colorScheme.text.primary, fontSize: 17, fontWeight: .w600),
+            ),
+          ),
+        ],
       ),
     );
   }

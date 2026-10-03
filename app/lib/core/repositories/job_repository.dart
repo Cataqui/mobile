@@ -1,7 +1,7 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:dio/dio.dart';
 
 class JobRepository {
@@ -10,12 +10,12 @@ class JobRepository {
   final Dio authenticatedDio;
   final Dio unauthenticatedDio;
 
-  Future<ApiEnvelopeDto<JobDto>> createJob({
+  Future<ApiEnvelopeDto<PublicJobDto>> createJob({
     required String description,
     required double latitude,
     required double longitude,
     required String locationTitle,
-    required JobContactMethod contactMethod,
+    required ContactMethod contactMethod,
     required String contactIdentifier,
     required String idempotencyKey,
   }) async {
@@ -26,37 +26,51 @@ class JobRepository {
         'location': <String, Object?>{'title': locationTitle, 'latitude': latitude, 'longitude': longitude},
         'contact': <String, Object?>{'method': contactMethod.jsonValue, 'identifier': contactIdentifier},
       },
-      options: Options(headers: <String, String>{'Idempotency-Key': idempotencyKey}),
+      options: Options(
+        headers: <String, String>{'Idempotency-Key': idempotencyKey},
+        receiveTimeout: const Duration(seconds: 60),
+      ),
     );
 
-    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+    return ApiEnvelopeDto<PublicJobDto>.fromJson(
+      response.data!,
+      (json) => PublicJobDto.fromJson(json! as Map<String, Object?>),
+    );
   }
 
-  Future<ApiEnvelopeDto<JobDto>> getJob({required String jobId}) async {
-    // return ApiEnvelopeDto.fixture(data: .fixture());
+  Future<ApiEnvelopeDto<PublicJobDto>> getPublicJob({required String jobId}) async {
     final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId');
 
-    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+    return ApiEnvelopeDto<PublicJobDto>.fromJson(
+      response.data!,
+      (json) => PublicJobDto.fromJson(json! as Map<String, Object?>),
+    );
   }
 
-  Future<ApiEnvelopeDto<JobDto>> archiveJob({required String jobId}) async {
+  Future<ApiEnvelopeDto<PublicJobDto>> archiveJob({required String jobId}) async {
     final response = await authenticatedDio.post<Map<String, Object?>>('/jobs/$jobId/archive');
 
-    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+    return ApiEnvelopeDto<PublicJobDto>.fromJson(
+      response.data!,
+      (json) => PublicJobDto.fromJson(json! as Map<String, Object?>),
+    );
   }
 
-  Future<ApiEnvelopeDto<JobDto>> activateJob({required String jobId}) async {
+  Future<ApiEnvelopeDto<PublicJobDto>> activateJob({required String jobId}) async {
     final response = await authenticatedDio.post<Map<String, Object?>>('/jobs/$jobId/activate');
 
-    return ApiEnvelopeDto<JobDto>.fromJson(response.data!, (json) => JobDto.fromJson(json! as Map<String, Object?>));
+    return ApiEnvelopeDto<PublicJobDto>.fromJson(
+      response.data!,
+      (json) => PublicJobDto.fromJson(json! as Map<String, Object?>),
+    );
   }
 
-  Future<ApiEnvelopeDto<JobContactDto>> getJobContact({required String jobId, required String contactId}) async {
+  Future<ApiEnvelopeDto<ContactDto>> getJobContact({required String jobId, required String contactId}) async {
     final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId/contact/$contactId');
 
-    return ApiEnvelopeDto<JobContactDto>.fromJson(
+    return ApiEnvelopeDto<ContactDto>.fromJson(
       response.data!,
-      (json) => JobContactDto.fromJson(json! as Map<String, Object?>),
+      (json) => ContactDto.fromJson(json! as Map<String, Object?>),
     );
   }
 }

@@ -13,12 +13,15 @@ class JobState extends _$JobState {
 
   Future<void> retry() async {
     state = const AsyncLoading<JobData>();
-    state = await AsyncValue.guard(_fetchJob);
+    final jobResult = await AsyncValue.guard(_fetchJob);
+    if (!ref.mounted) return;
+
+    state = jobResult;
   }
 
   Future<JobData> _fetchJob() async {
     final jobRepository = ref.read(jobRepositoryProvider);
-    final envelope = await jobRepository.getJob(jobId: jobId);
+    final envelope = await jobRepository.getPublicJob(jobId: jobId);
 
     return JobData(job: envelope.data);
   }

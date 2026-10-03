@@ -49,7 +49,7 @@ class PostLocationState extends _$PostLocationState {
         state = state.copyWith(addressSearch: const AsyncLoading<AddressSearchResponseDto?>());
 
         return ref
-            .read(geosearchRepositoryProvider)
+            .read(mapsRepositoryProvider)
             .searchAddresses(query: normalizedQuery, sessionToken: _sessionToken ??= _uuid.v4());
       });
 

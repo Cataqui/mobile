@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -25,7 +25,7 @@ void main() {
     test('when every field and a selected address are present, it should be publishable', () {
       const data = PostData(
         addressSelection: (addressId: 'address-id', sessionToken: 'session-token'),
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda hoje',
         locationTitle: 'Avenida Paulista',
       );
@@ -35,7 +35,7 @@ void main() {
 
     test('when every field and current coordinates are present, it should be publishable', () {
       const data = PostData(
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda hoje',
         location: (latitude: -23.561684, longitude: -46.655981),
         locationTitle: 'Pinheiros, São Paulo',
@@ -44,10 +44,26 @@ void main() {
       expect(data.canPublish, isTrue);
     });
 
+    for (final (descriptionLength, canPublish) in [(9, false), (10, true), (10000, true), (10001, false)]) {
+      test(
+        'when the trimmed description has $descriptionLength characters, publish eligibility should be $canPublish',
+        () {
+          final data = PostData(
+            addressSelection: (addressId: 'address-id', sessionToken: 'session-token'),
+            contact: (contactMethod: .whatsapp, identifier: '+5511999999999'),
+            descriptionText: '  ${'a' * descriptionLength}  ',
+            locationTitle: 'Avenida Paulista',
+          );
+
+          expect(data.canPublish, canPublish);
+        },
+      );
+    }
+
     test('when any required field is missing, it should not be publishable', () {
       const completeData = PostData(
         addressSelection: (addressId: 'address-id', sessionToken: 'session-token'),
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda hoje',
         locationTitle: 'Avenida Paulista',
       );

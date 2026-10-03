@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
@@ -36,7 +36,6 @@ class JobRouteTestHelpers {
     GoRouter? goRouter,
   }) async {
     FeedViewTestHelpers.mockHapticFeedback(tester);
-    FeedViewTestHelpers.mockPlatformViews(tester);
     await tester.pumpWidget(
       JobViewTestHelpers.buildRoutedApp(
         goRouter: goRouter ?? JobRouteTestHelpers.goRouter(),
@@ -87,8 +86,8 @@ void main() {
 
     setUp(() {
       jobRepository = MockJobRepository();
-      when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
-        (_) async => ApiEnvelopeDto<JobDto>(
+      when(() => jobRepository.getPublicJob(jobId: any(named: 'jobId'))).thenAnswer(
+        (_) async => ApiEnvelopeDto<PublicJobDto>(
           data: JobViewTestHelpers.job(),
           requestId: 'test-request-id',
           timestamp: DateTime(2026, 6, 30),
@@ -228,8 +227,8 @@ void main() {
 
     setUp(() {
       jobRepository = MockJobRepository();
-      when(() => jobRepository.getJob(jobId: any(named: 'jobId'))).thenAnswer(
-        (_) async => ApiEnvelopeDto<JobDto>(
+      when(() => jobRepository.getPublicJob(jobId: any(named: 'jobId'))).thenAnswer(
+        (_) async => ApiEnvelopeDto<PublicJobDto>(
           data: JobViewTestHelpers.job(),
           requestId: 'test-request-id',
           timestamp: DateTime(2026, 6, 30),

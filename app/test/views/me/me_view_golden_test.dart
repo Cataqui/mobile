@@ -4,7 +4,7 @@ import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/dtos/user_profile_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
@@ -21,18 +21,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
+import '../../utils/static_map_cache_test_helpers.dart';
 import '../../utils/test_app.dart';
-import '../../widgets/job_location_map/google_maps_test_renderer.dart';
 import '../feed/feed_view_test_helpers.dart';
 import 'fake_me_state.dart';
 import 'fake_my_posts_state.dart';
 
 void main() {
-  setUp(() {
-    final mapRenderer = GoogleMapsTestRenderer()..install();
-    addTearDown(mapRenderer.restore);
-  });
-
   final goldenConfig = AlchemistConfig.current();
   AlchemistConfig.runWithConfig(
     config: goldenConfig.copyWith(ciGoldensConfig: goldenConfig.ciGoldensConfig.copyWith(obscureText: false)),
@@ -191,7 +186,10 @@ abstract final class MeGoldenTestHelpers {
   );
 
   static Future<void> pumpGolden(WidgetTester tester, Widget widget) =>
-      withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () => tester.pumpWidget(widget));
+      withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () async {
+        await tester.pumpWidget(widget);
+        await StaticMapCacheTestHelpers.loadImages(tester);
+      });
 
   static Future<void> settleGolden(WidgetTester tester) =>
       withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), tester.pumpAndSettle);
@@ -251,8 +249,6 @@ abstract final class MeGoldenTestHelpers {
   static Future<Future<void> Function()> openToMidpoint(WidgetTester tester) async {
     await withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () async {
       FeedViewTestHelpers.mockHapticFeedback(tester);
-      FeedViewTestHelpers.mockPlatformViews(tester);
-      FeedViewTestHelpers.mockGoogleMapsPlatform();
       await tester.pumpAndSettle();
       await FeedViewTestHelpers.prepareGoldenCapture(tester: tester, contextFinder: find.byType(FeedView));
 

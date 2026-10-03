@@ -17,11 +17,11 @@ class AddContactView extends ConsumerStatefulWidget {
 class _AddContactViewState extends ConsumerState<AddContactView> {
   PhoneNumber? _phoneNumber;
 
-  void _saveContact() {
+  void _saveContact(PostState postState) {
     final phoneNumber = _phoneNumber;
     if (phoneNumber == null) return;
 
-    ref.read(postStateProvider.notifier).selectContact(contactMethod: .whatsapp, identifier: phoneNumber.e164);
+    postState.selectContact(contactMethod: .whatsapp, identifier: phoneNumber.e164);
 
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) {
@@ -29,9 +29,7 @@ class _AddContactViewState extends ConsumerState<AddContactView> {
       return;
     }
 
-    navigator
-      ..removeRouteBelow(ModalRoute.of(context)!)
-      ..pop();
+    navigator.pop(true);
   }
 
   void _updatePhoneNumber(String value) {
@@ -47,6 +45,7 @@ class _AddContactViewState extends ConsumerState<AddContactView> {
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
+    final postState = ref.watch(postStateProvider.notifier);
 
     return MateoView(
       header: MateoViewHeader(
@@ -72,7 +71,7 @@ class _AddContactViewState extends ConsumerState<AddContactView> {
         principal: MateoButton(
           key: const ValueKey('add_contact_save_button'),
           presentation: .label(label: i18n.addContact.saveButtonTitle, variant: .primary.success, width: .fill),
-          onPressed: _phoneNumber == null ? null : _saveContact,
+          onPressed: _phoneNumber == null ? null : () => _saveContact(postState),
         ),
       ),
       surface: .new(

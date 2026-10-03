@@ -1,5 +1,5 @@
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -19,7 +19,7 @@ void main() {
         'method': 'WHATSAPP',
       });
 
-      expect(ref.contactMethod, JobContactMethod.whatsapp);
+      expect(ref.method, ContactMethod.whatsapp);
     });
 
     test('when parsing an unknown contact method, it should use unknown', () {
@@ -28,7 +28,7 @@ void main() {
         'method': 'SMS',
       });
 
-      expect(ref.contactMethod, JobContactMethod.unknown);
+      expect(ref.method, ContactMethod.unknown);
     });
 
     test('when serializing a contact reference, it should use the method wire key', () {

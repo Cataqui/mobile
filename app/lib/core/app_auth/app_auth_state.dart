@@ -28,7 +28,7 @@ class AppAuthState extends _$AppAuthState {
     if (_activeLogout != null) return false;
     if (hasValidSession) return true;
 
-    final credentials = ref.read(appStorageStateProvider).value?.authCredentials;
+    final credentials = _currentRefreshCredentials;
     return credentials != null && credentials.refreshTokenExpiresAt.isAfter(clock.now());
   }
 
@@ -161,8 +161,8 @@ class AppAuthState extends _$AppAuthState {
   }
 
   Future<AuthSessionDto?> _performCredentialRefresh() async {
-    final appStorage = await ref.read(appStorageStateProvider.future);
-    final credentials = appStorage.authCredentials;
+    await ref.read(appStorageStateProvider.future);
+    final credentials = _currentRefreshCredentials;
 
     if (credentials == null || !credentials.refreshTokenExpiresAt.isAfter(clock.now())) return null;
 
@@ -182,6 +182,13 @@ class AppAuthState extends _$AppAuthState {
 
       return null;
     }
+  }
+
+  AuthCredentialsDto? get _currentRefreshCredentials {
+    final session = state;
+    if (session != null) return AuthCredentialsDto.fromAuthSession(session);
+
+    return ref.read(appStorageStateProvider).value?.authCredentials;
   }
 
   Future<void> _clearAuthenticationIfNeeded() async {

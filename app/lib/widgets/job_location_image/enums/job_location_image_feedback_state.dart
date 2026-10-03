@@ -1,0 +1,1 @@
+enum JobLocationImageFeedbackState { loading, error }

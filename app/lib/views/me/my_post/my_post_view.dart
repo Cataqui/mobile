@@ -1,5 +1,5 @@
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_detail_content.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_header_flight_delegate.dart';

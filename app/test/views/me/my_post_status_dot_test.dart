@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/me/widgets/post_status_dot.dart';
 import 'package:flutter/material.dart';

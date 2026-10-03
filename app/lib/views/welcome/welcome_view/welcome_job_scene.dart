@@ -54,9 +54,9 @@ class _WelcomeJobScene extends StatefulWidget {
 }
 
 class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerProviderStateMixin {
-  final MotionController _transitionController = MotionController();
-  final MotionController _floatingController = MotionController();
-  late final AnimationController _artworkColorController;
+  final MotionController _transitionMotionController = MotionController();
+  final MotionController _floatingMotionController = MotionController();
+  late final AnimationController _artworkColorAnimationController;
   late final List<FloatingMotionEffect> _artworkFloatingEffects;
   late final FloatingMotionEffect _cardFloatingEffect;
   late final List<List<MotionEffect>> _artworkRevealEffects;
@@ -99,7 +99,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
     _initialFloatingTimer = null;
     if (!mounted || _floatingStarted || _animationsDisabled) return;
     _floatingStarted = true;
-    _floatingController.play();
+    _floatingMotionController.play();
   }
 
   void _scheduleInitialReveal() {
@@ -108,7 +108,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
       _initialRevealTimer?.cancel();
       _initialRevealTimer = null;
       _phase = WelcomeScenePhase.idle;
-      _transitionController.play();
+      _transitionMotionController.play();
       _precacheNextJob();
       _scheduleNextJobTransition();
       return;
@@ -123,7 +123,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
     if (!mounted || _phase != WelcomeScenePhase.initial) return;
 
     setState(() => _phase = WelcomeScenePhase.revealing);
-    _transitionController.play();
+    _transitionMotionController.play();
   }
 
   void _scheduleNextJobTransition({Duration? delay}) {
@@ -144,7 +144,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
         _hasRotatedJobs = true;
         _phase = WelcomeScenePhase.idle;
       });
-      _artworkColorController.value = 1;
+      _artworkColorAnimationController.value = 1;
       _precacheNextJob();
       _scheduleNextJobTransition();
       return;
@@ -152,7 +152,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
     if (_phase != WelcomeScenePhase.idle) return;
 
     setState(() => _phase = WelcomeScenePhase.returning);
-    _transitionController.play();
+    _transitionMotionController.play();
   }
 
   void _precacheNextJob() {
@@ -183,8 +183,8 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
           _hasRotatedJobs = true;
           _phase = WelcomeScenePhase.revealing;
         });
-        _artworkColorController.forward(from: 0);
-        _transitionController.play();
+        _artworkColorAnimationController.forward(from: 0);
+        _transitionMotionController.play();
         return;
     }
   }
@@ -192,7 +192,11 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
   @override
   void initState() {
     super.initState();
-    _artworkColorController = AnimationController(duration: _WelcomeJobScene._revealDuration, value: 1, vsync: this);
+    _artworkColorAnimationController = AnimationController(
+      duration: _WelcomeJobScene._revealDuration,
+      value: 1,
+      vsync: this,
+    );
     _artworkFloatingEffects = [
       for (final slot in WelcomeArtworkSlot.values)
         FloatingMotionEffect(
@@ -263,7 +267,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
     if (_animationsDisabled) {
       _initialFloatingTimer?.cancel();
       _initialFloatingTimer = null;
-      _artworkColorController.value = 1;
+      _artworkColorAnimationController.value = 1;
     } else if (_phase == WelcomeScenePhase.idle) {
       _startFloating();
     } else {
@@ -294,7 +298,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
     _initialFloatingTimer?.cancel();
     _initialRevealTimer?.cancel();
     _nextJobTimer?.cancel();
-    _artworkColorController.dispose();
+    _artworkColorAnimationController.dispose();
     super.dispose();
   }
 
@@ -348,7 +352,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
         effect: _artworkFloatingEffects[slot.index],
         child: Motion.list(
           key: ValueKey('welcome_artwork_transition_${slot.name}'),
-          controller: _transitionController,
+          controller: _transitionMotionController,
           startup: _animationsDisabled ? MotionStartup.skip : MotionStartup.hold,
           effects: _isReturning ? _artworkReturnEffects[slot.index] : _artworkRevealEffects[slot.index],
           child: _buildArtworkSurface(context: context, slot: slot, illustration: illustration),
@@ -374,7 +378,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
           decoration: _WelcomeArtworkBackgroundDecoration(
             beginColor: previousIllustration.backgroundColor(MateoTheme.of(context).palette),
             endColor: illustration.backgroundColor(MateoTheme.of(context).palette),
-            colorAnimation: _artworkColorController,
+            colorAnimation: _artworkColorAnimationController,
           ),
           child: Center(
             child: KeyedSubtree(
@@ -409,7 +413,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
         effect: _cardFloatingEffect,
         child: Motion(
           key: const ValueKey('welcome_card_transition'),
-          controller: _transitionController,
+          controller: _transitionMotionController,
           startup: MotionStartup.skip,
           effect: cardTransitionEffect,
           child: RepaintBoundary(
@@ -424,7 +428,7 @@ class _WelcomeJobSceneState extends State<_WelcomeJobScene> with SingleTickerPro
     return RepaintBoundary(
       child: Motion(
         key: key,
-        controller: _floatingController,
+        controller: _floatingMotionController,
         startup: _animationsDisabled ? MotionStartup.skip : MotionStartup.hold,
         effect: effect,
         child: child,

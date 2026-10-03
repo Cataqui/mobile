@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'post_data.freezed.dart';
@@ -7,7 +7,7 @@ part 'post_data.freezed.dart';
 abstract class PostData with _$PostData {
   const factory PostData({
     ({String addressId, String sessionToken})? addressSelection,
-    ({JobContactMethod contactMethod, String identifier})? contact,
+    ({ContactMethod contactMethod, String identifier})? contact,
     String? descriptionText,
     ({double latitude, double longitude})? location,
     String? locationTitle,
@@ -18,7 +18,8 @@ abstract class PostData with _$PostData {
 
   bool get canPublish {
     if (isPublishing) return false;
-    if (descriptionText?.trim().isEmpty ?? true) return false;
+    final descriptionLength = descriptionText?.trim().length ?? 0;
+    if (descriptionLength < 10 || descriptionLength > 10000) return false;
     if (contact == null) return false;
     if (locationTitle?.trim().isEmpty ?? true) return false;
 

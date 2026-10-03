@@ -11,8 +11,8 @@ class AddContactRoute extends AppRouteData with $AddContactRoute {
   const AddContactRoute();
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) {
-    return MateoPage<void>(
+  Page<bool> buildPage(BuildContext context, GoRouterState state) {
+    return MateoPage<bool>(
       key: state.pageKey,
       transition: const .slide(direction: .up),
       child: const AddContactView(),

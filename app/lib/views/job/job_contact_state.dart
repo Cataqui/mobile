@@ -1,5 +1,4 @@
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -12,22 +11,28 @@ class JobContactState extends _$JobContactState {
 
   Future<void> contact() async {
     state = const AsyncLoading<void>();
-    state = await AsyncValue.guard<void>(_performContact);
+    final contactResult = await AsyncValue.guard<void>(_performContact);
+    if (!ref.mounted) return;
+
+    state = contactResult;
   }
 
   Future<void> _performContact() async {
     final envelope = await ref.read(jobRepositoryProvider).getJobContact(jobId: jobId, contactId: contactId);
+    if (!ref.mounted) return;
 
     await _dispatch(contact: envelope.data);
   }
 
-  Future<void> _dispatch({required JobContactDto contact}) async {
-    switch (contact.contactMethod) {
-      case JobContactMethod.whatsapp:
-        await ref.read(whatsappProvider(identifier: contact.identifier)).chat();
-      case JobContactMethod.phoneCall:
-        await ref.read(phoneNumberProvider(value: contact.identifier)).call();
-      case JobContactMethod.unknown:
+  Future<void> _dispatch({required ContactDto contact}) async {
+    switch (contact.method) {
+      case .whatsapp:
+        final didOpenWhatsapp = await ref.read(whatsappProvider(identifier: contact.identifier)).chat();
+        if (!didOpenWhatsapp) throw StateError('WhatsApp could not be opened.');
+      case .phoneCall:
+        final didOpenPhoneApp = await ref.read(phoneNumberProvider(value: contact.identifier)).call();
+        if (!didOpenPhoneApp) throw StateError('The phone app could not be opened.');
+      case .unknown:
         break;
     }
   }

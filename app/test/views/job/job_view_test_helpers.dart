@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -18,6 +18,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
+import '../../utils/static_map_cache_test_helpers.dart';
 import '../../utils/test_app.dart';
 import '../feed/feed_view_test_helpers.dart';
 
@@ -70,11 +71,11 @@ class JobViewTestHelpers {
     );
   }
 
-  static JobDto job({String jobId = 'job_123', String? title, String? description, DateTime? createdAt}) {
-    return JobDto.fixture().copyWith(
+  static PublicJobDto job({String jobId = 'job_123', String? title, String? description, DateTime? createdAt}) {
+    return PublicJobDto.fixture().copyWith(
       jobId: jobId,
       title: title ?? 'Unload a truck',
-      createdAt: createdAt ?? JobDto.fixture().createdAt,
+      createdAt: createdAt ?? PublicJobDto.fixture().createdAt,
       description:
           description ??
           'Precisamos de uma pessoa para descarregar um caminhão pequeno no centro. O trabalho deve durar algumas horas e o pagamento será feito no fim do dia.',
@@ -82,7 +83,7 @@ class JobViewTestHelpers {
     );
   }
 
-  static JobData jobData({JobDto? job}) {
+  static JobData jobData({PublicJobDto? job}) {
     return JobData(job: job ?? JobViewTestHelpers.job());
   }
 
@@ -90,7 +91,7 @@ class JobViewTestHelpers {
     return FakeJobState(initialAsyncValue: const AsyncLoading<JobData>());
   }
 
-  static FakeJobState loadedState({JobDto? job}) {
+  static FakeJobState loadedState({PublicJobDto? job}) {
     return FakeJobState(initialAsyncValue: AsyncData<JobData>(jobData(job: job)));
   }
 
@@ -170,7 +171,6 @@ class JobViewTestHelpers {
     bool disableAnimations = false,
   }) async {
     FeedViewTestHelpers.mockHapticFeedback(tester);
-    FeedViewTestHelpers.mockPlatformViews(tester);
 
     await tester.pumpWidget(
       buildRoutedApp(
@@ -185,6 +185,7 @@ class JobViewTestHelpers {
     unawaited(JobRoute(jobId: feedJob.jobId, $extra: feedJob).push(tester.element(find.byType(FeedView))));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 560));
+    await StaticMapCacheTestHelpers.loadImages(tester);
     await tester.pumpAndSettle();
     await tester.pump(const Duration(milliseconds: 225));
   }

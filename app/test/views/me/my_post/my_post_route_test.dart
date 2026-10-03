@@ -20,7 +20,6 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../../utils/test_app.dart';
-import '../../../widgets/job_location_map/google_maps_test_renderer.dart';
 import '../fake_app_auth_state.dart';
 import 'fake_my_post_state.dart';
 
@@ -64,8 +63,6 @@ void main() {
       ..devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    final mapRenderer = GoogleMapsTestRenderer()..install();
-    addTearDown(mapRenderer.restore);
     final summary = UserJobSummaryDto.fixture().copyWith(
       jobId: 'my-post-route-job',
       title: 'Mercado Pago',
@@ -200,11 +197,13 @@ void main() {
     );
     expect(tester.takeException(), isNull);
 
+    final returnFrame = ModalRoute.of(tester.element(find.byType(MyPostView)))!.reverseTransitionDuration ~/ 16;
     await tester.tap(find.byKey(const ValueKey('my_post_close_button')));
+    await tester.pump();
     await tester.pump();
     expect(router.state.matchedLocation, '/');
     for (var frame = 0; frame < 6; frame++) {
-      await tester.pump(const Duration(milliseconds: 16));
+      await tester.pump(returnFrame);
       if (frame == 2) {
         expect(find.byWidgetPredicate((widget) => widget.runtimeType.toString() == '_MorphNodePaint'), findsOneWidget);
         final viewFade = tester.widget<FadeTransition>(
@@ -215,19 +214,16 @@ void main() {
       expect(tester.takeException(), isNull, reason: 'returning frame $frame');
       expectFlightTextSeparated();
     }
-    await tester.pump();
-    for (var frame = 0; frame < 6; frame++) {
-      await tester.pump(const Duration(milliseconds: 16));
-      expect(tester.takeException(), isNull, reason: 'reveal frame $frame');
-      expectFlightTextSeparated();
-    }
-    expect(tester.takeException(), isNull);
     final returningHeader = tester.widget<MyPostHeaderSurface>(
       find.byWidgetPredicate((widget) => widget is MyPostHeaderSurface && widget.expansion > 0 && widget.expansion < 1),
     );
     expect(returningHeader.description, summary.descriptionSummary);
     expect(returningHeader.descriptionOpacity, greaterThan(.15));
-    await tester.pump(const Duration(milliseconds: 50));
+    for (var frame = 0; frame < 4; frame++) {
+      await tester.pump(returnFrame);
+      expect(tester.takeException(), isNull, reason: 'reveal frame $frame');
+      expectFlightTextSeparated();
+    }
     expect(tester.takeException(), isNull);
     final nearlyLandedHeader = tester.widget<MyPostHeaderSurface>(
       find.byWidgetPredicate((widget) => widget is MyPostHeaderSurface && widget.expansion > 0 && widget.expansion < 1),

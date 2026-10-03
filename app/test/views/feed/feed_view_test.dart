@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_data.dart';
@@ -16,18 +16,19 @@ import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/post/post_state.dart';
 import 'package:cataqui_app/views/post/post_view.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
+import 'package:cataqui_app/widgets/job_location_image/job_location_image.dart';
 import 'package:cataqui_app/widgets/offline_error_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
+import '../../utils/static_map_cache_test_helpers.dart';
 import '../../utils/test_app.dart';
 import '../post/post_test_state.dart';
 import 'feed_view_test_helpers.dart';
@@ -57,7 +58,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => ApiEnvelopeDto.fixture(
-            data: JobDto.fixture().copyWith(jobId: 'new-post', title: 'Meu trampo'),
+            data: PublicJobDto.fixture().copyWith(jobId: 'new-post', title: 'Meu trampo'),
           ),
         );
       });
@@ -73,7 +74,7 @@ void main() {
               () => PostTestState(
                 initialData: const PostData(
                   descriptionText: 'Preciso de ajuda para descarregar caixas.',
-                  contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+                  contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
                   location: (latitude: -23.561684, longitude: -46.655981),
                   locationTitle: 'Pinheiros',
                 ),
@@ -83,11 +84,11 @@ void main() {
         );
 
         if (startFromSecondJob) {
-          final feedController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
-          unawaited(feedController.next());
+          final feedSnapListController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
+          unawaited(feedSnapListController.next());
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 500));
-          expect(feedController.index, 1);
+          expect(feedSnapListController.index, 1);
         }
 
         await tester.tap(find.byKey(const ValueKey('feed_job_creation_button')));
@@ -129,8 +130,8 @@ void main() {
       testWidgets('Publish returns to the first card after starting from a later job', (tester) async {
         await publishToFeed(tester, startFromSecondJob: true);
 
-        final feedController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
-        expect(feedController.index, 0);
+        final feedSnapListController = tester.widget<SnapList>(find.byType(SnapList)).controller!;
+        expect(feedSnapListController.index, 0);
         expect(tester.widget<FeedJobCard>(find.byType(FeedJobCard).first).feedJob.jobId, 'new-post');
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
@@ -217,13 +218,20 @@ void main() {
     });
 
     group('chrome', () {
-      testWidgets('when the view renders in any state, it should show the current city button', (tester) async {
+      testWidgets('when the feed renders, it should place the location selector in the leading header', (tester) async {
         await FeedViewTestHelpers.pumpFeedView(
           tester: tester,
           feedState: FakeFeedState(buildResult: FeedViewTestHelpers.feedDataEmpty),
         );
         await tester.pump();
-        expect(find.text(i18n.feed.locationAvailability.cityLabel), findsOneWidget);
+        final header = tester.widget<MateoViewHeader>(find.byType(MateoViewHeader));
+        expect(
+          find.descendant(
+            of: find.byWidget(header.leading!),
+            matching: find.text(i18n.feed.locationAvailability.cityLabel),
+          ),
+          findsOneWidget,
+        );
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -730,6 +738,22 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
+      testWidgets('when a feed card renders, its map should cover the whole card behind the job details', (
+        tester,
+      ) async {
+        final data = FeedViewTestHelpers.feedDataWithJobs(count: 1);
+        await FeedViewTestHelpers.pumpFeedView(
+          tester: tester,
+          feedState: FakeFeedState(buildResult: () => data),
+        );
+        await tester.pump();
+        expect(
+          tester.getRect(find.byType(JobLocationImage).first),
+          tester.getRect(find.byKey(ValueKey(data.jobs.first.jobId))),
+        );
+        await FeedViewTestHelpers.pumpAndCleanUp(tester);
+      });
+
       testWidgets('when feedData has jobs, it should render SnapList', (tester) async {
         final prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => true);
@@ -743,9 +767,7 @@ void main() {
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
-      testWidgets('when feedData has jobs, it should rest after the intrinsic header without clipping motion', (
-        tester,
-      ) async {
+      testWidgets('when swiping the vertical feed, it should advance to the next job', (tester) async {
         final prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         await FeedViewTestHelpers.pumpFeedView(
@@ -753,20 +775,12 @@ void main() {
           feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
           prefs: prefs,
         );
-
         final listFinder = find.byType(SnapList);
-        final cityButtonFinder = find.byWidgetPredicate(
-          (widget) => widget is MateoButton && widget.presentation.variant == MateoButtonVariant.tertiary,
-        );
-        final restingTop = tester.getTopLeft(listFinder).dy;
-        expect(restingTop, tester.getBottomLeft(cityButtonFinder).dy + 10);
-
-        final gesture = await tester.startGesture(tester.getCenter(listFinder));
-        await gesture.moveBy(const Offset(0, -100));
+        await StaticMapCacheTestHelpers.loadImages(tester);
+        await tester.drag(listFinder, const Offset(0, -500));
         await tester.pump();
-
-        expect(tester.getTopLeft(find.byType(FeedJobCard).first).dy, lessThan(restingTop));
-        await gesture.up();
+        await tester.pump(const Duration(seconds: 1));
+        expect(tester.widget<SnapList>(listFinder).controller!.index, 1);
         await FeedViewTestHelpers.pumpAndCleanUp(tester);
       });
 
@@ -792,7 +806,6 @@ void main() {
         final prefs = MockSharedPreferencesAsync();
         when(() => prefs.getBool(any())).thenAnswer((_) async => true);
         FeedViewTestHelpers.mockHapticFeedback(tester);
-        FeedViewTestHelpers.mockPlatformViews(tester);
 
         await tester.pumpWidget(
           TestApp.router(
@@ -1207,80 +1220,6 @@ void main() {
 
           verify(() => prefs.setBool('seen_swipe_feed_hint', true)).called(1);
           expect(find.text(i18n.feed.swipeUpHint.caption), findsNothing);
-          await FeedViewTestHelpers.pumpAndCleanUp(tester);
-        },
-      );
-    });
-
-    group('map preparation', () {
-      setUp(FeedViewTestHelpers.mockGoogleMapsPlatform);
-
-      testWidgets('when the swipe-up hint is appearing, it should prepare the current and next job maps behind it', (
-        tester,
-      ) async {
-        final prefs = MockSharedPreferencesAsync();
-        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
-
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
-          prefs: prefs,
-        );
-
-        // Let the hint appear animation start (post frame callback)
-        await tester.pump();
-
-        expect(find.byType(GoogleMap, skipOffstage: false), findsNWidgets(2));
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets('when the swipe-up hint finishes appearing, it should prepare the current and next job maps', (
-        tester,
-      ) async {
-        final prefs = MockSharedPreferencesAsync();
-        when(() => prefs.getBool(any())).thenAnswer((_) async => false);
-
-        await FeedViewTestHelpers.pumpFeedView(
-          tester: tester,
-          feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
-          prefs: prefs,
-        );
-
-        // Let the hint appear animation start
-        await tester.pump();
-
-        // Wait for the appear animation to finish and gate to release
-        await tester.pump(const Duration(milliseconds: 600));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-        await tester.pump(const Duration(milliseconds: 900));
-
-        // The current and next maps should now mount.
-        expect(find.byType(GoogleMap, skipOffstage: false), findsNWidgets(2));
-        await FeedViewTestHelpers.pumpAndCleanUp(tester);
-      });
-
-      testWidgets(
-        'when the user swipes before the hint finishes appearing, it should show the next job location map immediately',
-        (tester) async {
-          final prefs = MockSharedPreferencesAsync();
-          when(() => prefs.getBool(any())).thenAnswer((_) async => false);
-
-          await FeedViewTestHelpers.pumpFeedView(
-            tester: tester,
-            feedState: FakeFeedState(buildResult: () => FeedViewTestHelpers.feedDataWithJobs(count: 3)),
-            prefs: prefs,
-          );
-
-          // Let the hint appear animation start
-          await tester.pump();
-
-          // Swipe before appear animation completes
-          await FeedViewTestHelpers.swipeAwayCurrentJob(tester);
-          await tester.pump();
-
-          // Map should mount immediately (gate released by notification)
-          expect(find.byType(GoogleMap, skipOffstage: false), findsAtLeastNWidgets(1));
           await FeedViewTestHelpers.pumpAndCleanUp(tester);
         },
       );

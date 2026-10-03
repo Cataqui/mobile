@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_state.dart';
 import 'package:cataqui_app/views/me/my_post/post_activation_slide_action/post_activation_landing_curve.dart';
@@ -36,9 +36,9 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
   double _thumbTravel = 0;
 
   JobStatus get _targetStatus => switch (_visualStatus) {
-    JobStatus.active => JobStatus.archived,
-    JobStatus.archived => JobStatus.active,
-    JobStatus.unknown => throw UnsupportedError('Unknown job status has no slide action.'),
+    .active => JobStatus.archived,
+    .archived => JobStatus.active,
+    .unknown => throw UnsupportedError('Unknown job status has no slide action.'),
   };
 
   Color _colorForStatus(JobStatus status, MateoThemeData theme) {

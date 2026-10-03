@@ -10,6 +10,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../mocks.dart';
+import 'static_map_cache_test_helpers.dart';
 
 class TestApp extends StatelessWidget {
   const TestApp({
@@ -46,10 +47,10 @@ class TestApp extends StatelessWidget {
        _wrapInScaffold = false;
 
   static Future<void> pumpGolden(WidgetTester tester, Widget widget) {
-    return withClock(
-      Clock.fixed(DateTime(2025, 6, 15, 20)),
-      () => tester.pumpWidget(MateoTheme(data: _theme, child: widget)),
-    );
+    return withClock(Clock.fixed(DateTime(2025, 6, 15, 20)), () async {
+      await tester.pumpWidget(MateoTheme(data: _theme, child: widget));
+      await StaticMapCacheTestHelpers.loadImages(tester);
+    });
   }
 
   static Future<void> settleGolden(WidgetTester tester) async {
@@ -160,7 +161,12 @@ class TestApp extends StatelessWidget {
     final overridesSecureStorage = providerOverrides.any((override) => override.origin == secureStorageProvider);
     final overridesDeviceLocation = providerOverrides.any((override) => override.origin == deviceLocationProvider);
 
+    final overridesStaticMapCache = providerOverrides.any(
+      (override) => override.origin == staticMapCacheManagerProvider,
+    );
     return [
+      if (!overridesStaticMapCache)
+        staticMapCacheManagerProvider.overrideWith((ref) => StaticMapCacheTestHelpers.create()),
       if (!overridesSecureStorage) _secureStorageOverride,
       if (!overridesDeviceLocation) _deviceLocationOverride,
       ...providerOverrides,

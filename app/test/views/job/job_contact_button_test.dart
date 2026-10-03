@@ -1,8 +1,8 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limited_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -24,13 +24,10 @@ import 'job_view_test_helpers.dart';
 class _ButtonTestHelpers {
   _ButtonTestHelpers._();
 
-  static JobData jobData({required JobContactMethod contactMethod}) {
+  static JobData jobData({required ContactMethod contactMethod}) {
     return JobData(
-      job: JobDto.fixture().copyWith(
-        contactReference: JobContactReferenceDto.fixture().copyWith(
-          contactMethod: contactMethod,
-          contactId: 'test-contact',
-        ),
+      job: PublicJobDto.fixture().copyWith(
+        contactReference: JobContactReferenceDto.fixture().copyWith(method: contactMethod, contactId: 'test-contact'),
       ),
     );
   }
@@ -78,11 +75,8 @@ void main() {
           contactId: any(named: 'contactId'),
         ),
       ).thenAnswer(
-        (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
-          data: JobContactDto.fixture().copyWith(
-            contactMethod: JobContactMethod.whatsapp,
-            identifier: '+5511999999999',
-          ),
+        (_) async => ApiEnvelopeDto<ContactDto>.fixture(
+          data: ContactDto.fixture().copyWith(method: ContactMethod.whatsapp, identifier: '+5511999999999'),
         ),
       );
 
@@ -116,7 +110,7 @@ void main() {
       testWidgets('it should render the "Enviar Mensagem" label', (tester) async {
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -132,7 +126,7 @@ void main() {
       testWidgets('it should display the whatsapp icon', (tester) async {
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -148,7 +142,7 @@ void main() {
       testWidgets('when tapped, it should fetch the contact and launch WhatsApp', (tester) async {
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -169,7 +163,7 @@ void main() {
       testWidgets('it should render the "Ligar agora" label', (tester) async {
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.phoneCall)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.phoneCall)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -189,17 +183,14 @@ void main() {
             contactId: any(named: 'contactId'),
           ),
         ).thenAnswer(
-          (_) async => ApiEnvelopeDto<JobContactDto>.fixture(
-            data: JobContactDto.fixture().copyWith(
-              contactMethod: JobContactMethod.phoneCall,
-              identifier: '+5511888888888',
-            ),
+          (_) async => ApiEnvelopeDto<ContactDto>.fixture(
+            data: ContactDto.fixture().copyWith(method: ContactMethod.phoneCall, identifier: '+5511888888888'),
           ),
         );
 
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.phoneCall)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.phoneCall)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -220,7 +211,7 @@ void main() {
       testWidgets('it should render the "Indisponível" label', (tester) async {
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.unknown)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.unknown)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -236,7 +227,7 @@ void main() {
       testWidgets('tapping the button should not trigger any action', (tester) async {
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.unknown)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.unknown)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -265,7 +256,7 @@ void main() {
 
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -292,7 +283,7 @@ void main() {
 
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -327,7 +318,7 @@ void main() {
 
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -359,7 +350,7 @@ void main() {
 
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,
@@ -394,7 +385,7 @@ void main() {
 
         await tester.pumpWidget(
           _ButtonTestHelpers.buildApp(
-            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: JobContactMethod.whatsapp)),
+            jobStateValue: AsyncData(_ButtonTestHelpers.jobData(contactMethod: ContactMethod.whatsapp)),
             i18n: i18n,
             repository: repository,
             whatsapp: whatsapp,

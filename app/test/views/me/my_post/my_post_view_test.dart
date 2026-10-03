@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:cataqui_app/core/dtos/user_job_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_detail_chips.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_header_surface.dart';

@@ -4,13 +4,14 @@ import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:cataqui_app/views/post/location/post_location_view.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
@@ -29,6 +30,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
 import '../feed/feed_view_test_helpers.dart';
+import '../me/fake_my_posts_state.dart';
 import 'post_test_state.dart';
 
 void main() {
@@ -192,7 +194,7 @@ void main() {
       i18n: i18n,
       initialPostData: const PostData(
         addressSelection: (addressId: 'address-id', sessionToken: 'session-token'),
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda hoje',
         locationTitle: 'Avenida Paulista',
       ),
@@ -208,7 +210,7 @@ void main() {
       tester,
       i18n: i18n,
       initialPostData: const PostData(
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
         location: (latitude: -23.561684, longitude: -46.655981),
         locationTitle: 'Pinheiros, São Paulo',
       ),
@@ -222,9 +224,11 @@ void main() {
     expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
   });
 
-  testWidgets('when tapping Publish, it should send the post and keep the composer open', (tester) async {
+  testWidgets('when Publish is tapped repeatedly, it should submit once and clear the successful composer', (
+    tester,
+  ) async {
     final jobRepository = MockJobRepository();
-    final pendingPost = Completer<ApiEnvelopeDto<JobDto>>();
+    final pendingPost = Completer<ApiEnvelopeDto<PublicJobDto>>();
     when(
       () => jobRepository.createJob(
         description: 'Preciso de ajuda para descarregar caixas.',
@@ -240,7 +244,7 @@ void main() {
       tester,
       i18n: i18n,
       initialPostData: const PostData(
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda para descarregar caixas.',
         location: (latitude: -23.561684, longitude: -46.655981),
         locationTitle: 'Pinheiros',
@@ -264,10 +268,10 @@ void main() {
         idempotencyKey: any(named: 'idempotencyKey'),
       ),
     ).called(1);
-    pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+    pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
     await tester.pump();
     expect(find.byType(PostView), findsOneWidget);
-    expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNotNull);
+    expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed, isNull);
   });
 
   testWidgets('when posting fails, it should leave the composer usable and show an error', (tester) async {
@@ -287,7 +291,7 @@ void main() {
       tester,
       i18n: i18n,
       initialPostData: const PostData(
-        contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+        contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
         descriptionText: 'Preciso de ajuda para descarregar caixas.',
         location: (latitude: -23.561684, longitude: -46.655981),
         locationTitle: 'Pinheiros',
@@ -306,11 +310,11 @@ void main() {
 
   group('publishing toast across navigation', () {
     late MockJobRepository jobRepository;
-    late Completer<ApiEnvelopeDto<JobDto>> pendingPost;
+    late Completer<ApiEnvelopeDto<PublicJobDto>> pendingPost;
 
     setUp(() {
       jobRepository = MockJobRepository();
-      pendingPost = Completer<ApiEnvelopeDto<JobDto>>();
+      pendingPost = Completer<ApiEnvelopeDto<PublicJobDto>>();
       when(
         () => jobRepository.createJob(
           description: 'Preciso de ajuda para descarregar caixas.',
@@ -358,7 +362,7 @@ void main() {
       expect(tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).readOnly, isTrue);
       expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).isLoading, isTrue);
       expect(find.text('Pinheiros'), findsOneWidget);
-      expect(find.text(JobContactMethod.whatsapp.displayIdentifier('+5511999999999')), findsOneWidget);
+      expect(find.text(ContactMethod.whatsapp.displayIdentifier('+5511999999999')), findsOneWidget);
       expect(
         tester
             .widget<MateoPress>(
@@ -393,7 +397,7 @@ void main() {
       await tester.pump();
       expect(find.text(i18n.post.publishing.loading), findsOneWidget);
 
-      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
       await tester.runAsync(() async {
         await pendingPost.future;
         await Future<void>.delayed(Duration.zero);
@@ -417,7 +421,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump();
 
-      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
       await tester.runAsync(() async {
         await pendingPost.future;
         await Future<void>.delayed(Duration.zero);
@@ -459,7 +463,7 @@ void main() {
       );
       expect(tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).isLoading, isTrue);
 
-      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
       await tester.runAsync(() async {
         await pendingPost.future;
         await Future<void>.delayed(Duration.zero);
@@ -473,8 +477,18 @@ void main() {
       await tester.pump();
     });
 
-    testWidgets('when closing Post during publishing, loading is replaced by success', (tester) async {
-      await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
+    testWidgets('when closing Post during publishing, success should update feed and refresh My Posts', (tester) async {
+      final myPostsState = FakeMyPostsState(const AsyncData(null));
+      await PostViewTestHelpers.pumpPublishingRoute(
+        tester,
+        i18n: i18n,
+        jobRepository: jobRepository,
+        additionalOverrides: [myPostsStateProvider.overrideWith(() => myPostsState)],
+      );
+      final providerContainer = ProviderScope.containerOf(tester.element(find.byType(PostView)), listen: false);
+      final myPostsSubscription = providerContainer.listen(myPostsStateProvider, (_, _) {});
+      addTearDown(myPostsSubscription.close);
+      final postedJob = PublicJobDto.fixture().copyWith(jobId: 'posted-after-closing-composer');
 
       await tester.tap(find.byKey(const ValueKey('post_publish_button')));
       await tester.pump();
@@ -491,7 +505,7 @@ void main() {
       await tester.pump(const Duration(minutes: 1));
       expect(find.text(i18n.post.publishing.loading), findsOneWidget);
 
-      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: postedJob));
       await tester.runAsync(() async {
         await pendingPost.future;
         await Future<void>.delayed(Duration.zero);
@@ -501,9 +515,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       expect(find.text(i18n.post.publishing.loading), findsNothing);
       expect(find.text(i18n.post.publishing.success), findsOneWidget);
+      expect(providerContainer.read(feedStateProvider).requireValue.jobs.first.jobId, postedJob.jobId);
+      expect(myPostsState.buildCalls, 2);
     });
 
-    testWidgets('when loading is dismissed outside Post, success still appears', (tester) async {
+    testWidgets('when publishing succeeds behind another page, it should clear the composer before returning', (
+      tester,
+    ) async {
       final goRouter = await PostViewTestHelpers.pumpPublishingRoute(tester, i18n: i18n, jobRepository: jobRepository);
 
       await tester.tap(find.byKey(const ValueKey('post_publish_button')));
@@ -519,13 +537,25 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       expect(find.byType(MateoToast), findsNothing);
 
-      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
       await tester.runAsync(() async {
         await pendingPost.future;
         await Future<void>.delayed(Duration.zero);
       });
       await tester.pump();
       expect(find.text(i18n.post.publishing.success), findsOneWidget);
+
+      goRouter.pop();
+      await tester.pumpAndSettle();
+
+      expect(
+        (
+          description: tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).controller!.text,
+          publishEnabled:
+              tester.widget<MateoButton>(find.byKey(const ValueKey('post_publish_button'))).onPressed != null,
+        ),
+        (description: '', publishEnabled: false),
+      );
     });
 
     testWidgets('when returning to Post before success, it should replace loading with the post toast', (tester) async {
@@ -544,7 +574,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(PostView), findsOneWidget);
 
-      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
       await tester.runAsync(() async {
         await pendingPost.future;
         await Future<void>.delayed(Duration.zero);
@@ -614,7 +644,7 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('post_publish_button')));
       await tester.pump();
-      pendingPost.complete(ApiEnvelopeDto.fixture(data: JobDto.fixture()));
+      pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
       await tester.runAsync(() async {
         await pendingPost.future;
         await Future<void>.delayed(Duration.zero);
@@ -623,7 +653,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(goRouter.state.matchedLocation, const FeedRoute().location);
-      expect(providerContainer.read(feedStateProvider).value!.jobs.first.jobId, JobDto.fixture().jobId);
+      expect(providerContainer.read(feedStateProvider).value!.jobs.first.jobId, PublicJobDto.fixture().jobId);
       expect(find.byType(MateoToast), findsNothing);
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump();
@@ -632,6 +662,51 @@ void main() {
       expect(tester.widget<MateoToast>(find.byType(MateoToast)).status, MateoToastStatus.neutral);
       expect(find.text(i18n.feed.recentlyPosted.toastMessage), findsOneWidget);
     });
+
+    for (final showReplacement in [false, true]) {
+      testWidgets('when an account change cancels background publishing, it should '
+          '${showReplacement ? 'preserve a newer toast' : 'clear loading'}', (tester) async {
+        final goRouter = await PostViewTestHelpers.pumpPublishingRoute(
+          tester,
+          i18n: i18n,
+          jobRepository: jobRepository,
+        );
+        final providerContainer = ProviderScope.containerOf(tester.element(find.byType(PostView)), listen: false);
+
+        await tester.tap(find.byKey(const ValueKey('post_publish_button')));
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('post_close_button')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+        expect(find.text(i18n.post.publishing.loading), findsOneWidget);
+
+        await providerContainer
+            .read(appAuthStateProvider.notifier)
+            .setSession(AuthSessionDto.fixture().copyWith(userId: 'different-poster'));
+        await tester.pump();
+        if (showReplacement) {
+          showMateoToast(
+            context: goRouter.routerDelegate.navigatorKey.currentContext!,
+            toast: MateoToast(message: i18n.logoutWarningSheet.success, status: .success),
+          );
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 250));
+          await tester.pump();
+        }
+        pendingPost.complete(ApiEnvelopeDto.fixture(data: PublicJobDto.fixture()));
+        await tester.runAsync(() async {
+          await pendingPost.future;
+          await Future<void>.delayed(Duration.zero);
+        });
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 250));
+
+        expect(find.text(i18n.post.publishing.loading), findsNothing);
+        expect(find.text(i18n.logoutWarningSheet.success), showReplacement ? findsOneWidget : findsNothing);
+        expect(providerContainer.read(feedStateProvider).requireValue.jobs, isEmpty);
+      });
+    }
 
     testWidgets('when authentication is dismissed after leaving, it should clear loading', (tester) async {
       final pendingFailure = Completer<void>();
@@ -1208,10 +1283,9 @@ abstract final class PostViewTestHelpers {
     WidgetTester tester, {
     required Translations i18n,
     required MockJobRepository jobRepository,
+    List<Override> additionalOverrides = const [],
   }) async {
     FeedViewTestHelpers.mockHapticFeedback(tester);
-    FeedViewTestHelpers.mockPlatformViews(tester);
-    FeedViewTestHelpers.mockGoogleMapsPlatform();
     final routeObserver = RouteObserver<ModalRoute<void>>();
     final goRouter = GoRouter(
       observers: [routeObserver, MateoNavigatorObserver()],
@@ -1229,7 +1303,7 @@ abstract final class PostViewTestHelpers {
         providerOverrides: providerOverrides(
           i18n: i18n,
           initialPostData: const PostData(
-            contact: (contactMethod: JobContactMethod.whatsapp, identifier: '+5511999999999'),
+            contact: (contactMethod: ContactMethod.whatsapp, identifier: '+5511999999999'),
             descriptionText: 'Preciso de ajuda para descarregar caixas.',
             location: (latitude: -23.561684, longitude: -46.655981),
             locationTitle: 'Pinheiros',
@@ -1237,10 +1311,8 @@ abstract final class PostViewTestHelpers {
           additionalOverrides: [
             jobRepositoryProvider.overrideWithValue(jobRepository),
             routeObserverProvider.overrideWithValue(routeObserver),
-            feedStateProvider.overrideWith(
-              () => FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
-            ),
             appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
+            ...additionalOverrides,
           ],
         ),
       ),
@@ -1265,6 +1337,9 @@ abstract final class PostViewTestHelpers {
   }) {
     return [
       translationProvider.overrideWithValue(i18n),
+      feedStateProvider.overrideWith(
+        () => FakeFeedState(initialAsyncValue: AsyncData(FeedViewTestHelpers.feedDataEmpty())),
+      ),
       postStateProvider.overrideWith(() => PostTestState(initialData: initialPostData)),
       ...additionalOverrides,
     ];

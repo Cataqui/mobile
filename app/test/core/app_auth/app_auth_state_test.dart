@@ -140,6 +140,57 @@ void main() {
       expect(container.read(appAuthStateProvider), session);
     });
 
+    for (final hasSavedCredentials in [false, true]) {
+      test(
+        'when secure persistence fails with ${hasSavedCredentials ? 'stale' : 'no'} saved credentials, it should refresh using the active session',
+        () async {
+          final currentTime = DateTime.utc(2026, 8, 11, 15);
+          final currentSession = AuthSessionDto.fixture().copyWith(
+            accessTokenExpiresAt: currentTime,
+            refreshToken: 'latest-refresh-token',
+            refreshTokenExpiresAt: currentTime.add(const Duration(days: 1)),
+          );
+          if (hasSavedCredentials) {
+            await container
+                .read(appStorageStateProvider.notifier)
+                .setAuthCredentials(
+                  credentials: AuthCredentialsDto.fixture().copyWith(
+                    refreshToken: 'stale-refresh-token',
+                    refreshTokenExpiresAt: currentTime,
+                  ),
+                );
+          }
+          when(
+            () => secureStorage.write(
+              key: any(named: 'key'),
+              value: any(named: 'value'),
+            ),
+          ).thenThrow(StateError('secure storage unavailable'));
+          final refreshedSession = (NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto)
+              .copyWith(
+                expiresAt: currentTime.add(const Duration(minutes: 15)),
+                refreshToken: 'next-refresh-token',
+                refreshExpiresAt: currentTime.add(const Duration(days: 30)),
+              );
+          when(
+            () => authRepository.refreshSession(refreshToken: 'latest-refresh-token'),
+          ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: refreshedSession));
+          final appAuthState = container.read(appAuthStateProvider.notifier);
+          await appAuthState.setSession(currentSession);
+
+          final (hasUsableCredentials, result) = await withClock(Clock.fixed(currentTime), () async {
+            final hasUsableCredentials = appAuthState.hasUsableLocalCredentials;
+            return (hasUsableCredentials, await appAuthState.getOrAuthenticateSession());
+          });
+
+          expect(
+            (hasUsableCredentials: hasUsableCredentials, session: result),
+            (hasUsableCredentials: true, session: AuthSessionDto.fromIssuedAuthSession(refreshedSession)),
+          );
+        },
+      );
+    }
+
     test(
       'when the current session is valid, getting an authenticated session should return it without refreshing',
       () async {

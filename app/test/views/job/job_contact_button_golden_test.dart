@@ -1,7 +1,7 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:cataqui_app/core/dtos/job_contact_reference_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_contact_button.dart';
@@ -30,21 +30,21 @@ void main() {
       'when the contact method is whatsapp, it should render the WhatsApp button with green accent on dark background',
       fileName: 'job_contact_button_whatsapp',
       pumpWidget: TestApp.pumpGolden,
-      builder: () => _buildContactButton(contactMethod: JobContactMethod.whatsapp, i18n: i18n),
+      builder: () => _buildContactButton(contactMethod: ContactMethod.whatsapp, i18n: i18n),
     );
 
     goldenTest(
       'when the contact method is phone call, it should render the phone call button with green background and dark text',
       fileName: 'job_contact_button_phone_call',
       pumpWidget: TestApp.pumpGolden,
-      builder: () => _buildContactButton(contactMethod: JobContactMethod.phoneCall, i18n: i18n),
+      builder: () => _buildContactButton(contactMethod: ContactMethod.phoneCall, i18n: i18n),
     );
 
     goldenTest(
       'when the contact method is unknown, it should render the disabled unavailable button with circle block icon',
       fileName: 'job_contact_button_unknown',
       pumpWidget: TestApp.pumpGolden,
-      builder: () => _buildContactButton(contactMethod: JobContactMethod.unknown, i18n: i18n),
+      builder: () => _buildContactButton(contactMethod: ContactMethod.unknown, i18n: i18n),
     );
 
     goldenTest(
@@ -100,13 +100,10 @@ void main() {
   });
 }
 
-Widget _buildContactButton({required JobContactMethod contactMethod, required Translations i18n}) {
-  final contactReference = JobContactReferenceDto.fixture().copyWith(
-    contactMethod: contactMethod,
-    contactId: 'test-contact',
-  );
+Widget _buildContactButton({required ContactMethod contactMethod, required Translations i18n}) {
+  final contactReference = JobContactReferenceDto.fixture().copyWith(method: contactMethod, contactId: 'test-contact');
 
-  final jobData = JobData(job: JobDto.fixture().copyWith(contactReference: contactReference));
+  final jobData = JobData(job: PublicJobDto.fixture().copyWith(contactReference: contactReference));
 
   final fakeJobState = FakeJobState(initialAsyncValue: AsyncData(jobData));
 
@@ -125,11 +122,11 @@ Widget _buildContactButton({required JobContactMethod contactMethod, required Tr
 
 Widget _buildContactButtonWithRepository({required MockJobRepository repository, required Translations i18n}) {
   final contactReference = JobContactReferenceDto.fixture().copyWith(
-    contactMethod: JobContactMethod.whatsapp,
+    method: ContactMethod.whatsapp,
     contactId: 'test-contact',
   );
 
-  final jobData = JobData(job: JobDto.fixture().copyWith(contactReference: contactReference));
+  final jobData = JobData(job: PublicJobDto.fixture().copyWith(contactReference: contactReference));
 
   final fakeJobState = FakeJobState(initialAsyncValue: AsyncData(jobData));
 

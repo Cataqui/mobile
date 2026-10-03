@@ -1,9 +1,9 @@
 part of 'feed_view.dart';
 
 class _FeedSwipeUpHintOverlay extends ConsumerStatefulWidget {
-  const _FeedSwipeUpHintOverlay({required this.feedController, required this.isHintActiveNotifier});
+  const _FeedSwipeUpHintOverlay({required this.feedSnapListController, required this.isHintActiveNotifier});
 
-  final SnapListController feedController;
+  final SnapListController feedSnapListController;
   final ValueNotifier<bool> isHintActiveNotifier;
 
   @override
@@ -20,7 +20,7 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
     final hasSeenHint = ref.read(appStorageStateProvider.select((s) => s.value?.hasSeenSwipeFeedHint));
     if (hasSeenHint ?? false) return;
 
-    widget.feedController.addListener(_onFeedNotification);
+    widget.feedSnapListController.addListener(_onFeedNotification);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _visibilityController.show();
@@ -29,16 +29,16 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
 
   @override
   void dispose() {
-    widget.feedController.removeListener(_onFeedNotification);
+    widget.feedSnapListController.removeListener(_onFeedNotification);
     super.dispose();
   }
 
   void _onFeedNotification() {
-    if ((widget.feedController.position ?? 0) > 0) {
+    if ((widget.feedSnapListController.position ?? 0) > 0) {
       widget.isHintActiveNotifier.value = false;
 
       _visibilityController.hide();
-      widget.feedController.removeListener(_onFeedNotification);
+      widget.feedSnapListController.removeListener(_onFeedNotification);
     }
   }
 

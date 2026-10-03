@@ -20,7 +20,7 @@ class PostDetailsInput extends ConsumerStatefulWidget {
 class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with SingleTickerProviderStateMixin {
   static const _descriptionTextStyle = TextStyle(
     fontSize: 17,
-    fontWeight: FontWeight.w500,
+    fontWeight: .w500,
     fontFamily: MateoTypography.fontFamily,
     letterSpacing: MateoTypography.letterSpacing,
   );
@@ -29,7 +29,7 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
 
   final _descriptionFocusNode = FocusNode();
 
-  late final TextEditingController _descriptionController;
+  late final TextEditingController _descriptionTextController;
 
   Color get _descriptionSelectionColor => switch (MateoTheme.of(context).brightness) {
     .light => MateoTheme.of(context).palette.accent[4],
@@ -39,13 +39,13 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
   @override
   void initState() {
     super.initState();
-    _descriptionController = TextEditingController(text: ref.read(postStateProvider).descriptionText);
+    _descriptionTextController = TextEditingController(text: ref.read(postStateProvider).descriptionText);
   }
 
   @override
   void dispose() {
     _descriptionFocusNode.dispose();
-    _descriptionController.dispose();
+    _descriptionTextController.dispose();
     super.dispose();
   }
 
@@ -54,12 +54,18 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
     final i18n = ref.watch(translationProvider);
     final isPublishing = ref.watch(postStateProvider.select((postData) => postData.isPublishing));
 
+    ref.listen<String?>(postStateProvider.select((postData) => postData.descriptionText), (_, descriptionText) {
+      if (descriptionText == null && _descriptionTextController.text.isNotEmpty) {
+        _descriptionTextController.clear();
+      }
+    });
+
     return SafeArea(
       top: false,
       left: false,
       right: false,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           KeyedSubtree(
             key: const ValueKey('post_description_layout'),
@@ -78,12 +84,12 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
                     type: .transparency,
                     child: TextField(
                       key: const ValueKey('post_description_input'),
-                      controller: _descriptionController,
+                      controller: _descriptionTextController,
                       focusNode: _descriptionFocusNode,
                       autofocus: true,
                       readOnly: isPublishing,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
+                      keyboardType: .multiline,
+                      textInputAction: .newline,
                       maxLines: null,
                       scrollPhysics: const NeverScrollableScrollPhysics(),
                       scrollPadding: EdgeInsets.zero,
@@ -120,7 +126,7 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
           Expanded(
             child: GestureDetector(
               key: const ValueKey('post_description_focus_area'),
-              behavior: HitTestBehavior.opaque,
+              behavior: .opaque,
               excludeFromSemantics: true,
               onTap: isPublishing ? null : _descriptionFocusNode.requestFocus,
               child: const SizedBox.expand(),
@@ -128,8 +134,8 @@ class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with Single
           ),
           const SizedBox(height: 20),
           const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: .min,
+            crossAxisAlignment: .start,
             children: [LocationChip(), SizedBox(height: 8), ContactChip()],
           ),
         ],

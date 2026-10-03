@@ -36,14 +36,14 @@ class AppToast {
     );
   }
 
-  void showLoading(
+  MateoToastController showLoading(
     BuildContext context, {
     required String message,
     MateoToastDuration duration = const .auto(),
     bool dismissible = true,
     VoidCallback? onPressed,
   }) {
-    showMateoToast(
+    return showMateoToast(
       context: context,
       toast: MateoToast(message: message, status: .loading, onPressed: onPressed),
       duration: duration,

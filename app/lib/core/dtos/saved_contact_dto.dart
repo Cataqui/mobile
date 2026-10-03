@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'saved_contact_dto.freezed.dart';
@@ -8,7 +8,7 @@ part 'saved_contact_dto.g.dart';
 abstract class SavedContactDto with _$SavedContactDto {
   const factory SavedContactDto({
     required String contactId,
-    @JsonKey(name: 'method', unknownEnumValue: JobContactMethod.unknown) required JobContactMethod contactMethod,
+    @JsonKey(unknownEnumValue: ContactMethod.unknown) required ContactMethod method,
     required String identifier,
   }) = _SavedContactDto;
 
@@ -16,7 +16,7 @@ abstract class SavedContactDto with _$SavedContactDto {
 
   factory SavedContactDto.fixture() => const SavedContactDto(
     contactId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    contactMethod: JobContactMethod.whatsapp,
+    method: .whatsapp,
     identifier: '+5511999999999',
   );
 }

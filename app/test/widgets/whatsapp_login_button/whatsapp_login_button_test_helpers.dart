@@ -73,10 +73,7 @@ abstract final class WhatsappLoginButtonTestHelpers {
 
   static void stubSuccessfulExchange({required MockAuthRepository authRepository}) {
     when(
-      () => authRepository.exchangeNotpIntent(
-        intentToken: intentToken,
-        timeoutStart: any(named: 'timeoutStart'),
-      ),
+      () => authRepository.exchangeNotpIntent(intentToken: intentToken),
     ).thenAnswer((_) async => issuedSessionEnvelope);
   }
 

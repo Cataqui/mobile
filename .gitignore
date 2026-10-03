@@ -22,7 +22,7 @@ build/
 **/*.jks
 **/*.keystore
 
-# Google Maps API keys
+# Retired local native configuration (keep secrets out of Git)
 /app/android/secrets.properties
 /app/ios/Flutter/Secrets.xcconfig
 *.iml

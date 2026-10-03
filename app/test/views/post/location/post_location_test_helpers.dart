@@ -42,7 +42,7 @@ abstract final class PostLocationTestHelpers {
 
   static DioException createOfflineDioException() {
     return DioException(
-      requestOptions: RequestOptions(path: '/v1/addresses/search'),
+      requestOptions: RequestOptions(path: '/places/search'),
       type: DioExceptionType.connectionError,
       error: const OfflineConnectionDioException(message: 'No internet connection'),
     );
@@ -59,7 +59,7 @@ abstract final class PostLocationTestHelpers {
 
   static Future<void> openLocation(
     WidgetTester tester, {
-    MockGeosearchRepository? geosearchRepository,
+    MockMapsRepository? mapsRepository,
     Device? device,
     DeviceLocation? deviceLocation,
     PostData initialPostData = const PostData(),
@@ -69,7 +69,7 @@ abstract final class PostLocationTestHelpers {
   }) async {
     await pumpPost(
       tester,
-      geosearchRepository: geosearchRepository,
+      mapsRepository: mapsRepository,
       device: device,
       deviceLocation: deviceLocation,
       initialPostData: initialPostData,
@@ -87,7 +87,7 @@ abstract final class PostLocationTestHelpers {
 
   static Future<void> pumpPost(
     WidgetTester tester, {
-    MockGeosearchRepository? geosearchRepository,
+    MockMapsRepository? mapsRepository,
     Device? device,
     DeviceLocation? deviceLocation,
     PostData initialPostData = const PostData(),
@@ -120,7 +120,7 @@ abstract final class PostLocationTestHelpers {
           translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
           postStateProvider.overrideWith(() => PostTestState(initialData: initialPostData)),
           if (device != null) deviceProvider.overrideWithValue(device),
-          if (geosearchRepository != null) geosearchRepositoryProvider.overrideWithValue(geosearchRepository),
+          if (mapsRepository != null) mapsRepositoryProvider.overrideWithValue(mapsRepository),
           if (deviceLocation != null) deviceLocationProvider.overrideWithValue(deviceLocation),
         ],
         child: child,

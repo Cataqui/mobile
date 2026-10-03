@@ -64,27 +64,63 @@ jobs:
           fvm install
 
       - name: Resolve dependencies
-        run: fvm flutter pub get
+        run: fvm flutter pub get --enforce-lockfile
 
       - name: Verify lockfile is committed and current
         run: git diff --exit-code -- pubspec.lock
 
       - name: Check formatting
-        run: melos format --output=none --set-exit-if-changed
+        run: fvm dart run melos format --output=none --set-exit-if-changed
 
       - name: Generate code
-        run: melos run gen --no-select
+        run: fvm dart run melos run gen --no-select
 
       - name: Analyze
-        run: melos analyze
+        run: fvm dart run melos run analyze --no-select
 
       - name: Test workspace
-        run: melos run test:no-coverage --no-select
+        run: fvm dart run melos run test:no-coverage --no-select
+
+  android:
+    name: Android production release build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version-file: .fvmrc
+          channel: beta
+          cache: true
+
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm 4.1.2
+          fvm install
+
+      - name: Resolve locked dependencies and generate code
+        run: |
+          fvm flutter pub get --enforce-lockfile
+          fvm dart run melos run gen --no-select
+
+      - name: Build unsigned production APK
+        working-directory: app
+        run: fvm flutter build apk --release --flavor production --no-pub
+
+      - name: Build unsigned production app bundle
+        working-directory: app
+        run: fvm flutter build appbundle --release --flavor production --no-pub
 
   ios:
-    name: iOS simulator build
+    name: iOS simulator and production release builds
     runs-on: macos-26
-    timeout-minutes: 35
+    timeout-minutes: 50
 
     steps:
       - name: Check out source
@@ -110,12 +146,16 @@ jobs:
 
       - name: Configure, resolve, and generate
         run: |
-          fvm flutter pub get
-          melos run gen --no-select
+          fvm flutter pub get --enforce-lockfile
+          fvm dart run melos run gen --no-select
 
       - name: Verify lockfile is committed and current
         run: git diff --exit-code -- pubspec.lock
 
       - name: Build iOS simulator app
         working-directory: app
-        run: fvm flutter build ios --simulator --debug --flavor development
+        run: fvm flutter build ios --simulator --debug --flavor development --no-pub
+
+      - name: Build unsigned iOS production app
+        working-directory: app
+        run: fvm flutter build ios --release --flavor production --no-codesign --no-pub

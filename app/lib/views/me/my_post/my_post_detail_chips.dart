@@ -1,4 +1,4 @@
-import 'package:cataqui_app/core/dtos/job_contact_dto.dart';
+import 'package:cataqui_app/core/dtos/contact_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_data.dart';
 import 'package:flutter/material.dart';
@@ -93,14 +93,14 @@ class MyPostDetailChips extends ConsumerWidget {
   ({Widget icon, String text}) _contactPresentation(
     BuildContext context,
     String unknownLabel, {
-    required JobContactDto? contact,
+    required ContactDto? contact,
   }) {
     final color = MateoTheme.of(context).colorScheme.text.secondary;
     if (contact == null || contact.identifier.trim().isEmpty) {
       return (icon: MateoIcon(.questionmark, size: iconSize, color: color), text: unknownLabel);
     }
 
-    return (icon: contact.contactMethod.icon(size: iconSize, color: color), text: data?.contactLabel ?? unknownLabel);
+    return (icon: contact.method.icon(size: iconSize, color: color), text: data?.contactLabel ?? unknownLabel);
   }
 
   String _locationTitle(String unknownLabel) {

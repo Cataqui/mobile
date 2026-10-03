@@ -20,7 +20,7 @@ class JobContactButton extends ConsumerWidget {
     final jobState = ref.watch(jobStateProvider(jobId));
 
     final contactReference = jobState.isLoading ? null : jobState.asData?.value.job.contactReference;
-    final contactMethod = contactReference?.contactMethod;
+    final contactMethod = contactReference?.method;
 
     final contactState = contactReference == null
         ? null

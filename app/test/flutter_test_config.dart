@@ -10,7 +10,9 @@ import 'package:test_api/scaffolding.dart' as test_package;
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
-  (binding as dynamic).defaultTestTimeout = const test_package.Timeout(Duration(seconds: 10));
+  if (binding is AutomatedTestWidgetsFlutterBinding) {
+    binding.defaultTestTimeout = const test_package.Timeout(Duration(seconds: 10));
+  }
 
   final isRunningInCi = Platform.environment['CI'] == 'true';
   await _loadMateoFonts();

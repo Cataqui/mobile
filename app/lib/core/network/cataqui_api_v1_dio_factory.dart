@@ -32,7 +32,11 @@ final class CataquiApiV1DioFactory {
 
     if (appConfig.isDevelopment) {
       dio.interceptors.add(
-        LogInterceptor(requestBody: true, responseBody: true, logPrint: (object) => debugPrint(object.toString())),
+        LogInterceptor(
+          requestHeader: false,
+          responseHeader: false,
+          logPrint: (object) => debugPrint(object.toString()),
+        ),
       );
     }
 

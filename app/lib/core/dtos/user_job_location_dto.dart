@@ -9,11 +9,17 @@ abstract class UserJobLocationDto with _$UserJobLocationDto {
     required String title,
     required double latitude,
     required double longitude,
+    required String imageUrl,
     required num areaRadius,
   }) = _UserJobLocationDto;
 
   factory UserJobLocationDto.fromJson(Map<String, Object?> json) => _$UserJobLocationDtoFromJson(json);
 
-  factory UserJobLocationDto.fixture() =>
-      const UserJobLocationDto(title: 'Rua Pardal Branco, 32', latitude: -23.55, longitude: -46.63, areaRadius: 2000);
+  factory UserJobLocationDto.fixture() => const UserJobLocationDto(
+    title: 'Rua Pardal Branco, 32',
+    latitude: -23.55,
+    longitude: -46.63,
+    areaRadius: 2000,
+    imageUrl: 'https://maps.cataqui.com/static/fixture',
+  );
 }

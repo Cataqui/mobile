@@ -20,14 +20,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oh_my_flutter/oh_my_flutter.dart';
 
 import '../../mocks.dart';
+import '../../utils/static_map_cache_test_helpers.dart';
 import '../../utils/test_app.dart';
-import '../../widgets/job_location_map/google_maps_test_renderer.dart';
 
 // FakeFeedState exists because _$FeedState (from riverpod_generator) is
 // library-private and cannot be accessed by mocktail outside feed_state.dart.
@@ -94,35 +93,11 @@ class FeedViewTestHelpers {
     );
   }
 
-  static void mockPlatformViews(WidgetTester tester) {
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform_views,
-      _handlePlatformViewCall,
-    );
-  }
-
-  static void mockGoogleMapsPlatform() {
-    if (GoogleMapsFlutterPlatform.instance is GoogleMapsTestRenderer) return;
-
-    final renderer = GoogleMapsTestRenderer(renderMapSurface: false)..install();
-    addTearDown(renderer.restore);
-  }
-
-  static Future<Object?> _handlePlatformViewCall(MethodCall call) async {
-    return switch (call.method) {
-      'create' => 1,
-      'resize' => const <String, double>{'width': 390, 'height': 540},
-      'dispose' || 'offset' || 'setDirection' || 'clearFocus' || 'touch' => null,
-      _ => null,
-    };
-  }
-
   static Future<void> precacheFeedStateImages(BuildContext context) async {
     await FeedView.precacheImages(context);
   }
 
   static Future<void> prepareGoldenCapture({required WidgetTester tester, required Finder contextFinder}) async {
-    mockPlatformViews(tester);
     await tester.runAsync(() async {
       await precacheFeedStateImages(tester.element(contextFinder)).timeout(const Duration(seconds: 5));
     });
@@ -170,8 +145,6 @@ class FeedViewTestHelpers {
     MateoToast? toast,
   }) async {
     mockHapticFeedback(tester);
-    mockPlatformViews(tester);
-    mockGoogleMapsPlatform();
     await tester.pumpWidget(
       buildApp(
         providerOverrides: buildProviderOverrides(
@@ -191,6 +164,7 @@ class FeedViewTestHelpers {
     await tester.pump(); // Microtask resolves, data arrives, exit starts
     await tester.pump(const Duration(milliseconds: 900)); // Exit completes
     await tester.pump(); // Enter starts, content renders in tree
+    await StaticMapCacheTestHelpers.loadImages(tester);
   }
 
   static Future<ProviderContainer> pumpFeedRoute({
@@ -209,21 +183,18 @@ class FeedViewTestHelpers {
     );
     addTearDown(goRouter.dispose);
     mockHapticFeedback(tester);
-    mockPlatformViews(tester);
-    mockGoogleMapsPlatform();
-    await tester.pumpWidget(
-      TestApp.router(
-        routerConfig: goRouter,
-        providerOverrides: [
-          feedStateProvider.overrideWith(() => feedState ?? FakeFeedState(buildResult: feedDataEmpty)),
-          goRouterProvider.overrideWithValue(goRouter),
-          rootNavigatorKeyProvider.overrideWithValue(rootNavigatorKey),
-          routeObserverProvider.overrideWithValue(routeObserver),
-          appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
-          ...providerOverrides,
-        ],
-      ),
+    final app = TestApp.router(
+      routerConfig: goRouter,
+      providerOverrides: [
+        feedStateProvider.overrideWith(() => feedState ?? FakeFeedState(buildResult: feedDataEmpty)),
+        goRouterProvider.overrideWithValue(goRouter),
+        rootNavigatorKeyProvider.overrideWithValue(rootNavigatorKey),
+        routeObserverProvider.overrideWithValue(routeObserver),
+        appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
+        ...providerOverrides,
+      ],
     );
+    await tester.pumpWidget(app);
     if (settle) {
       await tester.pumpAndSettle();
     } else {
@@ -241,6 +212,7 @@ class FeedViewTestHelpers {
             refreshTokenExpiresAt: DateTime.utc(2100),
           ),
         );
+    await StaticMapCacheTestHelpers.loadImages(tester);
     return providerContainer;
   }
 
@@ -271,6 +243,7 @@ class FeedViewTestHelpers {
           jobId: 'job_$i',
           createdAt: DateTime(2025, 6, 15, 17),
           title: i == 0 ? 'Descarregar Caminhão' : 'Garçom para Fim de Semana $i',
+          location: FeedJobDto.fixture().location.copyWith(latitude: -23.5505 + i * 0.05),
         ),
       ),
       hasMore: hasMore,

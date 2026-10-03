@@ -5,8 +5,9 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
+import 'package:cataqui_app/views/me/my_posts_data.dart';
 import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +20,7 @@ void main() {
   late MockUserRepository userRepository;
   late FakeAppAuthState authState;
   late ProviderContainer container;
+  late ProviderSubscription<AsyncValue<MyPostsData?>> postsSubscription;
 
   setUp(() {
     userRepository = MockUserRepository();
@@ -31,7 +33,8 @@ void main() {
         userRepositoryProvider.overrideWithValue(userRepository),
         appAuthStateProvider.overrideWith(() => authState),
       ],
-    )..listen(myPostsStateProvider, (_, _) {});
+    );
+    postsSubscription = container.listen(myPostsStateProvider, (_, _) {});
   });
 
   tearDown(() => container.dispose());
@@ -203,6 +206,26 @@ void main() {
       ApiEnvelopeDto.fixture(data: <UserJobSummaryDto>[]).copyWith(pagination: const ApiPaginationDto(hasMore: false)),
     );
     await firstLoad;
+  });
+
+  test('closing My Posts during pagination finishes without reading disposed state', () async {
+    final nextPage = Completer<ApiEnvelopeDto<List<UserJobSummaryDto>>>();
+    when(userRepository.getMyPostedJobs).thenAnswer(
+      (_) async => ApiEnvelopeDto.fixture(
+        data: [UserJobSummaryDto.fixture()],
+      ).copyWith(pagination: const ApiPaginationDto(hasMore: true, nextCursor: 'page-two')),
+    );
+    when(() => userRepository.getMyPostedJobs(cursor: 'page-two')).thenAnswer((_) => nextPage.future);
+    authState.currentSession = AuthSessionDto.fixture();
+    await container.pump();
+    await container.read(myPostsStateProvider.future);
+    final pageRequest = container.read(myPostsStateProvider.notifier).loadNextPage();
+
+    postsSubscription.close();
+    await container.pump();
+    nextPage.complete(ApiEnvelopeDto.fixture(data: <UserJobSummaryDto>[]));
+
+    await expectLater(pageRequest, completes);
   });
 
   test('when a later page fails, it should keep the jobs and allow a retry', () async {

@@ -1,5 +1,5 @@
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -13,7 +13,7 @@ void main() {
     test('when parsing a saved contact, it should map the contact method', () {
       final contact = SavedContactDto.fromJson(_SavedContactDtoTestData.json);
 
-      expect(contact.contactMethod, JobContactMethod.whatsapp);
+      expect(contact.method, ContactMethod.whatsapp);
     });
 
     test('when parsing a saved contact, it should map the identifier', () {
@@ -25,7 +25,7 @@ void main() {
     test('when parsing an unknown contact method, it should use unknown', () {
       final contact = SavedContactDto.fromJson(<String, Object?>{..._SavedContactDtoTestData.json, 'method': 'SMS'});
 
-      expect(contact.contactMethod, JobContactMethod.unknown);
+      expect(contact.method, ContactMethod.unknown);
     });
   });
 }

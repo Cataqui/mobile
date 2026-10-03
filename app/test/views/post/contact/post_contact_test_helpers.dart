@@ -1,6 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/saved_contact_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/post/post_data.dart';
@@ -17,12 +17,12 @@ import '../post_test_state.dart';
 abstract final class PostContactTestHelpers {
   static const whatsappUsernameContact = SavedContactDto(
     contactId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    contactMethod: JobContactMethod.whatsapp,
+    method: ContactMethod.whatsapp,
     identifier: 'Ventairy.Dev',
   );
   static const phoneContact = SavedContactDto(
     contactId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-    contactMethod: JobContactMethod.phoneCall,
+    method: ContactMethod.phoneCall,
     identifier: '+1 (202) 555-0123',
   );
 

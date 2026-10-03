@@ -22,8 +22,8 @@ class MyPostRoute extends AppRouteData with $MyPostRoute {
     return CustomTransitionPage<void>(
       key: state.pageKey,
       opaque: true,
-      transitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 180),
-      reverseTransitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 50),
+      transitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 260),
+      reverseTransitionDuration: disableAnimations ? Duration.zero : const Duration(milliseconds: 220),
       child: MyPostView(summary: $extra),
       transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
     );

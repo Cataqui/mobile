@@ -1,5 +1,5 @@
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/dtos/feed_job_location_dto.dart';
+import 'package:cataqui_app/core/dtos/fuzzy_job_location_dto.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
 import 'package:cataqui_app/views/job/job_view.dart';
@@ -25,7 +25,12 @@ class _FeedJobCardTestHelpers {
       title: title ?? 'Garçom para Fim de Semana',
       createdAt: DateTime(2025, 6, 15),
       payment: r'R$120/dia',
-      location: const FeedJobLocationDto(latitude: -23.556391, longitude: -46.844076, areaRadius: 2000),
+      location: const FuzzyJobLocationDto(
+        latitude: -23.556391,
+        longitude: -46.844076,
+        areaRadius: 2000,
+        imageUrl: 'https://maps.cataqui.com/static/fixture',
+      ),
       descriptionSummary: descriptionSummary ?? 'Experiente em atendimento ao cliente.',
     );
   }

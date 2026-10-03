@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/user_job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_state.dart';
 import 'package:cataqui_app/views/me/my_post/post_activation_slide_action/post_activation_slide_action.dart';

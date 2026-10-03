@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cataqui_app/app_state.dart';
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
@@ -5,12 +7,12 @@ import 'package:cataqui_app/core/app_toast.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/network/cataqui_api_v1_dio_factory.dart';
-import 'package:cataqui_app/core/network/geosearch/geosearch_access_token_interceptor.dart';
+import 'package:cataqui_app/core/network/maps/maps_access_token_interceptor.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
 import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
-import 'package:cataqui_app/core/repositories/geosearch_repository/geosearch_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
+import 'package:cataqui_app/core/repositories/maps_repository/maps_repository.dart';
 import 'package:cataqui_app/core/repositories/user_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/add_contact/add_contact_route.dart';
@@ -25,6 +27,7 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:flutter/widgets.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
@@ -153,13 +156,13 @@ AuthRepository authRepository(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-Dio geosearchDio(Ref ref) {
+Dio mapsDio(Ref ref) {
   final appConfig = ref.read(appConfigProvider);
   final locale = ref.watch(appStateProvider.select((state) => state.currentLocale));
 
   final dio = Dio(
     BaseOptions(
-      baseUrl: appConfig.geosearchUrl,
+      baseUrl: appConfig.mapsUrl,
       connectTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 30),
@@ -172,14 +175,14 @@ Dio geosearchDio(Ref ref) {
   );
   if (appConfig.isDevelopment) {
     dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true, logPrint: (object) => debugPrint(object.toString())),
+      LogInterceptor(requestHeader: false, responseHeader: false, logPrint: (object) => debugPrint(object.toString())),
     );
   }
 
   dio.interceptors.add(RateLimitInterceptor());
   dio.interceptors.add(
-    GeosearchAccessTokenInterceptor(
-      geosearchDio: dio,
+    MapsAccessTokenInterceptor(
+      mapsDio: dio,
       authRepository: ref.watch(authRepositoryProvider),
       readAuthenticatedUserId: () => ref.read(appAuthStateProvider)?.userId,
       getOrAuthenticateSession: () => ref.read(appAuthStateProvider.notifier).getOrAuthenticateSession(),
@@ -247,8 +250,8 @@ UserRepository userRepository(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-GeosearchRepository geosearchRepository(Ref ref) {
-  return GeosearchRepository(geosearchDio: ref.watch(geosearchDioProvider));
+MapsRepository mapsRepository(Ref ref) {
+  return MapsRepository(mapsDio: ref.watch(mapsDioProvider));
 }
 
 @riverpod
@@ -259,4 +262,13 @@ Whatsapp whatsapp(Ref ref, {required String identifier}) {
 @riverpod
 PhoneNumber phoneNumber(Ref ref, {required String value}) {
   return PhoneNumber.parse(value);
+}
+
+@Riverpod(keepAlive: true)
+BaseCacheManager staticMapCacheManager(Ref ref) {
+  final cacheManager = CacheManager(
+    Config('cataqui_geoimage', stalePeriod: const Duration(days: 30), maxNrOfCacheObjects: 100),
+  );
+  ref.onDispose(() => unawaited(cacheManager.dispose()));
+  return cacheManager;
 }

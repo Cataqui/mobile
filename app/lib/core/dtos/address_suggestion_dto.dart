@@ -7,7 +7,7 @@ part 'address_suggestion_dto.g.dart';
 @freezed
 abstract class AddressSuggestionDto with _$AddressSuggestionDto {
   const factory AddressSuggestionDto({
-    @JsonKey(required: true) required String addressId,
+    @JsonKey(name: 'placeId', required: true) required String addressId,
     @JsonKey(required: true) required String fullText,
     @JsonKey(required: true) required String primaryText,
     @JsonKey(required: true) required AddressCategory category,

@@ -16,6 +16,7 @@ import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/me/me_state.dart';
 import 'package:clock/clock.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -23,6 +24,10 @@ import 'package:mocktail/mocktail.dart';
 import '../mocks.dart';
 
 void main() {
+  final imageCache = PaintingBinding.instance.imageCache;
+  late int previousImageCacheBudget;
+  setUp(() => previousImageCacheBudget = imageCache.maximumSizeBytes);
+  tearDown(() => imageCache.maximumSizeBytes = previousImageCacheBudget);
   group('AppBootstrap.setup', () {
     group('when preparing the profile', () {
       late MockSharedPreferencesAsync prefs;
@@ -74,6 +79,7 @@ void main() {
 
           await AppBootstrap.setup(providerContainer: container);
 
+          expect(imageCache.maximumSizeBytes, 64 * 1024 * 1024);
           expect(container.exists(meStateProvider), isTrue);
           expect(await container.read(meStateProvider.future), isNull);
           verifyNever(userRepository.getMyProfile);
@@ -256,12 +262,24 @@ void main() {
         return container;
       }
 
-      test('when setup completes, feedStateProvider should be in loading state', () async {
+      test('when the feed response is pending, setup should complete while the request stays in flight', () async {
+        final feedResponse = Completer<ApiEnvelopeDto<List<FeedJobDto>>>();
+        when(() => feedRepository.getFeedJobs()).thenAnswer((_) => feedResponse.future);
         final container = _buildFeedContainer();
 
         await AppBootstrap.setup(providerContainer: container);
 
         expect(container.read(feedStateProvider).isLoading, isTrue);
+        feedResponse.complete(
+          ApiEnvelopeDto<List<FeedJobDto>>(
+            data: [FeedJobDto.fixture()],
+            requestId: 'test-request-id',
+            timestamp: DateTime.now(),
+            endpoint: '/v1/feed',
+            pagination: ApiPaginationDto.fixture(),
+          ),
+        );
+        await container.read(feedStateProvider.future);
       });
 
       test('when setup completes, it should call getFeedJobs on the feed repository', () async {

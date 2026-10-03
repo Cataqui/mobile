@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
-import 'package:cataqui_app/core/dtos/job_dto.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -167,7 +167,7 @@ class _JobViewState extends ConsumerState<JobView> {
                         shape: const MateoRoundedShapeBorder.capsule(),
                       ),
                       child: Text(
-                        JobDto.fixture().description,
+                        PublicJobDto.fixture().description,
                         maxLines: 5,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 18, color: colorScheme.text.secondary, fontWeight: FontWeight.w600),

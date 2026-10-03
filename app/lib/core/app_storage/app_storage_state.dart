@@ -5,13 +5,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_storage_state.g.dart';
 
-Duration? _noRetry(int retryCount, Object error) => null;
-
-@Riverpod(keepAlive: true, retry: _noRetry)
+@Riverpod(keepAlive: true, retry: AppStorageState._noRetry)
 class AppStorageState extends _$AppStorageState {
   static const _authCredentialsKey = 'auth_credentials';
   static const _seenSwipeFeedHintKey = 'seen_swipe_feed_hint';
   static const _completedOnboardingKey = 'completed_onboarding';
+
+  static Duration? _noRetry(int retryCount, Object error) => null;
 
   @override
   Future<AppStorageData> build() async {

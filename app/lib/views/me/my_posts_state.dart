@@ -1,6 +1,6 @@
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_auth/authenticated_provider_retry.dart';
-import 'package:cataqui_app/core/enums/job_enums.dart';
+import 'package:cataqui_app/core/enums/job_status.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/me/my_posts_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +33,7 @@ class MyPostsState extends _$MyPostsState {
 
     try {
       final envelope = await ref.read(userRepositoryProvider).getMyPostedJobs(cursor: currentData.nextCursor);
+      if (!ref.mounted) return;
       if (currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
       final latestData = state.value ?? currentData;
       state = AsyncData(
@@ -45,6 +46,7 @@ class MyPostsState extends _$MyPostsState {
         ),
       );
     } catch (error) {
+      if (!ref.mounted) return;
       if (currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
       state = AsyncData((state.value ?? currentData).copyWith(isLoadingMore: false, paginationError: error));
     }
