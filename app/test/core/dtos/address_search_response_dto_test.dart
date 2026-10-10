@@ -67,6 +67,7 @@ void main() {
             'VEHICLE_WASH',
             'LODGING',
             'HAIR_CARE',
+            'ZOO',
           ].map(
             (category) => AddressSearchResponseDto.fromJson(
               _AddressSearchResponseDtoTestData.responseJson(category: category),
@@ -84,6 +85,7 @@ void main() {
         AddressCategory.vehicleWash,
         AddressCategory.lodging,
         AddressCategory.hairCare,
+        AddressCategory.zoo,
       ]);
     });
   });

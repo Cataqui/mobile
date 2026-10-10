@@ -5,6 +5,14 @@ import 'package:mateo_mobile/mateo_mobile.dart';
 
 void main() {
   group('AddressCategory', () {
+    test('when a place is a zoo, it should use the monkey head and green step 11', () {
+      final palette = MateoPalette();
+      final icon = AddressCategory.zoo.icon(opticalCenter: false) as MateoIcon;
+
+      expect(icon.icon, MateoIconData.monkeyHead);
+      expect(AddressCategory.zoo.color(palette: palette), palette.green[11]);
+    });
+
     test('when resolving icons, each category should use its assigned dotdart-backed icon', () {
       final categoryIconTypes = AddressCategory.values
           .map((category) => category.icon(opticalCenter: false).runtimeType)
@@ -43,6 +51,7 @@ void main() {
         const MateoIcon(.checkeredFlag).runtimeType,
         const MateoIcon(.runningFigure).runtimeType,
         const MateoIcon(.classicBuilding).runtimeType,
+        const MateoIcon(.monkeyHead).runtimeType,
         const MateoIcon(.sadMaskHappyMask).runtimeType,
         const MateoIcon(.popcorn).runtimeType,
         const MateoIcon(.busFront).runtimeType,
@@ -143,6 +152,7 @@ void main() {
         palette.violet[9],
         palette.violet[9],
         palette.violet[9],
+        palette.green[11],
         palette.green[9],
         palette.green[9],
         palette.blue[9],

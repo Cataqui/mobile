@@ -36,6 +36,7 @@ enum AddressCategory {
   racingVenue,
   sportsVenue,
   museum,
+  zoo,
   theater,
   movieTheater,
   busStation,
@@ -99,6 +100,9 @@ enum AddressCategory {
       case AddressCategory.bicycleShop:
       case AddressCategory.chargingStation:
         return palette.green[9];
+
+      case AddressCategory.zoo:
+        return palette.green[11];
 
       case AddressCategory.bank:
         return palette.red[11];
@@ -236,6 +240,9 @@ enum AddressCategory {
 
       case AddressCategory.museum:
         return MateoIcon(.classicBuilding, size: size, color: color, backgroundColor: backgroundColor);
+
+      case AddressCategory.zoo:
+        return MateoIcon(.monkeyHead, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.theater:
         return MateoIcon(.sadMaskHappyMask, size: size, color: color, backgroundColor: backgroundColor);
