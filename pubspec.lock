@@ -783,7 +783,7 @@ packages:
   mateo_mobile:
     dependency: "direct overridden"
     description:
-      path: "../../mateo/packages/flutter/mateo-mobile"
+      path: "../../mateo/packages/dart/mateo-mobile-flutter"
       relative: true
     source: path
     version: "0.0.1"
@@ -889,7 +889,7 @@ packages:
       path: "../../ventairy/flutter/oh_my_flutter"
       relative: true
     source: path
-    version: "0.27.0"
+    version: "0.28.0"
   package_config:
     dependency: transitive
     description:

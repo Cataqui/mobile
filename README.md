@@ -139,7 +139,7 @@ The main technical boundaries are:
 - [go_router](https://pub.dev/packages/go_router) with generated typed routes.
 - Freezed and JSON serialization for API models.
 - [slang](https://pub.dev/packages/slang) in `app/lib/i18n` for app-owned translations.
-- [Mateo Mobile](https://github.com/Ventairy/mateo/tree/main/packages/flutter/mateo-mobile) for the design system.
+- [Mateo Mobile](https://github.com/Ventairy/mateo/tree/main/packages/dart/mateo-mobile-flutter) for the design system.
 - [Alchemist](https://pub.dev/packages/alchemist) for golden testing
 
 ### Everyday commands

@@ -31,8 +31,8 @@ dependencies:
   mateo_mobile:
     git:
       url: https://github.com/Ventairy/mateo.git
-      ref: 03cdde58673a3053de3a30639a5a6c88a0536fcd
-      path: packages/flutter/mateo-mobile
+      ref: main
+      path: packages/dart/mateo-mobile-flutter
   oh_my_flutter: ^0.26.0
   path_provider: ^2.1.5
   riverpod_annotation: ^4.0.2
