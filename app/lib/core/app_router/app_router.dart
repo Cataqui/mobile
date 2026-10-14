@@ -65,7 +65,7 @@ class AppRouter extends _$AppRouter {
           .maybeShowError(
             overlayContext,
             error: error,
-            message: ref.read(translationProvider).whatsappLoginButton.error,
+            message: ref.read(translationProvider).whatsappConnectionButton.error,
           );
       return;
     }

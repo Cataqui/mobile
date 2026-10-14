@@ -7,7 +7,7 @@ import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/me/my_posts_carousel/my_posts_carousel.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/me/widgets/current_user_display_identifier.dart';
-import 'package:cataqui_app/widgets/logout_warning_sheet/logout_warning_sheet.dart';
+import 'package:cataqui_app/widgets/whatsapp_disconnection_sheet/whatsapp_disconnection_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
@@ -38,12 +38,12 @@ class MeView extends ConsumerWidget {
             ),
           ),
           trailing: MateoButton(
-            key: const ValueKey('me_logout_button'),
-            onPressed: () => unawaited(_showLogout(context, ref)),
+            key: const ValueKey('me_disconnect_whatsapp_button'),
+            onPressed: () => unawaited(_showWhatsappDisconnection(context, ref)),
             presentation: .icon(
               variant: .primary.base,
               elevation: 1,
-              semanticLabel: i18n.me.logoutButtonSemanticLabel,
+              semanticLabel: i18n.me.disconnectWhatsappButtonSemanticLabel,
               icon: const MateoIcon(.logout),
             ),
           ),
@@ -96,14 +96,14 @@ class MeView extends ConsumerWidget {
     );
   }
 
-  Future<void> _showLogout(BuildContext context, WidgetRef ref) async {
+  Future<void> _showWhatsappDisconnection(BuildContext context, WidgetRef ref) async {
     final meRoute = ModalRoute.of(context);
     final appAuthState = ref.read(appAuthStateProvider.notifier);
     final appToast = ref.read(appToastProvider);
-    final successMessage = ref.read(translationProvider).logoutWarningSheet.success;
+    final successMessage = ref.read(translationProvider).whatsappDisconnectionSheet.success;
     final rootNavigator = ref.read(rootNavigatorKeyProvider).currentState;
 
-    final didLogout = await LogoutWarningSheet.show(
+    final didDisconnect = await WhatsappDisconnectionSheet.show(
       context: context,
       onConfirmed: () async {
         try {
@@ -113,7 +113,7 @@ class MeView extends ConsumerWidget {
         }
       },
     );
-    if (!didLogout || !context.mounted) return;
+    if (!didDisconnect || !context.mounted) return;
 
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) {

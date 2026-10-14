@@ -31,6 +31,8 @@ This repository is structured as a **Flutter workspace** using melos:
 
 - **Flutter Version Management:** Managed exclusively via **fvm** (`https://fvm.dev/`). Do **NOT** use global untracked Flutter installations.
 - **Determinism Rule:** The `pubspec.lock` file is the absolute source of truth for dependencies. **Never** add `pubspec.lock` to `.gitignore`. It must be committed on every dependency alteration to guarantee identical builds across all agent environments and the CI pipeline.
+  When validating dependency changes, report any local overrides used and
+  whether dependency resolution succeeds in a clean checkout.
 - **SDK Constraints:** Always respect the minimum Flutter/Dart SDK constraints declared in `pubspec.yaml`.
 - **Runtime Environments:** The Flutter flavor selects the runtime environment.
   Use `development` for staging API behavior and `production` for production

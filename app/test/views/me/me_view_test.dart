@@ -20,7 +20,7 @@ import 'package:cataqui_app/views/me/my_posts_state.dart';
 import 'package:cataqui_app/views/me/user_avatar_morph_target.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/widgets/feed_job_card/feed_job_card.dart';
-import 'package:cataqui_app/widgets/logout_warning_sheet/logout_warning_sheet.dart';
+import 'package:cataqui_app/widgets/whatsapp_disconnection_sheet/whatsapp_disconnection_sheet.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +49,28 @@ void main() {
   test('when opening the Me route, it should require authentication', () {
     expect(const MeRoute().requiresAuthentication, isTrue);
     expect(const MeRoute().location, '/me');
+  });
+
+  testWidgets('when the profile opens, it should announce the WhatsApp disconnect action', (tester) async {
+    final semantics = tester.ensureSemantics();
+    try {
+      await tester.pumpWidget(
+        TestApp.screen(
+          providerOverrides: [
+            meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
+            myPostsStateProvider.overrideWith(
+              () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+            ),
+          ],
+          child: const MeView(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Desconectar WhatsApp'), findsOneWidget);
+    } finally {
+      semantics.dispose();
+    }
   });
 
   testWidgets('when the Me page loads with a post, it should show the identifier and a job card', (tester) async {
@@ -683,19 +705,21 @@ void main() {
     expect(find.byKey(const ValueKey('me_identifier_skeleton')), findsNothing);
   });
 
-  testWidgets('when logout is tapped, it should open the warning over the Me view', (tester) async {
+  testWidgets('when disconnection is tapped, it should open the warning over the Me view', (tester) async {
     await tester.pumpWidget(const TestApp.screen(child: MeView()));
 
-    await tester.tap(find.byKey(const ValueKey('me_logout_button')));
+    await tester.tap(find.byKey(const ValueKey('me_disconnect_whatsapp_button')));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(MeView), findsOneWidget);
-    expect(find.byType(LogoutWarningSheet), findsOneWidget);
-    expect(find.text(i18n.logoutWarningSheet.title), findsOneWidget);
+    expect(find.byType(WhatsappDisconnectionSheet), findsOneWidget);
+    expect(find.text(i18n.whatsappDisconnectionSheet.title), findsOneWidget);
   });
 
-  testWidgets('when logout is tapped on the Me route, it should show the warning over that route', (tester) async {
+  testWidgets('when disconnection is tapped on the Me route, it should show the warning over that route', (
+    tester,
+  ) async {
     await FeedViewTestHelpers.pumpFeedRoute(
       tester: tester,
       providerOverrides: [
@@ -711,17 +735,17 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 460));
     expect(find.byType(MeView), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('me_logout_button')));
+    await tester.tap(find.byKey(const ValueKey('me_disconnect_whatsapp_button')));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(MeView), findsOneWidget);
-    expect(find.byType(LogoutWarningSheet), findsOneWidget);
-    expect(find.text(i18n.logoutWarningSheet.title), findsOneWidget);
+    expect(find.byType(WhatsappDisconnectionSheet), findsOneWidget);
+    expect(find.text(i18n.whatsappDisconnectionSheet.title), findsOneWidget);
   });
 
   testWidgets(
-    'logout reveals the same Feed and shows success before server revocation finishes',
+    'disconnection reveals the same Feed and shows success before server revocation finishes',
     (tester) => withClock(Clock.fixed(DateTime.utc(2026, 9, 24, 12)), () async {
       final revocation = Completer<void>();
       final authRepository = MockAuthRepository();
@@ -748,11 +772,11 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('feed_me_button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('me_logout_button')));
+      await tester.tap(find.byKey(const ValueKey('me_disconnect_whatsapp_button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('logout_warning_sheet_logout_button')));
+      await tester.tap(find.byKey(const ValueKey('whatsapp_disconnection_sheet_disconnect_button')));
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text(i18n.logoutWarningSheet.success), findsNothing);
+      expect(find.text(i18n.whatsappDisconnectionSheet.success), findsNothing);
       await StaticMapCacheTestHelpers.loadImages(tester);
       await tester.pumpAndSettle();
 
@@ -762,18 +786,18 @@ void main() {
       expect(tester.element(find.byType(FeedView)), same(feedElement));
       expect(tester.widget<SnapList>(find.byType(SnapList)).controller, same(feedSnapListController));
       expect(feedSnapListController.index, 1);
-      expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
+      expect(find.text(i18n.whatsappDisconnectionSheet.success), findsOneWidget);
       verify(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken'))).called(1);
       expect(revocation.isCompleted, isFalse);
 
       revocation.completeError(StateError('offline'));
       await tester.pump();
       expect(tester.takeException(), isNull);
-      expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
+      expect(find.text(i18n.whatsappDisconnectionSheet.success), findsOneWidget);
     }),
   );
 
-  testWidgets('logout from direct Me falls back to Feed with the success toast', (tester) async {
+  testWidgets('disconnection from direct Me falls back to Feed with the success toast', (tester) async {
     final rootNavigatorKey = GlobalKey<NavigatorState>();
     final router = GoRouter(
       navigatorKey: rootNavigatorKey,
@@ -804,9 +828,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('me_logout_button')));
+    await tester.tap(find.byKey(const ValueKey('me_disconnect_whatsapp_button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('logout_warning_sheet_logout_button')));
+    await tester.tap(find.byKey(const ValueKey('whatsapp_disconnection_sheet_disconnect_button')));
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
 
@@ -814,7 +838,7 @@ void main() {
     expect(find.byType(FeedView), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
-    expect(find.text(i18n.logoutWarningSheet.success), findsOneWidget);
+    expect(find.text(i18n.whatsappDisconnectionSheet.success), findsOneWidget);
   });
 
   testWidgets('when opening the Me page from the feed then closing it, it should slide up and return to the feed', (

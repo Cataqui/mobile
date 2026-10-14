@@ -22,7 +22,7 @@ import 'package:cataqui_app/views/me/me_route.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_route.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/welcome/welcome_route.dart';
-import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
+import 'package:cataqui_app/widgets/whatsapp_connection_sheet/whatsapp_connection_sheet_controller.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show appFlavor;
@@ -196,8 +196,8 @@ Dio mapsDio(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-LoginSheetController loginSheetController(Ref ref) {
-  return LoginSheetController(ref.watch(rootNavigatorKeyProvider));
+WhatsappConnectionSheetController whatsappConnectionSheetController(Ref ref) {
+  return WhatsappConnectionSheetController(ref.watch(rootNavigatorKeyProvider));
 }
 
 @Riverpod(keepAlive: true)

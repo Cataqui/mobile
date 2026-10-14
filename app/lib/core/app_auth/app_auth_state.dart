@@ -129,13 +129,15 @@ class AppAuthState extends _$AppAuthState {
     await _clearAuthenticationIfNeeded();
     if (_activeLogout != null) return null;
 
-    final didLogin = await ref.read(loginSheetControllerProvider).show();
-    if (!didLogin) return null;
+    final didConnect = await ref.read(whatsappConnectionSheetControllerProvider).show();
+    if (!didConnect) return null;
 
     final authenticatedSession = state;
 
     if (authenticatedSession == null) {
-      throw StateError('The login sheet completed successfully without setting an authenticated session.');
+      throw StateError(
+        'The WhatsApp connection sheet completed successfully without setting an authenticated session.',
+      );
     }
 
     return authenticatedSession;

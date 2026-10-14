@@ -112,25 +112,28 @@ void main() {
       );
     });
 
-    test('when login is dismissed before a protected request, it should reject without sending the request', () async {
-      DioException? thrownError;
-      var requestCount = 0;
-      when(() => authenticatedAdapter.fetch(any(), any(), any())).thenAnswer((_) async {
-        requestCount += 1;
-        return ResponseBody.fromString('{}', 200, headers: _AuthInterceptorTestData.jsonHeaders);
-      });
+    test(
+      'when connection is dismissed before a protected request, it should reject without sending the request',
+      () async {
+        DioException? thrownError;
+        var requestCount = 0;
+        when(() => authenticatedAdapter.fetch(any(), any(), any())).thenAnswer((_) async {
+          requestCount += 1;
+          return ResponseBody.fromString('{}', 200, headers: _AuthInterceptorTestData.jsonHeaders);
+        });
 
-      try {
-        await authenticatedDio.get<void>('/protected');
-      } on DioException catch (error) {
-        thrownError = error;
-      }
+        try {
+          await authenticatedDio.get<void>('/protected');
+        } on DioException catch (error) {
+          thrownError = error;
+        }
 
-      expect(
-        (errorType: thrownError.runtimeType, dioType: thrownError?.type, requestCount: requestCount),
-        (errorType: AuthenticationDismissedDioException, dioType: DioExceptionType.cancel, requestCount: 0),
-      );
-    });
+        expect(
+          (errorType: thrownError.runtimeType, dioType: thrownError?.type, requestCount: requestCount),
+          (errorType: AuthenticationDismissedDioException, dioType: DioExceptionType.cancel, requestCount: 0),
+        );
+      },
+    );
 
     test('when a protected response is unauthorized, it should refresh and replay once with the new token', () async {
       final currentTime = DateTime.utc(2026, 8, 11, 15);
@@ -206,7 +209,7 @@ void main() {
       );
     });
 
-    test('when login is dismissed after a 401, it should cancel without replaying the request', () async {
+    test('when connection is dismissed after a 401, it should cancel without replaying the request', () async {
       final currentTime = DateTime.utc(2026, 8, 11, 15);
       session = AuthSessionDto.fixture().copyWith(accessTokenExpiresAt: currentTime.add(const Duration(minutes: 10)));
       refreshSession = () async {

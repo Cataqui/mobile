@@ -68,7 +68,7 @@
   },
   "me": {
     "closeButtonSemanticLabel": "Fechar perfil",
-    "logoutButtonSemanticLabel": "Sair da conta",
+    "disconnectWhatsappButtonSemanticLabel": "Desconectar WhatsApp",
     "loadingSemanticLabel": "Carregando perfil",
     "myPosts": {
       "title": "Postados",
@@ -235,24 +235,23 @@
       }
     }
   },
-  "whatsappLoginButton": {
-    "label": "Entrar com WhatsApp",
-    "message": "Entrar com o código {code: String}.\n\nDepois de enviar só voltar pro app e esperar",
-    "checking": "Estamos vendo se você mandou o código certinho",
-    "error": "Não deu. Tenta de novo",
-    "rateLimited": "Muita gente tentou agora. Espera um pouquinho e tenta de novo",
-    "success": "Tá dentro!"
+  "whatsappConnectionButton": {
+    "label": "Conectar WhatsApp",
+    "message": "Conectar meu WhatsApp ao Cataquí com o código {code: String}.\n\nDepois de enviar, é só voltar pro app e esperar",
+    "checking": "Conectando seu WhatsApp...",
+    "error": "Não deu pra conectar. Tenta de novo",
+    "rateLimited": "Muitas tentativas de conexão. Espera um pouquinho e tenta de novo",
+    "success": "WhatsApp conectado!"
   },
-  "loginSheet": {
-    "title": "Você precisa de uma conta pra fazer isso",
-    "subtitle": "Entre ou crie sua conta pra poder continuar"
+  "whatsappConnectionSheet": {
+    "title": "Conecte seu WhatsApp pra continuar"
   },
-  "logoutWarningSheet": {
-    "title": "Tem certeza?",
-    "description": "Na próxima vez que você quiser usar o app vai ter que entrar na sua conta de novo",
+  "whatsappDisconnectionSheet": {
+    "title": "Desconectar WhatsApp?",
+    "description": "Você vai precisar conectar seu WhatsApp de novo pra postar ou acessar seu perfil",
     "back": "Voltar",
-    "logout": "Vou sair",
-    "success": "Você saiu"
+    "disconnect": "Desconectar",
+    "success": "WhatsApp desconectado!"
   },
   "jobLocationImage": {
     "loading": "Carregando mapa...",
