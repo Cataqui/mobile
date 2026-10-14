@@ -370,11 +370,12 @@ packages:
     source: hosted
     version: "1.1.71"
   dotdart:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../../ventairy/flutter/dotdart"
-      relative: true
-    source: path
+      name: dotdart
+      sha256: "42ef6bf81a34e40d98b5379299ec8e5d078cb36ebd0112fdff8f7b8a080d5c31"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.11.3"
   equatable:
     dependency: transitive
@@ -781,11 +782,13 @@ packages:
     source: hosted
     version: "0.12.20"
   mateo_mobile:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../../mateo/packages/dart/mateo-mobile-flutter"
-      relative: true
-    source: path
+      path: "packages/dart/mateo-mobile-flutter"
+      ref: main
+      resolved-ref: "7fdd692b3aaef51ea0561ef53f3612461f63e7cc"
+      url: "https://github.com/Ventairy/mateo.git"
+    source: git
     version: "0.0.1"
   material_color_utilities:
     dependency: transitive
@@ -884,11 +887,12 @@ packages:
     source: hosted
     version: "2.1.2"
   oh_my_flutter:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../../ventairy/flutter/oh_my_flutter"
-      relative: true
-    source: path
+      name: oh_my_flutter
+      sha256: "1ac9133497d68489c18d6a77d375e50403a0220b128c5321fcd9991754fee3b1"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.28.0"
   package_config:
     dependency: transitive

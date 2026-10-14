@@ -88,12 +88,10 @@ fvm flutter run --flavor development
 `melos setup` installs dependencies and generates app code. Golden references
 are updated only through the explicit `melos goldens:update` command.
 
-The app and Mateo both require the `oh_my_flutter` 0.28 API. The current
-lockfile records local Mateo, `oh_my_flutter`, and `dotdart` packages. Until
-`oh_my_flutter` 0.28 is published, development requires those sibling packages
-through an ignored `pubspec_overrides.yaml`. Before release or clean-checkout
-CI validation, resolve the declared Git/pub.dev dependencies and commit the
-regenerated lockfile without local path overrides.
+Release dependencies resolve without sibling repositories: Mateo resolves from
+Git, with its exact commit recorded in `pubspec.lock`; `oh_my_flutter` and
+`dotdart` resolve from pub.dev. The app and Mateo both require the
+`oh_my_flutter` 0.28 API. The committed lockfile pins the complete resolution.
 
 An ignored `pubspec_overrides.yaml` may select local packages for development.
 Those overrides change the dependency resolution and lockfile; use a clean
