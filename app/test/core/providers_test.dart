@@ -15,7 +15,7 @@ import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/post/post_view.dart';
 import 'package:cataqui_app/views/welcome/welcome_route.dart';
-import 'package:cataqui_app/widgets/login_sheet/login_sheet.dart';
+import 'package:cataqui_app/widgets/whatsapp_connection_sheet/whatsapp_connection_sheet.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/material.dart';
@@ -585,7 +585,7 @@ void main() {
       expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
     });
 
-    testWidgets('when unauthenticated, navigating to protected app route should present login', (tester) async {
+    testWidgets('when unauthenticated, navigating to protected app route should present connection', (tester) async {
       final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
 
       unawaited(
@@ -594,14 +594,16 @@ void main() {
             .push(tester.element(find.byType(FeedView)), const PostRoute()),
       );
       await tester.pumpAndSettle();
-      final loginSheetCount = find.byType(LoginSheet).evaluate().length;
-      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      final whatsappConnectionSheetCount = find.byType(WhatsappConnectionSheet).evaluate().length;
+      Navigator.of(tester.element(find.byType(WhatsappConnectionSheet))).pop();
       await tester.pumpAndSettle();
 
-      expect(loginSheetCount, 1);
+      expect(whatsappConnectionSheetCount, 1);
     });
 
-    testWidgets('when the session is expired, navigating to protected app route should present login', (tester) async {
+    testWidgets('when the session is expired, navigating to protected app route should present connection', (
+      tester,
+    ) async {
       final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
       await providerContainer
           .read(appAuthStateProvider.notifier)
@@ -618,14 +620,16 @@ void main() {
             .push(tester.element(find.byType(FeedView)), const PostRoute()),
       );
       await tester.pumpAndSettle();
-      final loginSheetCount = find.byType(LoginSheet).evaluate().length;
-      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      final whatsappConnectionSheetCount = find.byType(WhatsappConnectionSheet).evaluate().length;
+      Navigator.of(tester.element(find.byType(WhatsappConnectionSheet))).pop();
       await tester.pumpAndSettle();
 
-      expect(loginSheetCount, 1);
+      expect(whatsappConnectionSheetCount, 1);
     });
 
-    testWidgets('when login is dismissed, navigating to protected app route should keep the feed open', (tester) async {
+    testWidgets('when connection is dismissed, navigating to protected app route should keep the feed open', (
+      tester,
+    ) async {
       final (providerContainer, goRouter) = await pumpCompletedOnboardingRouter(tester);
 
       unawaited(
@@ -634,7 +638,7 @@ void main() {
             .push(tester.element(find.byType(FeedView)), const PostRoute()),
       );
       await tester.pumpAndSettle();
-      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      Navigator.of(tester.element(find.byType(WhatsappConnectionSheet))).pop();
       await tester.pumpAndSettle();
 
       expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
@@ -650,21 +654,28 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        (postCount: find.byType(PostView).evaluate().length, loginCount: find.byType(LoginSheet).evaluate().length),
-        (postCount: 1, loginCount: 0),
+        (
+          postCount: find.byType(PostView).evaluate().length,
+          connectionCount: find.byType(WhatsappConnectionSheet).evaluate().length,
+        ),
+        (postCount: 1, connectionCount: 0),
       );
     });
 
-    testWidgets('when login succeeds, navigating to protected app route should resume the post flow', (tester) async {
-      final loginSheetController = MockLoginSheetController();
+    testWidgets('when connection succeeds, navigating to protected app route should resume the post flow', (
+      tester,
+    ) async {
+      final whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
       late ProviderContainer providerContainer;
-      when(loginSheetController.show).thenAnswer((_) async {
+      when(whatsappConnectionSheetController.show).thenAnswer((_) async {
         await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
         return true;
       });
       (providerContainer, _) = await pumpCompletedOnboardingRouter(
         tester,
-        providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+        providerOverrides: [
+          whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
+        ],
       );
 
       unawaited(
@@ -677,14 +688,16 @@ void main() {
       expect(find.byType(PostView), findsOneWidget);
     });
 
-    testWidgets('when authentication fails, navigating to protected app route should show the login error', (
+    testWidgets('when authentication fails, navigating to protected app route should show the connection error', (
       tester,
     ) async {
-      final loginSheetController = MockLoginSheetController();
-      when(loginSheetController.show).thenThrow(StateError('login unavailable'));
+      final whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
+      when(whatsappConnectionSheetController.show).thenThrow(StateError('connection unavailable'));
       final (providerContainer, goRouter) = await pumpCompletedOnboardingRouter(
         tester,
-        providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+        providerOverrides: [
+          whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
+        ],
       );
 
       unawaited(
@@ -698,7 +711,7 @@ void main() {
         (
           path: goRouter.routerDelegate.currentConfiguration.uri.path,
           errorCount: find
-              .text(providerContainer.read(translationProvider).whatsappLoginButton.error)
+              .text(providerContainer.read(translationProvider).whatsappConnectionButton.error)
               .evaluate()
               .length,
         ),
@@ -709,21 +722,23 @@ void main() {
     testWidgets('when unauthenticated navigation is requested twice, it should open only one post route', (
       tester,
     ) async {
-      final loginSheetController = MockLoginSheetController();
-      final loginCompleter = Completer<bool>();
-      var loginRequestCount = 0;
+      final whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
+      final connectionCompleter = Completer<bool>();
+      var connectionRequestCount = 0;
       late ProviderContainer providerContainer;
-      when(loginSheetController.show).thenAnswer((_) async {
-        loginRequestCount += 1;
-        final didLogin = await loginCompleter.future;
-        if (!didLogin) return false;
+      when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+        connectionRequestCount += 1;
+        final didConnect = await connectionCompleter.future;
+        if (!didConnect) return false;
 
         await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
         return true;
       });
       (providerContainer, _) = await pumpCompletedOnboardingRouter(
         tester,
-        providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+        providerOverrides: [
+          whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
+        ],
       );
 
       final appRouter = providerContainer.read(appRouterProvider.notifier);
@@ -731,16 +746,16 @@ void main() {
       unawaited(appRouter.push(context, const PostRoute()));
       unawaited(appRouter.push(context, const PostRoute()));
       await tester.pump();
-      loginCompleter.complete(true);
+      connectionCompleter.complete(true);
       await tester.pumpAndSettle();
 
       expect(
-        (loginRequestCount: loginRequestCount, postCount: find.byType(PostView).evaluate().length),
-        (loginRequestCount: 1, postCount: 1),
+        (connectionRequestCount: connectionRequestCount, postCount: find.byType(PostView).evaluate().length),
+        (connectionRequestCount: 1, postCount: 1),
       );
     });
 
-    testWidgets('when login is requested globally, it should present the sheet through the root navigator', (
+    testWidgets('when connection is requested globally, it should present the sheet through the root navigator', (
       tester,
     ) async {
       final providerContainer = await buildContainer();
@@ -754,11 +769,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final presentation = providerContainer.read(loginSheetControllerProvider).show();
+      final presentation = providerContainer.read(whatsappConnectionSheetControllerProvider).show();
       await tester.pumpAndSettle();
 
-      final sheetCount = find.byType(LoginSheet).evaluate().length;
-      Navigator.of(tester.element(find.byType(LoginSheet))).pop();
+      final sheetCount = find.byType(WhatsappConnectionSheet).evaluate().length;
+      Navigator.of(tester.element(find.byType(WhatsappConnectionSheet))).pop();
       await tester.pumpAndSettle();
       await presentation;
 

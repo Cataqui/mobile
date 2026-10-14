@@ -688,7 +688,7 @@ void main() {
         if (showReplacement) {
           showMateoToast(
             context: goRouter.routerDelegate.navigatorKey.currentContext!,
-            toast: MateoToast(message: i18n.logoutWarningSheet.success, status: .success),
+            toast: MateoToast(message: i18n.whatsappDisconnectionSheet.success, status: .success),
           );
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 250));
@@ -703,7 +703,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 250));
 
         expect(find.text(i18n.post.publishing.loading), findsNothing);
-        expect(find.text(i18n.logoutWarningSheet.success), showReplacement ? findsOneWidget : findsNothing);
+        expect(find.text(i18n.whatsappDisconnectionSheet.success), showReplacement ? findsOneWidget : findsNothing);
         expect(providerContainer.read(feedStateProvider).requireValue.jobs, isEmpty);
       });
     }

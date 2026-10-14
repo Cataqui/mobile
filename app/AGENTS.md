@@ -131,23 +131,24 @@ of the underlying state.
 Use the following two-class naming convention:
 
 - **`<Domain>State`** — the `@riverpod` notifier class (for example,
-  `WhatsappLoginState extends _$WhatsappLoginState`, which generates
-  `whatsappLoginStateProvider`).
+  `WhatsappConnectionState extends _$WhatsappConnectionState`, which generates
+  `whatsappConnectionStateProvider`).
 - **`<Domain>Data`** — the immutable domain value held by the notifier when a
-  dedicated value class is necessary (for example, `WhatsappLoginData`).
+  dedicated value class is necessary (for example, `WhatsappConnectionData`).
 
 Do not include presentation suffixes such as `Button`, `Widget`, `View`, or
 `Screen` in a Riverpod state or data class merely because that UI currently
-owns or consumes the provider. For example, use `WhatsappLoginState`, not
-`WhatsappLoginButtonState`. UI-specific interactive state belongs in the
+owns or consumes the provider. For example, use `WhatsappConnectionState`, not
+`WhatsappConnectionButtonState`. UI-specific interactive state belongs in the
 widget or view under the UI ownership rule below.
 
 Riverpod state attached to a view must live in the same directory as that view.
 Name the notifier file after its domain subject with the `*_state.dart` suffix,
 even when it lives beside the only view or widget that currently uses it. For
-example, a WhatsApp login notifier beside `whatsapp_login_button.dart` is named
-`whatsapp_login_state.dart`, not `whatsapp_login_button_state.dart`. Do not
-create a separate sibling directory solely for view-owned state.
+example, a WhatsApp connection notifier beside
+`whatsapp_connection_button.dart` is named `whatsapp_connection_state.dart`,
+not `whatsapp_connection_button_state.dart`. Do not create a separate sibling
+directory solely for view-owned state.
 
 State shared by multiple views may live at their closest shared feature
 directory instead.

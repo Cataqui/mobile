@@ -18,14 +18,14 @@ import '../../mocks.dart';
 void main() {
   late MockAuthRepository authRepository;
   late MockFlutterSecureStorage secureStorage;
-  late MockLoginSheetController loginSheetController;
+  late MockWhatsappConnectionSheetController whatsappConnectionSheetController;
   late MockSharedPreferencesAsync sharedPreferences;
   late ProviderContainer container;
 
   setUp(() async {
     authRepository = MockAuthRepository();
     secureStorage = MockFlutterSecureStorage();
-    loginSheetController = MockLoginSheetController();
+    whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
     sharedPreferences = MockSharedPreferencesAsync();
     when(() => sharedPreferences.getBool(any())).thenAnswer((_) async => null);
     when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
@@ -36,11 +36,11 @@ void main() {
       ),
     ).thenAnswer((_) async {});
     when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
-    when(loginSheetController.show).thenAnswer((_) async => false);
+    when(whatsappConnectionSheetController.show).thenAnswer((_) async => false);
     container = ProviderContainer(
       overrides: [
         authRepositoryProvider.overrideWithValue(authRepository),
-        loginSheetControllerProvider.overrideWithValue(loginSheetController),
+        whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
         secureStorageProvider.overrideWithValue(secureStorage),
         sharedPreferencesAsyncProvider.overrideWithValue(sharedPreferences),
       ],
@@ -76,7 +76,7 @@ void main() {
       expect(container.read(appAuthStateProvider), session);
     });
 
-    test('when no usable local credentials exist, protected navigation should require login', () async {
+    test('when no usable local credentials exist, protected navigation should require connection', () async {
       final currentTime = DateTime.utc(2026, 8, 11, 15);
       final appAuthState = container.read(appAuthStateProvider.notifier);
       expect(withClock(Clock.fixed(currentTime), () => appAuthState.hasUsableLocalCredentials), isFalse);
@@ -200,15 +200,15 @@ void main() {
         );
         await container.read(appAuthStateProvider.notifier).setSession(currentSession);
         var refreshRequestCount = 0;
-        var loginRequestCount = 0;
+        var connectionRequestCount = 0;
         when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
           refreshRequestCount += 1;
           return ApiEnvelopeDto.fixture(
             data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
           );
         });
-        when(loginSheetController.show).thenAnswer((_) async {
-          loginRequestCount += 1;
+        when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+          connectionRequestCount += 1;
           return false;
         });
 
@@ -218,8 +218,8 @@ void main() {
         );
 
         expect(
-          (result: result, refreshRequestCount: refreshRequestCount, loginRequestCount: loginRequestCount),
-          (result: currentSession, refreshRequestCount: 0, loginRequestCount: 0),
+          (result: result, refreshRequestCount: refreshRequestCount, connectionRequestCount: connectionRequestCount),
+          (result: currentSession, refreshRequestCount: 0, connectionRequestCount: 0),
         );
       },
     );
@@ -267,75 +267,85 @@ void main() {
       );
     });
 
-    test('when no credentials are saved, refreshing should request login and return null when dismissed', () async {
-      final currentSession = AuthSessionDto.fixture();
-      when(
-        () => secureStorage.write(
-          key: any(named: 'key'),
-          value: any(named: 'value'),
-        ),
-      ).thenThrow(StateError('secure storage unavailable'));
-      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
-      var refreshRequestCount = 0;
-      var loginRequestCount = 0;
-      when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
-        refreshRequestCount += 1;
-        return ApiEnvelopeDto.fixture(data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
-      });
-      when(loginSheetController.show).thenAnswer((_) async {
-        loginRequestCount += 1;
-        return false;
-      });
+    test(
+      'when no credentials are saved, refreshing should request connection and return null when dismissed',
+      () async {
+        final currentSession = AuthSessionDto.fixture();
+        when(
+          () => secureStorage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          ),
+        ).thenThrow(StateError('secure storage unavailable'));
+        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+        var refreshRequestCount = 0;
+        var connectionRequestCount = 0;
+        when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
+          refreshRequestCount += 1;
+          return ApiEnvelopeDto.fixture(
+            data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
+          );
+        });
+        when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+          connectionRequestCount += 1;
+          return false;
+        });
 
-      final result = await container.read(appAuthStateProvider.notifier).refreshSession();
+        final result = await container.read(appAuthStateProvider.notifier).refreshSession();
 
-      expect(
-        (
-          result: result,
-          session: container.read(appAuthStateProvider),
-          credentials: container.read(appStorageStateProvider).value!.authCredentials,
-          refreshRequestCount: refreshRequestCount,
-          loginRequestCount: loginRequestCount,
-        ),
-        (result: null, session: null, credentials: null, refreshRequestCount: 0, loginRequestCount: 1),
-      );
-    });
+        expect(
+          (
+            result: result,
+            session: container.read(appAuthStateProvider),
+            credentials: container.read(appStorageStateProvider).value!.authCredentials,
+            refreshRequestCount: refreshRequestCount,
+            connectionRequestCount: connectionRequestCount,
+          ),
+          (result: null, session: null, credentials: null, refreshRequestCount: 0, connectionRequestCount: 1),
+        );
+      },
+    );
 
-    test('when saved credentials expire at the current time, refreshing should clear them and request login', () async {
-      final currentTime = DateTime.utc(2026, 8, 11, 15);
-      final currentSession = AuthSessionDto.fixture().copyWith(
-        refreshToken: 'expired-refresh-token',
-        refreshTokenExpiresAt: currentTime,
-      );
-      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
-      var refreshRequestCount = 0;
-      var loginRequestCount = 0;
-      when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
-        refreshRequestCount += 1;
-        return ApiEnvelopeDto.fixture(data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto);
-      });
-      when(loginSheetController.show).thenAnswer((_) async {
-        loginRequestCount += 1;
-        return false;
-      });
+    test(
+      'when saved credentials expire at the current time, refreshing should clear them and request connection',
+      () async {
+        final currentTime = DateTime.utc(2026, 8, 11, 15);
+        final currentSession = AuthSessionDto.fixture().copyWith(
+          refreshToken: 'expired-refresh-token',
+          refreshTokenExpiresAt: currentTime,
+        );
+        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+        var refreshRequestCount = 0;
+        var connectionRequestCount = 0;
+        when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
+          refreshRequestCount += 1;
+          return ApiEnvelopeDto.fixture(
+            data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
+          );
+        });
+        when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+          connectionRequestCount += 1;
+          return false;
+        });
 
-      final result = await withClock(Clock.fixed(currentTime), () {
-        return container.read(appAuthStateProvider.notifier).refreshSession();
-      });
+        final result = await withClock(Clock.fixed(currentTime), () {
+          return container.read(appAuthStateProvider.notifier).refreshSession();
+        });
 
-      expect(
-        (
-          result: result,
-          session: container.read(appAuthStateProvider),
-          credentials: container.read(appStorageStateProvider).value!.authCredentials,
-          refreshRequestCount: refreshRequestCount,
-          loginRequestCount: loginRequestCount,
-        ),
-        (result: null, session: null, credentials: null, refreshRequestCount: 0, loginRequestCount: 1),
-      );
-    });
+        expect(
+          (
+            result: result,
+            session: container.read(appAuthStateProvider),
+            credentials: container.read(appStorageStateProvider).value!.authCredentials,
+            refreshRequestCount: refreshRequestCount,
+            connectionRequestCount: connectionRequestCount,
+          ),
+          (result: null, session: null, credentials: null, refreshRequestCount: 0, connectionRequestCount: 1),
+        );
+      },
+    );
 
-    test('when refresh is rejected as unauthorized, it should clear authentication and request login', () async {
+    test('when refresh is rejected as unauthorized, it should clear authentication and request connection', () async {
       final currentSession = AuthSessionDto.fixture().copyWith(
         refreshToken: 'rejected-refresh-token',
         refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
@@ -345,10 +355,10 @@ void main() {
         requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
         response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
       );
-      var loginRequestCount = 0;
+      var connectionRequestCount = 0;
       when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenThrow(unauthorizedError);
-      when(loginSheetController.show).thenAnswer((_) async {
-        loginRequestCount += 1;
+      when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+        connectionRequestCount += 1;
         return false;
       });
 
@@ -361,18 +371,18 @@ void main() {
           result: result,
           session: container.read(appAuthStateProvider),
           credentials: container.read(appStorageStateProvider).value!.authCredentials,
-          loginRequestCount: loginRequestCount,
+          connectionRequestCount: connectionRequestCount,
         ),
-        (result: null, session: null, credentials: null, loginRequestCount: 1),
+        (result: null, session: null, credentials: null, connectionRequestCount: 1),
       );
     });
 
-    test('when login succeeds after credentials are unusable, refreshing should return the new session', () async {
+    test('when connection succeeds after credentials are unusable, refreshing should return the new session', () async {
       final authenticatedSession = AuthSessionDto.fixture().copyWith(
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
       );
-      when(loginSheetController.show).thenAnswer((_) async {
+      when(whatsappConnectionSheetController.show).thenAnswer((_) async {
         await container.read(appAuthStateProvider.notifier).setSession(authenticatedSession);
         return true;
       });
@@ -393,7 +403,7 @@ void main() {
       );
     });
 
-    test('when refresh is forbidden, it should rethrow the error without requesting login', () async {
+    test('when refresh is forbidden, it should rethrow the error without requesting connection', () async {
       final currentSession = AuthSessionDto.fixture().copyWith(
         refreshToken: 'saved-refresh-token',
         refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
@@ -404,9 +414,9 @@ void main() {
         response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 403),
       );
       when(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).thenThrow(forbiddenError);
-      var loginRequestCount = 0;
-      when(loginSheetController.show).thenAnswer((_) async {
-        loginRequestCount += 1;
+      var connectionRequestCount = 0;
+      when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+        connectionRequestCount += 1;
         return false;
       });
       Object? thrownError;
@@ -424,13 +434,13 @@ void main() {
           error: thrownError,
           session: container.read(appAuthStateProvider),
           credentials: container.read(appStorageStateProvider).value!.authCredentials,
-          loginRequestCount: loginRequestCount,
+          connectionRequestCount: connectionRequestCount,
         ),
         (
           error: forbiddenError,
           session: currentSession,
           credentials: AuthCredentialsDto.fromAuthSession(currentSession),
-          loginRequestCount: 0,
+          connectionRequestCount: 0,
         ),
       );
     });
@@ -460,21 +470,21 @@ void main() {
     });
 
     test(
-      'when background refresh has no credentials, it should preserve the session without requesting login',
+      'when background refresh has no credentials, it should preserve the session without requesting connection',
       () async {
         final currentSession = AuthSessionDto.fixture().copyWith(accessToken: 'still-valid-access-token');
         await container.read(appAuthStateProvider.notifier).setSession(currentSession);
         await container.read(appStorageStateProvider.notifier).clearAuthCredentials();
         var refreshRequestCount = 0;
-        var loginRequestCount = 0;
+        var connectionRequestCount = 0;
         when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((_) async {
           refreshRequestCount += 1;
           return ApiEnvelopeDto.fixture(
             data: NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto,
           );
         });
-        when(loginSheetController.show).thenAnswer((_) async {
-          loginRequestCount += 1;
+        when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+          connectionRequestCount += 1;
           return false;
         });
 
@@ -484,44 +494,47 @@ void main() {
           (
             session: container.read(appAuthStateProvider),
             refreshRequestCount: refreshRequestCount,
-            loginRequestCount: loginRequestCount,
+            connectionRequestCount: connectionRequestCount,
           ),
-          (session: currentSession, refreshRequestCount: 0, loginRequestCount: 0),
+          (session: currentSession, refreshRequestCount: 0, connectionRequestCount: 0),
         );
       },
     );
 
-    test('when background refresh is unauthorized, it should clear authentication without requesting login', () async {
-      final currentSession = AuthSessionDto.fixture().copyWith(
-        refreshToken: 'rejected-refresh-token',
-        refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
-      );
-      await container.read(appAuthStateProvider.notifier).setSession(currentSession);
-      final unauthorizedError = DioException(
-        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
-        response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
-      );
-      var loginRequestCount = 0;
-      when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenThrow(unauthorizedError);
-      when(loginSheetController.show).thenAnswer((_) async {
-        loginRequestCount += 1;
-        return false;
-      });
+    test(
+      'when background refresh is unauthorized, it should clear authentication without requesting connection',
+      () async {
+        final currentSession = AuthSessionDto.fixture().copyWith(
+          refreshToken: 'rejected-refresh-token',
+          refreshTokenExpiresAt: DateTime.utc(2026, 9, 10, 15),
+        );
+        await container.read(appAuthStateProvider.notifier).setSession(currentSession);
+        final unauthorizedError = DioException(
+          requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
+          response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+        );
+        var connectionRequestCount = 0;
+        when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenThrow(unauthorizedError);
+        when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+          connectionRequestCount += 1;
+          return false;
+        });
 
-      await withClock(
-        Clock.fixed(DateTime.utc(2026, 8, 11, 15)),
-        () => container.read(appAuthStateProvider.notifier).refreshSessionInBackground(),
-      );
+        await withClock(
+          Clock.fixed(DateTime.utc(2026, 8, 11, 15)),
+          () => container.read(appAuthStateProvider.notifier).refreshSessionInBackground(),
+        );
 
-      expect(
-        (
-          session: container.read(appAuthStateProvider),
-          credentials: container.read(appStorageStateProvider).value!.authCredentials,
-          loginRequestCount: loginRequestCount,
-        ),
-        (session: null, credentials: null, loginRequestCount: 0),
-      );
-    });
+        expect(
+          (
+            session: container.read(appAuthStateProvider),
+            credentials: container.read(appStorageStateProvider).value!.authCredentials,
+            connectionRequestCount: connectionRequestCount,
+          ),
+          (session: null, credentials: null, connectionRequestCount: 0),
+        );
+      },
+    );
 
     test('when background refresh fails outside authentication, it should preserve the current session', () async {
       final currentSession = AuthSessionDto.fixture().copyWith(
@@ -532,9 +545,9 @@ void main() {
       when(
         () => authRepository.refreshSession(refreshToken: 'saved-refresh-token'),
       ).thenThrow(StateError('refresh unavailable'));
-      var loginRequestCount = 0;
-      when(loginSheetController.show).thenAnswer((_) async {
-        loginRequestCount += 1;
+      var connectionRequestCount = 0;
+      when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+        connectionRequestCount += 1;
         return false;
       });
 
@@ -544,19 +557,19 @@ void main() {
       );
 
       expect(
-        (session: container.read(appAuthStateProvider), loginRequestCount: loginRequestCount),
-        (session: currentSession, loginRequestCount: 0),
+        (session: container.read(appAuthStateProvider), connectionRequestCount: connectionRequestCount),
+        (session: currentSession, connectionRequestCount: 0),
       );
     });
 
     test(
-      'when foreground login is active, background refresh should wait for the same authentication result',
+      'when foreground connection is active, background refresh should wait for the same authentication result',
       () async {
-        final loginResult = Completer<bool>();
-        var loginRequestCount = 0;
-        when(loginSheetController.show).thenAnswer((_) {
-          loginRequestCount += 1;
-          return loginResult.future;
+        final connectionResult = Completer<bool>();
+        var connectionRequestCount = 0;
+        when(whatsappConnectionSheetController.show).thenAnswer((_) {
+          connectionRequestCount += 1;
+          return connectionResult.future;
         });
 
         final foregroundRefresh = container.read(appAuthStateProvider.notifier).refreshSession();
@@ -569,30 +582,30 @@ void main() {
               backgroundCompleted = true;
             });
         await Future<void>.delayed(Duration.zero);
-        final backgroundCompletedBeforeLogin = backgroundCompleted;
-        loginResult.complete(false);
+        final backgroundCompletedBeforeConnection = backgroundCompleted;
+        connectionResult.complete(false);
         final foregroundResult = await foregroundRefresh;
         await backgroundRefresh;
 
         expect(
           (
-            backgroundCompletedBeforeLogin: backgroundCompletedBeforeLogin,
-            backgroundCompletedAfterLogin: backgroundCompleted,
+            backgroundCompletedBeforeConnection: backgroundCompletedBeforeConnection,
+            backgroundCompletedAfterConnection: backgroundCompleted,
             foregroundResult: foregroundResult,
-            loginRequestCount: loginRequestCount,
+            connectionRequestCount: connectionRequestCount,
           ),
           (
-            backgroundCompletedBeforeLogin: false,
-            backgroundCompletedAfterLogin: true,
+            backgroundCompletedBeforeConnection: false,
+            backgroundCompletedAfterConnection: true,
             foregroundResult: null,
-            loginRequestCount: 1,
+            connectionRequestCount: 1,
           ),
         );
       },
     );
 
     test(
-      'when foreground refresh joins a background request rejected as unauthorized, it should request login once',
+      'when foreground refresh joins a background request rejected as unauthorized, it should request connection once',
       () async {
         final currentSession = AuthSessionDto.fixture().copyWith(
           refreshToken: 'rejected-refresh-token',
@@ -605,13 +618,13 @@ void main() {
         await container.read(appAuthStateProvider.notifier).setSession(currentSession);
         final refreshResponse = Completer<ApiEnvelopeDto<IssuedAuthSessionDto>>();
         var refreshRequestCount = 0;
-        var loginRequestCount = 0;
+        var connectionRequestCount = 0;
         when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenAnswer((_) {
           refreshRequestCount += 1;
           return refreshResponse.future;
         });
-        when(loginSheetController.show).thenAnswer((_) async {
-          loginRequestCount += 1;
+        when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+          connectionRequestCount += 1;
           await container.read(appAuthStateProvider.notifier).setSession(authenticatedSession);
           return true;
         });
@@ -633,8 +646,8 @@ void main() {
         await backgroundRefresh;
 
         expect(
-          (result: result, refreshRequestCount: refreshRequestCount, loginRequestCount: loginRequestCount),
-          (result: authenticatedSession, refreshRequestCount: 1, loginRequestCount: 1),
+          (result: result, refreshRequestCount: refreshRequestCount, connectionRequestCount: connectionRequestCount),
+          (result: authenticatedSession, refreshRequestCount: 1, connectionRequestCount: 1),
         );
       },
     );
@@ -741,7 +754,7 @@ void main() {
       });
 
       test(
-        'when logout is in progress, callers should share one request and authentication should not restart',
+        'when disconnection is in progress, callers should share one request and authentication should not restart',
         () async {
           await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
           final logoutResponse = Completer<void>();
@@ -780,7 +793,7 @@ void main() {
               session: null,
             ),
           );
-          verifyNever(() => loginSheetController.show());
+          verifyNever(() => whatsappConnectionSheetController.show());
           verifyNever(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken')));
         },
       );
@@ -803,7 +816,7 @@ void main() {
         await withClock(Clock.fixed(DateTime.utc(2026, 8, 11, 15)), () async {
           final backgroundRefresh = container.read(appAuthStateProvider.notifier).refreshSessionInBackground();
           await Future<void>.delayed(Duration.zero);
-          final logout = container.read(appAuthStateProvider.notifier).logoutCurrentSession();
+          final disconnection = container.read(appAuthStateProvider.notifier).logoutCurrentSession();
           verifyNever(() => authRepository.logoutCurrentSession(refreshToken: any(named: 'refreshToken')));
           refreshResponse.complete(
             ApiEnvelopeDto.fixture(
@@ -812,13 +825,13 @@ void main() {
               ),
             ),
           );
-          await Future.wait([backgroundRefresh, logout]);
+          await Future.wait([backgroundRefresh, disconnection]);
         });
 
         expect(container.read(appAuthStateProvider), isNull);
         expect(container.read(appStorageStateProvider).value!.authCredentials, isNull);
         verify(() => authRepository.logoutCurrentSession(refreshToken: 'rotated-refresh-token')).called(1);
-        verifyNever(() => loginSheetController.show());
+        verifyNever(() => whatsappConnectionSheetController.show());
       });
     });
   });

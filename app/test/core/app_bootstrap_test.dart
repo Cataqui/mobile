@@ -35,7 +35,7 @@ void main() {
       late MockFeedRepository feedRepository;
       late MockAuthRepository authRepository;
       late MockUserRepository userRepository;
-      late MockLoginSheetController loginSheetController;
+      late MockWhatsappConnectionSheetController whatsappConnectionSheetController;
 
       setUp(() {
         prefs = MockSharedPreferencesAsync();
@@ -43,7 +43,7 @@ void main() {
         feedRepository = MockFeedRepository();
         authRepository = MockAuthRepository();
         userRepository = MockUserRepository();
-        loginSheetController = MockLoginSheetController();
+        whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
         when(() => prefs.getBool(any())).thenAnswer((_) async => false);
         when(() => secureStorage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
         when(
@@ -54,7 +54,7 @@ void main() {
         ).thenAnswer((_) async {});
         when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
         when(() => feedRepository.getFeedJobs()).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: <FeedJobDto>[]));
-        when(loginSheetController.show).thenAnswer((_) async => false);
+        when(whatsappConnectionSheetController.show).thenAnswer((_) async => false);
       });
 
       ProviderContainer buildContainer() {
@@ -65,7 +65,7 @@ void main() {
             feedRepositoryProvider.overrideWithValue(feedRepository),
             authRepositoryProvider.overrideWithValue(authRepository),
             userRepositoryProvider.overrideWithValue(userRepository),
-            loginSheetControllerProvider.overrideWithValue(loginSheetController),
+            whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
           ],
         );
         addTearDown(container.dispose);
@@ -73,7 +73,7 @@ void main() {
       }
 
       test(
-        'when there are no saved credentials, it should prepare an empty profile without requesting login',
+        'when there are no saved credentials, it should prepare an empty profile without requesting connection',
         () async {
           final container = buildContainer();
 
@@ -84,7 +84,7 @@ void main() {
           expect(await container.read(meStateProvider.future), isNull);
           verifyNever(userRepository.getMyProfile);
           verifyNever(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken')));
-          verifyNever(loginSheetController.show);
+          verifyNever(whatsappConnectionSheetController.show);
         },
       );
 
@@ -142,7 +142,7 @@ void main() {
 
           expect(container.read(meStateProvider).isLoading, isTrue);
           expect(container.read(appAuthStateProvider)?.userId, 'restored-user');
-          verifyNever(loginSheetController.show);
+          verifyNever(whatsappConnectionSheetController.show);
 
           profileResponse.complete(ApiEnvelopeDto.fixture(data: UserProfileDto.fixture()));
           expect(await container.read(meStateProvider.future), UserProfileDto.fixture());

@@ -3,7 +3,7 @@ import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/core/repositories/maps_repository/maps_repository.dart';
 import 'package:cataqui_app/core/repositories/user_repository.dart';
-import 'package:cataqui_app/widgets/login_sheet/login_sheet_controller.dart';
+import 'package:cataqui_app/widgets/whatsapp_connection_sheet/whatsapp_connection_sheet_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:file/file.dart' show File;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -28,7 +28,7 @@ class MockJobRepository extends Mock implements JobRepository {}
 
 class MockUserRepository extends Mock implements UserRepository {}
 
-class MockLoginSheetController extends Mock implements LoginSheetController {}
+class MockWhatsappConnectionSheetController extends Mock implements WhatsappConnectionSheetController {}
 
 class MockWhatsapp extends Mock implements Whatsapp {}
 

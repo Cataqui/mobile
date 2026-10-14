@@ -12,7 +12,7 @@ import 'package:cataqui_app/views/feed/feed_view.dart';
 import 'package:cataqui_app/views/post/contact/post_contact_view.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/post/post_view.dart';
-import 'package:cataqui_app/widgets/login_sheet/login_sheet.dart';
+import 'package:cataqui_app/widgets/whatsapp_connection_sheet/whatsapp_connection_sheet.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -46,12 +46,12 @@ void main() {
   });
 
   testWidgets('when the source context unmounts during authentication, it should not navigate', (tester) async {
-    final loginCompleter = Completer<bool>();
-    final loginSheetController = MockLoginSheetController();
+    final connectionCompleter = Completer<bool>();
+    final whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
     late ProviderContainer providerContainer;
-    when(loginSheetController.show).thenAnswer((_) async {
-      final didLogin = await loginCompleter.future;
-      if (!didLogin) return false;
+    when(whatsappConnectionSheetController.show).thenAnswer((_) async {
+      final didConnect = await connectionCompleter.future;
+      if (!didConnect) return false;
 
       await providerContainer
           .read(appAuthStateProvider.notifier)
@@ -76,7 +76,9 @@ void main() {
     await tester.pumpWidget(
       TestApp.router(
         routerConfig: goRouter,
-        providerOverrides: [loginSheetControllerProvider.overrideWithValue(loginSheetController)],
+        providerOverrides: [
+          whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
+        ],
       ),
     );
     await tester.pumpAndSettle();
@@ -88,7 +90,7 @@ void main() {
 
     goRouter.go('/other');
     await tester.pumpAndSettle();
-    loginCompleter.complete(true);
+    connectionCompleter.complete(true);
     await navigation;
 
     expect(goRouter.routerDelegate.currentConfiguration.uri.path, '/other');
@@ -135,7 +137,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PostView), findsOneWidget);
-    expect(find.byType(LoginSheet), findsNothing);
+    expect(find.byType(WhatsappConnectionSheet), findsNothing);
     verify(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).called(1);
 
     final issuedSession = (NotpIntentExchangeResultDto.issuedSessionFixture() as IssuedAuthSessionDto).copyWith(
@@ -180,13 +182,13 @@ void main() {
     expect(tester.widget<TextField>(find.byKey(const ValueKey('post_description_input'))).controller!.text, isEmpty);
   });
 
-  testWidgets('when saved credentials are revoked, post draft remains and contact requests login', (tester) async {
+  testWidgets('when saved credentials are revoked, post draft remains and contact requests connection', (tester) async {
     final authRepository = MockAuthRepository();
-    final loginSheetController = MockLoginSheetController();
-    final loginResult = Completer<bool>();
-    when(loginSheetController.show).thenAnswer((_) => loginResult.future);
+    final whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
+    final connectionResult = Completer<bool>();
+    when(whatsappConnectionSheetController.show).thenAnswer((_) => connectionResult.future);
     addTearDown(() {
-      if (!loginResult.isCompleted) loginResult.complete(false);
+      if (!connectionResult.isCompleted) connectionResult.complete(false);
     });
     final sharedPreferences = MockSharedPreferencesAsync();
     when(() => sharedPreferences.getBool(any())).thenAnswer((_) async => false);
@@ -208,7 +210,7 @@ void main() {
         providerOverrides: [
           authRepositoryProvider.overrideWithValue(authRepository),
           cataquiApiCookieJarProvider.overrideWith((ref) async => CookieJar()),
-          loginSheetControllerProvider.overrideWithValue(loginSheetController),
+          whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
           sharedPreferencesAsyncProvider.overrideWithValue(sharedPreferences),
         ],
       ),
@@ -231,7 +233,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(container.read(appStorageStateProvider).requireValue.authCredentials, isNull);
-    verifyNever(loginSheetController.show);
+    verifyNever(whatsappConnectionSheetController.show);
     await tester.enterText(find.byKey(const ValueKey('post_description_input')), 'Draft remains here');
     await tester.tap(find.byKey(const ValueKey('post_contact_chip')));
     await tester.pump();
@@ -241,7 +243,7 @@ void main() {
     expect(find.byType(PostView), findsOneWidget);
     expect(find.byType(PostContactView), findsOneWidget);
     expect(find.text('Draft remains here'), findsOneWidget);
-    verify(loginSheetController.show).called(1);
+    verify(whatsappConnectionSheetController.show).called(1);
     expect(container.read(appStorageStateProvider).requireValue.authCredentials, isNull);
   });
 }

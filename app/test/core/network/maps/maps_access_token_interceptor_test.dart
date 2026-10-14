@@ -224,37 +224,40 @@ void main() {
       );
     });
 
-    test('when the authenticated user disappears and login is dismissed, it should discard the cached token', () async {
-      var workerRequestCount = 0;
-      when(() => mapsAdapter.fetch(any(), any(), any())).thenAnswer((_) async {
-        workerRequestCount += 1;
-        return ResponseBody.fromString('{}', 200, headers: _MapsAccessTokenInterceptorTestData.jsonHeaders);
-      });
+    test(
+      'when the authenticated user disappears and connection is dismissed, it should discard the cached token',
+      () async {
+        var workerRequestCount = 0;
+        when(() => mapsAdapter.fetch(any(), any(), any())).thenAnswer((_) async {
+          workerRequestCount += 1;
+          return ResponseBody.fromString('{}', 200, headers: _MapsAccessTokenInterceptorTestData.jsonHeaders);
+        });
 
-      await withClock(
-        Clock.fixed(_MapsAccessTokenInterceptorTestData.currentTime),
-        () => mapsDio.query<void>('/places/search'),
-      );
-      authenticatedUserId = null;
-      DioException? thrownError;
-      try {
         await withClock(
           Clock.fixed(_MapsAccessTokenInterceptorTestData.currentTime),
           () => mapsDio.query<void>('/places/search'),
         );
-      } on DioException catch (error) {
-        thrownError = error;
-      }
+        authenticatedUserId = null;
+        DioException? thrownError;
+        try {
+          await withClock(
+            Clock.fixed(_MapsAccessTokenInterceptorTestData.currentTime),
+            () => mapsDio.query<void>('/places/search'),
+          );
+        } on DioException catch (error) {
+          thrownError = error;
+        }
 
-      expect(
-        (
-          errorType: thrownError.runtimeType,
-          accessTokenRequestCount: accessTokenRequestCount,
-          workerRequestCount: workerRequestCount,
-        ),
-        (errorType: AuthenticationDismissedDioException, accessTokenRequestCount: 1, workerRequestCount: 1),
-      );
-    });
+        expect(
+          (
+            errorType: thrownError.runtimeType,
+            accessTokenRequestCount: accessTokenRequestCount,
+            workerRequestCount: workerRequestCount,
+          ),
+          (errorType: AuthenticationDismissedDioException, accessTokenRequestCount: 1, workerRequestCount: 1),
+        );
+      },
+    );
 
     test('when the authenticated user changes during issuance, it should reject the issued token', () async {
       final accessTokenCompleter = Completer<MicroserviceAccessTokenDto>();
