@@ -46,7 +46,7 @@ void main() {
               () => FakeMyPostsState(
                 AsyncData(
                   MyPostsData(
-                    userId: 'test-user',
+                    accountId: 'test-user',
                     jobs: [
                       MeGoldenTestHelpers.job(),
                       MeGoldenTestHelpers.job(status: .archived),
@@ -88,7 +88,7 @@ void main() {
           providerOverrides: [
             meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
             myPostsStateProvider.overrideWith(
-              () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+              () => FakeMyPostsState(const AsyncData(MyPostsData(accountId: 'test-user', jobs: [], hasMore: false))),
             ),
           ],
           child: const MeView(),
@@ -128,7 +128,7 @@ void main() {
               () => FakeMyPostsState(
                 AsyncData(
                   MyPostsData(
-                    userId: 'test-user',
+                    accountId: 'test-user',
                     jobs: [MeGoldenTestHelpers.job()],
                     hasMore: true,
                     paginationError: StateError('offline'),
@@ -155,7 +155,7 @@ void main() {
             meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
             myPostsStateProvider.overrideWith(
               () => FakeMyPostsState(
-                AsyncData(MyPostsData(userId: 'test-user', jobs: [MeGoldenTestHelpers.job()], hasMore: false)),
+                AsyncData(MyPostsData(accountId: 'test-user', jobs: [MeGoldenTestHelpers.job()], hasMore: false)),
               ),
             ),
           ],
@@ -240,7 +240,7 @@ abstract final class MeGoldenTestHelpers {
         appStorageStateProvider.overrideWith(() => FixedAppStorageState(hasSeenSwipeFeedHint: true)),
         meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
         myPostsStateProvider.overrideWith(
-          () => FakeMyPostsState(AsyncData(MyPostsData(userId: 'test-user', jobs: [job()], hasMore: false))),
+          () => FakeMyPostsState(AsyncData(MyPostsData(accountId: 'test-user', jobs: [job()], hasMore: false))),
         ),
       ],
     );

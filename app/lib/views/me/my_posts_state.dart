@@ -12,12 +12,12 @@ part 'my_posts_state.g.dart';
 class MyPostsState extends _$MyPostsState {
   @override
   Future<MyPostsData?> build() async {
-    final userId = ref.watch(appAuthStateProvider.select((session) => session?.userId));
-    if (userId == null) return null;
+    final accountId = ref.watch(appAuthStateProvider.select((session) => session?.accountId));
+    if (accountId == null) return null;
 
     final envelope = await ref.read(userRepositoryProvider).getMyPostedJobs();
     return MyPostsData(
-      userId: userId,
+      accountId: accountId,
       jobs: envelope.data,
       hasMore: envelope.pagination?.hasMore ?? false,
       nextCursor: envelope.pagination?.nextCursor,
@@ -27,14 +27,14 @@ class MyPostsState extends _$MyPostsState {
   Future<void> loadNextPage() async {
     final currentData = state.value;
     if (currentData == null || !currentData.hasMore || currentData.isLoadingMore) return;
-    if (currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
+    if (currentData.accountId != ref.read(appAuthStateProvider)?.accountId) return;
 
     state = AsyncData(currentData.copyWith(isLoadingMore: true, paginationError: null));
 
     try {
       final envelope = await ref.read(userRepositoryProvider).getMyPostedJobs(cursor: currentData.nextCursor);
       if (!ref.mounted) return;
-      if (currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
+      if (currentData.accountId != ref.read(appAuthStateProvider)?.accountId) return;
       final latestData = state.value ?? currentData;
       state = AsyncData(
         latestData.copyWith(
@@ -47,14 +47,14 @@ class MyPostsState extends _$MyPostsState {
       );
     } catch (error) {
       if (!ref.mounted) return;
-      if (currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
+      if (currentData.accountId != ref.read(appAuthStateProvider)?.accountId) return;
       state = AsyncData((state.value ?? currentData).copyWith(isLoadingMore: false, paginationError: error));
     }
   }
 
   void updateJobStatus({required String jobId, required JobStatus status}) {
     final currentData = state.value;
-    if (currentData == null || currentData.userId != ref.read(appAuthStateProvider)?.userId) return;
+    if (currentData == null || currentData.accountId != ref.read(appAuthStateProvider)?.accountId) return;
 
     state = AsyncData(
       currentData.copyWith(

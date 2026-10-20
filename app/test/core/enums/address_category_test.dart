@@ -43,6 +43,7 @@ void main() {
         const MateoIcon(.sleepingFigure).runtimeType,
         const MateoIcon(.graduateCap).runtimeType,
         const MateoIcon(.graduateCap).runtimeType,
+        const MateoIcon(.graduateCap).runtimeType,
         const MateoIcon(.book).runtimeType,
         const MateoIcon(.medicalCross).runtimeType,
         const MateoIcon(.pills).runtimeType,
@@ -66,6 +67,13 @@ void main() {
         const MateoIcon(.flame).runtimeType,
         const MateoIcon(.prayingFigure).runtimeType,
         const MateoIcon(.governmentBuilding).runtimeType,
+        const MateoIcon(.mapPin).runtimeType,
+        const MateoIcon(.classicBuilding).runtimeType,
+        const MateoIcon(.mapPin).runtimeType,
+        const MateoIcon(.mapPin).runtimeType,
+        const MateoIcon(.medicalCross).runtimeType,
+        const MateoIcon(.buildings).runtimeType,
+        const MateoIcon(.mapPin).runtimeType,
         const MateoIcon(.mapPin).runtimeType,
       ]);
     });
@@ -145,6 +153,7 @@ void main() {
         palette.blue[9],
         palette.blue[9],
         palette.blue[9],
+        palette.blue[9],
         palette.red[9],
         palette.red[9],
         palette.violet[9],
@@ -167,6 +176,13 @@ void main() {
         palette.red[9],
         palette.violet[9],
         palette.blue[11],
+        palette.neutral[10],
+        palette.violet[9],
+        palette.neutral[10],
+        palette.neutral[10],
+        palette.red[9],
+        palette.neutral[10],
+        palette.neutral[10],
         palette.neutral[10],
       ]);
     });

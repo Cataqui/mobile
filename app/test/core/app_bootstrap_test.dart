@@ -16,6 +16,7 @@ import 'package:cataqui_app/views/feed/feed_data.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
 import 'package:cataqui_app/views/me/me_state.dart';
 import 'package:clock/clock.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -106,6 +107,30 @@ void main() {
         verify(userRepository.getMyProfile).called(1);
       });
 
+      test(
+        'when saved credentials are revoked, it should not start an authenticated feed request during startup',
+        () async {
+          final credentials = AuthCredentialsDto.fixture().copyWith(refreshTokenExpiresAt: DateTime.utc(2100));
+          when(
+            () => secureStorage.read(key: any(named: 'key')),
+          ).thenAnswer((_) async => credentials.toSecureStorageValue());
+          final requestOptions = RequestOptions(path: '/sessions/refresh');
+          when(() => authRepository.refreshSession(refreshToken: credentials.refreshToken)).thenThrow(
+            DioException(
+              requestOptions: requestOptions,
+              response: Response<void>(requestOptions: requestOptions, statusCode: 401),
+              type: .badResponse,
+            ),
+          );
+          final container = buildContainer();
+
+          await AppBootstrap.setup(providerContainer: container);
+          await pumpEventQueue();
+
+          verifyNever(() => feedRepository.getFeedJobs());
+        },
+      );
+
       test('when saved credentials restore a session, it should fetch the profile without delaying startup', () async {
         final storedCredentials = AuthCredentialsDto.fixture().copyWith(refreshTokenExpiresAt: DateTime.utc(2100));
         when(
@@ -120,7 +145,7 @@ void main() {
                       expiresAt: DateTime.utc(2100),
                       refreshToken: storedCredentials.refreshToken,
                       refreshExpiresAt: DateTime.utc(2100),
-                      userId: 'restored-user',
+                      accountId: 'restored-user',
                     )
                     as IssuedAuthSessionDto,
           ),
@@ -138,10 +163,10 @@ void main() {
           await didRequestProfile.future.timeout(const Duration(seconds: 2));
           expect(container.read(appStorageStateProvider).value?.authCredentials, storedCredentials);
           verify(() => authRepository.refreshSession(refreshToken: storedCredentials.refreshToken)).called(1);
-          expect(container.read(appAuthStateProvider)?.userId, 'restored-user');
+          expect(container.read(appAuthStateProvider)?.accountId, 'restored-user');
 
           expect(container.read(meStateProvider).isLoading, isTrue);
-          expect(container.read(appAuthStateProvider)?.userId, 'restored-user');
+          expect(container.read(appAuthStateProvider)?.accountId, 'restored-user');
           verifyNever(whatsappConnectionSheetController.show);
 
           profileResponse.complete(ApiEnvelopeDto.fixture(data: UserProfileDto.fixture()));
@@ -282,12 +307,12 @@ void main() {
         await container.read(feedStateProvider.future);
       });
 
-      test('when setup completes, it should call getFeedJobs on the feed repository', () async {
+      test('when no credentials are saved, it should wait for the feed screen before requesting jobs', () async {
         final container = _buildFeedContainer();
 
         await AppBootstrap.setup(providerContainer: container);
 
-        verify(() => feedRepository.getFeedJobs()).called(1);
+        verifyNever(() => feedRepository.getFeedJobs());
       });
     });
 

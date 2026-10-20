@@ -130,11 +130,18 @@ class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
     }
     final requests = <int, StaticMapRequest>{
       for (final index in {...decodedIndices, ...upcomingIndices})
-        index: StaticMapRequest(imageUrl: data.jobs[index].location.imageUrl, size: .pixels960x960),
+        if (StaticMapRequest.forSize(imageUrl: data.jobs[index].location.imageUrl, size: .square) case final request?)
+          index: request,
     };
     _imagePrefetcher.update(
-      requests: [for (final index in upcomingIndices) requests[index]!],
-      decodedRequests: [for (final index in decodedIndices) requests[index]!],
+      requests: [
+        for (final index in upcomingIndices)
+          if (requests[index] case final request?) request,
+      ],
+      decodedRequests: [
+        for (final index in decodedIndices)
+          if (requests[index] case final request?) request,
+      ],
     );
   }
 

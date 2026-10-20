@@ -99,16 +99,21 @@ final class _MapsRepositoryTestData {
     when(() => dio.query<Map<String, Object?>>(any(), data: any<Map<String, Object?>>(named: 'data'))).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: const <String, Object?>{
-          'suggestions': <Object?>[
-            <String, Object?>{
-              'placeId': 'address-id-123',
-              'fullText': 'Avenida Paulista, Bela Vista, São Paulo - SP, Brasil',
-              'primaryText': 'Avenida Paulista',
-              'secondaryText': 'Bela Vista, São Paulo - SP, Brasil',
-              'category': 'RACING_VENUE',
-            },
-          ],
-          'attribution': <String, Object?>{'text': 'Google Maps'},
+          'data': <String, Object?>{
+            'suggestions': <Object?>[
+              <String, Object?>{
+                'placeId': 'address-id-123',
+                'fullText': 'Avenida Paulista, Bela Vista, São Paulo - SP, Brasil',
+                'primaryText': 'Avenida Paulista',
+                'secondaryText': 'Bela Vista, São Paulo - SP, Brasil',
+                'category': 'RACING_VENUE',
+              },
+            ],
+            'attribution': <String, Object?>{'text': 'Google Maps'},
+          },
+          'requestId': 'maps-search',
+          'timestamp': '2026-10-20T12:00:00.000Z',
+          'endpoint': '/places/search',
         },
         requestOptions: RequestOptions(path: '/places/search'),
       ),
@@ -118,7 +123,12 @@ final class _MapsRepositoryTestData {
   static void stubAddressDetailsRequest({required MockDio dio}) {
     when(() => dio.query<Map<String, Object?>>(any(), data: any<Map<String, Object?>>(named: 'data'))).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
-        data: const <String, Object?>{'latitude': -23.561684, 'longitude': -46.655981},
+        data: const <String, Object?>{
+          'data': <String, Object?>{'latitude': -23.561684, 'longitude': -46.655981},
+          'requestId': 'maps-details',
+          'timestamp': '2026-10-20T12:00:00.000Z',
+          'endpoint': '/places/details',
+        },
         requestOptions: RequestOptions(path: '/places/details'),
       ),
     );

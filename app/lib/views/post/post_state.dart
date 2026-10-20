@@ -28,9 +28,9 @@ class PostState extends _$PostState {
     final draftRef = ref;
     // Background drafts must observe account changes while their provider is paused.
     final authenticationSubscription = draftRef.container.listen<String?>(
-      appAuthStateProvider.select((session) => session?.userId),
-      (previousUserId, userId) {
-        if (previousUserId != null && previousUserId != userId) draftRef.invalidateSelf();
+      appAuthStateProvider.select((session) => session?.accountId),
+      (previousAccountId, accountId) {
+        if (previousAccountId != null && previousAccountId != accountId) draftRef.invalidateSelf();
       },
     );
     draftRef.onDispose(authenticationSubscription.close);

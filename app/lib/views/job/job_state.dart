@@ -1,10 +1,11 @@
+import 'package:cataqui_app/core/app_auth/authenticated_provider_retry.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job/job_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'job_state.g.dart';
 
-@riverpod
+@Riverpod(retry: AuthenticatedProviderRetry.retry)
 class JobState extends _$JobState {
   @override
   Future<JobData> build(String jobId) {

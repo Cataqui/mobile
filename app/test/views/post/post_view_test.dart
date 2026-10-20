@@ -683,7 +683,7 @@ void main() {
 
         await providerContainer
             .read(appAuthStateProvider.notifier)
-            .setSession(AuthSessionDto.fixture().copyWith(userId: 'different-poster'));
+            .setSession(AuthSessionDto.fixture().copyWith(accountId: 'different-poster'));
         await tester.pump();
         if (showReplacement) {
           showMateoToast(

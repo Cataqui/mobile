@@ -22,7 +22,7 @@ class CurrentUserDisplayIdentifier extends ConsumerWidget {
           data: (profile) => profile == null
               ? const SizedBox(height: _height)
               : Text(
-                  profile.displayIdentifier,
+                  profile.name,
                   key: const ValueKey('me_identifier'),
                   textAlign: TextAlign.center,
                   style: identifierStyle,

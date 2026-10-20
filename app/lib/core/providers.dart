@@ -7,7 +7,6 @@ import 'package:cataqui_app/core/app_toast.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/network/cataqui_api_v1_dio_factory.dart';
-import 'package:cataqui_app/core/network/maps/maps_access_token_interceptor.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
 import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.dart';
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
@@ -148,11 +147,22 @@ Dio authenticatedCataquiApiV1Dio(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-AuthRepository authRepository(Ref ref) {
-  return AuthRepository(
-    authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider),
-    unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider),
+Dio authV1Dio(Ref ref) {
+  final appConfig = ref.read(appConfigProvider);
+  final locale = ref.watch(appStateProvider.select((state) => state.currentLocale));
+  final dio = CataquiApiV1DioFactory.create(
+    appConfig: appConfig,
+    baseUrl: '${appConfig.authUrl}/v1',
+    languageTag: locale.languageTag,
+    cookieJar: ref.watch(cataquiApiCookieJarProvider).requireValue,
   );
+  ref.onDispose(() => dio.close(force: true));
+  return dio;
+}
+
+@Riverpod(keepAlive: true)
+AuthRepository authRepository(Ref ref) {
+  return AuthRepository(authDio: ref.watch(authV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)
@@ -181,10 +191,11 @@ Dio mapsDio(Ref ref) {
 
   dio.interceptors.add(RateLimitInterceptor());
   dio.interceptors.add(
-    MapsAccessTokenInterceptor(
-      mapsDio: dio,
-      authRepository: ref.watch(authRepositoryProvider),
-      readAuthenticatedUserId: () => ref.read(appAuthStateProvider)?.userId,
+    AuthInterceptor(
+      unauthenticatedDio: dio,
+      getCurrentSession: () => ref.read(appAuthStateProvider),
+      refreshSession: () => ref.read(appAuthStateProvider.notifier).refreshSession(),
+      refreshSessionInBackground: () => ref.read(appAuthStateProvider.notifier).refreshSessionInBackground(),
       getOrAuthenticateSession: () => ref.read(appAuthStateProvider.notifier).getOrAuthenticateSession(),
     ),
   );
@@ -202,7 +213,7 @@ WhatsappConnectionSheetController whatsappConnectionSheetController(Ref ref) {
 
 @Riverpod(keepAlive: true)
 FeedRepository feedRepository(Ref ref) {
-  return FeedRepository(unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider));
+  return FeedRepository(authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)
@@ -238,10 +249,7 @@ GlobalKey<NavigatorState> rootNavigatorKey(Ref ref) {
 
 @Riverpod(keepAlive: true)
 JobRepository jobRepository(Ref ref) {
-  return JobRepository(
-    authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider),
-    unauthenticatedDio: ref.watch(unauthenticatedCataquiApiV1DioProvider),
-  );
+  return JobRepository(authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)

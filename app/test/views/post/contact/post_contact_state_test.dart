@@ -64,7 +64,7 @@ void main() {
   });
 
   test('when the account changes, it should replace saved contacts with the current account contacts', () async {
-    final authState = FakeAppAuthState(AuthSessionDto.fixture().copyWith(userId: 'first-poster'));
+    final authState = FakeAppAuthState(AuthSessionDto.fixture().copyWith(accountId: 'first-poster'));
     final firstContact = SavedContactDto.fixture().copyWith(contactId: 'first-poster-contact');
     final secondContact = SavedContactDto.fixture().copyWith(contactId: 'second-poster-contact');
     var requestCount = 0;
@@ -82,7 +82,7 @@ void main() {
     container.read(appAuthStateProvider);
     await container.read(postContactStateProvider.future);
 
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-poster');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'second-poster');
     await container.pump();
     final contacts = await container.read(postContactStateProvider.future);
 

@@ -17,6 +17,7 @@ void main() {
   late Map<String, Completer<File>> downloads;
   late List<String> preparing;
   late Map<String, Completer<void>> preparations;
+  late int cacheNotifications;
   setUp(() {
     cacheManager = StaticMapCacheTestHelpers.create();
     cachedFile = MockStaticMapFile();
@@ -24,6 +25,7 @@ void main() {
     downloads = {};
     preparing = [];
     preparations = {};
+    cacheNotifications = 0;
     when(
       () => cacheManager.getSingleFile(
         any(),
@@ -37,6 +39,7 @@ void main() {
     });
     prefetcher = JobLocationImagePrefetcher(
       cacheManager: cacheManager,
+      onImageCached: () => cacheNotifications++,
       prepareImage: (request) {
         preparing.add(request.cacheKey);
         return (preparations[request.cacheKey] = Completer<void>()).future;
@@ -44,6 +47,116 @@ void main() {
     );
   });
   tearDown(() => prefetcher.dispose());
+
+  test('when requested map bytes finish, it should publish their exact cache key once', () async {
+    final request = _JobLocationImagePrefetcherTestHelpers.request(0);
+    prefetcher.update(requests: [request]);
+    final before = prefetcher.hasCachedBytes(cacheKey: request.cacheKey);
+    downloads[request.cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    prefetcher.update(requests: [request]);
+    expect(
+      [before, prefetcher.hasCachedBytes(cacheKey: request.cacheKey), cacheNotifications, started],
+      [
+        false,
+        true,
+        1,
+        [request.cacheKey],
+      ],
+    );
+  });
+
+  test('when a map variant leaves the requested window, it should remove its byte readiness', () async {
+    final requests = List.generate(2, _JobLocationImagePrefetcherTestHelpers.request);
+    prefetcher.update(requests: [requests[0]]);
+    downloads[requests[0].cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    prefetcher.update(requests: [requests[1]]);
+    expect(
+      (
+        prefetcher.hasCachedBytes(cacheKey: requests[0].cacheKey),
+        prefetcher.hasCachedBytes(cacheKey: requests[1].cacheKey),
+      ),
+      (false, false),
+    );
+  });
+
+  test('when obsolete map bytes finish after refresh, it should leave the new window unnotified', () async {
+    final requests = List.generate(2, _JobLocationImagePrefetcherTestHelpers.request);
+    prefetcher
+      ..update(requests: [requests[0]])
+      ..update(requests: [requests[1]]);
+    downloads[requests[0].cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    expect((prefetcher.hasCachedBytes(cacheKey: requests[0].cacheKey), cacheNotifications), (false, 0));
+  });
+
+  test('when disposed map bytes finish, it should avoid readiness callbacks and queued downloads', () async {
+    final requests = List.generate(3, _JobLocationImagePrefetcherTestHelpers.request);
+    prefetcher
+      ..update(requests: requests.skip(1).toList(), priorityRequests: [requests[0]])
+      ..dispose();
+    downloads[requests[0].cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      [prefetcher.hasCachedBytes(cacheKey: requests[0].cacheKey), cacheNotifications, started],
+      [
+        false,
+        0,
+        [requests[0].cacheKey],
+      ],
+    );
+  });
+
+  test('when a speculative map fails, it should leave byte readiness false for visible retry', () async {
+    final request = _JobLocationImagePrefetcherTestHelpers.request(0);
+    prefetcher.update(requests: [request]);
+    downloads[request.cacheKey]!.completeError(Exception('connection lost'));
+    await Future<void>.delayed(Duration.zero);
+    expect((prefetcher.hasCachedBytes(cacheKey: request.cacheKey), cacheNotifications), (false, 0));
+  });
+
+  test('when visible maps and later cards need downloads, it should start the visible maps first', () async {
+    final requests = List.generate(4, _JobLocationImagePrefetcherTestHelpers.request);
+    prefetcher.update(requests: requests.skip(2).toList(), priorityRequests: requests.take(2).toList());
+    expect(started, requests.take(2).map((request) => request.cacheKey).toList());
+  });
+
+  test('when one visible map still downloads, it should hold later card downloads', () async {
+    final requests = List.generate(4, _JobLocationImagePrefetcherTestHelpers.request);
+    prefetcher.update(requests: requests.skip(2).toList(), priorityRequests: requests.take(2).toList());
+    downloads[requests[0].cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    expect(started, requests.take(2).map((request) => request.cacheKey).toList());
+  });
+
+  test('when both visible maps finish, it should download later cards one at a time', () async {
+    final requests = List.generate(4, _JobLocationImagePrefetcherTestHelpers.request);
+    prefetcher.update(requests: requests.skip(2).toList(), priorityRequests: requests.take(2).toList());
+    downloads[requests[0].cacheKey]!.complete(cachedFile);
+    downloads[requests[1].cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    final afterVisible = [...started];
+    downloads[requests[2].cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      [afterVisible, started],
+      [
+        requests.take(3).map((request) => request.cacheKey).toList(),
+        requests.map((request) => request.cacheKey).toList(),
+      ],
+    );
+  });
+
+  test('when the user changes the visible card, it should start that map before queued later cards', () async {
+    final requests = List.generate(5, _JobLocationImagePrefetcherTestHelpers.request);
+    prefetcher.update(requests: [requests[2], requests[3]], priorityRequests: requests.take(2).toList());
+    downloads[requests[0].cacheKey]!.complete(cachedFile);
+    downloads[requests[1].cacheKey]!.complete(cachedFile);
+    await Future<void>.delayed(Duration.zero);
+    prefetcher.update(requests: [requests[3]], priorityRequests: [requests[4]]);
+    expect(started, [requests[0], requests[1], requests[2], requests[4]].map((request) => request.cacheKey).toList());
+  });
 
   test('when the lookahead changes, it should cap downloads and replace obsolete queued work', () async {
     final requests = List.generate(6, _JobLocationImagePrefetcherTestHelpers.request);
@@ -295,6 +408,8 @@ void main() {
 }
 
 abstract final class _JobLocationImagePrefetcherTestHelpers {
-  static StaticMapRequest request(int index) =>
-      StaticMapRequest(imageUrl: 'https://maps.cataqui.com/static/fixture-$index', size: .pixels960x2560);
+  static StaticMapRequest request(int index) => StaticMapRequest.forSize(
+    imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference_$index.webp',
+    size: .square,
+  )!;
 }

@@ -30,9 +30,9 @@ void main() {
   setUp(() {
     cacheManager = StaticMapCacheTestHelpers.create();
     file = MockStaticMapFile();
-    when(
-      file.readAsBytes,
-    ).thenAnswer((_) async => const LocalFileSystem().file('test/fixtures/static_map.jpg').readAsBytesSync());
+    when(file.readAsBytes).thenAnswer(
+      (_) async => const LocalFileSystem().file('test/fixtures/static_map_v1_square.webp').readAsBytesSync(),
+    );
     jobs = [
       for (var index = 0; index < 20; index++)
         UserJobSummaryDto.fixture().copyWith(
@@ -40,11 +40,11 @@ void main() {
           createdAt: DateTime.utc(2026, 9, 30, 12),
           location: UserJobSummaryDto.fixture().location.copyWith(
             latitude: -23.5 + index * .01,
-            imageUrl: '${UserJobSummaryDto.fixture().location.imageUrl}/job=$index',
+            imageUrl: UserJobSummaryDto.fixture().location.imageUrl.replaceFirst('.webp', '_$index.webp'),
           ),
         ),
     ];
-    postsState = FakeMyPostsState(AsyncData(MyPostsData(userId: 'test-user', jobs: jobs, hasMore: false)));
+    postsState = FakeMyPostsState(AsyncData(MyPostsData(accountId: 'test-user', jobs: jobs, hasMore: false)));
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();
@@ -83,7 +83,7 @@ void main() {
         cacheManager: cacheManager,
         file: file,
         urls: {
-          for (final job in jobs.skip(2)) StaticMapRequest(imageUrl: job.location.imageUrl, size: .pixels960x960).url,
+          for (final job in jobs.skip(2)) StaticMapRequest.forSize(imageUrl: job.location.imageUrl, size: .square)!.url,
         },
       );
       await MyPostsImageLoadingTestHelpers.pump(tester, cacheManager: cacheManager, postsState: postsState);
@@ -170,11 +170,11 @@ void main() {
           job.copyWith(
             location: job.location.copyWith(
               latitude: job.location.latitude + 1,
-              imageUrl: '${job.location.imageUrl}/revision=2',
+              imageUrl: job.location.imageUrl.replaceFirst('.webp', '_revision2.webp'),
             ),
           ),
       ];
-      postsState.showData(MyPostsData(userId: 'test-user', jobs: refreshedJobs, hasMore: false));
+      postsState.showData(MyPostsData(accountId: 'test-user', jobs: refreshedJobs, hasMore: false));
       await tester.pump();
       await StaticMapCacheTestHelpers.loadImages(tester);
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
@@ -259,8 +259,8 @@ void main() {
         cacheManager: cacheManager,
         file: file,
         urls: {
-          StaticMapRequest(imageUrl: jobs[2].location.imageUrl, size: .pixels960x960).url,
-          StaticMapRequest(imageUrl: jobs[3].location.imageUrl, size: .pixels960x960).url,
+          StaticMapRequest.forSize(imageUrl: jobs[2].location.imageUrl, size: .square)!.url,
+          StaticMapRequest.forSize(imageUrl: jobs[3].location.imageUrl, size: .square)!.url,
         },
       );
       await MyPostsImageLoadingTestHelpers.pump(tester, cacheManager: cacheManager, postsState: postsState);
@@ -319,7 +319,7 @@ void main() {
         cacheManager: cacheManager,
         file: file,
         urls: {
-          for (final job in jobs.skip(2)) StaticMapRequest(imageUrl: job.location.imageUrl, size: .pixels960x960).url,
+          for (final job in jobs.skip(2)) StaticMapRequest.forSize(imageUrl: job.location.imageUrl, size: .square)!.url,
         },
       );
       await MyPostsImageLoadingTestHelpers.pump(tester, cacheManager: cacheManager, postsState: postsState);
@@ -401,7 +401,7 @@ void main() {
         ),
       ).thenAnswer((invocation) {
         final url = invocation.positionalArguments.first as String;
-        if (url == StaticMapRequest(imageUrl: jobs[2].location.imageUrl, size: .pixels960x960).url) {
+        if (url == StaticMapRequest.forSize(imageUrl: jobs[2].location.imageUrl, size: .square)!.url) {
           failedMapAttempts += 1;
           if (failedMapAttempts == 1) return Stream<FileResponse>.error(Exception('prefetch unavailable'));
         }
@@ -441,11 +441,11 @@ void main() {
         jobs.first.copyWith(
           location: jobs.first.location.copyWith(
             latitude: -20.5,
-            imageUrl: '${jobs.first.location.imageUrl}/revision=2',
+            imageUrl: jobs.first.location.imageUrl.replaceFirst('.webp', '_revision2.webp'),
           ),
         ),
       ];
-      postsState.showData(MyPostsData(userId: 'test-user', jobs: refreshedJobs, hasMore: false));
+      postsState.showData(MyPostsData(accountId: 'test-user', jobs: refreshedJobs, hasMore: false));
       await tester.pump();
       await StaticMapCacheTestHelpers.loadImages(tester);
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
@@ -485,8 +485,8 @@ void main() {
         cacheManager: cacheManager,
         file: file,
         urls: {
-          StaticMapRequest(imageUrl: jobs[2].location.imageUrl, size: .pixels960x960).url,
-          StaticMapRequest(imageUrl: jobs[3].location.imageUrl, size: .pixels960x960).url,
+          StaticMapRequest.forSize(imageUrl: jobs[2].location.imageUrl, size: .square)!.url,
+          StaticMapRequest.forSize(imageUrl: jobs[3].location.imageUrl, size: .square)!.url,
         },
       );
       await MyPostsImageLoadingTestHelpers.pump(
@@ -567,7 +567,7 @@ abstract final class MyPostsImageLoadingTestHelpers {
   }
 
   static List<StaticMapRequest> requests(WidgetTester tester, List<UserJobSummaryDto> jobs) {
-    return [for (final job in jobs) StaticMapRequest(imageUrl: job.location.imageUrl, size: .pixels960x960)];
+    return [for (final job in jobs) StaticMapRequest.forSize(imageUrl: job.location.imageUrl, size: .square)!];
   }
 
   static FileInfo fileInfo({required String url, required MockStaticMapFile file}) =>

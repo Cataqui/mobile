@@ -14,10 +14,11 @@ final class CataquiApiV1DioFactory {
     required String languageTag,
     required CookieJar cookieJar,
     Interceptor? authInterceptor,
+    String? baseUrl,
   }) {
     final dio = Dio(
       BaseOptions(
-        baseUrl: '${appConfig.cataquiApiUrl}/v1',
+        baseUrl: baseUrl ?? '${appConfig.cataquiApiUrl}/v1',
         connectTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 30),

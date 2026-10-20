@@ -4,8 +4,10 @@ import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/api_pagination_dto.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/feed/feed_state.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -21,6 +23,21 @@ void main() {
   });
 
   group('FeedState', () {
+    testWidgets('when login is dismissed while loading jobs, it should keep the error without requesting login again', (
+      tester,
+    ) async {
+      when(
+        () => repository.getFeedJobs(cursor: any(named: 'cursor')),
+      ).thenThrow(AuthenticationDismissedDioException(requestOptions: RequestOptions(path: '/feed')));
+      final container = _FeedStateTestHelpers.createContainer(repository: repository);
+      final subscription = container.listen(feedStateProvider, (_, _) {});
+      addTearDown(subscription.close);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 10));
+
+      verify(() => repository.getFeedJobs(cursor: any(named: 'cursor'))).called(1);
+    });
+
     test('when first loaded, it should expose feed jobs', () async {
       final container = _FeedStateTestHelpers.createContainer(repository: repository);
 

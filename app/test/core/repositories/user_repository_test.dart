@@ -40,7 +40,7 @@ void main() {
         await repository.getMyPostedJob(jobId: _UserRepositoryTestData.activeJobId);
 
         verify(
-          () => authenticatedDio.get<Map<String, Object?>>('/users/me/jobs/${_UserRepositoryTestData.activeJobId}'),
+          () => authenticatedDio.get<Map<String, Object?>>('/profiles/me/jobs/${_UserRepositoryTestData.activeJobId}'),
         ).called(1);
       });
 
@@ -70,7 +70,7 @@ void main() {
           (
             requestId: 'posted-job-detail-request-001',
             timestamp: DateTime.parse('2026-09-24T12:00:00.000Z'),
-            endpoint: '/v1/users/me/jobs/${_UserRepositoryTestData.activeJobId}',
+            endpoint: '/v1/profiles/me/jobs/${_UserRepositoryTestData.activeJobId}',
           ),
         );
       });
@@ -95,7 +95,7 @@ void main() {
       });
 
       test('when the request fails, it should propagate the Dio exception', () async {
-        const path = '/users/me/jobs/${_UserRepositoryTestData.activeJobId}';
+        const path = '/profiles/me/jobs/${_UserRepositoryTestData.activeJobId}';
         final exception = DioException(requestOptions: RequestOptions(path: path));
         when(() => authenticatedDio.get<Map<String, Object?>>(path)).thenThrow(exception);
 
@@ -111,7 +111,7 @@ void main() {
         await repository.getMyPostedJobs();
 
         verify(
-          () => authenticatedDio.get<Map<String, Object?>>('/users/me/jobs', queryParameters: <String, Object?>{}),
+          () => authenticatedDio.get<Map<String, Object?>>('/profiles/me/jobs', queryParameters: <String, Object?>{}),
         ).called(1);
       });
 
@@ -120,7 +120,7 @@ void main() {
 
         verify(
           () => authenticatedDio.get<Map<String, Object?>>(
-            '/users/me/jobs',
+            '/profiles/me/jobs',
             queryParameters: <String, Object?>{'cursor': 'next-posted-jobs-cursor'},
           ),
         ).called(1);
@@ -170,7 +170,7 @@ void main() {
           (requestId: envelope.requestId, endpoint: envelope.endpoint, pagination: envelope.pagination),
           (
             requestId: 'posted-jobs-request-001',
-            endpoint: '/v1/users/me/jobs',
+            endpoint: '/v1/profiles/me/jobs',
             pagination: const ApiPaginationDto(hasMore: true, nextCursor: 'next-posted-jobs-cursor'),
           ),
         );
@@ -193,10 +193,10 @@ void main() {
       });
 
       test('when the request fails, it should propagate the Dio exception', () async {
-        final exception = DioException(requestOptions: RequestOptions(path: '/users/me/jobs'));
+        final exception = DioException(requestOptions: RequestOptions(path: '/profiles/me/jobs'));
         when(
           () => authenticatedDio.get<Map<String, Object?>>(
-            '/users/me/jobs',
+            '/profiles/me/jobs',
             queryParameters: any(named: 'queryParameters'),
           ),
         ).thenThrow(exception);
@@ -209,7 +209,7 @@ void main() {
       test('when requesting my profile, it should call the current user endpoint', () async {
         await repository.getMyProfile();
 
-        verify(() => authenticatedDio.get<Map<String, Object?>>('/users/me')).called(1);
+        verify(() => authenticatedDio.get<Map<String, Object?>>('/profiles/me')).called(1);
       });
 
       test('when receiving my profile, it should map the user fields', () async {
@@ -217,10 +217,7 @@ void main() {
 
         expect(
           envelope.data,
-          UserProfileDto.fixture().copyWith(
-            userId: _UserRepositoryTestData.profileUserId,
-            displayIdentifier: 'Maria Oliveira',
-          ),
+          UserProfileDto.fixture().copyWith(profileId: _UserRepositoryTestData.profileUserId, name: 'Maria Oliveira'),
         );
       });
 
@@ -229,13 +226,13 @@ void main() {
 
         expect(
           (requestId: envelope.requestId, endpoint: envelope.endpoint),
-          (requestId: 'my-profile-request-001', endpoint: '/v1/users/me'),
+          (requestId: 'my-profile-request-001', endpoint: '/v1/profiles/me'),
         );
       });
 
       test('when the request fails, it should propagate the Dio exception', () async {
-        final exception = DioException(requestOptions: RequestOptions(path: '/users/me'));
-        when(() => authenticatedDio.get<Map<String, Object?>>('/users/me')).thenThrow(exception);
+        final exception = DioException(requestOptions: RequestOptions(path: '/profiles/me'));
+        when(() => authenticatedDio.get<Map<String, Object?>>('/profiles/me')).thenThrow(exception);
 
         await expectLater(repository.getMyProfile(), throwsA(same(exception)));
       });
@@ -245,7 +242,7 @@ void main() {
       test('when requesting saved contacts, it should call the user contacts endpoint', () async {
         await repository.getContacts();
 
-        verify(() => authenticatedDio.get<Map<String, Object?>>('/users/me/contacts')).called(1);
+        verify(() => authenticatedDio.get<Map<String, Object?>>('/profiles/me/contacts')).called(1);
       });
 
       test('when receiving saved contacts, it should map every contact field', () async {
@@ -277,7 +274,7 @@ void main() {
 
         expect(
           (requestId: envelope.requestId, endpoint: envelope.endpoint),
-          (requestId: 'saved-contacts-request-001', endpoint: '/v1/users/me/contacts'),
+          (requestId: 'saved-contacts-request-001', endpoint: '/v1/profiles/me/contacts'),
         );
       });
     });
@@ -323,7 +320,7 @@ abstract final class _UserRepositoryTestData {
     'data': postedJobDetailJson,
     'requestId': 'posted-job-detail-request-001',
     'timestamp': '2026-09-24T12:00:00.000Z',
-    'endpoint': '/v1/users/me/jobs/$activeJobId',
+    'endpoint': '/v1/profiles/me/jobs/$activeJobId',
   };
 
   static final postedJobsEnvelopeJson = <String, Object?>{
@@ -361,15 +358,15 @@ abstract final class _UserRepositoryTestData {
     ],
     'requestId': 'posted-jobs-request-001',
     'timestamp': '2026-09-24T12:00:00.000Z',
-    'endpoint': '/v1/users/me/jobs',
+    'endpoint': '/v1/profiles/me/jobs',
     'pagination': <String, Object?>{'hasMore': true, 'nextCursor': 'next-posted-jobs-cursor'},
   };
 
   static final profileEnvelopeJson = <String, Object?>{
-    'data': <String, Object?>{'userId': profileUserId, 'displayIdentifier': 'Maria Oliveira'},
+    'data': <String, Object?>{'profileId': profileUserId, 'name': 'Maria Oliveira'},
     'requestId': 'my-profile-request-001',
     'timestamp': '2026-09-24T12:00:00.000Z',
-    'endpoint': '/v1/users/me',
+    'endpoint': '/v1/profiles/me',
   };
 
   static final envelopeJson = <String, Object?>{
@@ -378,45 +375,45 @@ abstract final class _UserRepositoryTestData {
     ],
     'requestId': 'saved-contacts-request-001',
     'timestamp': '2026-09-04T12:00:00.000Z',
-    'endpoint': '/v1/users/me/contacts',
+    'endpoint': '/v1/profiles/me/contacts',
   };
 }
 
 abstract final class _UserRepositoryTestHelpers {
   static void stubPostedJobDetailRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
-    when(() => dio.get<Map<String, Object?>>('/users/me/jobs/${_UserRepositoryTestData.activeJobId}')).thenAnswer(
+    when(() => dio.get<Map<String, Object?>>('/profiles/me/jobs/${_UserRepositoryTestData.activeJobId}')).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: responseJson ?? _UserRepositoryTestData.postedJobDetailEnvelopeJson,
-        requestOptions: RequestOptions(path: '/users/me/jobs/${_UserRepositoryTestData.activeJobId}'),
+        requestOptions: RequestOptions(path: '/profiles/me/jobs/${_UserRepositoryTestData.activeJobId}'),
       ),
     );
   }
 
   static void stubPostedJobsRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
     when(
-      () => dio.get<Map<String, Object?>>('/users/me/jobs', queryParameters: any(named: 'queryParameters')),
+      () => dio.get<Map<String, Object?>>('/profiles/me/jobs', queryParameters: any(named: 'queryParameters')),
     ).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: responseJson ?? _UserRepositoryTestData.postedJobsEnvelopeJson,
-        requestOptions: RequestOptions(path: '/users/me/jobs'),
+        requestOptions: RequestOptions(path: '/profiles/me/jobs'),
       ),
     );
   }
 
   static void stubProfileRequest({required MockDio dio}) {
-    when(() => dio.get<Map<String, Object?>>('/users/me')).thenAnswer(
+    when(() => dio.get<Map<String, Object?>>('/profiles/me')).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: _UserRepositoryTestData.profileEnvelopeJson,
-        requestOptions: RequestOptions(path: '/users/me'),
+        requestOptions: RequestOptions(path: '/profiles/me'),
       ),
     );
   }
 
   static void stubContactsRequest({required MockDio dio, Map<String, Object?>? responseJson}) {
-    when(() => dio.get<Map<String, Object?>>('/users/me/contacts')).thenAnswer(
+    when(() => dio.get<Map<String, Object?>>('/profiles/me/contacts')).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: responseJson ?? _UserRepositoryTestData.envelopeJson,
-        requestOptions: RequestOptions(path: '/users/me/contacts'),
+        requestOptions: RequestOptions(path: '/profiles/me/contacts'),
       ),
     );
   }

@@ -32,7 +32,7 @@ void main() {
     userRepository = MockUserRepository();
     jobRepository = MockJobRepository();
     feedRepository = MockFeedRepository();
-    authState = FakeAppAuthState(AuthSessionDto.fixture().copyWith(userId: 'first-user'));
+    authState = FakeAppAuthState(AuthSessionDto.fixture().copyWith(accountId: 'first-user'));
     when(
       () => userRepository.getMyPostedJobs(cursor: any(named: 'cursor')),
     ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: <UserJobSummaryDto>[]));
@@ -260,7 +260,7 @@ void main() {
       ),
     );
 
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'second-user');
     await container.pump();
     final current = await container.read(myPostStateProvider('job-123').future);
 
@@ -289,7 +289,7 @@ void main() {
         data: UserJobDto.fixture().copyWith(description: 'Current account detail', status: .active),
       ),
     );
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'second-user');
     await container.pump();
     previousResponse.complete(
       ApiEnvelopeDto.fixture(data: UserJobDto.fixture().copyWith(description: 'Previous account detail')),
@@ -311,7 +311,7 @@ void main() {
         data: UserJobDto.fixture().copyWith(description: 'Current account detail', status: .active),
       ),
     );
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'second-user');
     await container.pump();
     archiveResponse.complete(
       ApiEnvelopeDto.fixture(

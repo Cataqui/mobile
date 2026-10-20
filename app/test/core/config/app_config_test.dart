@@ -3,6 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AppConfig', () {
+    test('when the flavor is development, it should use the staging Auth worker', () {
+      expect(const AppConfig(flavor: 'development').authUrl, 'https://staging.auth.cataqui.com');
+    });
+
+    test('when the flavor is production, it should use the production Auth worker', () {
+      expect(const AppConfig(flavor: 'production').authUrl, 'https://auth.cataqui.com');
+    });
+
+    test('when the flavor is unsupported, it should reject Auth URL resolution', () {
+      expect(() => const AppConfig(flavor: 'unsupported').authUrl, throwsStateError);
+    });
+
     test('when the flavor is development, it should use the staging Cataquí API', () {
       const config = AppConfig(flavor: 'development');
 

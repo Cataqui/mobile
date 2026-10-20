@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:cataqui_app/core/dtos/user_job_summary_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -32,57 +33,76 @@ class MyPostCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final skeletonColor = MateoTheme.of(context).palette.neutral[2];
     final currentJob = job;
-    return MateoPress(
-      animation: .scale,
-      onPressed: currentJob == null
-          ? null
-          : (_) => unawaited(
-              ref
-                  .read(appRouterProvider.notifier)
-                  .push(context, MyPostRoute(jobId: currentJob.jobId, $extra: currentJob)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewport = constraints.constrainSizeAndAttemptToPreserveAspectRatio(
+          Size(constraints.maxWidth, constraints.maxWidth / aspectRatio),
+        );
+        const radius = _radius;
+        return MateoPress(
+          animation: .scale,
+          onPressed: currentJob == null
+              ? null
+              : (_) => unawaited(
+                  ref
+                      .read(appRouterProvider.notifier)
+                      .push(context, MyPostRoute(jobId: currentJob.jobId, $extra: currentJob)),
+                ),
+          child: Skeleton(
+            enabled: skeleton,
+            transition: const .crossfade(duration: Duration(milliseconds: 240)),
+            semanticsLabel:
+                skeletonSemanticsLabel ?? ref.watch(translationProvider).me.myPosts.loadingPostSemanticLabel,
+            style: SkeletonStyle(
+              color: skeletonColor,
+              shape: const MateoRoundedShapeBorder(radius: radius),
+              effect: skeletonEffect,
             ),
-      child: Skeleton(
-        enabled: skeleton,
-        transition: const .crossfade(duration: Duration(milliseconds: 240)),
-        semanticsLabel: skeletonSemanticsLabel ?? ref.watch(translationProvider).me.myPosts.loadingPostSemanticLabel,
-        style: SkeletonStyle(
-          color: skeletonColor,
-          shape: const MateoRoundedShapeBorder(radius: _radius),
-          effect: skeletonEffect,
-        ),
-        child: MateoSurface(
-          width: const .fill(),
-          color: skeletonColor,
-          shape: const .rounded(radius: _radius),
-          child: AspectRatio(
-            aspectRatio: aspectRatio,
-            child: Stack(
-              fit: .expand,
-              children: [
-                if (currentJob != null) ...[
-                  JobLocationImage(imageUrl: currentJob.location.imageUrl, size: .pixels960x960),
-                  Positioned(
-                    left: _detailsInset,
-                    right: _detailsInset,
-                    top: _detailsInset,
-                    child: Morph(
-                      targets: [ref.watch(myPostMorphTargetProvider(currentJob.jobId))],
-                      flightConfig: const .custom(MyPostHeaderFlightDelegate()),
-                      child: MyPostHeaderSurface(
-                        summary: currentJob,
-                        timeAgo: MyPostHeaderSurface.timeAgoFor(currentJob, ref.watch(translationProvider)),
-                        payment: currentJob.payment ?? ref.watch(translationProvider).jobPayment.paymentFlexible,
-                        expansion: 0,
-                        description: currentJob.descriptionSummary,
+            child: MateoSurface(
+              width: const .fill(),
+              color: skeletonColor,
+              shape: const MateoShape.rounded(radius: radius),
+              child: AspectRatio(
+                aspectRatio: aspectRatio,
+                child: Stack(
+                  fit: .expand,
+                  children: [
+                    if (currentJob != null) ...[
+                      JobLocationImage(imageUrl: currentJob.location.imageUrl),
+                      Positioned(
+                        left: _detailsInset,
+                        right: _detailsInset,
+                        top: _detailsInset,
+                        bottom: math.min(
+                          JobLocationImage.attributionBottomSpacing + _detailsInset,
+                          math.max(0, viewport.height - _detailsInset),
+                        ),
+                        child: Align(
+                          alignment: .topCenter,
+                          child: SingleChildScrollView(
+                            child: Morph(
+                              targets: [ref.watch(myPostMorphTargetProvider(currentJob.jobId))],
+                              flightConfig: const .custom(MyPostHeaderFlightDelegate()),
+                              child: MyPostHeaderSurface(
+                                summary: currentJob,
+                                timeAgo: MyPostHeaderSurface.timeAgoFor(currentJob, ref.watch(translationProvider)),
+                                payment:
+                                    currentJob.payment ?? ref.watch(translationProvider).jobPayment.paymentFlexible,
+                                expansion: 0,
+                                description: currentJob.descriptionSummary,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              ],
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

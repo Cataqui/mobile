@@ -194,8 +194,8 @@ void main() {
     when(() => sharedPreferences.getBool(any())).thenAnswer((_) async => false);
     when(() => authRepository.refreshSession(refreshToken: 'revoked-refresh-token')).thenThrow(
       DioException(
-        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
-        response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+        requestOptions: RequestOptions(path: '/sessions/refresh'),
+        response: Response<void>(requestOptions: RequestOptions(path: '/sessions/refresh'), statusCode: 401),
       ),
     );
     final goRouter = GoRouter(

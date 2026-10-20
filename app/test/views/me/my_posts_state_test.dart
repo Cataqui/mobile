@@ -47,18 +47,18 @@ void main() {
   test('when a user signs in then another user signs in, it should load each user’s jobs', () async {
     await container.read(myPostsStateProvider.future);
 
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'first-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'first-user');
     await container.pump();
     expect((await container.read(myPostsStateProvider.future))?.jobs, [UserJobSummaryDto.fixture()]);
 
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'second-user');
     await container.pump();
     expect((await container.read(myPostsStateProvider.future))?.jobs, [UserJobSummaryDto.fixture()]);
     verify(userRepository.getMyPostedJobs).called(2);
   });
 
   test('when a session renews for the same user, it should keep the loaded jobs without refetching', () async {
-    final session = AuthSessionDto.fixture().copyWith(userId: 'same-user');
+    final session = AuthSessionDto.fixture().copyWith(accountId: 'same-user');
     authState.currentSession = session;
     await container.pump();
     await container.read(myPostsStateProvider.future);
@@ -71,7 +71,7 @@ void main() {
   });
 
   test('updates the loaded post status in the carousel after a mutation', () async {
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'poster');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'poster');
     await container.pump();
     await container.read(myPostsStateProvider.future);
     final original = UserJobSummaryDto.fixture();
@@ -91,7 +91,7 @@ void main() {
       ).copyWith(pagination: const ApiPaginationDto(hasMore: true, nextCursor: 'next-page')),
     );
     when(() => userRepository.getMyPostedJobs(cursor: 'next-page')).thenAnswer((_) => nextPage.future);
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'poster');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'poster');
     await container.pump();
     await container.read(myPostsStateProvider.future);
 
@@ -119,12 +119,12 @@ void main() {
       );
     });
     when(() => userRepository.getMyPostedJobs(cursor: 'old-page')).thenAnswer((_) => oldPage.future);
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'first-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'first-user');
     await container.pump();
     await container.read(myPostsStateProvider.future);
 
     final pendingPage = container.read(myPostsStateProvider.notifier).loadNextPage();
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'second-user');
     await container.pump();
     await container.read(myPostsStateProvider.future);
     expect(initialRequests, 2);
@@ -145,10 +145,10 @@ void main() {
         ApiEnvelopeDto.fixture(data: [UserJobSummaryDto.fixture().copyWith(jobId: 'second-user-job')]),
       );
     });
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'first-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'first-user');
     await container.pump();
 
-    authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'second-user');
+    authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'second-user');
     await container.pump();
     await container.read(myPostsStateProvider.future);
 

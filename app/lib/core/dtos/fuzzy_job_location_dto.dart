@@ -18,6 +18,6 @@ abstract class FuzzyJobLocationDto with _$FuzzyJobLocationDto {
     latitude: -23.556391,
     longitude: -46.844076,
     areaRadius: 2000,
-    imageUrl: 'https://maps.cataqui.com/static/fixture',
+    imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp',
   );
 }

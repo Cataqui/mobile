@@ -9,6 +9,12 @@ final class AppConfig {
     _ => throw StateError('Unsupported app flavor: $flavor.'),
   };
 
+  String get authUrl => switch (flavor) {
+    'development' => 'https://staging.auth.cataqui.com',
+    'production' => 'https://auth.cataqui.com',
+    _ => throw StateError('Unsupported app flavor: $flavor.'),
+  };
+
   String get mapsUrl => switch (flavor) {
     'development' => 'https://staging.maps.cataqui.com',
     'production' => 'https://maps.cataqui.com',

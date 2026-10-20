@@ -19,8 +19,23 @@ void main() {
   setUp(() {
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
-    manager = StaticMapCacheTestHelpers.create();
+    manager = StaticMapCacheTestHelpers.create(fixturePath: 'test/fixtures/static_map_v1_square.webp');
   });
+  goldenTest(
+    'when a profile card receives a standard synthetic map composition, it should keep all attribution visible below its details',
+    fileName: 'my_post_card_native_attribution',
+    constraints: const BoxConstraints.tightFor(width: 320, height: 400),
+    builder: () {
+      manager = StaticMapCacheTestHelpers.create(fixturePath: 'test/fixtures/static_map_v1_square.webp');
+      return _MyPostCardGoldenHelpers.build(manager);
+    },
+    pumpWidget: _MyPostCardGoldenHelpers.pump,
+    whilePerforming: (tester) async {
+      await StaticMapCacheTestHelpers.loadImages(tester);
+      await tester.pumpAndSettle();
+      return null;
+    },
+  );
   goldenTest(
     'when a profile post has a map, it should retain its details over the image',
     fileName: 'my_post_card_static_map',

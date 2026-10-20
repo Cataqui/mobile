@@ -5,10 +5,9 @@ import 'package:cataqui_app/core/enums/contact_method.dart';
 import 'package:dio/dio.dart';
 
 class JobRepository {
-  const JobRepository({required this.authenticatedDio, required this.unauthenticatedDio});
+  const JobRepository({required this.authenticatedDio});
 
   final Dio authenticatedDio;
-  final Dio unauthenticatedDio;
 
   Future<ApiEnvelopeDto<PublicJobDto>> createJob({
     required String description,
@@ -39,7 +38,7 @@ class JobRepository {
   }
 
   Future<ApiEnvelopeDto<PublicJobDto>> getPublicJob({required String jobId}) async {
-    final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId');
+    final response = await authenticatedDio.get<Map<String, Object?>>('/jobs/$jobId');
 
     return ApiEnvelopeDto<PublicJobDto>.fromJson(
       response.data!,
@@ -66,7 +65,7 @@ class JobRepository {
   }
 
   Future<ApiEnvelopeDto<ContactDto>> getJobContact({required String jobId, required String contactId}) async {
-    final response = await unauthenticatedDio.get<Map<String, Object?>>('/jobs/$jobId/contact/$contactId');
+    final response = await authenticatedDio.get<Map<String, Object?>>('/jobs/$jobId/contact/$contactId');
 
     return ApiEnvelopeDto<ContactDto>.fromJson(
       response.data!,

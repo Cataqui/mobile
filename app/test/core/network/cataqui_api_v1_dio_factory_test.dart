@@ -39,13 +39,13 @@ void main() {
   tearDown(() => dio.close(force: true));
 
   test('when posting without a payload, it should omit the request content type', () async {
-    await dio.post<void>('/auth/microservices/maps');
+    await dio.post<void>('/jobs/job-id/archive');
 
     expect((data: sentRequest.data, contentType: sentRequest.contentType), (data: null, contentType: null));
   });
 
   test('when posting a JSON payload, it should infer the JSON request content type', () async {
-    await dio.post<void>('/auth/notp/intents', data: <String, String>{'channel': 'WHATSAPP'});
+    await dio.post<void>('/notp/intents', data: <String, String>{'channel': 'WHATSAPP'});
 
     expect(sentRequest.contentType, Headers.jsonContentType);
   });
@@ -71,7 +71,7 @@ void main() {
     );
 
     await dio.post<Map<String, Object?>>(
-      '/auth/sessions/refresh',
+      '/sessions/refresh',
       data: <String, String>{'refreshToken': 'request-refresh-secret'},
       options: Options(headers: <String, String>{'Authorization': 'Bearer request-access-secret'}),
     );

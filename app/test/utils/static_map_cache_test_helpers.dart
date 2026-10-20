@@ -32,16 +32,19 @@ abstract final class StaticMapCacheTestHelpers {
     await tester.pump();
   }
 
-  static MockStaticMapCacheManager create() {
+  static MockStaticMapCacheManager create({bool? usePortrait, String? fixturePath}) {
     final manager = MockStaticMapCacheManager();
+    when(() => manager.removeFile(any())).thenAnswer((_) async {});
     final square = MockStaticMapFile();
     final portrait = MockStaticMapFile();
-    when(
-      square.readAsBytes,
-    ).thenAnswer((_) async => const LocalFileSystem().file('test/fixtures/static_map.jpg').readAsBytesSync());
-    when(
-      portrait.readAsBytes,
-    ).thenAnswer((_) async => const LocalFileSystem().file('test/fixtures/static_map_portrait.jpg').readAsBytesSync());
+    when(square.readAsBytes).thenAnswer(
+      (_) async =>
+          const LocalFileSystem().file(fixturePath ?? 'test/fixtures/static_map_v1_square.webp').readAsBytesSync(),
+    );
+    when(portrait.readAsBytes).thenAnswer(
+      (_) async =>
+          const LocalFileSystem().file(fixturePath ?? 'test/fixtures/static_map_v1_tall.webp').readAsBytesSync(),
+    );
     when(
       () => manager.getSingleFile(
         any(),
@@ -50,9 +53,7 @@ abstract final class StaticMapCacheTestHelpers {
       ),
     ).thenAnswer(
       (invocation) async =>
-          Uri.parse(invocation.positionalArguments.first as String).queryParameters['size'] == '480x1280'
-          ? portrait
-          : square,
+          (usePortrait ?? _isPortrait(invocation.positionalArguments.first as String)) ? portrait : square,
     );
     when(
       () => manager.getFileStream(
@@ -64,9 +65,7 @@ abstract final class StaticMapCacheTestHelpers {
     ).thenAnswer(
       (invocation) => Stream<FileResponse>.value(
         FileInfo(
-          Uri.parse(invocation.positionalArguments.first as String).queryParameters['size'] == '480x1280'
-              ? portrait
-              : square,
+          (usePortrait ?? _isPortrait(invocation.positionalArguments.first as String)) ? portrait : square,
           FileSource.Cache,
           DateTime.utc(2100),
           invocation.positionalArguments.first as String,
@@ -75,4 +74,6 @@ abstract final class StaticMapCacheTestHelpers {
     );
     return manager;
   }
+
+  static bool _isPortrait(String url) => Uri.parse(url).queryParameters['size'] == '480x1280';
 }

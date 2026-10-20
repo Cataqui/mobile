@@ -18,22 +18,22 @@ class MyPostState extends _$MyPostState {
 
   @override
   Future<MyPostData> build(String jobId) {
-    ref.watch(appAuthStateProvider.select((session) => session?.userId));
+    ref.watch(appAuthStateProvider.select((session) => session?.accountId));
     _latestStatus = null;
     return _fetch();
   }
 
   Future<void> retry() async {
-    final userId = ref.read(appAuthStateProvider)?.userId;
+    final accountId = ref.read(appAuthStateProvider)?.accountId;
     state = const AsyncLoading<MyPostData>();
     final result = await AsyncValue.guard(_fetch);
     if (!ref.mounted) return;
-    if (userId != ref.read(appAuthStateProvider)?.userId) return;
+    if (accountId != ref.read(appAuthStateProvider)?.accountId) return;
     state = result;
   }
 
   Future<void> changeStatus({required JobStatus status}) async {
-    final userId = ref.read(appAuthStateProvider)?.userId;
+    final accountId = ref.read(appAuthStateProvider)?.accountId;
     final keepAliveLink = ref.keepAlive();
     try {
       final repository = ref.read(jobRepositoryProvider);
@@ -43,7 +43,7 @@ class MyPostState extends _$MyPostState {
         .unknown => throw UnsupportedError('Cannot set an unknown job status.'),
       };
       if (!ref.mounted) return;
-      if (userId != ref.read(appAuthStateProvider)?.userId) return;
+      if (accountId != ref.read(appAuthStateProvider)?.accountId) return;
       _latestStatus = (status: response.data.status, updatedAt: response.data.updatedAt);
       ref.read(myPostsStateProvider.notifier).updateJobStatus(jobId: jobId, status: response.data.status);
       unawaited(ref.read(feedStateProvider.notifier).refreshAfterJobStatusChange(jobId: jobId));

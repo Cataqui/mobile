@@ -1,5 +1,6 @@
 import 'package:cataqui_app/core/dtos/address_details_dto.dart';
 import 'package:cataqui_app/core/dtos/address_search_response_dto.dart';
+import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:dio/dio.dart';
 
 class MapsRepository {
@@ -13,7 +14,10 @@ class MapsRepository {
       data: <String, Object?>{'query': query, 'sessionToken': sessionToken},
     );
 
-    return AddressSearchResponseDto.fromJson(response.data!);
+    return ApiEnvelopeDto<AddressSearchResponseDto>.fromJson(
+      response.data!,
+      (json) => AddressSearchResponseDto.fromJson(json! as Map<String, Object?>),
+    ).data;
   }
 
   Future<AddressDetailsDto> getAddressDetails({required String addressId, required String sessionToken}) async {
@@ -22,6 +26,9 @@ class MapsRepository {
       data: <String, String>{'placeId': addressId, 'sessionToken': sessionToken},
     );
 
-    return AddressDetailsDto.fromJson(response.data!);
+    return ApiEnvelopeDto<AddressDetailsDto>.fromJson(
+      response.data!,
+      (json) => AddressDetailsDto.fromJson(json! as Map<String, Object?>),
+    ).data;
   }
 }

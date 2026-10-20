@@ -26,7 +26,7 @@ void main() {
     test('when requesting feed jobs, it should call the feed jobs endpoint', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       await repository.getFeedJobs();
 
@@ -36,7 +36,7 @@ void main() {
     test('when requesting the first feed page, it should omit removed query parameters', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       await repository.getFeedJobs();
 
@@ -46,7 +46,7 @@ void main() {
     test('when requesting the first feed page, it should omit cursor', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       await repository.getFeedJobs();
 
@@ -61,7 +61,7 @@ void main() {
     test('when requesting the next feed page, it should send cursor', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       await repository.getFeedJobs(cursor: 'next-feed-cursor');
 
@@ -76,7 +76,7 @@ void main() {
     test('when receiving feed jobs, it should map feed job dto data', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -92,7 +92,7 @@ void main() {
           'data': [FeedJobDto.fixture().copyWith(payment: r'R$150 ou R$140').toJson()],
         },
       );
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -108,7 +108,7 @@ void main() {
           'data': [FeedJobDto.fixture().copyWith(payment: null).toJson()],
         },
       );
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -118,7 +118,7 @@ void main() {
     test('when receiving feed jobs, it should map pagination', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio);
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -128,7 +128,7 @@ void main() {
     test('when receiving an empty feed, it should map an empty job list', () async {
       final dio = MockDio();
       _stubFeedJobsRequest(dio: dio, responseJson: <String, Object?>{..._feedEnvelopeJson, 'data': <Object?>[]});
-      final repository = FeedRepository(unauthenticatedDio: dio);
+      final repository = FeedRepository(authenticatedDio: dio);
 
       final envelope = await repository.getFeedJobs();
 
@@ -137,14 +137,14 @@ void main() {
   });
 
   group('feedRepositoryProvider', () {
-    test('when reading the provider, it should use the unauthenticated dio', () {
+    test('when reading the provider, it should use the authenticated dio', () {
       final dio = MockDio();
-      final container = ProviderContainer(overrides: [unauthenticatedCataquiApiV1DioProvider.overrideWithValue(dio)]);
+      final container = ProviderContainer(overrides: [authenticatedCataquiApiV1DioProvider.overrideWithValue(dio)]);
       addTearDown(container.dispose);
 
       final repository = container.read(feedRepositoryProvider);
 
-      expect(repository.unauthenticatedDio, same(dio));
+      expect(repository.authenticatedDio, same(dio));
     });
   });
 }

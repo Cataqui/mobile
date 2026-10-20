@@ -1,0 +1,21 @@
+{
+  "source": "Synthetic RGBA map layout encoded by the production ImageEncodingRepository; no baked attribution or provider data.",
+  "outputs": [
+    {
+      "file": "static_map_v1_square.webp",
+      "size": "480x480",
+      "width": 960,
+      "height": 960,
+      "quality": 80,
+      "sha256": "1f86099fb94356970a8c9c4183212fd1b551568b8fd074c60672cd91259ce4f9"
+    },
+    {
+      "file": "static_map_v1_tall.webp",
+      "size": "480x1280",
+      "width": 960,
+      "height": 2560,
+      "quality": 80,
+      "sha256": "e20c60532d54db26da715d03b09d7f42e16c1afeb0698a85fabd4ac6b150d9bf"
+    }
+  ]
+}

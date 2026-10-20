@@ -8,10 +8,18 @@ void main() {
         'latitude': -23.556391,
         'longitude': -46.844076,
         'areaRadius': 2000,
-        'imageUrl': 'https://maps.cataqui.com/static/fixture',
+        'imageUrl': 'https://maps.cataqui.com/static/v1/fixture_reference.webp',
       });
 
-      expect(location, FuzzyJobLocationDto.fixture());
+      expect(
+        location,
+        FuzzyJobLocationDto.fixture().copyWith(
+          latitude: -23.556391,
+          longitude: -46.844076,
+          areaRadius: 2000,
+          imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp',
+        ),
+      );
     });
 
     test('when serializing a job location, it should use camelCase keys', () {

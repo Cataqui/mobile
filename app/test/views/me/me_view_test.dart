@@ -59,7 +59,7 @@ void main() {
           providerOverrides: [
             meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
             myPostsStateProvider.overrideWith(
-              () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+              () => FakeMyPostsState(const AsyncData(MyPostsData(accountId: 'test-user', jobs: [], hasMore: false))),
             ),
           ],
           child: const MeView(),
@@ -80,13 +80,13 @@ void main() {
         TestApp.screen(
           providerOverrides: [
             meStateProvider.overrideWith(
-              () => FakeMeState(AsyncData(UserProfileDto.fixture().copyWith(displayIdentifier: 'Ana Teste'))),
+              () => FakeMeState(AsyncData(UserProfileDto.fixture().copyWith(name: 'Ana Teste'))),
             ),
             myPostsStateProvider.overrideWith(
               () => FakeMyPostsState(
                 AsyncData(
                   MyPostsData(
-                    userId: 'test-user',
+                    accountId: 'test-user',
                     jobs: [UserJobSummaryDto.fixture().copyWith(createdAt: DateTime.utc(2026, 9, 23, 12))],
                     hasMore: false,
                   ),
@@ -168,7 +168,7 @@ void main() {
       final skeletonElement = tester.element(cardSkeleton.first);
       jobsState.showData(
         MyPostsData(
-          userId: 'test-user',
+          accountId: 'test-user',
           jobs: [UserJobSummaryDto.fixture().copyWith(title: 'Loaded job', createdAt: DateTime.utc(2026, 9, 23, 12))],
           hasMore: false,
         ),
@@ -353,7 +353,7 @@ void main() {
               () => FakeMyPostsState(
                 AsyncData(
                   MyPostsData(
-                    userId: 'test-user',
+                    accountId: 'test-user',
                     jobs: [
                       UserJobSummaryDto.fixture().copyWith(jobId: 'job-1', createdAt: DateTime.utc(2026, 9, 23, 12)),
                       UserJobSummaryDto.fixture().copyWith(jobId: 'job-2', createdAt: DateTime.utc(2026, 9, 23, 12)),
@@ -395,7 +395,7 @@ void main() {
       final jobsState = FakeMyPostsState(
         AsyncData(
           MyPostsData(
-            userId: 'test-user',
+            accountId: 'test-user',
             jobs: [
               for (var index = 0; index < 8; index++)
                 UserJobSummaryDto.fixture().copyWith(jobId: 'job-$index', createdAt: DateTime.utc(2026, 9, 23, 12)),
@@ -456,7 +456,7 @@ void main() {
     final loadingOffset = scrollController.position.pixels;
     expect(loadingOffset, greaterThan(0));
 
-    postsState.showData(const MyPostsData(userId: 'test-user', jobs: [], hasMore: false));
+    postsState.showData(const MyPostsData(accountId: 'test-user', jobs: [], hasMore: false));
     await tester.pump();
     expect(find.byKey(const ValueKey('my_posts_empty_fade')), findsOneWidget);
     expect(scrollController.position.pixels, loadingOffset);
@@ -508,7 +508,7 @@ void main() {
           ),
           meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
           myPostsStateProvider.overrideWith(
-            () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+            () => FakeMyPostsState(const AsyncData(MyPostsData(accountId: 'test-user', jobs: [], hasMore: false))),
           ),
         ],
       ),
@@ -593,7 +593,7 @@ void main() {
         TestApp.screen(
           providerOverrides: [
             myPostsStateProvider.overrideWith(
-              () => FakeMyPostsState(AsyncData(MyPostsData(userId: 'test-user', jobs: jobs, hasMore: false))),
+              () => FakeMyPostsState(AsyncData(MyPostsData(accountId: 'test-user', jobs: jobs, hasMore: false))),
             ),
           ],
           child: const MeView(),
@@ -615,7 +615,7 @@ void main() {
     final jobsState = FakeMyPostsState(
       AsyncData(
         MyPostsData(
-          userId: 'test-user',
+          accountId: 'test-user',
           jobs: [UserJobSummaryDto.fixture().copyWith(jobId: 'posted-job', createdAt: DateTime.utc(2026, 9, 23, 12))],
           hasMore: true,
           nextCursor: 'next-page',
@@ -664,7 +664,7 @@ void main() {
     final postsState = FakeMyPostsState(
       AsyncData(
         MyPostsData(
-          userId: 'test-user',
+          accountId: 'test-user',
           jobs: [UserJobSummaryDto.fixture().copyWith(createdAt: DateTime.utc(2026, 9, 23, 12))],
           hasMore: true,
           isLoadingMore: true,
@@ -725,7 +725,7 @@ void main() {
       providerOverrides: [
         meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
         myPostsStateProvider.overrideWith(
-          () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+          () => FakeMyPostsState(const AsyncData(MyPostsData(accountId: 'test-user', jobs: [], hasMore: false))),
         ),
       ],
     );
@@ -759,7 +759,7 @@ void main() {
           authRepositoryProvider.overrideWithValue(authRepository),
           meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
           myPostsStateProvider.overrideWith(
-            () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+            () => FakeMyPostsState(const AsyncData(MyPostsData(accountId: 'test-user', jobs: [], hasMore: false))),
           ),
         ],
       );
@@ -821,7 +821,7 @@ void main() {
           authRepositoryProvider.overrideWithValue(authRepository),
           meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
           myPostsStateProvider.overrideWith(
-            () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+            () => FakeMyPostsState(const AsyncData(MyPostsData(accountId: 'test-user', jobs: [], hasMore: false))),
           ),
         ],
       ),
@@ -849,7 +849,7 @@ void main() {
       providerOverrides: [
         meStateProvider.overrideWith(() => FakeMeState(AsyncData(UserProfileDto.fixture()))),
         myPostsStateProvider.overrideWith(
-          () => FakeMyPostsState(const AsyncData(MyPostsData(userId: 'test-user', jobs: [], hasMore: false))),
+          () => FakeMyPostsState(const AsyncData(MyPostsData(accountId: 'test-user', jobs: [], hasMore: false))),
         ),
       ],
     );

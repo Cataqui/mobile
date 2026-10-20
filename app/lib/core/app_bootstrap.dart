@@ -25,9 +25,8 @@ abstract final class AppBootstrap {
     if (appAuthState.hasUsableLocalCredentials) {
       unawaited(appAuthState.refreshSessionInBackground());
     }
-
-    // Fire-and-forget: start the feed network fetch early so it's already
-    // in-flight (or completed) when the feed screen mounts.
-    providerContainer.read(feedStateProvider);
+    if (appAuthState.hasValidSession) {
+      providerContainer.read(feedStateProvider);
+    }
   }
 }

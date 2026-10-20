@@ -13,7 +13,7 @@ sealed class NotpIntentExchangeResultDto with _$NotpIntentExchangeResultDto {
     required DateTime expiresAt,
     required String refreshToken,
     required DateTime refreshExpiresAt,
-    required String userId,
+    required String accountId,
   }) = IssuedAuthSessionDto;
 
   factory NotpIntentExchangeResultDto.fromJson(Map<String, Object?> json) =>
@@ -39,6 +39,6 @@ sealed class NotpIntentExchangeResultDto with _$NotpIntentExchangeResultDto {
     expiresAt: DateTime.parse('2026-08-10T15:15:00.000Z'),
     refreshToken: 'refresh-token',
     refreshExpiresAt: DateTime.parse('2026-09-09T15:15:00.000Z'),
-    userId: '4963fef0-b62a-4760-9f99-675fdc42a896',
+    accountId: '4963fef0-b62a-4760-9f99-675fdc42a896',
   );
 }

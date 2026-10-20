@@ -86,6 +86,18 @@ class FeedViewTestHelpers {
 
   static const _surfaceSize = Size(390, 844);
 
+  static Future<void> scrollToEnd({required WidgetTester tester, required Finder viewport}) async {
+    final gesture = await tester.startGesture(tester.getCenter(viewport));
+    await gesture.moveBy(const Offset(0, -20));
+    await tester.pump();
+    final position = tester
+        .state<ScrollableState>(find.descendant(of: viewport, matching: find.byType(Scrollable)))
+        .position;
+    await gesture.moveBy(Offset(0, position.pixels - position.maxScrollExtent));
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+
   static void mockHapticFeedback(WidgetTester tester) {
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       SystemChannels.platform,

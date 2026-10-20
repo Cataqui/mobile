@@ -11,8 +11,8 @@ part 'me_state.g.dart';
 class MeState extends _$MeState {
   @override
   Future<UserProfileDto?> build() async {
-    final userId = ref.watch(appAuthStateProvider.select((session) => session?.userId));
-    if (userId == null) return null;
+    final accountId = ref.watch(appAuthStateProvider.select((session) => session?.accountId));
+    if (accountId == null) return null;
 
     final envelope = await ref.read(userRepositoryProvider).getMyProfile();
     return envelope.data;

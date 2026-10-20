@@ -28,6 +28,7 @@ enum AddressCategory {
   lodging,
   school,
   university,
+  education,
   library,
   hospital,
   pharmacy,
@@ -51,6 +52,13 @@ enum AddressCategory {
   fireStation,
   placeOfWorship,
   governmentOffice,
+  pedestrianArea,
+  attraction,
+  communityCenter,
+  ferryTerminal,
+  clinic,
+  building,
+  bridge,
   other;
 
   static const _defaultIconSize = 20.0;
@@ -60,6 +68,11 @@ enum AddressCategory {
       case AddressCategory.street:
       case AddressCategory.neighborhood:
       case AddressCategory.city:
+      case AddressCategory.pedestrianArea:
+      case AddressCategory.communityCenter:
+      case AddressCategory.ferryTerminal:
+      case AddressCategory.building:
+      case AddressCategory.bridge:
       case AddressCategory.other:
         return palette.neutral[10];
 
@@ -121,6 +134,7 @@ enum AddressCategory {
 
       case AddressCategory.school:
       case AddressCategory.university:
+      case AddressCategory.education:
       case AddressCategory.library:
       case AddressCategory.busStation:
       case AddressCategory.trainStation:
@@ -135,10 +149,12 @@ enum AddressCategory {
       case AddressCategory.racingVenue:
       case AddressCategory.sportsVenue:
       case AddressCategory.museum:
+      case AddressCategory.attraction:
       case AddressCategory.placeOfWorship:
         return palette.violet[9];
 
       case AddressCategory.hospital:
+      case AddressCategory.clinic:
       case AddressCategory.pharmacy:
       case AddressCategory.fireStation:
         return palette.red[9];
@@ -150,6 +166,10 @@ enum AddressCategory {
       case AddressCategory.street:
       case AddressCategory.neighborhood:
       case AddressCategory.city:
+      case AddressCategory.pedestrianArea:
+      case AddressCategory.communityCenter:
+      case AddressCategory.ferryTerminal:
+      case AddressCategory.bridge:
       case AddressCategory.other:
         return MateoIcon(.mapPin, size: size, color: color, backgroundColor: backgroundColor);
 
@@ -215,12 +235,14 @@ enum AddressCategory {
 
       case AddressCategory.school:
       case AddressCategory.university:
+      case AddressCategory.education:
         return MateoIcon(.graduateCap, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.library:
         return MateoIcon(.book, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.hospital:
+      case AddressCategory.clinic:
         return MateoIcon(.medicalCross, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.pharmacy:
@@ -239,6 +261,7 @@ enum AddressCategory {
         return MateoIcon(.runningFigure, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.museum:
+      case AddressCategory.attraction:
         return MateoIcon(.classicBuilding, size: size, color: color, backgroundColor: backgroundColor);
 
       case AddressCategory.zoo:
@@ -287,6 +310,9 @@ enum AddressCategory {
 
       case AddressCategory.governmentOffice:
         return MateoIcon(.governmentBuilding, size: size, color: color, backgroundColor: backgroundColor);
+
+      case AddressCategory.building:
+        return MateoIcon(.buildings, size: size, color: color, backgroundColor: backgroundColor);
     }
   }
 }

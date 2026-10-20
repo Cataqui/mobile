@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/public_job_dto.dart';
+import 'package:cataqui_app/core/network/auth_interceptor/authentication_dismissed_dio_exception.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/views/job/job_state.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -40,6 +42,19 @@ void main() {
   });
 
   group('JobState', () {
+    testWidgets('when login is dismissed while opening a job, it should not request login again', (tester) async {
+      when(
+        () => repository.getPublicJob(jobId: 'dismissed-job'),
+      ).thenThrow(AuthenticationDismissedDioException(requestOptions: RequestOptions(path: '/jobs/dismissed-job')));
+      final container = _JobStateTestHelpers.container(repository: repository);
+      final subscription = container.listen(jobStateProvider('dismissed-job'), (_, _) {});
+      addTearDown(subscription.close);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 10));
+
+      verify(() => repository.getPublicJob(jobId: 'dismissed-job')).called(1);
+    });
+
     test('when the provider is first read, it should expose the job data', () async {
       final container = _JobStateTestHelpers.container(repository: repository);
 

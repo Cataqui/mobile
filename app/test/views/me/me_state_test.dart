@@ -32,9 +32,9 @@ void main() {
       ),
     ).thenAnswer((_) async {});
     when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
-    when(userRepository.getMyProfile).thenAnswer(
-      (_) async => ApiEnvelopeDto.fixture(data: UserProfileDto.fixture().copyWith(displayIdentifier: 'Ana Teste')),
-    );
+    when(
+      userRepository.getMyProfile,
+    ).thenAnswer((_) async => ApiEnvelopeDto.fixture(data: UserProfileDto.fixture().copyWith(name: 'Ana Teste')));
     container = ProviderContainer(
       overrides: [
         sharedPreferencesAsyncProvider.overrideWithValue(prefs),
@@ -58,7 +58,7 @@ void main() {
     await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
     await container.pump();
 
-    expect((await container.read(meStateProvider.future))?.displayIdentifier, 'Ana Teste');
+    expect((await container.read(meStateProvider.future))?.name, 'Ana Teste');
     verify(userRepository.getMyProfile).called(1);
   });
 
@@ -68,7 +68,7 @@ void main() {
     when(userRepository.getMyProfile).thenAnswer((_) async {
       requestCount += 1;
       if (requestCount == 1) {
-        final options = RequestOptions(path: '/users/me');
+        final options = RequestOptions(path: '/profiles/me');
         throw DioException(
           requestOptions: options,
           response: Response<Object?>(requestOptions: options, statusCode: 503),
@@ -86,7 +86,7 @@ void main() {
   });
 
   test('when a profile request is unauthorized, it should not retry', () async {
-    final options = RequestOptions(path: '/users/me');
+    final options = RequestOptions(path: '/profiles/me');
     when(userRepository.getMyProfile).thenThrow(
       DioException(
         requestOptions: options,
@@ -106,7 +106,7 @@ void main() {
   test('when authentication is dismissed, it should not retry the profile request', () async {
     when(
       userRepository.getMyProfile,
-    ).thenThrow(AuthenticationDismissedDioException(requestOptions: RequestOptions(path: '/users/me')));
+    ).thenThrow(AuthenticationDismissedDioException(requestOptions: RequestOptions(path: '/profiles/me')));
     await container.read(meStateProvider.future);
 
     await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
@@ -134,7 +134,7 @@ void main() {
     var fetchCount = 0;
     when(userRepository.getMyProfile).thenAnswer((_) async {
       fetchCount += 1;
-      return ApiEnvelopeDto.fixture(data: UserProfileDto.fixture().copyWith(displayIdentifier: 'Profile $fetchCount'));
+      return ApiEnvelopeDto.fixture(data: UserProfileDto.fixture().copyWith(name: 'Profile $fetchCount'));
     });
     await container.read(meStateProvider.future);
     final firstSession = AuthSessionDto.fixture();
@@ -142,16 +142,16 @@ void main() {
     await container.read(appAuthStateProvider.notifier).setSession(firstSession);
     await container.pump();
     await container.read(meStateProvider.future);
-    expect(container.read(meStateProvider).value?.displayIdentifier, 'Profile 1');
+    expect(container.read(meStateProvider).value?.name, 'Profile 1');
 
     await container.read(appAuthStateProvider.notifier).setSession(firstSession.copyWith(accessToken: 'renewed-token'));
     await container.pump();
     expect(fetchCount, 1);
 
-    await container.read(appAuthStateProvider.notifier).setSession(firstSession.copyWith(userId: 'second-user'));
+    await container.read(appAuthStateProvider.notifier).setSession(firstSession.copyWith(accountId: 'second-user'));
     await container.pump();
     await container.read(meStateProvider.future);
-    expect(container.read(meStateProvider).value?.displayIdentifier, 'Profile 2');
+    expect(container.read(meStateProvider).value?.name, 'Profile 2');
     expect(fetchCount, 2);
   });
 }

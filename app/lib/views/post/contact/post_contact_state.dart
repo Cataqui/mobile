@@ -13,7 +13,7 @@ class PostContactState extends _$PostContactState {
 
   @override
   Future<List<PostContactOption>> build() async {
-    ref.watch(appAuthStateProvider.select((session) => session?.userId));
+    ref.watch(appAuthStateProvider.select((session) => session?.accountId));
     final envelope = await ref.watch(userRepositoryProvider).getContacts();
 
     return envelope.data.map(_createOption).toList(growable: false);

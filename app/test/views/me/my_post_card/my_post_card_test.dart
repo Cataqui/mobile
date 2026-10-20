@@ -34,24 +34,26 @@ void main() {
       );
     });
   }
-  testWidgets('when a profile post renders, it should request the square map with its image permission', (
+  testWidgets('when a profile post renders, it should request a standard map with its image permission', (
     tester,
   ) async {
     final job = UserJobSummaryDto.fixture();
     await _MyPostCardTestHelpers.pump(tester, job);
     final image = tester.widget<JobLocationImage>(find.byType(JobLocationImage));
-    expect((image.imageUrl, image.size), (job.location.imageUrl, StaticMapSize.pixels960x960));
+    expect((image.imageUrl, image.size), (job.location.imageUrl, StaticMapSize.square));
   });
   testWidgets('when a post moves, it should display the new ready image', (tester) async {
     final job = UserJobSummaryDto.fixture();
     await _MyPostCardTestHelpers.pump(tester, job);
     await _MyPostCardTestHelpers.pump(
       tester,
-      job.copyWith(location: job.location.copyWith(imageUrl: 'https://imagedelivery.net/fixture/replaced/q80')),
+      job.copyWith(
+        location: job.location.copyWith(imageUrl: 'https://maps.cataqui.com/static/v1/replaced_reference.webp'),
+      ),
     );
     expect(
       tester.widget<JobLocationImage>(find.byType(JobLocationImage)).imageUrl,
-      'https://imagedelivery.net/fixture/replaced/q80',
+      'https://maps.cataqui.com/static/v1/replaced_reference.webp',
     );
   });
   testWidgets('when a profile card loads, it should not create native map views', (tester) async {
@@ -72,6 +74,23 @@ void main() {
     await tester.pumpWidget(const TestApp.screen(child: SizedBox(width: 390, child: MyPostCard.skeleton())));
     await tester.pump();
     expect(find.byType(JobLocationImage), findsNothing);
+  });
+  testWidgets('when a narrow post reserves space for map credit, it should let the user scroll all post details', (
+    tester,
+  ) async {
+    await _MyPostCardTestHelpers.pump(
+      tester,
+      UserJobSummaryDto.fixture().copyWith(
+        title: 'Montar e desmontar estruturas para festa',
+        descriptionSummary:
+            'Precisamos de ajuda para organizar os móveis e montar as estruturas durante uma festa no bairro.',
+      ),
+      width: 198,
+    );
+    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -180));
+    await tester.pump(const Duration(milliseconds: 500));
+    final position = tester.state<ScrollableState>(find.byType(Scrollable)).position;
+    expect((position.pixels > 0, position.pixels == position.maxScrollExtent), (true, true));
   });
   for (final width in [280.0, 320.0]) {
     testWidgets(

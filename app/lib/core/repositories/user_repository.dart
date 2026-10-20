@@ -11,7 +11,7 @@ class UserRepository {
   final Dio authenticatedDio;
 
   Future<ApiEnvelopeDto<UserJobDto>> getMyPostedJob({required String jobId}) async {
-    final response = await authenticatedDio.get<Map<String, Object?>>('/users/me/jobs/$jobId');
+    final response = await authenticatedDio.get<Map<String, Object?>>('/profiles/me/jobs/$jobId');
 
     return ApiEnvelopeDto<UserJobDto>.fromJson(
       response.data!,
@@ -21,7 +21,7 @@ class UserRepository {
 
   Future<ApiEnvelopeDto<List<UserJobSummaryDto>>> getMyPostedJobs({String? cursor}) async {
     final response = await authenticatedDio.get<Map<String, Object?>>(
-      '/users/me/jobs',
+      '/profiles/me/jobs',
       queryParameters: <String, Object?>{if (cursor != null) 'cursor': cursor},
     );
 
@@ -33,7 +33,7 @@ class UserRepository {
   }
 
   Future<ApiEnvelopeDto<UserProfileDto>> getMyProfile() async {
-    final response = await authenticatedDio.get<Map<String, Object?>>('/users/me');
+    final response = await authenticatedDio.get<Map<String, Object?>>('/profiles/me');
 
     return ApiEnvelopeDto<UserProfileDto>.fromJson(
       response.data!,
@@ -42,7 +42,7 @@ class UserRepository {
   }
 
   Future<ApiEnvelopeDto<List<SavedContactDto>>> getContacts() async {
-    final response = await authenticatedDio.get<Map<String, Object?>>('/users/me/contacts');
+    final response = await authenticatedDio.get<Map<String, Object?>>('/profiles/me/contacts');
 
     return ApiEnvelopeDto<List<SavedContactDto>>.fromJson(response.data!, (json) {
       return (json! as List<Object?>).map((item) => SavedContactDto.fromJson(item! as Map<String, Object?>)).toList();

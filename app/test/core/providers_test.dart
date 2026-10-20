@@ -6,7 +6,6 @@ import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
-import 'package:cataqui_app/core/network/maps/maps_access_token_interceptor.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/i18n/locale.dart';
@@ -30,6 +29,7 @@ import 'package:oh_my_flutter/oh_my_flutter.dart';
 import '../fakes.dart';
 import '../mocks.dart';
 import '../utils/test_app.dart';
+import '../views/me/fake_app_auth_state.dart';
 
 void main() {
   group('translationProvider', () {
@@ -338,12 +338,92 @@ void main() {
     });
   });
 
+  group('authV1DioProvider', () {
+    for (final environment in [
+      (flavor: 'development', host: 'staging.auth.cataqui.com'),
+      (flavor: 'production', host: 'auth.cataqui.com'),
+    ]) {
+      test(
+        'when using ${environment.flavor}, it should send login requests directly to Auth with the v1 prefix',
+        () async {
+          final container = ProviderContainer(
+            overrides: [appConfigProvider.overrideWithValue(AppConfig(flavor: environment.flavor))],
+          );
+          addTearDown(container.dispose);
+          await container.read(cataquiApiCookieJarProvider.future);
+          final dio = container.read(authV1DioProvider);
+
+          expect(
+            (
+              url: RequestOptions(baseUrl: dio.options.baseUrl, path: '/notp/intents').uri.toString(),
+              language: dio.options.headers['accept-language'],
+              authenticates: dio.interceptors.any((interceptor) => interceptor is AuthInterceptor),
+            ),
+            (url: 'https://${environment.host}/v1/notp/intents', language: 'pt-BR', authenticates: false),
+          );
+        },
+      );
+    }
+  });
+
   group('mapsDioProvider', () {
     late MockAuthRepository authRepository;
+    late MockHttpClientAdapter adapter;
 
     setUp(() {
       authRepository = MockAuthRepository();
+      adapter = MockHttpClientAdapter();
     });
+
+    test(
+      'when searching places, it should send the session bearer token without exchanging it for a Maps token',
+      () async {
+        registerFallbackValue(RequestOptions(path: '/places/search'));
+        final session = AuthSessionDto.fixture().copyWith(
+          accessToken: 'session-access-token',
+          accessTokenExpiresAt: DateTime.utc(2100),
+        );
+        final container = ProviderContainer(
+          overrides: [
+            appConfigProvider.overrideWithValue(const AppConfig(flavor: 'production')),
+            appAuthStateProvider.overrideWith(() => FakeAppAuthState(session)),
+          ],
+        );
+        addTearDown(container.dispose);
+        final dio = container.read(mapsDioProvider)..httpClientAdapter = adapter;
+        late RequestOptions request;
+        when(() => adapter.fetch(any(), any(), any())).thenAnswer((invocation) async {
+          request = invocation.positionalArguments.first as RequestOptions;
+          return ResponseBody.fromString(
+            '{}',
+            200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+            },
+          );
+        });
+
+        await dio.query<Map<String, Object?>>(
+          '/places/search',
+          data: {'query': 'Paulista', 'sessionToken': 'places-session'},
+        );
+
+        expect(
+          {
+            'method': request.method,
+            'url': request.uri.toString(),
+            'authorization': request.headers['Authorization'],
+            'data': request.data,
+          },
+          {
+            'method': 'QUERY',
+            'url': 'https://maps.cataqui.com/places/search',
+            'authorization': 'Bearer session-access-token',
+            'data': {'query': 'Paulista', 'sessionToken': 'places-session'},
+          },
+        );
+      },
+    );
 
     ProviderContainer buildContainer({String? flavor}) {
       return ProviderContainer(
@@ -399,25 +479,16 @@ void main() {
       addTearDown(container.dispose);
 
       final dio = container.read(mapsDioProvider);
-      final accessTokenInterceptor = dio.interceptors.whereType<MapsAccessTokenInterceptor>().single;
 
       expect(
         (
-          hasAccessToken: dio.interceptors.any((interceptor) => interceptor is MapsAccessTokenInterceptor),
-          usesAuthRepository: accessTokenInterceptor.authRepository,
+          hasAccessToken: dio.interceptors.any((interceptor) => interceptor is AuthInterceptor),
           hasRateLimit: dio.interceptors.any((interceptor) => interceptor is RateLimitInterceptor),
           hasOffline: dio.interceptors.any((interceptor) => interceptor is OfflineErrorDioInterceptor),
           hasCookies: dio.interceptors.any((interceptor) => interceptor is CookieManager),
           hasLogging: dio.interceptors.any((interceptor) => interceptor is LogInterceptor),
         ),
-        (
-          hasAccessToken: true,
-          usesAuthRepository: authRepository,
-          hasRateLimit: true,
-          hasOffline: true,
-          hasCookies: false,
-          hasLogging: false,
-        ),
+        (hasAccessToken: true, hasRateLimit: true, hasOffline: true, hasCookies: false, hasLogging: false),
       );
     });
 

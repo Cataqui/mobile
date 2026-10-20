@@ -20,6 +20,6 @@ abstract class UserJobLocationDto with _$UserJobLocationDto {
     latitude: -23.55,
     longitude: -46.63,
     areaRadius: 2000,
-    imageUrl: 'https://maps.cataqui.com/static/fixture',
+    imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp',
   );
 }

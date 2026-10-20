@@ -38,7 +38,7 @@ abstract class FeedJobDto with _$FeedJobDto {
       latitude: -23.5505,
       longitude: -46.6333,
       areaRadius: 2000,
-      imageUrl: 'https://maps.cataqui.com/static/fixture',
+      imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp',
     ),
     descriptionSummary: 'Experiente em atendimento ao cliente, disponibilidade para finais de semana e feriados.',
   );

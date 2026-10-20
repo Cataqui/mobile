@@ -68,6 +68,14 @@ void main() {
             'LODGING',
             'HAIR_CARE',
             'ZOO',
+            'EDUCATION',
+            'PEDESTRIAN_AREA',
+            'ATTRACTION',
+            'COMMUNITY_CENTER',
+            'FERRY_TERMINAL',
+            'CLINIC',
+            'BUILDING',
+            'BRIDGE',
           ].map(
             (category) => AddressSearchResponseDto.fromJson(
               _AddressSearchResponseDtoTestData.responseJson(category: category),
@@ -86,6 +94,14 @@ void main() {
         AddressCategory.lodging,
         AddressCategory.hairCare,
         AddressCategory.zoo,
+        AddressCategory.education,
+        AddressCategory.pedestrianArea,
+        AddressCategory.attraction,
+        AddressCategory.communityCenter,
+        AddressCategory.ferryTerminal,
+        AddressCategory.clinic,
+        AddressCategory.building,
+        AddressCategory.bridge,
       ]);
     });
   });

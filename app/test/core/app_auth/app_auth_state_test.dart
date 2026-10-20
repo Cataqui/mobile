@@ -236,7 +236,7 @@ void main() {
         expiresAt: DateTime.utc(2026, 8, 11, 15, 15),
         refreshToken: 'rotated-refresh-token',
         refreshExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
-        userId: '4963fef0-b62a-4760-9f99-675fdc42a896',
+        accountId: '4963fef0-b62a-4760-9f99-675fdc42a896',
       );
       String? requestedRefreshToken;
       when(() => authRepository.refreshSession(refreshToken: any(named: 'refreshToken'))).thenAnswer((
@@ -352,8 +352,8 @@ void main() {
       );
       await container.read(appAuthStateProvider.notifier).setSession(currentSession);
       final unauthorizedError = DioException(
-        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
-        response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+        requestOptions: RequestOptions(path: '/sessions/refresh'),
+        response: Response<void>(requestOptions: RequestOptions(path: '/sessions/refresh'), statusCode: 401),
       );
       var connectionRequestCount = 0;
       when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenThrow(unauthorizedError);
@@ -410,8 +410,8 @@ void main() {
       );
       await container.read(appAuthStateProvider.notifier).setSession(currentSession);
       final forbiddenError = DioException(
-        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
-        response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 403),
+        requestOptions: RequestOptions(path: '/sessions/refresh'),
+        response: Response<void>(requestOptions: RequestOptions(path: '/sessions/refresh'), statusCode: 403),
       );
       when(() => authRepository.refreshSession(refreshToken: 'saved-refresh-token')).thenThrow(forbiddenError);
       var connectionRequestCount = 0;
@@ -510,8 +510,8 @@ void main() {
         );
         await container.read(appAuthStateProvider.notifier).setSession(currentSession);
         final unauthorizedError = DioException(
-          requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
-          response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+          requestOptions: RequestOptions(path: '/sessions/refresh'),
+          response: Response<void>(requestOptions: RequestOptions(path: '/sessions/refresh'), statusCode: 401),
         );
         var connectionRequestCount = 0;
         when(() => authRepository.refreshSession(refreshToken: 'rejected-refresh-token')).thenThrow(unauthorizedError);
@@ -637,8 +637,8 @@ void main() {
           foregroundRefresh = container.read(appAuthStateProvider.notifier).refreshSession();
           refreshResponse.completeError(
             DioException(
-              requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
-              response: Response<void>(requestOptions: RequestOptions(path: '/auth/sessions/refresh'), statusCode: 401),
+              requestOptions: RequestOptions(path: '/sessions/refresh'),
+              response: Response<void>(requestOptions: RequestOptions(path: '/sessions/refresh'), statusCode: 401),
             ),
           );
         });
@@ -744,7 +744,7 @@ void main() {
 
       test('when revocation fails, it should propagate the error after clearing local auth', () async {
         await container.read(appAuthStateProvider.notifier).setSession(AuthSessionDto.fixture());
-        final error = DioException(requestOptions: RequestOptions(path: '/auth/sessions/logout'));
+        final error = DioException(requestOptions: RequestOptions(path: '/sessions/logout'));
         when(() => authRepository.logoutCurrentSession(refreshToken: 'refresh-token')).thenThrow(error);
 
         await expectLater(container.read(appAuthStateProvider.notifier).logoutCurrentSession(), throwsA(same(error)));

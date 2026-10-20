@@ -3,12 +3,12 @@ import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:dio/dio.dart';
 
 class FeedRepository {
-  const FeedRepository({required this.unauthenticatedDio});
+  const FeedRepository({required this.authenticatedDio});
 
-  final Dio unauthenticatedDio;
+  final Dio authenticatedDio;
 
   Future<ApiEnvelopeDto<List<FeedJobDto>>> getFeedJobs({String? cursor}) async {
-    final response = await unauthenticatedDio.get<Map<String, Object?>>(
+    final response = await authenticatedDio.get<Map<String, Object?>>(
       '/feed',
       queryParameters: <String, Object?>{if (cursor != null) 'cursor': cursor},
     );

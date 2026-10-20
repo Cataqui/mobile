@@ -11,7 +11,7 @@ abstract class AuthSessionDto with _$AuthSessionDto {
     required DateTime accessTokenExpiresAt,
     required String refreshToken,
     required DateTime refreshTokenExpiresAt,
-    required String userId,
+    required String accountId,
   }) = _AuthSessionDto;
 
   factory AuthSessionDto.fromJson(Map<String, Object?> json) => _$AuthSessionDtoFromJson(json);
@@ -21,7 +21,7 @@ abstract class AuthSessionDto with _$AuthSessionDto {
     accessTokenExpiresAt: issuedSession.expiresAt,
     refreshToken: issuedSession.refreshToken,
     refreshTokenExpiresAt: issuedSession.refreshExpiresAt,
-    userId: issuedSession.userId,
+    accountId: issuedSession.accountId,
   );
 
   factory AuthSessionDto.fixture() => AuthSessionDto(
@@ -29,6 +29,6 @@ abstract class AuthSessionDto with _$AuthSessionDto {
     accessTokenExpiresAt: DateTime.parse('2026-08-10T15:15:00.000Z'),
     refreshToken: 'refresh-token',
     refreshTokenExpiresAt: DateTime.parse('2026-09-09T15:15:00.000Z'),
-    userId: '4963fef0-b62a-4760-9f99-675fdc42a896',
+    accountId: '4963fef0-b62a-4760-9f99-675fdc42a896',
   );
 }

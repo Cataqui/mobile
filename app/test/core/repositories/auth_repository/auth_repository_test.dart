@@ -1,7 +1,6 @@
 import 'package:cataqui_app/core/dtos/api_envelope_dto.dart';
 import 'package:cataqui_app/core/dtos/notp_intent_exchange_result_dto.dart';
 import 'package:cataqui_app/core/enums/auth_channel.dart';
-import 'package:cataqui_app/core/enums/microservice_access_token_type.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.dart';
 import 'package:dio/dio.dart';
@@ -13,13 +12,11 @@ import '../../../mocks.dart';
 
 void main() {
   late MockDio dio;
-  late MockDio authenticatedDio;
   late AuthRepository repository;
 
   setUp(() {
     dio = MockDio();
-    authenticatedDio = MockDio();
-    repository = AuthRepository(authenticatedDio: authenticatedDio, unauthenticatedDio: dio);
+    repository = AuthRepository(authDio: dio);
     _AuthRepositoryTestData.stubCreatedNotpIntentRequest(dio: dio);
   });
 
@@ -29,7 +26,7 @@ void main() {
         await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
         verify(
-          () => dio.post<Map<String, Object?>>('/auth/notp/intents', data: <String, String>{'channel': 'WHATSAPP'}),
+          () => dio.post<Map<String, Object?>>('/notp/intents', data: <String, String>{'channel': 'WHATSAPP'}),
         ).called(1);
       });
 
@@ -72,7 +69,7 @@ void main() {
       test('when receiving a created NOTP intent, it should preserve the endpoint', () async {
         final envelope = await repository.createNotpIntent(channel: AuthChannel.whatsapp);
 
-        expect(envelope.endpoint, '/v1/auth/notp/intents');
+        expect(envelope.endpoint, '/v1/notp/intents');
       });
     });
 
@@ -84,7 +81,7 @@ void main() {
 
         verify(
           () => dio.post<Map<String, Object?>>(
-            '/auth/notp/intents/exchange',
+            '/notp/intents/exchange',
             data: <String, String>{'intentToken': _AuthRepositoryTestData.intentToken},
           ),
         ).called(1);
@@ -109,7 +106,7 @@ void main() {
             data: NotpIntentExchangeResultDto.issuedSessionFixture(),
             requestId: 'notp-exchange-request-002',
             timestamp: DateTime.utc(2026, 8, 10, 15, 0, 1),
-            endpoint: '/v1/auth/notp/intents/exchange',
+            endpoint: '/v1/notp/intents/exchange',
           ),
         );
       });
@@ -123,7 +120,7 @@ void main() {
 
         verify(
           () => dio.post<Map<String, Object?>>(
-            '/auth/sessions/refresh',
+            '/sessions/refresh',
             data: <String, String>{'refreshToken': 'saved-refresh-token'},
           ),
         ).called(1);
@@ -143,11 +140,11 @@ void main() {
               expiresAt: DateTime.utc(2026, 8, 11, 15, 15),
               refreshToken: 'rotated-refresh-token',
               refreshExpiresAt: DateTime.utc(2026, 9, 10, 15, 15),
-              userId: '4963fef0-b62a-4760-9f99-675fdc42a896',
+              accountId: '4963fef0-b62a-4760-9f99-675fdc42a896',
             ),
             requestId: 'auth-refresh-request-003',
             timestamp: DateTime.utc(2026, 8, 11, 15),
-            endpoint: '/v1/auth/sessions/refresh',
+            endpoint: '/v1/sessions/refresh',
           ),
         );
       });
@@ -156,9 +153,9 @@ void main() {
     group('logoutCurrentSession', () {
       setUp(() {
         when(
-          () => dio.post<void>('/auth/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
+          () => dio.post<void>('/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
         ).thenAnswer(
-          (_) async => Response<void>(statusCode: 204, requestOptions: RequestOptions(path: '/auth/sessions/logout')),
+          (_) async => Response<void>(statusCode: 204, requestOptions: RequestOptions(path: '/sessions/logout')),
         );
       });
 
@@ -166,68 +163,29 @@ void main() {
         await repository.logoutCurrentSession(refreshToken: 'saved-refresh-token');
 
         verify(
-          () => dio.post<void>('/auth/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
+          () => dio.post<void>('/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
         ).called(1);
-        verifyNever(() => authenticatedDio.post<void>(any(), data: any(named: 'data')));
       });
 
       test('when logout fails, it should propagate the transport error', () async {
-        final error = DioException(requestOptions: RequestOptions(path: '/auth/sessions/logout'));
+        final error = DioException(requestOptions: RequestOptions(path: '/sessions/logout'));
         when(
-          () => dio.post<void>('/auth/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
+          () => dio.post<void>('/sessions/logout', data: <String, String>{'refreshToken': 'saved-refresh-token'}),
         ).thenThrow(error);
 
         await expectLater(repository.logoutCurrentSession(refreshToken: 'saved-refresh-token'), throwsA(same(error)));
       });
     });
-
-    group('createMapsAccessToken', () {
-      setUp(() {
-        _AuthRepositoryTestData.stubMapsAccessTokenRequest(dio: authenticatedDio);
-      });
-
-      test('when creating maps access, it should call the authenticated microservice endpoint', () async {
-        await repository.createMapsAccessToken();
-
-        verify(() => authenticatedDio.post<Map<String, Object?>>('/auth/microservices/maps')).called(1);
-      });
-
-      test('when maps access is issued, it should map the bearer access token', () async {
-        final envelope = await repository.createMapsAccessToken();
-
-        expect(
-          (accessToken: envelope.data.accessToken, tokenType: envelope.data.tokenType),
-          (accessToken: 'header.payload.signature', tokenType: MicroserviceAccessTokenType.bearer),
-        );
-      });
-
-      test('when maps access is issued, it should map the expiration timestamp', () async {
-        final envelope = await repository.createMapsAccessToken();
-
-        expect(envelope.data.expiresAt, DateTime.parse('2026-08-22T15:10:00.000Z'));
-      });
-    });
   });
 
   group('authRepositoryProvider', () {
-    test('when reading the provider, it should use both API clients for their matching operations', () {
-      final container = ProviderContainer(
-        overrides: [
-          authenticatedCataquiApiV1DioProvider.overrideWithValue(authenticatedDio),
-          unauthenticatedCataquiApiV1DioProvider.overrideWithValue(dio),
-        ],
-      );
+    test('when reading the provider, it should use the Auth worker client', () {
+      final container = ProviderContainer(overrides: [authV1DioProvider.overrideWithValue(dio)]);
       addTearDown(container.dispose);
 
       final repository = container.read(authRepositoryProvider);
 
-      expect(
-        (
-          usesAuthenticated: identical(repository.authenticatedDio, authenticatedDio),
-          usesUnauthenticated: identical(repository.unauthenticatedDio, dio),
-        ),
-        (usesAuthenticated: true, usesUnauthenticated: true),
-      );
+      expect(repository.authDio, same(dio));
     });
   });
 }
@@ -246,7 +204,7 @@ class _AuthRepositoryTestData {
     },
     'requestId': 'notp-intent-request-001',
     'timestamp': '2026-08-10T15:00:00.000Z',
-    'endpoint': '/v1/auth/notp/intents',
+    'endpoint': '/v1/notp/intents',
   };
 
   static final issuedSessionResponseJson = <String, Object?>{
@@ -256,18 +214,18 @@ class _AuthRepositoryTestData {
       'expiresAt': '2026-08-10T15:15:00.000Z',
       'refreshToken': 'refresh-token',
       'refreshExpiresAt': '2026-09-09T15:15:00.000Z',
-      'userId': '4963fef0-b62a-4760-9f99-675fdc42a896',
+      'accountId': '4963fef0-b62a-4760-9f99-675fdc42a896',
     },
     'requestId': 'notp-exchange-request-002',
     'timestamp': '2026-08-10T15:00:01.000Z',
-    'endpoint': '/v1/auth/notp/intents/exchange',
+    'endpoint': '/v1/notp/intents/exchange',
   };
 
   static final pendingResponseJson = <String, Object?>{
     'data': <String, Object?>{'status': 'PENDING', 'retryAfterSeconds': 3},
     'requestId': 'notp-exchange-request-001',
     'timestamp': '2026-08-10T15:00:00.000Z',
-    'endpoint': '/v1/auth/notp/intents/exchange',
+    'endpoint': '/v1/notp/intents/exchange',
   };
 
   static final refreshSessionResponseJson = <String, Object?>{
@@ -277,59 +235,44 @@ class _AuthRepositoryTestData {
       'expiresAt': '2026-08-11T15:15:00.000Z',
       'refreshToken': 'rotated-refresh-token',
       'refreshExpiresAt': '2026-09-10T15:15:00.000Z',
-      'userId': '4963fef0-b62a-4760-9f99-675fdc42a896',
+      'accountId': '4963fef0-b62a-4760-9f99-675fdc42a896',
     },
     'requestId': 'auth-refresh-request-003',
     'timestamp': '2026-08-11T15:00:00.000Z',
-    'endpoint': '/v1/auth/sessions/refresh',
-  };
-
-  static final mapsAccessTokenResponseJson = <String, Object?>{
-    'data': <String, Object?>{
-      'accessToken': 'header.payload.signature',
-      'expiresAt': '2026-08-22T15:10:00.000Z',
-      'tokenType': 'Bearer',
-    },
-    'requestId': 'maps-token-request-004',
-    'timestamp': '2026-08-22T15:00:00.000Z',
-    'endpoint': '/v1/auth/microservices/maps',
+    'endpoint': '/v1/sessions/refresh',
   };
 
   static void stubCreatedNotpIntentRequest({required MockDio dio}) {
     when(
-      () => dio.post<Map<String, Object?>>('/auth/notp/intents', data: <String, String>{'channel': 'WHATSAPP'}),
+      () => dio.post<Map<String, Object?>>('/notp/intents', data: <String, String>{'channel': 'WHATSAPP'}),
     ).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: responseJson,
-        requestOptions: RequestOptions(path: '/auth/notp/intents'),
+        requestOptions: RequestOptions(path: '/notp/intents'),
       ),
     );
   }
 
   static void stubIssuedSessionExchangeRequest({required MockDio dio}) {
     when(
-      () => dio.post<Map<String, Object?>>(
-        '/auth/notp/intents/exchange',
-        data: <String, String>{'intentToken': intentToken},
-      ),
+      () =>
+          dio.post<Map<String, Object?>>('/notp/intents/exchange', data: <String, String>{'intentToken': intentToken}),
     ).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: issuedSessionResponseJson,
-        requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
+        requestOptions: RequestOptions(path: '/notp/intents/exchange'),
       ),
     );
   }
 
   static void stubPendingExchangeRequest({required MockDio dio}) {
     when(
-      () => dio.post<Map<String, Object?>>(
-        '/auth/notp/intents/exchange',
-        data: <String, String>{'intentToken': intentToken},
-      ),
+      () =>
+          dio.post<Map<String, Object?>>('/notp/intents/exchange', data: <String, String>{'intentToken': intentToken}),
     ).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: pendingResponseJson,
-        requestOptions: RequestOptions(path: '/auth/notp/intents/exchange'),
+        requestOptions: RequestOptions(path: '/notp/intents/exchange'),
       ),
     );
   }
@@ -337,22 +280,13 @@ class _AuthRepositoryTestData {
   static void stubRefreshSessionRequest({required MockDio dio}) {
     when(
       () => dio.post<Map<String, Object?>>(
-        '/auth/sessions/refresh',
+        '/sessions/refresh',
         data: <String, String>{'refreshToken': 'saved-refresh-token'},
       ),
     ).thenAnswer(
       (_) async => Response<Map<String, Object?>>(
         data: refreshSessionResponseJson,
-        requestOptions: RequestOptions(path: '/auth/sessions/refresh'),
-      ),
-    );
-  }
-
-  static void stubMapsAccessTokenRequest({required MockDio dio}) {
-    when(() => dio.post<Map<String, Object?>>('/auth/microservices/maps')).thenAnswer(
-      (_) async => Response<Map<String, Object?>>(
-        data: mapsAccessTokenResponseJson,
-        requestOptions: RequestOptions(path: '/auth/microservices/maps'),
+        requestOptions: RequestOptions(path: '/sessions/refresh'),
       ),
     );
   }

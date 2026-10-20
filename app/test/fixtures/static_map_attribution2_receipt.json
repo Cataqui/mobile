@@ -1,0 +1,174 @@
+{
+  "kind": "synthetic-composition-ui-fixtures",
+  "noNativeOrSourceRequests": true,
+  "entries": [
+    {
+      "name": "square",
+      "file": "/tmp/cataqui-native-image-composition-20261011/static_map_attribution2_square.webp",
+      "size": {
+        "width": 360,
+        "height": 360
+      },
+      "output": {
+        "pixelWidth": 720,
+        "pixelHeight": 720,
+        "quality": 80
+      },
+      "sha256": "dc036601f8a1814ced01f5f5fac601fd047afb9457ffaa80b2e80fb73820cab7",
+      "bytes": 5296,
+      "composition": {
+        "version": "protomaps-osm-v1",
+        "output": {
+          "pixelWidth": 720,
+          "pixelHeight": 720,
+          "quality": 80
+        },
+        "attribution": {
+          "left": 352,
+          "top": 644,
+          "width": 352,
+          "height": 60,
+          "fontSize": 18,
+          "padding": 12,
+          "lineHeight": 22
+        },
+        "reservedArea": {
+          "left": 176,
+          "top": 322,
+          "width": 176,
+          "height": 30
+        }
+      },
+      "metadata": {
+        "format": "webp",
+        "mediaType": "image/webp",
+        "size": 5296,
+        "width": 720,
+        "height": 720,
+        "space": "srgb",
+        "channels": 3,
+        "depth": "uchar",
+        "isProgressive": false,
+        "isPalette": false,
+        "hasProfile": false,
+        "hasAlpha": false,
+        "autoOrient": {
+          "width": 720,
+          "height": 720
+        }
+      }
+    },
+    {
+      "name": "wide",
+      "file": "/tmp/cataqui-native-image-composition-20261011/static_map_attribution2_wide.webp",
+      "size": {
+        "width": 360,
+        "height": 200
+      },
+      "output": {
+        "pixelWidth": 720,
+        "pixelHeight": 400,
+        "quality": 80
+      },
+      "sha256": "13eb008e72767fe216292f3812351d276c7de62d3ae9a4f7a4086af6b1a8b98b",
+      "bytes": 4622,
+      "composition": {
+        "version": "protomaps-osm-v1",
+        "output": {
+          "pixelWidth": 720,
+          "pixelHeight": 400,
+          "quality": 80
+        },
+        "attribution": {
+          "left": 352,
+          "top": 324,
+          "width": 352,
+          "height": 60,
+          "fontSize": 18,
+          "padding": 12,
+          "lineHeight": 22
+        },
+        "reservedArea": {
+          "left": 176,
+          "top": 162,
+          "width": 176,
+          "height": 30
+        }
+      },
+      "metadata": {
+        "format": "webp",
+        "mediaType": "image/webp",
+        "size": 4622,
+        "width": 720,
+        "height": 400,
+        "space": "srgb",
+        "channels": 3,
+        "depth": "uchar",
+        "isProgressive": false,
+        "isPalette": false,
+        "hasProfile": false,
+        "hasAlpha": false,
+        "autoOrient": {
+          "width": 720,
+          "height": 400
+        }
+      }
+    },
+    {
+      "name": "card",
+      "file": "/tmp/cataqui-native-image-composition-20261011/static_map_attribution2_card.webp",
+      "size": {
+        "width": 320,
+        "height": 400
+      },
+      "output": {
+        "pixelWidth": 720,
+        "pixelHeight": 900,
+        "quality": 80
+      },
+      "sha256": "9e2d71ac82e811f1e0d36b2f8959a8d062d8dd164cbbc48e042c928e09854db9",
+      "bytes": 5712,
+      "composition": {
+        "version": "protomaps-osm-v1",
+        "output": {
+          "pixelWidth": 720,
+          "pixelHeight": 900,
+          "quality": 80
+        },
+        "attribution": {
+          "left": 306,
+          "top": 814,
+          "width": 396,
+          "height": 68,
+          "fontSize": 20.25,
+          "padding": 13.5,
+          "lineHeight": 24.75
+        },
+        "reservedArea": {
+          "left": 136,
+          "top": 361.77777777777777,
+          "width": 176,
+          "height": 30.22222222222222
+        }
+      },
+      "metadata": {
+        "format": "webp",
+        "mediaType": "image/webp",
+        "size": 5712,
+        "width": 720,
+        "height": 900,
+        "space": "srgb",
+        "channels": 3,
+        "depth": "uchar",
+        "isProgressive": false,
+        "isPalette": false,
+        "hasProfile": false,
+        "hasAlpha": false,
+        "autoOrient": {
+          "width": 720,
+          "height": 900
+        }
+      }
+    }
+  ]
+}

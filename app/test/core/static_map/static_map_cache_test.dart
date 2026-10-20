@@ -15,14 +15,17 @@ void main() {
   late MockStaticMapFileService fileService;
   late MockStaticMapFileServiceResponse response;
   late CacheManager manager;
-  const request = StaticMapRequest(imageUrl: 'https://maps.cataqui.com/static/fixture', size: .pixels960x960);
+  final request = StaticMapRequest.forSize(
+    imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp',
+    size: .square,
+  )!;
   setUp(() async {
     directory = await Directory.systemTemp.createTemp('cataqui_static_map_cache_test');
     fileSystem = MockStaticMapFileSystem();
     fileService = MockStaticMapFileService();
     when(() => fileService.concurrentFetches).thenReturn(10);
     response = MockStaticMapFileServiceResponse();
-    final bytes = const LocalFileSystem().file('test/fixtures/static_map.jpg').readAsBytesSync();
+    final bytes = const LocalFileSystem().file('test/fixtures/static_map_v1_square.webp').readAsBytesSync();
     when(() => fileSystem.createFile(any())).thenAnswer(
       (invocation) async => const LocalFileSystem().file('${directory.path}/${invocation.positionalArguments.first}'),
     );

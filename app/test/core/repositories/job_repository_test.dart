@@ -19,9 +19,9 @@ void main() {
   setUp(() {
     authenticatedDio = MockDio();
     unauthenticatedDio = MockDio();
-    repository = JobRepository(authenticatedDio: authenticatedDio, unauthenticatedDio: unauthenticatedDio);
-    _JobRepositoryTestHelpers.stubJobRequest(dio: unauthenticatedDio);
-    _JobRepositoryTestHelpers.stubJobContactRequest(dio: unauthenticatedDio);
+    repository = JobRepository(authenticatedDio: authenticatedDio);
+    _JobRepositoryTestHelpers.stubJobRequest(dio: authenticatedDio);
+    _JobRepositoryTestHelpers.stubJobContactRequest(dio: authenticatedDio);
     _JobRepositoryTestHelpers.stubCreateJobRequest(dio: authenticatedDio);
     _JobRepositoryTestHelpers.stubStatusRequests(dio: authenticatedDio);
   });
@@ -100,7 +100,7 @@ void main() {
       test('when requesting a job, it should call the job detail endpoint with the job id', () async {
         await repository.getPublicJob(jobId: _JobRepositoryTestData.jobId);
 
-        verify(() => unauthenticatedDio.get<Map<String, Object?>>('/jobs/${_JobRepositoryTestData.jobId}')).called(1);
+        verify(() => authenticatedDio.get<Map<String, Object?>>('/jobs/${_JobRepositoryTestData.jobId}')).called(1);
       });
 
       test('when receiving a job, it should map the job dto data', () async {
@@ -111,7 +111,7 @@ void main() {
 
       test('when receiving payment text, it should preserve the backend text', () async {
         _JobRepositoryTestHelpers.stubJobRequest(
-          dio: unauthenticatedDio,
+          dio: authenticatedDio,
           responseJson: {
             ..._JobRepositoryTestData.jobEnvelopeJson,
             'data': PublicJobDto.fixture().copyWith(payment: r'R$150 ou R$140').toJson(),
@@ -125,7 +125,7 @@ void main() {
 
       test('when receiving null payment, it should preserve null', () async {
         _JobRepositoryTestHelpers.stubJobRequest(
-          dio: unauthenticatedDio,
+          dio: authenticatedDio,
           responseJson: {
             ..._JobRepositoryTestData.jobEnvelopeJson,
             'data': PublicJobDto.fixture().copyWith(payment: null).toJson(),
@@ -172,7 +172,7 @@ void main() {
         );
 
         verify(
-          () => unauthenticatedDio.get<Map<String, Object?>>(
+          () => authenticatedDio.get<Map<String, Object?>>(
             '/jobs/${_JobRepositoryTestData.jobId}/contact/${_JobRepositoryTestData.contactId}',
           ),
         ).called(1);
@@ -208,7 +208,7 @@ void main() {
   });
 
   group('jobRepositoryProvider', () {
-    test('injects authenticated dio for posting and unauthenticated dio for public reads', () {
+    test('when reading the provider, it should authenticate posting and job reads', () {
       final container = _JobRepositoryTestHelpers.createProviderContainer(
         authenticatedDio: authenticatedDio,
         unauthenticatedDio: unauthenticatedDio,
@@ -217,7 +217,6 @@ void main() {
       final result = container.read(jobRepositoryProvider);
 
       expect(result.authenticatedDio, same(authenticatedDio));
-      expect(result.unauthenticatedDio, same(unauthenticatedDio));
     });
   });
 }

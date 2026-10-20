@@ -1,3 +1,4 @@
+import 'package:cataqui_app/core/app_auth/authenticated_provider_retry.dart';
 import 'package:cataqui_app/core/dtos/feed_job_dto.dart';
 import 'package:cataqui_app/core/dtos/public_job_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
@@ -6,7 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_state.g.dart';
 
-@Riverpod(keepAlive: true)
+@Riverpod(keepAlive: true, retry: AuthenticatedProviderRetry.retry)
 class FeedState extends _$FeedState {
   bool _isFetchingNextPage = false;
   int _refreshGeneration = 0;

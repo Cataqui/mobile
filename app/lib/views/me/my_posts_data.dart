@@ -6,7 +6,7 @@ part 'my_posts_data.freezed.dart';
 @freezed
 abstract class MyPostsData with _$MyPostsData {
   const factory MyPostsData({
-    required String userId,
+    required String accountId,
     required List<UserJobSummaryDto> jobs,
     required bool hasMore,
     String? nextCursor,

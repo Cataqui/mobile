@@ -168,7 +168,7 @@ void main() {
       },
     );
     test('when the user signs out after a failed background post, it should discard that account draft', () async {
-      authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'original-poster');
+      authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'original-poster');
       final publication = expectLater(postState.publish(), throwsStateError);
       subscription.close();
       await container.pump();
@@ -190,12 +190,12 @@ void main() {
       test(
         'when the account changes during background publication (fails: $fails), it should ignore the previous account result',
         () async {
-          authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'original-poster');
+          authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'original-poster');
           final publication = postState.publish();
           subscription.close();
           await container.pump();
 
-          authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'different-poster');
+          authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'different-poster');
           await container.pump();
           if (fails) {
             pendingPublication.completeError(StateError('previous account publication failed'));
@@ -210,7 +210,7 @@ void main() {
 
     test('when authentication completes during publication, it should finish the existing draft', () async {
       final publication = postState.publish();
-      authState.currentSession = AuthSessionDto.fixture().copyWith(userId: 'authenticated-poster');
+      authState.currentSession = AuthSessionDto.fixture().copyWith(accountId: 'authenticated-poster');
       await container.pump();
       final postedJob = PublicJobDto.fixture().copyWith(jobId: 'published-after-authentication');
       pendingPublication.complete(ApiEnvelopeDto.fixture(data: postedJob));

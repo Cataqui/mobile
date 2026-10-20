@@ -39,7 +39,7 @@ abstract class PublicJobDto with _$PublicJobDto {
       latitude: -23.556391,
       longitude: -46.844076,
       areaRadius: 2000,
-      imageUrl: 'https://maps.cataqui.com/static/fixture',
+      imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp',
     ),
     payment: r'R$120',
     status: .active,

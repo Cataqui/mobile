@@ -16,14 +16,36 @@ class _FeedViewBody extends ConsumerStatefulWidget {
 }
 
 class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
-  static const MateoShape _mapSurfaceShape = .rounded(radius: 48);
+  static const _detailsInset = 9.0;
 
   late final JobLocationImagePrefetcher _imagePrefetcher;
   bool _prefetchScheduled = false;
+  Size? _mapViewport;
+  double _feedViewportHeight = 0;
+  (int, int) _lastExposedIndices = (0, 0);
+
+  MateoShape get _mapSurfaceShape => const MateoShape.rounded(radius: 48);
 
   int get _currentIndex => widget.snapListController.index ?? 0;
 
+  (int, int) get _exposedIndices {
+    final position = widget.snapListController.position ?? 0;
+    return (position.floor(), position.ceil());
+  }
+
+  bool _isMapEnabled({required int index, required String imageUrl}) {
+    final (first, last) = _exposedIndices;
+    if (index >= first && index <= last) return true;
+    final request = StaticMapRequest.forSize(imageUrl: imageUrl, size: .tall);
+    return request != null && _imagePrefetcher.hasCachedBytes(cacheKey: request.cacheKey);
+  }
+
   void _onFeedPositionChanged() {
+    final exposedIndices = _exposedIndices;
+    if (_lastExposedIndices != exposedIndices) {
+      setState(() => _lastExposedIndices = exposedIndices);
+      _scheduleImagePrefetch();
+    }
     final data = ref.read(feedStateProvider).value;
     final position = widget.snapListController.position;
     if (data == null || position == null || !data.hasMore || data.paginationError != null) return;
@@ -38,12 +60,25 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
       _prefetchScheduled = false;
       if (!mounted) return;
       final data = ref.read(feedStateProvider).value;
+      final viewport = _mapViewport;
+      if (viewport == null) return;
+      final (first, last) = _exposedIndices;
       _imagePrefetcher.update(
+        priorityRequests: [
+          if (data != null)
+            for (var index = first; index <= last; index++)
+              if (index >= 0 && index < data.jobs.length)
+                if (StaticMapRequest.forSize(imageUrl: data.jobs[index].location.imageUrl, size: .tall)
+                    case final request?)
+                  request,
+        ],
         requests: [
           if (data != null)
-            for (final offset in [2, 3])
+            for (final offset in [1, 2, 3])
               if (_currentIndex + offset < data.jobs.length)
-                StaticMapRequest(imageUrl: data.jobs[_currentIndex + offset].location.imageUrl, size: .pixels960x2560),
+                if (StaticMapRequest.forSize(imageUrl: data.jobs[_currentIndex + offset].location.imageUrl, size: .tall)
+                    case final request?)
+                  request,
         ],
       );
     });
@@ -52,7 +87,12 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
   @override
   void initState() {
     super.initState();
-    _imagePrefetcher = JobLocationImagePrefetcher(cacheManager: ref.read(staticMapCacheManagerProvider));
+    _imagePrefetcher = JobLocationImagePrefetcher(
+      cacheManager: ref.read(staticMapCacheManagerProvider),
+      onImageCached: () {
+        if (mounted) setState(() {});
+      },
+    );
     widget.snapListController.addListener(_onFeedPositionChanged);
   }
 
@@ -65,15 +105,28 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
 
   @override
   Widget build(BuildContext context) {
-    _scheduleImagePrefetch();
-    return ref
-        .watch(feedStateProvider)
-        .when(
-          data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
-          error: (error, st) =>
-              KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
-          loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _feedViewportHeight = constraints.maxHeight;
+        // Tiny feed bodies scroll the details and a legible map together.
+        const minimumDetailsViewportHeight = 96;
+        const minimumMapViewportHeight = 200.0;
+        final minimumMapHeight = math.max<double>(
+          minimumMapViewportHeight,
+          minimumDetailsViewportHeight + _detailsInset * 2 + JobLocationImage.attributionBottomSpacing,
         );
+        _mapViewport = Size(constraints.maxWidth, math.max(constraints.maxHeight, minimumMapHeight));
+        _scheduleImagePrefetch();
+        return ref
+            .watch(feedStateProvider)
+            .when(
+              data: (data) => KeyedSubtree(key: const ValueKey('feed_data'), child: _buildFeedContent(context, data)),
+              error: (error, st) =>
+                  KeyedSubtree(key: const ValueKey('feed_error'), child: _buildInitialError(context, error)),
+              loading: () => KeyedSubtree(key: const ValueKey('feed_loading'), child: _buildInitialLoading(context)),
+            );
+      },
+    );
   }
 
   Widget _buildFeedContent(BuildContext context, FeedData feedData) {
@@ -117,19 +170,50 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
           shape: _mapSurfaceShape,
           width: const .fill(),
           height: const .fill(),
-          child: Stack(
-            fit: .expand,
-            children: [
-              JobLocationImage(imageUrl: job.location.imageUrl, size: .pixels960x2560),
-              Padding(
-                padding: const EdgeInsets.all(9),
-                child: Align(
-                  alignment: .topCenter,
-                  child: SingleChildScrollView(child: FeedJobCard(feedJob: job)),
+          child: _mapViewport!.height > _feedViewportHeight
+              ? SingleChildScrollView(
+                  key: ValueKey('feed_map_viewport_${job.jobId}'),
+                  primary: false,
+                  child: Column(
+                    crossAxisAlignment: .stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(_detailsInset),
+                        child: FeedJobCard(feedJob: job),
+                      ),
+                      SizedBox(
+                        height: _mapViewport!.height,
+                        child: JobLocationImage(
+                          imageUrl: job.location.imageUrl,
+                          size: .tall,
+                          enabled: _isMapEnabled(index: index, imageUrl: job.location.imageUrl),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Stack(
+                  fit: .expand,
+                  children: [
+                    JobLocationImage(
+                      imageUrl: job.location.imageUrl,
+                      size: .tall,
+                      enabled: _isMapEnabled(index: index, imageUrl: job.location.imageUrl),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        _detailsInset,
+                        _detailsInset,
+                        _detailsInset,
+                        _detailsInset + JobLocationImage.attributionBottomSpacing,
+                      ),
+                      child: Align(
+                        alignment: .topCenter,
+                        child: SingleChildScrollView(child: FeedJobCard(feedJob: job)),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         );
       },
     );

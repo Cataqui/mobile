@@ -6,6 +6,7 @@ import 'package:cataqui_app/widgets/job_location_image/job_location_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mateo_mobile/mateo_mobile.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
@@ -17,8 +18,30 @@ void main() {
   setUp(() {
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
-    manager = StaticMapCacheTestHelpers.create();
+    manager = StaticMapCacheTestHelpers.create(usePortrait: true);
   });
+  goldenTest(
+    'when a standard native map is rounded, it should keep the complete attribution inside the visible image',
+    fileName: 'job_location_image_native_attribution_rounded',
+    constraints: const BoxConstraints.tightFor(width: 360, height: 360),
+    builder: () {
+      manager = StaticMapCacheTestHelpers.create(fixturePath: 'test/fixtures/static_map_v1_square.webp');
+      return TestApp.screen(
+        providerOverrides: [staticMapCacheManagerProvider.overrideWith((ref) => manager)],
+        child: LayoutBuilder(
+          builder: (context, constraints) => const MateoSurface(
+            shape: .rounded(radius: 48),
+            child: JobLocationImage(imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp'),
+          ),
+        ),
+      );
+    },
+    whilePerforming: (tester) async {
+      await StaticMapCacheTestHelpers.loadImages(tester);
+      await tester.pumpAndSettle();
+      return null;
+    },
+  );
   for (final size in [const Size(320, 400), const Size(440, 600)]) {
     goldenTest(
       'when the map is loaded on a ${size.width.toInt()} wide phone, it should crop without distortion',
@@ -92,7 +115,7 @@ abstract final class _JobLocationImageGoldenHelpers {
   static Widget build(MockStaticMapCacheManager manager) => TestApp.screen(
     providerOverrides: [staticMapCacheManagerProvider.overrideWith((ref) => manager)],
     child: const SizedBox.expand(
-      child: JobLocationImage(imageUrl: 'https://maps.cataqui.com/static/fixture', size: .pixels960x2560),
+      child: JobLocationImage(imageUrl: 'https://maps.cataqui.com/static/v1/fixture_reference.webp'),
     ),
   );
 }
