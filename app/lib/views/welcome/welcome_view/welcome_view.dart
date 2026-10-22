@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/icons.g.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
-import 'package:cataqui_app/views/feed/feed_route.dart';
-import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/welcome/welcome_view/enums/welcome_artwork_slot.dart';
 import 'package:cataqui_app/views/welcome/welcome_view/enums/welcome_scene_phase.dart';
+import 'package:cataqui_app/widgets/whatsapp_connection_button/whatsapp_connection_button.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -304,66 +302,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                     ),
                   ],
                   child: RepaintBoundary(
-                    child: MateoMenuButton(
-                      key: const ValueKey('welcome_start_button'),
-                      animation: const .transform(),
-                      buttonPresentation: .label(
-                        label: i18n.welcome.startButton,
-                        variant: .primary.neutral,
-                        width: .fill,
-                      ),
-                      menuPresentation: .options(
-                        density: .standard,
-                        width: .fill,
-                        items: [
-                          .new(
-                            principal: Text(
-                              i18n.welcome.actions.post.title,
-                              key: const ValueKey('welcome_post_action'),
-                            ),
-                            supporting: Text(i18n.welcome.actions.post.description),
-                            leading: MateoIcon(
-                              .boxPencil,
-                              backgroundColor: MateoTheme.of(context).palette.green[9],
-                              color: MateoTheme.of(context).palette.white,
-                            ),
-                          ),
-                          .new(
-                            principal: Text(
-                              i18n.welcome.actions.browse.title,
-                              key: const ValueKey('welcome_browse_action'),
-                            ),
-                            supporting: Text(i18n.welcome.actions.browse.description),
-                            leading: MateoIcon(
-                              .rectangleStack,
-                              backgroundColor: MateoTheme.of(context).palette.blue[9],
-                              color: MateoTheme.of(context).palette.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                      onItemPressed: (item) async {
-                        if (item.principal?.key == const ValueKey('welcome_post_action')) {
-                          await ref.read(appRouterProvider.notifier).go(context, const PostRoute());
-                          return;
-                        }
-                        try {
-                          await ref.read(appStorageStateProvider.notifier).completeOnboarding();
-                        } catch (error, stackTrace) {
-                          FlutterError.reportError(
-                            FlutterErrorDetails(
-                              exception: error,
-                              stack: stackTrace,
-                              library: 'cataqui_app',
-                              context: ErrorDescription('while saving onboarding completion'),
-                            ),
-                          );
-                        }
-
-                        if (!context.mounted) return;
-                        await ref.read(appRouterProvider.notifier).go(context, const FeedRoute());
-                      },
-                    ),
+                    child: WhatsappConnectionButton(key: const ValueKey('welcome_start_button'), onSuccess: (_) {}),
                   ),
                 ),
               ),

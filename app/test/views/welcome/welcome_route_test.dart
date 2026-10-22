@@ -15,11 +15,14 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../mocks.dart';
 import '../../utils/test_app.dart';
+import '../../widgets/whatsapp_connection_button/whatsapp_connection_button_test_helpers.dart';
 
 abstract final class WelcomeRouteTestHelpers {
   static Future<({ProviderContainer container, GoRouter router})> pumpRoute({
     required WidgetTester tester,
     MockSharedPreferencesAsync? sharedPreferences,
+    MockAuthRepository? authRepository,
+    MockWhatsapp? whatsapp,
   }) async {
     final resolvedSharedPreferences = sharedPreferences ?? MockSharedPreferencesAsync();
     when(() => resolvedSharedPreferences.getBool(any())).thenAnswer((_) async => null);
@@ -40,6 +43,9 @@ abstract final class WelcomeRouteTestHelpers {
         routerConfig: router,
         mediaQueryData: const MediaQueryData(disableAnimations: true),
         providerOverrides: [
+          if (authRepository != null) authRepositoryProvider.overrideWithValue(authRepository),
+          if (whatsapp != null)
+            whatsappProvider(identifier: WhatsappConnectionButtonTestHelpers.codeReceiver).overrideWithValue(whatsapp),
           translationProvider.overrideWithValue(AppLocale.ptBr.buildSync()),
           sharedPreferencesAsyncProvider.overrideWithValue(resolvedSharedPreferences),
         ],
@@ -59,59 +65,42 @@ void main() {
     expect(find.byType(WelcomeView), findsOneWidget);
   });
 
-  testWidgets('when tapping start, it should show every localized welcome action without navigating', (tester) async {
-    final routeState = await WelcomeRouteTestHelpers.pumpRoute(tester: tester);
-    final i18n = AppLocale.ptBr.buildSync();
-    await tester.tap(find.byKey(const ValueKey('welcome_start_button')));
-    await tester.pumpAndSettle();
+  for (final hasSession in [false, true]) {
+    testWidgets('connecting WhatsApp stays on Welcome with an existing session: $hasSession', (tester) async {
+      final authRepository = MockAuthRepository();
+      final whatsapp = MockWhatsapp();
+      WhatsappConnectionButtonTestHelpers.stubSuccessfulRegistration(
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+      );
+      WhatsappConnectionButtonTestHelpers.stubSuccessfulExchange(authRepository: authRepository);
+      final (:container, :router) = await WelcomeRouteTestHelpers.pumpRoute(
+        tester: tester,
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+      );
+      if (hasSession) {
+        await container
+            .read(appAuthStateProvider.notifier)
+            .setSession(
+              AuthSessionDto.fixture().copyWith(
+                accessTokenExpiresAt: DateTime.utc(2100),
+                refreshTokenExpiresAt: DateTime.utc(2100),
+              ),
+            );
+      }
+      expect(find.text('Conectar WhatsApp'), findsOneWidget);
+      expect(find.byType(MateoMenuButton), findsNothing);
+      await WhatsappConnectionButtonTestHelpers.startConnection(tester: tester);
+      await WhatsappConnectionButtonTestHelpers.resumeApp(tester: tester);
+      await tester.pumpAndSettle();
 
-    expect(
-      (
-        route: routeState.router.routeInformationProvider.value.uri.path,
-        postTitle: find.text(i18n.welcome.actions.post.title).evaluate().length,
-        postDescription: find.text(i18n.welcome.actions.post.description).evaluate().length,
-        browseTitle: find.text(i18n.welcome.actions.browse.title).evaluate().length,
-        browseDescription: find.text(i18n.welcome.actions.browse.description).evaluate().length,
-      ),
-      (route: const WelcomeRoute().location, postTitle: 1, postDescription: 1, browseTitle: 1, browseDescription: 1),
-    );
-  });
-
-  testWidgets('when choosing post with a valid session, it should open the protected post route', (tester) async {
-    final (:container, :router) = await WelcomeRouteTestHelpers.pumpRoute(tester: tester);
-    await container
-        .read(appAuthStateProvider.notifier)
-        .setSession(
-          AuthSessionDto.fixture().copyWith(
-            accessTokenExpiresAt: DateTime.utc(2100),
-            refreshTokenExpiresAt: DateTime.utc(2100),
-          ),
-        );
-
-    await tester.tap(find.byKey(const ValueKey('welcome_start_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('welcome_post_action')));
-    await tester.pumpAndSettle();
-
-    expect(router.routeInformationProvider.value.uri.path, '/post');
-  });
-
-  testWidgets('when choosing browse, it should complete onboarding and open the feed', (tester) async {
-    final (:container, :router) = await WelcomeRouteTestHelpers.pumpRoute(tester: tester);
-
-    await tester.tap(find.byKey(const ValueKey('welcome_start_button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('welcome_browse_action')));
-    await tester.pumpAndSettle();
-
-    expect(
-      (
-        route: router.routeInformationProvider.value.uri.path,
-        completedOnboarding: container.read(appStorageStateProvider).requireValue.hasCompletedOnboarding,
-      ),
-      (route: '/feed', completedOnboarding: true),
-    );
-  });
+      expect(container.read(appAuthStateProvider), WhatsappConnectionButtonTestHelpers.authSession);
+      expect(find.byType(WelcomeView), findsOneWidget);
+      expect(router.routeInformationProvider.value.uri.path, const WelcomeRoute().location);
+      expect(container.read(appStorageStateProvider).requireValue.hasCompletedOnboarding, isFalse);
+    });
+  }
 
   testWidgets('when tapping terms, it should launch the terms URL without navigating', (tester) async {
     const urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');

@@ -187,17 +187,6 @@
     "headline": "O app dos bicos",
     "subtitle": "Encontre e poste bicos na sua cidade",
     "sceneAccessibilityLabel": "Exemplos de bicos perto de você",
-    "startButton": "Começar",
-    "actions": {
-      "post": {
-        "title": "Postar um bico",
-        "description": "Tá precisando de alguém?"
-      },
-      "browse": {
-        "title": "Ver bicos",
-        "description": "Quer ver o que já postaram?"
-      }
-    },
     "terms": {
       "prefix": "Ao usar esse app, você concorda em aceitar nossos",
       "link": "termos de uso"

@@ -27,7 +27,7 @@ void main() {
           start: find
               .descendant(
                 of: find.byKey(const ValueKey('welcome_start_button')),
-                matching: find.text(i18n.welcome.startButton),
+                matching: find.text(i18n.whatsappConnectionButton.label),
               )
               .evaluate()
               .length,
@@ -997,23 +997,23 @@ void main() {
       final termsLabel = '${i18n.welcome.terms.prefix} ${i18n.welcome.terms.link}';
       final initial = (
         terms: find.bySemanticsLabel(termsLabel).evaluate().length,
-        button: find.bySemanticsLabel(i18n.welcome.startButton).evaluate().length,
+        button: find.bySemanticsLabel(i18n.whatsappConnectionButton.label).evaluate().length,
       );
       await tester.pump(const Duration(milliseconds: 1850));
       final beforeControlsStart = (
         terms: find.bySemanticsLabel(termsLabel).evaluate().length,
-        button: find.bySemanticsLabel(i18n.welcome.startButton).evaluate().length,
+        button: find.bySemanticsLabel(i18n.whatsappConnectionButton.label).evaluate().length,
       );
       await tester.pump(const Duration(milliseconds: 499));
       final beforeControlsCompletion = (
         terms: find.bySemanticsLabel(termsLabel).evaluate().length,
-        button: find.bySemanticsLabel(i18n.welcome.startButton).evaluate().length,
+        button: find.bySemanticsLabel(i18n.whatsappConnectionButton.label).evaluate().length,
       );
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump();
       final afterControlsCompletion = (
         terms: find.bySemanticsLabel(termsLabel).evaluate().length,
-        button: find.bySemanticsLabel(i18n.welcome.startButton).evaluate().length,
+        button: find.bySemanticsLabel(i18n.whatsappConnectionButton.label).evaluate().length,
       );
       semantics.dispose();
 
@@ -1081,7 +1081,9 @@ void main() {
 
       expect(
         (
-          startCallback: tester.widget<MateoMenuButton>(startFinder).onItemPressed != null,
+          startCallback:
+              tester.widget<MateoButton>(find.byKey(const ValueKey('whatsapp_connection_button_action'))).onPressed !=
+              null,
           startSemantics: (
             startData.flagsCollection.isButton,
             startData.flagsCollection.isEnabled,
