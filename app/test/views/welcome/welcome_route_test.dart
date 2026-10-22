@@ -98,7 +98,6 @@ void main() {
       expect(container.read(appAuthStateProvider), WhatsappConnectionButtonTestHelpers.authSession);
       expect(find.byType(WelcomeView), findsOneWidget);
       expect(router.routeInformationProvider.value.uri.path, const WelcomeRoute().location);
-      expect(container.read(appStorageStateProvider).requireValue.hasCompletedOnboarding, isFalse);
     });
   }
 

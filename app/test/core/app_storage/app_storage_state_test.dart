@@ -101,20 +101,6 @@ void main() {
     expect(notificationCount, 0);
   });
 
-  test('when onboarding completion was never stored, it should load it as false', () async {
-    final data = await buildContainer().read(appStorageStateProvider.future);
-
-    expect(data.hasCompletedOnboarding, isFalse);
-  });
-
-  test('when onboarding completion is stored as true, it should load it as true', () async {
-    when(() => prefs.getBool('completed_onboarding')).thenAnswer((_) async => true);
-
-    final data = await buildContainer().read(appStorageStateProvider.future);
-
-    expect(data.hasCompletedOnboarding, isTrue);
-  });
-
   test('when authentication credentials were never stored, it should load them as null', () async {
     final data = await buildContainer().read(appStorageStateProvider.future);
 
@@ -202,33 +188,5 @@ void main() {
     await container.read(appStorageStateProvider.notifier).clearAuthCredentials();
 
     expect(container.read(appStorageStateProvider).value!.authCredentials, isNull);
-  });
-
-  test('when completing onboarding, it should persist the completion flag', () async {
-    final container = buildContainer();
-    await container.read(appStorageStateProvider.future);
-
-    await container.read(appStorageStateProvider.notifier).completeOnboarding();
-
-    verify(() => prefs.setBool('completed_onboarding', true)).called(1);
-  });
-
-  test('when completing onboarding, it should update the in-memory completion flag', () async {
-    final container = buildContainer();
-    await container.read(appStorageStateProvider.future);
-
-    await container.read(appStorageStateProvider.notifier).completeOnboarding();
-
-    expect(container.read(appStorageStateProvider).value!.hasCompletedOnboarding, isTrue);
-  });
-
-  test('when completing onboarding after it is already complete, it should not persist again', () async {
-    when(() => prefs.getBool('completed_onboarding')).thenAnswer((_) async => true);
-    final container = buildContainer();
-    await container.read(appStorageStateProvider.future);
-
-    await container.read(appStorageStateProvider.notifier).completeOnboarding();
-
-    verifyNever(() => prefs.setBool(any(), any()));
   });
 }

@@ -8,7 +8,6 @@ workspace:
 
 dev_dependencies:
   build_runner: ^2.15.0
-  dart_husky: ^1.8.1
   melos: 8.2.2
   very_good_analysis: ^7.0.0
 
@@ -77,7 +76,6 @@ melos:
         fvm flutter pub get && \
         fvm dart pub global activate flutter_launcher_icons 0.14.4 && \
         fvm dart pub global activate remove_from_coverage && \
-        fvm dart run dart_husky install && \
         fvm dart run melos run gen --no-select
 
     get:

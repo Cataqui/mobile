@@ -9,7 +9,6 @@ part 'app_storage_state.g.dart';
 class AppStorageState extends _$AppStorageState {
   static const _authCredentialsKey = 'auth_credentials';
   static const _seenSwipeFeedHintKey = 'seen_swipe_feed_hint';
-  static const _completedOnboardingKey = 'completed_onboarding';
 
   static Duration? _noRetry(int retryCount, Object error) => null;
 
@@ -17,23 +16,9 @@ class AppStorageState extends _$AppStorageState {
   Future<AppStorageData> build() async {
     final prefs = ref.read(sharedPreferencesAsyncProvider);
     final hasSeenSwipeFeedHint = await prefs.getBool(_seenSwipeFeedHintKey) ?? false;
-    final hasCompletedOnboarding = await prefs.getBool(_completedOnboardingKey) ?? false;
     final authCredentials = await _readAuthCredentials();
 
-    return AppStorageData(
-      authCredentials: authCredentials,
-      hasSeenSwipeFeedHint: hasSeenSwipeFeedHint,
-      hasCompletedOnboarding: hasCompletedOnboarding,
-    );
-  }
-
-  Future<void> completeOnboarding() async {
-    if (state.value!.hasCompletedOnboarding) return;
-
-    final prefs = ref.read(sharedPreferencesAsyncProvider);
-    await prefs.setBool(_completedOnboardingKey, true);
-
-    state = AsyncData(state.value!.copyWith(hasCompletedOnboarding: true));
+    return AppStorageData(authCredentials: authCredentials, hasSeenSwipeFeedHint: hasSeenSwipeFeedHint);
   }
 
   Future<void> clearAuthCredentials() async {

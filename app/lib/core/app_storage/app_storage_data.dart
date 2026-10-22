@@ -5,9 +5,6 @@ part 'app_storage_data.freezed.dart';
 
 @freezed
 abstract class AppStorageData with _$AppStorageData {
-  const factory AppStorageData({
-    required AuthCredentialsDto? authCredentials,
-    required bool hasSeenSwipeFeedHint,
-    required bool hasCompletedOnboarding,
-  }) = _AppStorageData;
+  const factory AppStorageData({required AuthCredentialsDto? authCredentials, required bool hasSeenSwipeFeedHint}) =
+      _AppStorageData;
 }

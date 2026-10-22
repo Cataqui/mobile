@@ -4,6 +4,7 @@ import 'package:cataqui_app/app.dart';
 import 'package:cataqui_app/core/app_auth/app_auth_state.dart';
 import 'package:cataqui_app/core/app_storage/app_storage_state.dart';
 import 'package:cataqui_app/core/config/app_config.dart';
+import 'package:cataqui_app/core/dtos/auth_credentials_dto.dart';
 import 'package:cataqui_app/core/dtos/auth_session_dto.dart';
 import 'package:cataqui_app/core/network/auth_interceptor/auth_interceptor.dart';
 import 'package:cataqui_app/core/network/rate_limit/rate_limit_interceptor.dart';
@@ -556,15 +557,14 @@ void main() {
       return container;
     }
 
-    Future<(ProviderContainer, GoRouter)> pumpCompletedOnboardingRouter(
+    Future<(ProviderContainer, GoRouter)> pumpFeedRouter(
       WidgetTester tester, {
       List<Override> providerOverrides = const [],
     }) async {
-      when(() => prefs.setBool('completed_onboarding', true)).thenAnswer((_) async {});
       final providerContainer = await buildContainer(providerOverrides: providerOverrides);
-      await providerContainer.read(appStorageStateProvider.notifier).completeOnboarding();
       final goRouter = providerContainer.read(goRouterProvider);
       addTearDown(goRouter.dispose);
+      goRouter.go(const FeedRoute().location);
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: providerContainer,
@@ -583,24 +583,41 @@ void main() {
       );
     }
 
-    test('when onboarding is incomplete, it should open welcome first', () async {
-      final providerContainer = await buildContainer();
-
-      final goRouter = providerContainer.read(goRouterProvider);
-      addTearDown(goRouter.dispose);
-
-      expect(goRouter.routeInformationProvider.value.uri.path, const WelcomeRoute().location);
-    });
-
-    test('when onboarding is complete, it should open the feed first', () async {
+    test('when no credentials are saved, it should open welcome first', () async {
       when(() => prefs.getBool('completed_onboarding')).thenAnswer((_) async => true);
       final providerContainer = await buildContainer();
 
       final goRouter = providerContainer.read(goRouterProvider);
       addTearDown(goRouter.dispose);
 
-      expect(goRouter.routeInformationProvider.value.uri.path, const FeedRoute().location);
+      expect(goRouter.routeInformationProvider.value.uri.path, '/welcome');
+      verifyNever(() => prefs.getBool('completed_onboarding'));
     });
+
+    test('when saved credentials are malformed, it should open Welcome', () async {
+      when(() => secureStorage.read(key: 'auth_credentials')).thenAnswer((_) async => 'invalid-json');
+      when(() => secureStorage.delete(key: 'auth_credentials')).thenAnswer((_) async {});
+      final providerContainer = await buildContainer();
+      final goRouter = providerContainer.read(goRouterProvider);
+      addTearDown(goRouter.dispose);
+
+      expect(goRouter.routeInformationProvider.value.uri.path, '/welcome');
+    });
+
+    for (final expiresAt in [DateTime.utc(2000), DateTime.utc(2100)]) {
+      test('when credentials expiring in ${expiresAt.year} are saved, it should open the feed first', () async {
+        final credentials = AuthCredentialsDto.fixture().copyWith(refreshTokenExpiresAt: expiresAt);
+        when(
+          () => secureStorage.read(key: 'auth_credentials'),
+        ).thenAnswer((_) async => credentials.toSecureStorageValue());
+        final providerContainer = await buildContainer();
+
+        final goRouter = providerContainer.read(goRouterProvider);
+        addTearDown(goRouter.dispose);
+
+        expect(goRouter.routeInformationProvider.value.uri.path, '/feed');
+      });
+    }
 
     test('when building app routes, it should register welcome without legacy onboarding routes', () async {
       final providerContainer = await buildContainer();
@@ -637,8 +654,10 @@ void main() {
       );
     });
 
-    testWidgets('when onboarding is complete, navigating to welcome should redirect to the feed', (tester) async {
-      when(() => prefs.getBool('completed_onboarding')).thenAnswer((_) async => true);
+    testWidgets('when credentials are saved, explicit Welcome navigation should stay on Welcome', (tester) async {
+      when(
+        () => secureStorage.read(key: 'auth_credentials'),
+      ).thenAnswer((_) async => AuthCredentialsDto.fixture().toSecureStorageValue());
       final providerContainer = await buildContainer();
       final goRouter = providerContainer.read(goRouterProvider);
       addTearDown(goRouter.dispose);
@@ -653,11 +672,11 @@ void main() {
       goRouter.go(const WelcomeRoute().location);
       await tester.pumpAndSettle();
 
-      expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
+      expect(goRouter.routerDelegate.currentConfiguration.uri.path, '/welcome');
     });
 
     testWidgets('when unauthenticated, navigating to protected app route should present connection', (tester) async {
-      final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
+      final (providerContainer, _) = await pumpFeedRouter(tester);
 
       unawaited(
         providerContainer
@@ -675,7 +694,7 @@ void main() {
     testWidgets('when the session is expired, navigating to protected app route should present connection', (
       tester,
     ) async {
-      final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
+      final (providerContainer, _) = await pumpFeedRouter(tester);
       await providerContainer
           .read(appAuthStateProvider.notifier)
           .setSession(
@@ -701,7 +720,7 @@ void main() {
     testWidgets('when connection is dismissed, navigating to protected app route should keep the feed open', (
       tester,
     ) async {
-      final (providerContainer, goRouter) = await pumpCompletedOnboardingRouter(tester);
+      final (providerContainer, goRouter) = await pumpFeedRouter(tester);
 
       unawaited(
         providerContainer
@@ -716,7 +735,7 @@ void main() {
     });
 
     testWidgets('when authenticated, going to protected app route should open the post flow', (tester) async {
-      final (providerContainer, _) = await pumpCompletedOnboardingRouter(tester);
+      final (providerContainer, _) = await pumpFeedRouter(tester);
       await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
 
       await providerContainer
@@ -742,7 +761,7 @@ void main() {
         await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
         return true;
       });
-      (providerContainer, _) = await pumpCompletedOnboardingRouter(
+      (providerContainer, _) = await pumpFeedRouter(
         tester,
         providerOverrides: [
           whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
@@ -764,7 +783,7 @@ void main() {
     ) async {
       final whatsappConnectionSheetController = MockWhatsappConnectionSheetController();
       when(whatsappConnectionSheetController.show).thenThrow(StateError('connection unavailable'));
-      final (providerContainer, goRouter) = await pumpCompletedOnboardingRouter(
+      final (providerContainer, goRouter) = await pumpFeedRouter(
         tester,
         providerOverrides: [
           whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
@@ -805,7 +824,7 @@ void main() {
         await providerContainer.read(appAuthStateProvider.notifier).setSession(authenticatedSession());
         return true;
       });
-      (providerContainer, _) = await pumpCompletedOnboardingRouter(
+      (providerContainer, _) = await pumpFeedRouter(
         tester,
         providerOverrides: [
           whatsappConnectionSheetControllerProvider.overrideWithValue(whatsappConnectionSheetController),
@@ -851,39 +870,61 @@ void main() {
       expect(sheetCount, 1);
     });
 
-    test('when onboarding completes after router creation, it should keep the same router instance', () async {
-      when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
-      final providerContainer = await buildContainer();
-      final initialRouter = providerContainer.read(goRouterProvider);
-      addTearDown(initialRouter.dispose);
+    test(
+      'when credentials are saved after router creation, it should keep the same router instance and initial location',
+      () async {
+        when(
+          () => secureStorage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
+        final providerContainer = await buildContainer();
+        final initialRouter = providerContainer.read(goRouterProvider);
+        addTearDown(initialRouter.dispose);
 
-      await providerContainer.read(appStorageStateProvider.notifier).completeOnboarding();
+        await providerContainer
+            .read(appStorageStateProvider.notifier)
+            .setAuthCredentials(credentials: AuthCredentialsDto.fixture());
 
-      expect(providerContainer.read(goRouterProvider), same(initialRouter));
-    });
+        expect(providerContainer.read(goRouterProvider), same(initialRouter));
+        expect(initialRouter.routeInformationProvider.value.uri.path, '/welcome');
+      },
+    );
 
-    testWidgets('when onboarding completes after router creation, navigating to welcome should redirect to the feed', (
-      tester,
-    ) async {
-      when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
-      final providerContainer = await buildContainer();
-      final goRouter = providerContainer.read(goRouterProvider);
-      addTearDown(goRouter.dispose);
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: providerContainer,
-          child: TestApp.router(routerConfig: goRouter, mediaQueryData: const MediaQueryData(disableAnimations: true)),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await providerContainer.read(appStorageStateProvider.notifier).completeOnboarding();
-      goRouter.go(const FeedRoute().location);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'when credentials are saved after router creation, explicit Welcome navigation should stay on Welcome',
+      (tester) async {
+        when(
+          () => secureStorage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
+        final providerContainer = await buildContainer();
+        final goRouter = providerContainer.read(goRouterProvider);
+        addTearDown(goRouter.dispose);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: providerContainer,
+            child: TestApp.router(
+              routerConfig: goRouter,
+              mediaQueryData: const MediaQueryData(disableAnimations: true),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await providerContainer
+            .read(appStorageStateProvider.notifier)
+            .setAuthCredentials(credentials: AuthCredentialsDto.fixture());
+        goRouter.go(const FeedRoute().location);
+        await tester.pumpAndSettle();
 
-      goRouter.go(const WelcomeRoute().location);
-      await tester.pumpAndSettle();
+        goRouter.go(const WelcomeRoute().location);
+        await tester.pumpAndSettle();
 
-      expect(goRouter.routerDelegate.currentConfiguration.uri.path, const FeedRoute().location);
-    });
+        expect(goRouter.routerDelegate.currentConfiguration.uri.path, '/welcome');
+      },
+    );
   });
 }

@@ -225,15 +225,7 @@ GoRouter goRouter(Ref ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     observers: [ref.watch(routeObserverProvider), MateoNavigatorObserver()],
-    initialLocation: appStorage.hasCompletedOnboarding ? const FeedRoute().location : const WelcomeRoute().location,
-    redirect: (context, state) {
-      if (state.matchedLocation != const WelcomeRoute().location) return null;
-
-      final hasCompletedOnboarding = ref.read(appStorageStateProvider).requireValue.hasCompletedOnboarding;
-      if (!hasCompletedOnboarding) return null;
-
-      return const FeedRoute().location;
-    },
+    initialLocation: appStorage.authCredentials != null ? const FeedRoute().location : const WelcomeRoute().location,
     routes: [$welcomeRoute, $feedRoute, $postRoute, $jobRoute, $addContactRoute, $meRoute, $myPostRoute],
   );
 }
