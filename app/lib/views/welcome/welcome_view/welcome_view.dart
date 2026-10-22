@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cataqui_app/core/dtos/account_metadata_dto.dart';
 import 'package:cataqui_app/core/providers.dart';
 import 'package:cataqui_app/gen/icons.g.dart';
 import 'package:cataqui_app/gen/illustrations.g.dart';
 import 'package:cataqui_app/i18n/locale.dart';
+import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/welcome/welcome_view/enums/welcome_artwork_slot.dart';
 import 'package:cataqui_app/views/welcome/welcome_view/enums/welcome_scene_phase.dart';
+import 'package:cataqui_app/views/welcome/welcome_view/welcome_state.dart';
 import 'package:cataqui_app/widgets/whatsapp_connection_button/whatsapp_connection_button.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +58,21 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
   final ValueNotifier<bool> _termsVisible = ValueNotifier(false);
   final ValueNotifier<bool> _buttonVisible = ValueNotifier(false);
 
+  void _handleConnectedMetadata(AsyncValue<AccountMetadataDto?>? previous, AsyncValue<AccountMetadataDto?> next) {
+    next.when(
+      data: (metadata) {
+        if (metadata == null || !metadata.onboardingCompleted) return;
+        unawaited(ref.read(appRouterProvider.notifier).go(context, const FeedRoute()));
+      },
+
+      error: (error, _) => ref
+          .read(appToastProvider)
+          .maybeShowError(context, error: error, message: ref.read(translationProvider).welcome.metadataError),
+
+      loading: () {},
+    );
+  }
+
   void _showScene() {
     if (_sceneVisible.value || !mounted) return;
     _sceneVisible.value = true;
@@ -81,6 +99,7 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
   @override
   Widget build(BuildContext context) {
     final i18n = ref.watch(translationProvider);
+    ref.listen(welcomeStateProvider.select((data) => data.metadata), _handleConnectedMetadata);
 
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1,
@@ -302,7 +321,24 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                     ),
                   ],
                   child: RepaintBoundary(
-                    child: WhatsappConnectionButton(key: const ValueKey('welcome_start_button'), onSuccess: (_) {}),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final metadataState = ref.watch(
+                          welcomeStateProvider.select(
+                            (data) => (isLoading: data.metadata.isLoading, hasError: data.metadata.hasError),
+                          ),
+                        );
+                        return WhatsappConnectionButton(
+                          key: const ValueKey('welcome_start_button'),
+                          isLoading: metadataState.isLoading,
+                          onPressed: metadataState.hasError
+                              ? () => unawaited(ref.read(welcomeStateProvider.notifier).fetchConnectedUserMetadata())
+                              : null,
+                          onSuccess: (_) =>
+                              unawaited(ref.read(welcomeStateProvider.notifier).fetchConnectedUserMetadata()),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

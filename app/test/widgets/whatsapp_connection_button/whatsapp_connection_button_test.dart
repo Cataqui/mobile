@@ -30,6 +30,43 @@ void main() {
   });
 
   group('WhatsappConnectionButton', () {
+    testWidgets('when an action override is supplied, it should run it without opening WhatsApp', (tester) async {
+      var presses = 0;
+      await WhatsappConnectionButtonTestHelpers.pumpButton(
+        tester: tester,
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+        onSuccess: (_) {},
+        onPressed: () => presses += 1,
+      );
+
+      await tester.tap(find.byKey(WhatsappConnectionButtonTestHelpers.buttonKey));
+      await tester.pump();
+
+      expect(presses, 1);
+      verifyNever(() => authRepository.createNotpIntent(channel: AuthChannel.whatsapp));
+    });
+
+    testWidgets('when external loading is active, it should show loading and block its action', (tester) async {
+      var presses = 0;
+      await WhatsappConnectionButtonTestHelpers.pumpButton(
+        tester: tester,
+        authRepository: authRepository,
+        whatsapp: whatsapp,
+        onSuccess: (_) {},
+        isLoading: true,
+        onPressed: () => presses += 1,
+      );
+
+      expect(tester.widget<MateoButton>(find.byKey(WhatsappConnectionButtonTestHelpers.buttonKey)).isLoading, isTrue);
+      await tester.tap(find.byKey(WhatsappConnectionButtonTestHelpers.buttonKey));
+      await tester.pump();
+
+      expect(presses, 0);
+      verifyNever(() => authRepository.createNotpIntent(channel: AuthChannel.whatsapp));
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
     testWidgets('when the button is resting, it should show the localized WhatsApp connection label', (tester) async {
       await WhatsappConnectionButtonTestHelpers.pumpButton(
         tester: tester,

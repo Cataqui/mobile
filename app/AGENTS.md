@@ -155,6 +155,14 @@ directory instead.
 
 ### UI Ownership vs. Riverpod State
 
+Widgets, views, and their Flutter `State` classes must never call repositories
+directly or read repository providers. All repository access from a UI workflow
+must go through a Riverpod `*State` notifier. Reuse an existing state class when
+its domain responsibility matches; otherwise create a domain-named state class
+beside the owning view or widget, following the feature state conventions below.
+The UI invokes state methods and observes their results; the state owns repository
+calls, data, loading, and errors.
+
 Anything that exists to control or react to the interface belongs in the UI
 layer, normally the owning widget or view. This includes `BuildContext` usage,
 app and widget lifecycle handling, toasts, dialogs, navigation, focus,

@@ -34,6 +34,8 @@ abstract final class WhatsappConnectionButtonTestHelpers {
     required MockAuthRepository authRepository,
     required MockWhatsapp whatsapp,
     required void Function(AuthSessionDto session) onSuccess,
+    bool isLoading = false,
+    VoidCallback? onPressed,
   }) async {
     await tester.pumpWidget(
       TestApp(
@@ -43,10 +45,14 @@ abstract final class WhatsappConnectionButtonTestHelpers {
           authRepositoryProvider.overrideWithValue(authRepository),
           whatsappProvider(identifier: codeReceiver).overrideWithValue(whatsapp),
         ],
-        child: SizedBox(width: 342, child: WhatsappConnectionButton(onSuccess: onSuccess)),
+        child: SizedBox(
+          width: 342,
+          child: WhatsappConnectionButton(onSuccess: onSuccess, isLoading: isLoading, onPressed: onPressed),
+        ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    if (!isLoading) await tester.pumpAndSettle();
   }
 
   static Widget goldenScenario({required MockAuthRepository authRepository, required MockWhatsapp whatsapp}) {

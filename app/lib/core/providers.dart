@@ -12,6 +12,7 @@ import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.da
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/core/repositories/maps_repository/maps_repository.dart';
+import 'package:cataqui_app/core/repositories/me_repository.dart';
 import 'package:cataqui_app/core/repositories/user_repository.dart';
 import 'package:cataqui_app/i18n/locale.dart';
 import 'package:cataqui_app/views/add_contact/add_contact_route.dart';
@@ -250,6 +251,11 @@ GlobalKey<NavigatorState> rootNavigatorKey(Ref ref) {
 @Riverpod(keepAlive: true)
 JobRepository jobRepository(Ref ref) {
   return JobRepository(authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider));
+}
+
+@Riverpod(keepAlive: true)
+MeRepository meRepository(Ref ref) {
+  return MeRepository(authenticatedDio: ref.watch(authenticatedCataquiApiV1DioProvider));
 }
 
 @Riverpod(keepAlive: true)

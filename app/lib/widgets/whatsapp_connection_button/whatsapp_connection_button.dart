@@ -9,11 +9,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mateo_mobile/mateo_mobile.dart';
 
 class WhatsappConnectionButton extends ConsumerStatefulWidget {
-  const WhatsappConnectionButton({required this.onSuccess, super.key});
+  const WhatsappConnectionButton({required this.onSuccess, super.key, this.isLoading = false, this.onPressed});
 
   static const checkingToastDelay = Duration(seconds: 3);
 
   final void Function(AuthSessionDto session) onSuccess;
+  final bool isLoading;
+  final VoidCallback? onPressed;
 
   @override
   ConsumerState<WhatsappConnectionButton> createState() => _WhatsappConnectionButtonState();
@@ -25,7 +27,13 @@ class _WhatsappConnectionButtonState extends ConsumerState<WhatsappConnectionBut
   VoidCallback? _dismissCheckingToast;
 
   void _startConnection() {
-    if (ref.read(whatsappConnectionStateProvider).isLoading) return;
+    if (widget.isLoading || ref.read(whatsappConnectionStateProvider).isLoading) return;
+
+    final onPressed = widget.onPressed;
+    if (onPressed != null) {
+      onPressed();
+      return;
+    }
 
     final appReturn = Completer<void>();
     _appReturnCompleter = appReturn;
@@ -155,7 +163,7 @@ class _WhatsappConnectionButtonState extends ConsumerState<WhatsappConnectionBut
         leadingIcon: const MateoIcon(.whatsapp),
       ),
       key: const ValueKey('whatsapp_connection_button_action'),
-      isLoading: isLoading,
+      isLoading: widget.isLoading || isLoading,
       onPressed: _startConnection,
     );
   }

@@ -184,6 +184,7 @@
     }
   },
   "welcome": {
+    "metadataError": "Não deu. Tenta de novo",
     "headline": "O app dos bicos",
     "subtitle": "Encontre e poste bicos na sua cidade",
     "sceneAccessibilityLabel": "Exemplos de bicos perto de você",

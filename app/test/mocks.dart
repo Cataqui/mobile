@@ -2,6 +2,7 @@ import 'package:cataqui_app/core/repositories/auth_repository/auth_repository.da
 import 'package:cataqui_app/core/repositories/feed_repository.dart';
 import 'package:cataqui_app/core/repositories/job_repository.dart';
 import 'package:cataqui_app/core/repositories/maps_repository/maps_repository.dart';
+import 'package:cataqui_app/core/repositories/me_repository.dart';
 import 'package:cataqui_app/core/repositories/user_repository.dart';
 import 'package:cataqui_app/widgets/whatsapp_connection_sheet/whatsapp_connection_sheet_controller.dart';
 import 'package:dio/dio.dart';
@@ -23,6 +24,8 @@ class MockAuthRepository extends Mock implements AuthRepository {}
 class MockFeedRepository extends Mock implements FeedRepository {}
 
 class MockMapsRepository extends Mock implements MapsRepository {}
+
+class MockMeRepository extends Mock implements MeRepository {}
 
 class MockJobRepository extends Mock implements JobRepository {}
 
