@@ -37,7 +37,12 @@ class MockWhatsapp extends Mock implements Whatsapp {}
 
 class MockPhoneNumber extends Mock implements PhoneNumber {}
 
-class MockSharedPreferencesAsync extends Mock implements SharedPreferencesAsync {}
+class MockSharedPreferencesAsync extends Mock implements SharedPreferencesAsync {
+  MockSharedPreferencesAsync() {
+    when(() => getString(any())).thenAnswer((_) async => null);
+    when(() => setString(any(), any())).thenAnswer((_) async {});
+  }
+}
 
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 

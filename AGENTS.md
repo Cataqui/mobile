@@ -96,6 +96,16 @@ Write explicit, boring, readable production code. Avoid speculative abstractions
 - Use the fully qualified form only when dot shorthand cannot resolve the intended member or is unsupported by the
   package's Dart language version.
 
+### Use Existing APIs Directly
+
+- Do not add forwarding methods, getters, factories, aliases, or wrapper classes that only rename or relay an
+  existing API without adding behavior or an independently required contract. Call the existing API directly.
+- Apply this across all layers and types. A more contextual name, speculative future flexibility, or repeated
+  use alone does not justify a forwarding abstraction. Keep adapters only when they provide a concrete conversion,
+  validation, policy, or required interface boundary.
+- When changing related code, remove existing redundant forwarding abstractions and update their callers to use
+  the underlying API directly. Preserve wrappers that implement a real responsibility or required contract.
+
 ### Keep Complexity Proportional
 
 - Do not add state, branching, synchronization, cancellation, or abstractions solely to defend against highly unlikely

@@ -594,6 +594,17 @@ void main() {
       verifyNever(() => prefs.getBool('completed_onboarding'));
     });
 
+    test('when completed progress exists without credentials, it should open welcome first', () async {
+      when(
+        () => prefs.getString('onboarding_data'),
+      ).thenAnswer((_) async => '{"account-a":{"serverConfirmedCompleted":true}}');
+      final providerContainer = await buildContainer();
+      final router = providerContainer.read(goRouterProvider);
+      addTearDown(router.dispose);
+
+      expect(router.routeInformationProvider.value.uri.path, '/welcome');
+    });
+
     test('when saved credentials are malformed, it should open Welcome', () async {
       when(() => secureStorage.read(key: 'auth_credentials')).thenAnswer((_) async => 'invalid-json');
       when(() => secureStorage.delete(key: 'auth_credentials')).thenAnswer((_) async {});
@@ -605,18 +616,80 @@ void main() {
     });
 
     for (final expiresAt in [DateTime.utc(2000), DateTime.utc(2100)]) {
-      test('when credentials expiring in ${expiresAt.year} are saved, it should open the feed first', () async {
-        final credentials = AuthCredentialsDto.fixture().copyWith(refreshTokenExpiresAt: expiresAt);
-        when(
-          () => secureStorage.read(key: 'auth_credentials'),
-        ).thenAnswer((_) async => credentials.toSecureStorageValue());
-        final providerContainer = await buildContainer();
+      test(
+        'when credentials expiring in ${expiresAt.year} are saved without onboarding progress, it should open welcome first',
+        () async {
+          final credentials = AuthCredentialsDto.fixture().copyWith(refreshTokenExpiresAt: expiresAt);
+          when(
+            () => secureStorage.read(key: 'auth_credentials'),
+          ).thenAnswer((_) async => credentials.toSecureStorageValue());
+          final providerContainer = await buildContainer();
 
-        final goRouter = providerContainer.read(goRouterProvider);
-        addTearDown(goRouter.dispose);
+          final goRouter = providerContainer.read(goRouterProvider);
+          addTearDown(goRouter.dispose);
 
-        expect(goRouter.routeInformationProvider.value.uri.path, '/feed');
-      });
+          expect(goRouter.routeInformationProvider.value.uri.path, '/welcome');
+        },
+      );
+    }
+
+    for (final scenario in [
+      (
+        accountId: 'account-a',
+        expiresAt: DateTime.utc(2100),
+        progress: '{"account-a":{"serverConfirmedCompleted":true}}',
+        destination: '/feed',
+      ),
+      (
+        accountId: 'account-a',
+        expiresAt: DateTime.utc(2100),
+        progress: '{"account-a":{"name":" Ana "}}',
+        destination: '/feed',
+      ),
+      (
+        accountId: 'account-a',
+        expiresAt: DateTime.utc(2000),
+        progress: '{"account-a":{"serverConfirmedCompleted":true}}',
+        destination: '/welcome',
+      ),
+      (
+        accountId: 'account-a',
+        expiresAt: DateTime.utc(2100),
+        progress: '{"account-b":{"serverConfirmedCompleted":true}}',
+        destination: '/welcome',
+      ),
+      (
+        accountId: 'account-a',
+        expiresAt: DateTime.utc(2100),
+        progress: '{"account-a":{"name":" "}}',
+        destination: '/welcome',
+      ),
+      (accountId: 'account-a', expiresAt: DateTime.utc(2100), progress: '{invalid', destination: '/welcome'),
+      (
+        accountId: null,
+        expiresAt: DateTime.utc(2100),
+        progress: '{"account-a":{"serverConfirmedCompleted":true}}',
+        destination: '/welcome',
+      ),
+    ]) {
+      test(
+        'when starting as ${scenario.accountId} with credentials expiring in ${scenario.expiresAt.year} and progress ${scenario.progress}, it should open ${scenario.destination}',
+        () async {
+          final credentials = AuthCredentialsDto.fixture().copyWith(
+            accountId: scenario.accountId,
+            refreshTokenExpiresAt: scenario.expiresAt,
+          );
+          when(
+            () => secureStorage.read(key: 'auth_credentials'),
+          ).thenAnswer((_) async => credentials.toSecureStorageValue());
+          when(() => prefs.getString('onboarding_data')).thenAnswer((_) async => scenario.progress);
+          final providerContainer = await buildContainer();
+          final router = providerContainer.read(goRouterProvider);
+          addTearDown(router.dispose);
+
+          expect(router.routeInformationProvider.value.uri.path, scenario.destination);
+        },
+      );
     }
 
     test('when building app routes, it should register welcome without legacy onboarding routes', () async {

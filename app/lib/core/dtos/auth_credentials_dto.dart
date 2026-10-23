@@ -8,8 +8,11 @@ part 'auth_credentials_dto.g.dart';
 
 @freezed
 abstract class AuthCredentialsDto with _$AuthCredentialsDto {
-  const factory AuthCredentialsDto({required String refreshToken, required DateTime refreshTokenExpiresAt}) =
-      _AuthCredentialsDto;
+  const factory AuthCredentialsDto({
+    required String refreshToken,
+    required DateTime refreshTokenExpiresAt,
+    String? accountId,
+  }) = _AuthCredentialsDto;
 
   const AuthCredentialsDto._();
 
@@ -26,7 +29,11 @@ abstract class AuthCredentialsDto with _$AuthCredentialsDto {
   }
 
   factory AuthCredentialsDto.fromAuthSession(AuthSessionDto session) {
-    return AuthCredentialsDto(refreshToken: session.refreshToken, refreshTokenExpiresAt: session.refreshTokenExpiresAt);
+    return AuthCredentialsDto(
+      refreshToken: session.refreshToken,
+      refreshTokenExpiresAt: session.refreshTokenExpiresAt,
+      accountId: session.accountId,
+    );
   }
 
   factory AuthCredentialsDto.fixture() => AuthCredentialsDto(

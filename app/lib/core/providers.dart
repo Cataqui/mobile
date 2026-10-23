@@ -20,6 +20,7 @@ import 'package:cataqui_app/views/feed/feed_route.dart';
 import 'package:cataqui_app/views/job/job_route.dart';
 import 'package:cataqui_app/views/me/me_route.dart';
 import 'package:cataqui_app/views/me/my_post/my_post_route.dart';
+import 'package:cataqui_app/views/onboarding/onboarding_ask_name/onboarding_ask_name_view_route.dart';
 import 'package:cataqui_app/views/post/post_route.dart';
 import 'package:cataqui_app/views/welcome/welcome_route.dart';
 import 'package:cataqui_app/widgets/whatsapp_connection_sheet/whatsapp_connection_sheet_controller.dart';
@@ -225,8 +226,21 @@ GoRouter goRouter(Ref ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     observers: [ref.watch(routeObserverProvider), MateoNavigatorObserver()],
-    initialLocation: appStorage.authCredentials != null ? const FeedRoute().location : const WelcomeRoute().location,
-    routes: [$welcomeRoute, $feedRoute, $postRoute, $jobRoute, $addContactRoute, $meRoute, $myPostRoute],
+    initialLocation:
+        ref.read(appAuthStateProvider.notifier).hasUsableLocalCredentials &&
+            (appStorage.onboardingLocalData[appStorage.authCredentials?.accountId]?.completed ?? false)
+        ? const FeedRoute().location
+        : const WelcomeRoute().location,
+    routes: [
+      $welcomeRoute,
+      $feedRoute,
+      $postRoute,
+      $jobRoute,
+      $addContactRoute,
+      $meRoute,
+      $myPostRoute,
+      $onboardingAskNameViewRoute,
+    ],
   );
 }
 

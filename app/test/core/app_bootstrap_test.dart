@@ -161,7 +161,10 @@ void main() {
         await withClock(Clock.fixed(DateTime.utc(2026, 9, 24)), () async {
           await AppBootstrap.setup(providerContainer: container);
           await didRequestProfile.future.timeout(const Duration(seconds: 2));
-          expect(container.read(appStorageStateProvider).value?.authCredentials, storedCredentials);
+          expect(
+            container.read(appStorageStateProvider).value?.authCredentials,
+            storedCredentials.copyWith(accountId: 'restored-user'),
+          );
           verify(() => authRepository.refreshSession(refreshToken: storedCredentials.refreshToken)).called(1);
           expect(container.read(appAuthStateProvider)?.accountId, 'restored-user');
 

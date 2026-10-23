@@ -70,6 +70,12 @@ class TestApp extends StatelessWidget {
     when(() => secureStorage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
     return secureStorage;
   });
+  static final _sharedPreferencesOverride = sharedPreferencesAsyncProvider.overrideWith((ref) {
+    final prefs = MockSharedPreferencesAsync();
+    when(() => prefs.getBool(any())).thenAnswer((_) async => null);
+    when(() => prefs.setBool(any(), any())).thenAnswer((_) async {});
+    return prefs;
+  });
   static final _deviceLocationOverride = deviceLocationProvider.overrideWith((ref) {
     final deviceLocation = MockDeviceLocation();
     when(() => deviceLocation.permissionStatus).thenAnswer((_) async => DeviceLocationPermissionStatus.denied);
@@ -159,6 +165,9 @@ class TestApp extends StatelessWidget {
 
   List<Override> _resolvedProviderOverrides() {
     final overridesSecureStorage = providerOverrides.any((override) => override.origin == secureStorageProvider);
+    final overridesSharedPreferences = providerOverrides.any(
+      (override) => override.origin == sharedPreferencesAsyncProvider,
+    );
     final overridesDeviceLocation = providerOverrides.any((override) => override.origin == deviceLocationProvider);
 
     final overridesStaticMapCache = providerOverrides.any(
@@ -168,6 +177,7 @@ class TestApp extends StatelessWidget {
       if (!overridesStaticMapCache)
         staticMapCacheManagerProvider.overrideWith((ref) => StaticMapCacheTestHelpers.create()),
       if (!overridesSecureStorage) _secureStorageOverride,
+      if (!overridesSharedPreferences) _sharedPreferencesOverride,
       if (!overridesDeviceLocation) _deviceLocationOverride,
       ...providerOverrides,
     ];
