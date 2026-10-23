@@ -19,10 +19,10 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 
   return AlchemistConfig.runWithConfig(
     config: AlchemistConfig(
-      theme: ThemeData(fontFamily: MateoTypography.fontFamily),
+      theme: ThemeData(fontFamily: MateoTypography.interfaceFontFamily),
       platformGoldensConfig: PlatformGoldensConfig(
         enabled: !isRunningInCi,
-        theme: ThemeData(fontFamily: MateoTypography.fontFamily),
+        theme: ThemeData(fontFamily: MateoTypography.interfaceFontFamily),
       ),
       ciGoldensConfig: CiGoldensConfig(diffThreshold: isRunningInCi ? 0.03 : 0),
     ),
@@ -39,7 +39,7 @@ Future<ByteData> _loadFontAsset(String path) async {
 }
 
 Future<void> _loadMateoFonts() async {
-  final interLoader = FontLoader(MateoTypography.fontFamily)
+  final interLoader = FontLoader(MateoTypography.interfaceFontFamily)
     ..addFont(_loadFontAsset('inter_variable.ttf'))
     ..addFont(_loadFontAsset('inter_italic.ttf'));
 

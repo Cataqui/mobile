@@ -41,28 +41,28 @@ class _LocationPermissionSheet extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(
+        MateoText(
           i18n.useCurrentLocationButton.permissionSheet.title,
           key: const ValueKey('current_location_permission_sheet_title'),
-          textAlign: TextAlign.center,
-          style: TextStyle(
+          presentation: .interface(
             color: MateoTheme.of(context).colorScheme.text.primary,
             fontSize: 20,
             fontWeight: FontWeight.w700,
+            textAlign: TextAlign.center,
           ),
         ),
         const SizedBox(height: 8),
         FractionallySizedBox(
           widthFactor: .9,
-          child: Text(
+          child: MateoText(
             i18n.useCurrentLocationButton.permissionSheet.description,
             key: const ValueKey('current_location_permission_sheet_description'),
-            textAlign: TextAlign.center,
-            style: TextStyle(
+            presentation: .interface(
               color: MateoTheme.of(context).colorScheme.text.tertiary,
               fontSize: 16,
               height: 1.3,
               fontWeight: FontWeight.w500,
+              textAlign: TextAlign.center,
             ),
           ),
         ),

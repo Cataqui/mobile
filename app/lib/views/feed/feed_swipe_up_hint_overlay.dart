@@ -90,13 +90,13 @@ class _FeedSwipeUpHintOverlayState extends ConsumerState<_FeedSwipeUpHintOverlay
               const SizedBox(height: 24),
               FractionallySizedBox(
                 widthFactor: .6,
-                child: Text(
+                child: MateoText(
                   i18n.feed.swipeUpHint.caption,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
+                  presentation: .interface(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: MateoTheme.of(context).palette.neutral[1],
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),

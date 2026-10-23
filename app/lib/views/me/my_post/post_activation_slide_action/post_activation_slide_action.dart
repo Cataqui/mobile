@@ -206,11 +206,15 @@ class _PostActivationSlideActionState extends ConsumerState<PostActivationSlideA
                       ),
                       child: AnimatedBuilder(
                         animation: _fillAnimationController,
-                        child: Text(
+                        child: MateoText(
                           label,
-                          maxLines: 1,
-                          overflow: .ellipsis,
-                          style: TextStyle(fontSize: 15, fontWeight: .w600, color: theme.colorScheme.text.primary),
+                          presentation: .interface(
+                            fontSize: 15,
+                            fontWeight: .w600,
+                            color: theme.colorScheme.text.primary,
+                            maxLines: 1,
+                            overflow: .ellipsis,
+                          ),
                         ),
                         builder: (context, labelText) {
                           final progress = _fillAnimationController.value;

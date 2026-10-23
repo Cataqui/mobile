@@ -61,7 +61,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                MateoText(
                   key: const ValueKey('job_time'),
                   widget.feedJob.createdAt.timeAgo(
                     onNow: () => i18n.feedJob.timeAgo.now,
@@ -71,7 +71,7 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
                     onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
                     fallback: TimeAgoFallback.finer,
                   ),
-                  style: TextStyle(
+                  presentation: .interface(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: colorScheme.text.tertiary,
@@ -80,23 +80,23 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(
+                  child: MateoText(
                     widget.feedJob.title,
                     key: const ValueKey('job_title'),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    presentation: .interface(
                       color: colorScheme.text.primary,
                       fontWeight: FontWeight.w600,
                       fontSize: 22,
                       height: 1.2,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
-                Text(
+                MateoText(
                   key: const ValueKey('job_payment'),
                   widget.feedJob.payment ?? i18n.jobPayment.paymentFlexible,
-                  style: TextStyle(
+                  presentation: .interface(
                     fontSize: 26,
                     color: colorScheme.text.profit,
                     fontWeight: FontWeight.w600,
@@ -105,16 +105,16 @@ class _FeedJobCardState extends ConsumerState<FeedJobCard> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Text(
+                  child: MateoText(
                     key: const ValueKey('job_description'),
                     widget.feedJob.descriptionSummary,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    presentation: .interface(
                       fontSize: 15,
                       color: colorScheme.text.secondary,
                       fontWeight: FontWeight.w500,
                       height: 1.3,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),

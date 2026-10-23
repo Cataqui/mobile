@@ -40,33 +40,33 @@ class _WelcomeJobCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                MateoText(
                   job.postedTime,
                   key: const ValueKey('welcome_job_posted_time'),
-                  style: TextStyle(
+                  presentation: .interface(
                     color: MateoTheme.of(context).colorScheme.text.tertiary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                MateoText(
                   job.title,
                   key: const ValueKey('welcome_job_title'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  presentation: .interface(
                     color: MateoTheme.of(context).colorScheme.text.primary,
                     fontSize: 22,
                     height: 1.15,
                     fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                MateoText(
                   job.amount,
                   key: const ValueKey('welcome_job_amount'),
-                  style: TextStyle(
+                  presentation: .interface(
                     color: MateoTheme.of(context).colorScheme.text.profit,
                     fontSize: 26,
                     height: 1.2,
@@ -74,16 +74,16 @@ class _WelcomeJobCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                MateoText(
                   job.description,
                   key: const ValueKey('welcome_job_description'),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  presentation: .interface(
                     color: MateoTheme.of(context).colorScheme.text.secondary,
                     fontSize: 15,
                     height: 1.25,
                     fontWeight: FontWeight.w500,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

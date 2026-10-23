@@ -59,10 +59,10 @@ void main() {
 
       for (var index = 0; index < 5; index += 1) {
         observedJobs.add((
-          postedTime: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_posted_time'))).data!,
-          title: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data!,
-          amount: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_amount'))).data!,
-          description: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_description'))).data!,
+          postedTime: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_posted_time'))).data,
+          title: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_title'))).data,
+          amount: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_amount'))).data,
+          description: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_description'))).data,
         ));
         await WelcomeViewTestHelpers.advanceToNextReducedMotionJob(tester);
       }
@@ -107,7 +107,7 @@ void main() {
                 observedJobs.length,
                 (index) => observedJobs[index] == expectedJobs[index],
               ).every((matches) => matches),
-          wrappedTitle: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data,
+          wrappedTitle: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_title'))).data,
         ),
         (jobsMatch: true, wrappedTitle: i18n.welcome.jobs.job1.title),
       );
@@ -641,13 +641,13 @@ void main() {
       await WelcomeViewTestHelpers.pumpView(tester: tester);
       final palette = MateoTheme.of(tester.element(find.byKey(const ValueKey('welcome_artwork_circle_top')))).palette;
       await tester.pump(const Duration(milliseconds: 2999));
-      final titleBeforeBoundary = tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data;
+      final titleBeforeBoundary = tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_title'))).data;
       await tester.pump(const Duration(milliseconds: 1));
 
       expect(
         (
           titleBeforeBoundary: titleBeforeBoundary,
-          titleAtBoundary: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data,
+          titleAtBoundary: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_title'))).data,
           artworkAtEndpoint: WelcomeViewTestHelpers.motionState(tester, 'welcome_artwork_transition_top'),
           circleColorAtBoundary: WelcomeViewTestHelpers.artworkCircleColor(tester, 'top'),
         ),
@@ -674,7 +674,7 @@ void main() {
         return state.opacity == 1 && state.scale == 1 && state.translation.distance < 0.001;
       });
       await tester.pump(const Duration(milliseconds: 2999));
-      final titleBeforeBoundary = tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data;
+      final titleBeforeBoundary = tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_title'))).data;
       await tester.pump(const Duration(milliseconds: 1));
 
       expect(
@@ -683,7 +683,7 @@ void main() {
           artworkStayedMounted: WelcomeViewTestHelpers.elementsAreIdentical(tester, mountedArtwork),
           artworkSettled: settledArtwork,
           titleBeforeBoundary: titleBeforeBoundary,
-          titleAtBoundary: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data,
+          titleAtBoundary: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_title'))).data,
         ),
         (
           artworkWasHeld: true,
@@ -764,7 +764,7 @@ void main() {
           stillRevealingAfterResume: effectAfterResume.curve,
           stillIdleBeforeDwell: effectBeforeIdleDwell.curve,
           returningAtDwell: effectAtIdleDwell.curve,
-          currentJob: tester.widget<Text>(find.byKey(const ValueKey('welcome_job_title'))).data,
+          currentJob: tester.widget<MateoText>(find.byKey(const ValueKey('welcome_job_title'))).data,
         ),
         (
           revealWasInProgress: true,

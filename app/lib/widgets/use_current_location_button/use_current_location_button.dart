@@ -269,9 +269,9 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    MateoText(
                       i18n.useCurrentLocationButton.title,
-                      style: TextStyle(
+                      presentation: .interface(
                         color: MateoTheme.of(context).colorScheme.text.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -289,15 +289,15 @@ class _UseCurrentLocationButtonState extends ConsumerState<UseCurrentLocationBut
                         children: [...previousChildren, if (currentChild != null) currentChild],
                       ),
                       transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-                      child: Text(
+                      child: MateoText(
                         description,
                         key: ValueKey(description),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        presentation: .interface(
                           color: MateoTheme.of(context).colorScheme.text.tertiary,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),

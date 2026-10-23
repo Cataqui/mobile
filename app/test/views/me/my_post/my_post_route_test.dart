@@ -25,7 +25,7 @@ import 'fake_my_post_state.dart';
 
 void main() {
   testWidgets('title reflows and payment follows at intermediate flight widths', (tester) async {
-    final summary = UserJobSummaryDto.fixture().copyWith(title: 'Mercado Pago');
+    final summary = UserJobSummaryDto.fixture().copyWith(title: 'Ajudante no mercado central');
 
     Future<({int titleLines, double paymentTop})> layoutAtWidth(double width) async {
       await tester.pumpWidget(
@@ -51,7 +51,7 @@ void main() {
     }
 
     final wrapped = await layoutAtWidth(290);
-    final unwrapped = await layoutAtWidth(350);
+    final unwrapped = await layoutAtWidth(370);
     expect(wrapped.titleLines, 2);
     expect(unwrapped.titleLines, 1);
     expect(wrapped.paymentTop, greaterThan(unwrapped.paymentTop));
@@ -65,7 +65,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     final summary = UserJobSummaryDto.fixture().copyWith(
       jobId: 'my-post-route-job',
-      title: 'Mercado Pago',
+      title: 'Ajudante no mercado central',
       descriptionSummary:
           'Preciso de ajuda para organizar o estoque e preparar as entregas de hoje no centro da cidade.',
     );

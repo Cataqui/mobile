@@ -150,7 +150,7 @@ class _PostViewState extends ConsumerState<PostView> with RouteAware {
       key: const ValueKey('post_view'),
       header: MateoViewHeader(
         key: const ValueKey('post_header'),
-        principal: Text(i18n.post.title),
+        principal: MateoText(i18n.post.title, presentation: const .interface()),
         leading: MateoButton(
           key: const ValueKey('post_close_button'),
           onPressed: () async {

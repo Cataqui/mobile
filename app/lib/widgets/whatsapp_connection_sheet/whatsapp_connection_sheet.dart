@@ -71,16 +71,16 @@ class WhatsappConnectionSheet extends ConsumerWidget {
             const SizedBox(height: 42),
             FractionallySizedBox(
               widthFactor: 0.9,
-              child: Text(
+              child: MateoText(
                 key: titleKey,
 
                 i18n.whatsappConnectionSheet.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
+                presentation: .interface(
                   color: colorScheme.text.primary,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   height: 1.2,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),

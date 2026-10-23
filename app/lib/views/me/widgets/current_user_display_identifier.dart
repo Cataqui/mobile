@@ -13,7 +13,12 @@ class CurrentUserDisplayIdentifier extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = MateoTheme.of(context).colorScheme;
-    final identifierStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colorScheme.text.primary);
+    final identifierPresentation = MateoTextPresentation.interface(
+      fontSize: 18,
+      textAlign: TextAlign.center,
+      fontWeight: FontWeight.w600,
+      color: colorScheme.text.primary,
+    );
     final loadingLabel = ref.watch(translationProvider).me.loadingSemanticLabel;
 
     return ref
@@ -21,12 +26,7 @@ class CurrentUserDisplayIdentifier extends ConsumerWidget {
         .when(
           data: (profile) => profile == null
               ? const SizedBox(height: _height)
-              : Text(
-                  profile.name,
-                  key: const ValueKey('me_identifier'),
-                  textAlign: TextAlign.center,
-                  style: identifierStyle,
-                ),
+              : MateoText(profile.name, key: const ValueKey('me_identifier'), presentation: identifierPresentation),
           error: (_, _) => const SizedBox(height: _height),
           loading: () => Center(
             child: Skeleton(
@@ -37,7 +37,7 @@ class CurrentUserDisplayIdentifier extends ConsumerWidget {
                 effect: const SkeletonFadeEffect(),
                 shape: const MateoRoundedShapeBorder.capsule(),
               ),
-              child: Text(loadingLabel, style: identifierStyle),
+              child: MateoText(loadingLabel, presentation: identifierPresentation),
             ),
           ),
         );

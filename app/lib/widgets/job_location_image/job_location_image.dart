@@ -121,9 +121,9 @@ class _JobLocationImageState extends ConsumerState<JobLocationImage> {
                                           Uri.parse('https://www.openstreetmap.org/copyright'),
                                           mode: LaunchMode.externalApplication,
                                         ),
-                                        child: Text(
+                                        child: MateoText(
                                           '© OpenStreetMap',
-                                          style: TextStyle(
+                                          presentation: .interface(
                                             fontSize: 10,
                                             color: Theme.of(context).colorScheme.onSurface,
                                           ),

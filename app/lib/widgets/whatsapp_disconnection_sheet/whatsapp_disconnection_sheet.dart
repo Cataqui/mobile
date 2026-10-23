@@ -103,14 +103,14 @@ class _WhatsappDisconnectionSheetState extends ConsumerState<WhatsappDisconnecti
               mainAxisSize: .min,
               crossAxisAlignment: .start,
               children: [
-                Text(
+                MateoText(
                   i18n.whatsappDisconnectionSheet.title,
-                  style: TextStyle(color: colorScheme.text.primary, fontSize: 20, fontWeight: FontWeight.w600),
+                  presentation: .interface(color: colorScheme.text.primary, fontSize: 20, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                MateoText(
                   i18n.whatsappDisconnectionSheet.description,
-                  style: TextStyle(
+                  presentation: .interface(
                     color: colorScheme.text.tertiary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,

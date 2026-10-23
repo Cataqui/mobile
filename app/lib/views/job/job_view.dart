@@ -96,7 +96,7 @@ class _JobViewState extends ConsumerState<JobView> {
                       key: ValueKey(transformTargets.header),
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        MateoText(
                           widget.feedJob.createdAt.timeAgo(
                             onNow: () => i18n.feedJob.timeAgo.now,
                             onMinutesAgo: (count) => i18n.feedJob.timeAgo.minutes(count: count),
@@ -105,27 +105,31 @@ class _JobViewState extends ConsumerState<JobView> {
                             onMonthsAgo: (count) => i18n.feedJob.timeAgo.months(count: count),
                             fallback: TimeAgoFallback.finer,
                           ),
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.text.tertiary),
+                          presentation: .interface(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.text.tertiary,
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: Text(
+                          child: MateoText(
                             widget.feedJob.title,
                             key: const ValueKey('job_title'),
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            presentation: .interface(
                               fontSize: 30,
                               fontWeight: FontWeight.w600,
                               color: colorScheme.text.primary,
                               height: 1.2,
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
-                        Text(
+                        MateoText(
                           key: const ValueKey('job_payment'),
                           widget.feedJob.payment ?? i18n.jobPayment.paymentFlexible,
-                          style: TextStyle(
+                          presentation: .interface(
                             fontSize: 30,
                             color: colorScheme.text.profit,
                             fontWeight: FontWeight.w600,
@@ -137,10 +141,10 @@ class _JobViewState extends ConsumerState<JobView> {
                             padding: const EdgeInsets.only(top: 12),
                             child: Motion(
                               effect: const FadeInMotionEffect(duration: Duration(milliseconds: 200)),
-                              child: Text(
+                              child: MateoText(
                                 jobData.job.description,
                                 key: const ValueKey('job_description'),
-                                style: TextStyle(
+                                presentation: .interface(
                                   fontSize: 16,
                                   color: colorScheme.text.secondary,
                                   fontWeight: FontWeight.w500,
@@ -166,11 +170,15 @@ class _JobViewState extends ConsumerState<JobView> {
                         effect: const SkeletonFadeEffect(),
                         shape: const MateoRoundedShapeBorder.capsule(),
                       ),
-                      child: Text(
+                      child: MateoText(
                         PublicJobDto.fixture().description,
-                        maxLines: 5,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 18, color: colorScheme.text.secondary, fontWeight: FontWeight.w600),
+                        presentation: .interface(
+                          fontSize: 18,
+                          color: colorScheme.text.secondary,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 5,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                   ),
@@ -202,26 +210,26 @@ class _JobViewState extends ConsumerState<JobView> {
         children: [
           $Illustrations.spilledCoffee(height: JobView._errorIllustrationHeight),
           const SizedBox(height: 20),
-          Text(
+          MateoText(
             i18n.job.error.title,
-            style: TextStyle(
+            presentation: .interface(
               fontSize: 18,
               color: MateoTheme.of(context).colorScheme.text.primary,
               fontWeight: FontWeight.bold,
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           FractionallySizedBox(
             widthFactor: 0.8,
-            child: Text(
+            child: MateoText(
               i18n.job.error.description,
-              style: TextStyle(
+              presentation: .interface(
                 fontSize: 16,
                 color: MateoTheme.of(context).colorScheme.text.secondary,
                 fontWeight: FontWeight.w500,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 24),

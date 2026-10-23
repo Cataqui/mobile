@@ -18,11 +18,11 @@ class PostDetailsInput extends ConsumerStatefulWidget {
 }
 
 class _PostDetailsInputState extends ConsumerState<PostDetailsInput> with SingleTickerProviderStateMixin {
-  static const _descriptionTextStyle = TextStyle(
+  TextStyle get _descriptionTextStyle => TextStyle(
     fontSize: 17,
     fontWeight: .w500,
-    fontFamily: MateoTypography.fontFamily,
-    letterSpacing: MateoTypography.letterSpacing,
+    fontFamily: MateoTypography.interfaceFontFamily,
+    letterSpacing: (MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling).scale(17) * -0.02,
   );
   static const _motionDuration = Duration(milliseconds: 200);
   static const Curve _motionCurve = Curves.easeOutCubic;

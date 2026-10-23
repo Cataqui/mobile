@@ -76,10 +76,14 @@ class MeView extends ConsumerWidget {
                   children: [
                     MateoIcon(.socialMediaPost, size: 26, color: colorScheme.text.tertiary),
                     const SizedBox(width: 4),
-                    Text(
+                    MateoText(
                       i18n.me.myPosts.title,
                       key: const ValueKey('me_posts_heading'),
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.text.tertiary),
+                      presentation: .interface(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.text.tertiary,
+                      ),
                     ),
                   ],
                 ),

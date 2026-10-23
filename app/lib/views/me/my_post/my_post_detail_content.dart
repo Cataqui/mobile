@@ -25,7 +25,7 @@ class MyPostDetailContent extends ConsumerWidget {
     final i18n = ref.watch(translationProvider);
     final detailState = ref.watch(myPostStateProvider(jobId));
     final data = detailState.asData?.value;
-    final descriptionStyle = TextStyle(
+    final descriptionPresentation = MateoTextPresentation.interface(
       fontSize: 16,
       fontWeight: .w500,
       height: 1.25,
@@ -56,10 +56,14 @@ class MyPostDetailContent extends ConsumerWidget {
                 const SizedBox(height: 20),
                 FractionallySizedBox(
                   widthFactor: 0.8,
-                  child: Text(
+                  child: MateoText(
                     i18n.me.myPost.error.title,
-                    textAlign: .center,
-                    style: TextStyle(fontSize: 16, fontWeight: .w500, color: theme.colorScheme.text.secondary),
+                    presentation: .interface(
+                      fontSize: 16,
+                      fontWeight: .w500,
+                      color: theme.colorScheme.text.secondary,
+                      textAlign: .center,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -83,14 +87,17 @@ class MyPostDetailContent extends ConsumerWidget {
             color: theme.colorScheme.skeleton.bone,
             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
           ),
-          child: Text(
+          child: MateoText(
             'Ajudar com um serviço por algumas horas. Precisamos de alguém disponível na região para começar logo.',
             key: const ValueKey('my_post_description'),
-            style: descriptionStyle,
+            presentation: descriptionPresentation,
           ),
         ),
-        data: (data) =>
-            Text(data.detail.description, key: const ValueKey('my_post_description'), style: descriptionStyle),
+        data: (data) => MateoText(
+          data.detail.description,
+          key: const ValueKey('my_post_description'),
+          presentation: descriptionPresentation,
+        ),
       ),
     );
     return MorphNode(

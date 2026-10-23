@@ -40,16 +40,14 @@ class LocationChip extends ConsumerWidget {
                   MateoIcon(.mapPin, size: 20, color: colors.foreground),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(
+                    child: MateoText(
                       locationTitle ?? ref.watch(translationProvider).post.location.chipTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      presentation: .interface(
                         color: colors.foreground,
-                        fontFamily: MateoTypography.fontFamily,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        letterSpacing: MateoTypography.letterSpacing,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),

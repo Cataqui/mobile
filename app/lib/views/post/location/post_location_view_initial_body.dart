@@ -36,16 +36,16 @@ class _PostLocationViewInitialBody extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  Text(
+                  MateoText(
                     ref.watch(translationProvider).post.location.emptyGuidance,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
+                    presentation: .interface(
                       color: switch (MateoTheme.of(context).brightness) {
                         Brightness.light => MateoTheme.of(context).colorScheme.text.tertiary,
                         Brightness.dark => throw UnsupportedError('LocationChip does not support dark mode.'),
                       },
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],

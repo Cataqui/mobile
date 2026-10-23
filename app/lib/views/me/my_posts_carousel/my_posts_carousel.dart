@@ -239,13 +239,13 @@ class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
                   key: const ValueKey('my_posts_empty_text_motion'),
                   delay: const Duration(milliseconds: 300),
                   startOffset: 24,
-                  child: Text(
+                  child: MateoText(
                     i18n.me.myPosts.empty,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
+                    presentation: .interface(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: MateoTheme.of(context).colorScheme.text.primary,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
@@ -428,18 +428,26 @@ class _MyPostsWidgetState extends ConsumerState<MyPostsCarousel> {
             children: [
               $Illustrations.crying(key: illustrationKey, width: 124),
               const SizedBox(height: 32),
-              Text(
+              MateoText(
                 title,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colorScheme.text.primary),
+                presentation: .interface(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.text.primary,
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 4),
               FractionallySizedBox(
                 widthFactor: .8,
-                child: Text(
+                child: MateoText(
                   description,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colorScheme.text.secondary),
+                  presentation: .interface(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.text.secondary,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

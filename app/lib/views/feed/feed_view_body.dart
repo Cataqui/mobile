@@ -272,26 +272,26 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
             width: FeedView._loadingMoreErrorIllustrationSize,
           ),
           const SizedBox(height: 30),
-          Text(
+          MateoText(
             i18n.feed.loadingMore.error.title,
-            style: TextStyle(
+            presentation: .interface(
               fontSize: 18,
               color: MateoTheme.of(context).colorScheme.text.primary,
               fontWeight: FontWeight.bold,
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           FractionallySizedBox(
             widthFactor: 0.7,
-            child: Text(
+            child: MateoText(
               i18n.feed.loadingMore.error.description,
-              style: TextStyle(
+              presentation: .interface(
                 fontSize: 16,
                 color: MateoTheme.of(context).colorScheme.text.secondary,
                 fontWeight: FontWeight.w500,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 24),
@@ -322,26 +322,26 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         children: [
           $Illustrations.emptyCitySaoPaulo(height: FeedView._emptyIllustrationHeight, colorBlendMode: BlendMode.hue),
           const SizedBox(height: 20),
-          Text(
+          MateoText(
             i18n.feed.empty.title,
-            style: TextStyle(
+            presentation: .interface(
               fontSize: 18,
               color: MateoTheme.of(context).colorScheme.text.primary,
               fontWeight: FontWeight.bold,
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           FractionallySizedBox(
             widthFactor: 0.7,
-            child: Text(
+            child: MateoText(
               i18n.feed.empty.description,
-              style: TextStyle(
+              presentation: .interface(
                 fontSize: 16,
                 color: MateoTheme.of(context).colorScheme.text.secondary,
                 fontWeight: FontWeight.w500,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 40),
@@ -412,26 +412,26 @@ class _FeedBodyContentState extends ConsumerState<_FeedViewBody> {
         children: [
           $Illustrations.locationPinRestingCracked(height: FeedView._errorIllustrationHeight),
           const SizedBox(height: 20),
-          Text(
+          MateoText(
             i18n.feed.error.title,
-            style: TextStyle(
+            presentation: .interface(
               fontSize: 18,
               color: MateoTheme.of(context).colorScheme.text.primary,
               fontWeight: FontWeight.bold,
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           FractionallySizedBox(
             widthFactor: 0.7,
-            child: Text(
+            child: MateoText(
               i18n.feed.error.description,
-              style: TextStyle(
+              presentation: .interface(
                 fontSize: 16,
                 color: MateoTheme.of(context).colorScheme.text.secondary,
                 fontWeight: FontWeight.w500,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 20),

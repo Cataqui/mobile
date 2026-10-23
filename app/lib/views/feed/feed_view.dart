@@ -117,16 +117,24 @@ class _FeedViewState extends ConsumerState<FeedView> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                Text(
+                MateoText(
                   'Só em São Paulo',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colorScheme.text.primary),
-                  textAlign: TextAlign.center,
+                  presentation: .interface(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.text.primary,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 const SizedBox(height: 3),
-                Text(
+                MateoText(
                   i18n.feed.locationAvailability.message,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.text.secondary),
-                  textAlign: TextAlign.center,
+                  presentation: .interface(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.text.secondary,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 const SizedBox(height: 24),
               ],

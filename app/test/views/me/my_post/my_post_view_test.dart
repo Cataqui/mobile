@@ -341,7 +341,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final summary = UserJobSummaryDto.fixture();
-    final detail = UserJobDto.fixture().copyWith(description: List.filled(35, 'Detalhes do trabalho.').join(' '));
+    final detail = UserJobDto.fixture().copyWith(description: List.filled(80, 'Detalhes do trabalho.').join(' '));
     await tester.pumpWidget(
       TestApp.screen(
         providerOverrides: [myPostStateProvider(summary.jobId).overrideWith(() => FakeMyPostState(AsyncData(detail)))],

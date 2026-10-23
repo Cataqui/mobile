@@ -103,8 +103,8 @@ class _AddContactViewState extends ConsumerState<AddContactView> {
                   ],
                 ),
                 style: TextStyle(
-                  fontFamily: MateoTypography.fontFamily,
-                  letterSpacing: MateoTypography.letterSpacing,
+                  fontFamily: MateoTypography.interfaceFontFamily,
+                  letterSpacing: (MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling).scale(26) * -0.02,
                   fontSize: 26,
                   fontWeight: .w600,
                   color: MateoTheme.of(context).colorScheme.text.primary,

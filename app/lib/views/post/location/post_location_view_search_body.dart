@@ -123,25 +123,25 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                MateoText(
                   primaryText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  presentation: .interface(
                     color: MateoTheme.of(context).colorScheme.text.primary,
                     fontSize: 16.5,
                     fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (secondaryText != null)
-                  Text(
+                  MateoText(
                     secondaryText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    presentation: .interface(
                       color: MateoTheme.of(context).colorScheme.text.tertiary,
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
               ],
@@ -263,13 +263,13 @@ class _PostLocationViewSearchBody extends ConsumerWidget {
         ),
         FadeInMotionEffect(curve: Curves.easeOutCubic, duration: Duration(milliseconds: 400)),
       ],
-      child: Text(
+      child: MateoText(
         message,
-        textAlign: TextAlign.center,
-        style: TextStyle(
+        presentation: .interface(
           color: MateoTheme.of(context).colorScheme.text.tertiary,
           fontSize: 16,
           fontWeight: FontWeight.w500,
+          textAlign: TextAlign.center,
         ),
       ),
     );

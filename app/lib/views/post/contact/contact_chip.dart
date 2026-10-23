@@ -40,17 +40,15 @@ class ContactChip extends ConsumerWidget {
                       MateoIcon(.phone, size: 20, color: colors.foreground),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(
+                    child: MateoText(
                       contact?.contactMethod.displayIdentifier(contact.identifier) ??
                           ref.watch(translationProvider).post.contact.chipTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      presentation: .interface(
                         color: colors.foreground,
-                        fontFamily: MateoTypography.fontFamily,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        letterSpacing: MateoTypography.letterSpacing,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),

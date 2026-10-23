@@ -107,13 +107,13 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
               return Center(
                 key: const ValueKey('post_contact_empty'),
                 heightFactor: 1,
-                child: Text(
+                child: MateoText(
                   i18n.post.contact.empty,
-                  textAlign: .center,
-                  style: TextStyle(
+                  presentation: .interface(
                     color: MateoTheme.of(context).colorScheme.text.tertiary,
                     fontSize: 16,
                     fontWeight: .w500,
+                    textAlign: .center,
                   ),
                 ),
               );
@@ -144,13 +144,13 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
           error: (_, _) => Center(
             key: const ValueKey('post_contact_error'),
             heightFactor: 1,
-            child: Text(
+            child: MateoText(
               i18n.post.contact.error,
-              textAlign: .center,
-              style: TextStyle(
+              presentation: .interface(
                 color: MateoTheme.of(context).colorScheme.text.tertiary,
                 fontSize: 16,
                 fontWeight: .w500,
+                textAlign: .center,
               ),
             ),
           ),
@@ -200,11 +200,15 @@ class _PostContactViewState extends ConsumerState<PostContactView> {
           contactMethod.icon(size: 42, color: iconColors.foreground, backgroundColor: iconColors.background),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(
+            child: MateoText(
               displayIdentifier,
-              maxLines: 1,
-              overflow: .ellipsis,
-              style: TextStyle(color: MateoTheme.of(context).colorScheme.text.primary, fontSize: 17, fontWeight: .w600),
+              presentation: .interface(
+                color: MateoTheme.of(context).colorScheme.text.primary,
+                fontSize: 17,
+                fontWeight: .w600,
+                maxLines: 1,
+                overflow: .ellipsis,
+              ),
             ),
           ),
         ],

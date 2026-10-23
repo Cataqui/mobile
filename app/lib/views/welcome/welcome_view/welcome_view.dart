@@ -243,15 +243,15 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                                     children: [
                                       Semantics(
                                         header: true,
-                                        child: Text(
+                                        child: MateoText(
                                           i18n.welcome.headline,
                                           key: const ValueKey('welcome_headline'),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
+                                          presentation: .interface(
                                             color: MateoTheme.of(context).colorScheme.text.primary,
                                             fontSize: 28,
                                             height: 1.12,
                                             fontWeight: FontWeight.w600,
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
                                       ),
@@ -276,8 +276,10 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
                                           key: const ValueKey('welcome_subtitle'),
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
+                                            fontFamily: MateoTypography.interfaceFontFamily,
                                             color: MateoTheme.of(context).colorScheme.text.tertiary,
                                             fontSize: 17,
+                                            letterSpacing: MediaQuery.textScalerOf(context).scale(17) * -0.02,
                                             height: 1.2,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -368,9 +370,11 @@ class _WelcomeViewState extends ConsumerState<WelcomeView> {
           ),
           textAlign: TextAlign.center,
           style: TextStyle(
+            fontFamily: MateoTypography.interfaceFontFamily,
             color: MateoTheme.of(context).colorScheme.text.tertiary,
             decorationColor: MateoTheme.of(context).colorScheme.text.tertiary,
             fontSize: 13,
+            letterSpacing: MediaQuery.textScalerOf(context).scale(13) * -0.02,
             height: 1.25,
             fontWeight: FontWeight.w500,
           ),

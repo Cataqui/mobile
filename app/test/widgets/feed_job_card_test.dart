@@ -132,7 +132,7 @@ void main() {
         await tester.pumpWidget(_FeedJobCardTestHelpers.wrap(FeedJobCard(feedJob: feedJob)));
         await tester.pumpAndSettle();
 
-        expect(tester.widget<Text>(find.byKey(const ValueKey('job_payment'))).data, '');
+        expect(tester.widget<MateoText>(find.byKey(const ValueKey('job_payment'))).data, '');
       });
 
       testWidgets('when created with a job, it should display the description', (tester) async {

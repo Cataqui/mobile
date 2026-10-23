@@ -63,7 +63,7 @@ void main() {
 
         expect(
           (
-            title: tester.widget<Text>(find.byKey(WhatsappConnectionSheet.titleKey)).data,
+            title: tester.widget<MateoText>(find.byKey(WhatsappConnectionSheet.titleKey)).data,
             keysAssetName: (keysAssetImage as AssetImage).assetName,
             connectionButtonCount: find.byType(WhatsappConnectionButton).evaluate().length,
           ),

@@ -61,12 +61,16 @@ class MyPostDetailChips extends ConsumerWidget {
           const SizedBox(width: 6),
           Flexible(
             fit: .loose,
-            child: Text(
+            child: MateoText(
               text,
-              maxLines: 1,
-              softWrap: false,
-              overflow: .clip,
-              style: TextStyle(fontSize: 15, fontWeight: .w600, color: theme.colorScheme.text.secondary),
+              presentation: .interface(
+                fontSize: 15,
+                fontWeight: .w600,
+                color: theme.colorScheme.text.secondary,
+                maxLines: 1,
+                softWrap: false,
+                overflow: .clip,
+              ),
             ),
           ),
         ],

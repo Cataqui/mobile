@@ -47,20 +47,35 @@ class MyPostHeaderSurface extends StatelessWidget {
           crossAxisAlignment: .start,
           mainAxisSize: .min,
           children: [
-            Text(
+            MateoText(
               timeAgo,
-              style: TextStyle(fontSize: 14, fontWeight: .w500, color: theme.colorScheme.text.tertiary, height: 1.3),
+              presentation: .interface(
+                fontSize: 14,
+                fontWeight: .w500,
+                color: theme.colorScheme.text.tertiary,
+                height: 1.3,
+              ),
             ),
             const SizedBox(height: 4),
-            Text(
+            MateoText(
               summary.title,
-              maxLines: 2,
-              overflow: .ellipsis,
-              style: TextStyle(fontSize: 22, fontWeight: .w600, color: theme.colorScheme.text.primary, height: 1.2),
+              presentation: .interface(
+                fontSize: 22,
+                fontWeight: .w600,
+                color: theme.colorScheme.text.primary,
+                height: 1.2,
+                maxLines: 2,
+                overflow: .ellipsis,
+              ),
             ),
-            Text(
+            MateoText(
               payment,
-              style: TextStyle(fontSize: 24, fontWeight: .w600, color: theme.colorScheme.text.profit, height: 1.15),
+              presentation: .interface(
+                fontSize: 24,
+                fontWeight: .w600,
+                color: theme.colorScheme.text.profit,
+                height: 1.15,
+              ),
             ),
             if (description != null) ...[
               SizedBox(height: lerpDouble(2 * descriptionOpacity, 0, expansion)),
@@ -72,15 +87,15 @@ class MyPostHeaderSurface extends StatelessWidget {
                     heightFactor: descriptionOpacity,
                     child: Opacity(
                       opacity: descriptionOpacity,
-                      child: Text(
+                      child: MateoText(
                         description!,
-                        maxLines: 3,
-                        overflow: .ellipsis,
-                        style: TextStyle(
+                        presentation: .interface(
                           fontSize: 14,
                           fontWeight: .w500,
                           color: theme.colorScheme.text.secondary,
                           height: 1.3,
+                          maxLines: 3,
+                          overflow: .ellipsis,
                         ),
                       ),
                     ),

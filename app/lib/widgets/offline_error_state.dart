@@ -26,19 +26,27 @@ class OfflineErrorState extends StatelessWidget {
         children: [
           $Illustrations.wifiExclamation(height: _illustrationHeight),
           const SizedBox(height: 20),
-          Text(
+          MateoText(
             title,
-            style: TextStyle(fontSize: 18, color: colorScheme.text.primary, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+            presentation: .interface(
+              fontSize: 18,
+              color: colorScheme.text.primary,
+              fontWeight: FontWeight.bold,
+              textAlign: TextAlign.center,
+            ),
           ),
           if (description != null) ...[
             const SizedBox(height: 4),
             FractionallySizedBox(
               widthFactor: 0.7,
-              child: Text(
+              child: MateoText(
                 description!,
-                style: TextStyle(fontSize: 16, color: colorScheme.text.secondary, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
+                presentation: .interface(
+                  fontSize: 16,
+                  color: colorScheme.text.secondary,
+                  fontWeight: FontWeight.w500,
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ],
